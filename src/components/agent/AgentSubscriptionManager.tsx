@@ -66,17 +66,23 @@ export default function AgentSubscriptionManager() {
 
   const subscribe = async () => {
     if (!user) return;
-    if (wallet < total) {
-      toast.error(`Insufficient wallet balance. Need ${money(total, currency)}, have ${money(wallet, currency)}`);
+    if (!(total > 0)) {
+      toast.error("Subscription price is not configured yet.");
       return;
     }
     setSubscribing(true);
     try {
+      // Direct Razorpay payment for the exact subscription amount
+      await startWalletTopUp(Math.max(Math.ceil(total), 500), {
+        name: (user as any)?.user_metadata?.full_name,
+        email: user.email,
+        contact: (user as any)?.user_metadata?.phone,
+      });
       const { data, error } = await (supabase as any).rpc("purchase_agent_subscription", { _user_id: user.id });
       if (error) throw error;
       if (!data?.ok) {
         const reasons: Record<string, string> = {
-          insufficient_funds: "Not enough wallet balance. Please top up and try again.",
+          insufficient_funds: "Payment received but subscription could not be activated. Please contact support.",
           subscription_disabled: "Agent subscriptions are currently disabled by the admin.",
           forbidden: "You are not allowed to perform this action.",
         };
@@ -87,7 +93,7 @@ export default function AgentSubscriptionManager() {
       window.dispatchEvent(new Event("walletUpdated"));
       await load();
     } catch (e: any) {
-      toast.error(e.message || "Subscription failed");
+      toast.error(e.message || "Payment failed");
     } finally {
       setSubscribing(false);
     }
