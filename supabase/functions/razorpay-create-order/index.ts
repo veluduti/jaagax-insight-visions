@@ -31,7 +31,11 @@ Deno.serve(async (req) => {
       booked_by_agent_id = null,
     } = body;
 
-    if (!hotel_id || !room_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone) {
+    const groups = Array.isArray(body.groups) ? body.groups : [];
+    const isMulti = groups.length > 0;
+
+    if (!hotel_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone
+      || (!isMulti && !room_id)) {
       return json({ error: "Missing required fields" }, 400);
     }
 
