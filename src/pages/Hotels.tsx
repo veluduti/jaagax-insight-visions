@@ -417,14 +417,16 @@ const Hotels = () => {
         }
       }
 
-      // Occupancy: hotel must have room(s) that can actually host the guests
-      const totalGuests = adults + children;
+      // Occupancy: hotel must have room(s) that can actually host the guests,
+      // either a single fitting room or a valid multi-room combination.
       const hotelRooms = roomsByHotel[hotel.id] || [];
       const matchesOccupancy =
         hotelRooms.length === 0
           ? false
-          : roomsFittingGuests(hotelRooms, totalGuests, rooms).length > 0 ||
-            buildRoomCombinations(hotelRooms, totalGuests, { maxRooms: Math.max(rooms, 4), limit: 1 }).length > 0;
+          : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
+            buildRoomCombinations(hotelRooms, adults, children, {
+              maxRooms: Math.max(rooms, 4), limit: 1,
+            }).length > 0;
 
       return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
     });
