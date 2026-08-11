@@ -366,10 +366,7 @@ const HotelDetail = () => {
             </div>
 
             {(hotel.contact_phone || hotel.contact_email) && (
-              <div className="flex flex-wrap gap-4 mt-4 text-xs text-muted-foreground">
-                {hotel.contact_phone && <span>Phone: <span className="font-semibold text-foreground">{hotel.contact_phone}</span></span>}
-                {hotel.contact_email && <span>Email: <span className="font-semibold text-foreground">{hotel.contact_email}</span></span>}
-              </div>
+            
             )}
           </section>
 
