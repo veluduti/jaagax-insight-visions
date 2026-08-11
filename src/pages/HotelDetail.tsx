@@ -366,24 +366,7 @@ const HotelDetail = () => {
             </div>
 
             {(hotel.contact_phone || hotel.contact_email) && (
-              <div className="flex flex-wrap gap-3 mt-4">
-                {hotel.contact_phone && (
-                  <a
-                    href={`tel:${hotel.contact_phone}`}
-                    className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition"
-                  >
-                    <Phone className="h-4 w-4 text-primary" /> {hotel.contact_phone}
-                  </a>
-                )}
-                {hotel.contact_email && (
-                  <a
-                    href={`mailto:${hotel.contact_email}`}
-                    className="inline-flex items-center gap-2 text-sm hover:text-primary transition"
-                  >
-                    <Mail className="h-4 w-4 text-primary" /> {hotel.contact_email}
-                  </a>
-                )}
-              </div>
+            
             )}
           </section>
 
