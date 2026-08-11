@@ -364,11 +364,8 @@ const HotelDetail = () => {
                 </span>
               )}
             </div>
-
-            {(hotel.contact_phone || hotel.contact_email) && (
-            
-            )}
           </section>
+
 
           {/* 3 — AVAILABILITY */}
           <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
@@ -496,71 +493,6 @@ const HotelDetail = () => {
             </section>
           )}
 
-          {/* 6 — POLICIES (only manager-provided) */}
-          {(policyEntries.length > 0 || hotel.check_in_time || hotel.check_out_time) && (
-            <section>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Info className="h-5 w-5 text-primary" />
-                Policies
-              </h2>
-              <div className="grid md:grid-cols-2 gap-3">
-                {hotel.check_in_time && (
-                  <div className="rounded-xl border border-border/50 bg-card p-4">
-                    <p className="text-xs text-muted-foreground mb-1">Check-in</p>
-                    <p className="text-sm font-medium">From {hotel.check_in_time}</p>
-                  </div>
-                )}
-                {hotel.check_out_time && (
-                  <div className="rounded-xl border border-border/50 bg-card p-4">
-                    <p className="text-xs text-muted-foreground mb-1">Check-out</p>
-                    <p className="text-sm font-medium">By {hotel.check_out_time}</p>
-                  </div>
-                )}
-                {policyEntries.map(([key, value]) => (
-                  <div key={key} className="rounded-xl border border-border/50 bg-card p-4">
-                    <p className="text-xs text-muted-foreground mb-1">{humanize(key)}</p>
-                    <p className="text-sm font-medium whitespace-pre-line">
-                      {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* 7 — BOOKING */}
-          <section
-            id="booking"
-            className="rounded-2xl border border-border bg-gradient-to-br from-primary/8 via-primary/4 to-transparent p-5 md:p-6"
-          >
-            <h2 className="text-lg font-semibold mb-1">Book your stay</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Rates and taxes are confirmed on the selected room at checkout.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                className="flex-1 h-12 text-sm font-semibold gap-2 shadow-md"
-                onClick={() => {
-                  setBookingType("hotel_only");
-                  setBookingModalOpen(true);
-                }}
-              >
-                <BedDouble className="h-4 w-4" />
-                Book Hotel Only
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 h-12 text-sm font-semibold gap-2 bg-background/70"
-                onClick={() => {
-                  setBookingType("visit_stay");
-                  setBookingModalOpen(true);
-                }}
-              >
-                <Calendar className="h-4 w-4" />
-                Book with Site Visit
-              </Button>
-            </div>
-          </section>
         </div>
       </main>
 
