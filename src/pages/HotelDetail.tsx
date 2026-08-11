@@ -364,11 +364,8 @@ const HotelDetail = () => {
                 </span>
               )}
             </div>
-
-            {(hotel.contact_phone || hotel.contact_email) && (
-            
-            )}
           </section>
+
 
           {/* 3 — AVAILABILITY */}
           <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
