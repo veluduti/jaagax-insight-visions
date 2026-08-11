@@ -7,8 +7,6 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Star,
@@ -19,27 +17,20 @@ import {
   BedDouble,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Building2,
-  Globe,
-  CreditCard,
   Heart,
   Share2,
-  Navigation2,
-  Sun,
-  Moon,
+  Clock,
   BadgeCheck,
   Images,
   ShieldCheck,
-  Award,
+  Sparkles,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
-import HotelSpecsGrid from "@/components/hotels/HotelSpecsGrid";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
-import HotelPolicies from "@/components/hotels/HotelPolicies";
-import HotelNearbyAttractions from "@/components/hotels/HotelNearbyAttractions";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 
 interface HotelData {
@@ -56,15 +47,11 @@ interface HotelData {
   contact_phone: string | null;
   contact_email: string | null;
   partner_since: string | null;
-  description?: string;
-  total_rooms?: number;
-  check_in_time?: string;
-  check_out_time?: string;
-  languages_spoken?: string[];
-  accepts_cards?: boolean;
-  pet_friendly?: boolean;
-  wheelchair_accessible?: boolean;
-  smoking_allowed?: boolean;
+  description?: string | null;
+  total_rooms?: number | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  policies?: Record<string, any> | null;
 }
 
 const FALLBACK_IMG =
@@ -83,6 +70,8 @@ const titleCase = (s?: string | null) =>
     .toLowerCase()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+const humanize = (s: string) => s.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 const HotelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -99,7 +88,6 @@ const HotelDetail = () => {
   const [adults, setAdults] = useState<number>(2);
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [roomsWanted, setRoomsWanted] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<string>("specs");
   const [searchNonce, setSearchNonce] = useState(0);
 
   useEffect(() => {
@@ -146,16 +134,15 @@ const HotelDetail = () => {
     );
   }
 
-  // ---- Safe derived values (fix stray "0" rendering) ----
   const discountPct = Number(hotel.discount_percentage) || 0;
   const hasDiscount = discountPct > 0;
-  const basePrice = Number(hotel.price_per_night) || 0;
-  const hasPrice = basePrice > 0;
-  const discountedPrice = hasDiscount ? basePrice * (1 - discountPct / 100) : basePrice;
-  const savings = hasDiscount && hasPrice ? Math.round(basePrice - discountedPrice) : 0;
-
   const starCount = Math.max(0, Math.min(5, Math.round(Number(hotel.star_rating) || 0)));
   const totalRooms = Number(hotel.total_rooms) || 0;
+  const amenities = (hotel.amenities || []).filter(Boolean);
+
+  const policyEntries = Object.entries(hotel.policies || {}).filter(
+    ([, v]) => v !== null && v !== undefined && String(v).trim() !== ""
+  );
 
   const locLocality = titleCase(hotel.locality);
   const locCity = titleCase(hotel.city);
@@ -175,20 +162,9 @@ const HotelDetail = () => {
   const nextImage = () => setCurrentImageIndex((p) => (p + 1) % images.length);
   const prevImage = () => setCurrentImageIndex((p) => (p - 1 + images.length) % images.length);
 
-  const quickInfo = [
-    { icon: <Sun className="h-4 w-4" />, label: "Check-in", value: hotel.check_in_time || "14:00" },
-    { icon: <Moon className="h-4 w-4" />, label: "Check-out", value: hotel.check_out_time || "12:00" },
-    {
-      icon: <Globe className="h-4 w-4" />,
-      label: "Languages",
-      value: (hotel.languages_spoken || []).slice(0, 2).join(", ") || "English",
-    },
-    {
-      icon: <CreditCard className="h-4 w-4" />,
-      label: "Payment",
-      value: hotel.accepts_cards ? "Cards Accepted" : "Cash Only",
-    },
-  ];
+  const scrollToId = (elId: string) => {
+    document.getElementById(elId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -196,33 +172,34 @@ const HotelDetail = () => {
 
       <main className="flex-1">
         {/* Breadcrumb */}
-        <div className="container mx-auto max-w-7xl px-4 pt-5 pb-3">
+        <div className="container mx-auto max-w-5xl px-4 pt-5 pb-3">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
             <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">
               Hotels
             </button>
             <span className="opacity-50">/</span>
-            <span className="hover:text-foreground transition-colors cursor-pointer">{locCity}</span>
+            <span>{locCity}</span>
             <span className="opacity-50">/</span>
-            <span className="text-foreground font-medium truncate max-w-[240px]">{hotel.name}</span>
+            <span className="text-foreground font-medium truncate max-w-[240px]">{titleCase(hotel.name)}</span>
           </div>
         </div>
 
-        {/* Hero Gallery — magazine-style */}
-        <section className="container mx-auto max-w-7xl px-4">
+        {/* 1 — HOTEL PHOTOS */}
+        <section className="container mx-auto max-w-5xl px-4">
           <div className="relative">
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[460px] rounded-2xl overflow-hidden">
-              {/* Main image */}
+            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[440px] rounded-2xl overflow-hidden">
               <button
                 type="button"
                 onClick={() => setGalleryOpen(true)}
-                className="relative col-span-4 md:col-span-2 row-span-2 group overflow-hidden"
+                className={`relative row-span-2 group overflow-hidden ${
+                  images.length > 1 ? "col-span-4 md:col-span-2" : "col-span-4"
+                }`}
               >
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={currentImageIndex}
                     src={images[currentImageIndex] || FALLBACK_IMG}
-                    alt={hotel.name}
+                    alt={`${hotel.name} photo`}
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0, scale: 1.03 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -230,47 +207,40 @@ const HotelDetail = () => {
                     transition={{ duration: 0.35 }}
                   />
                 </AnimatePresence>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-70 pointer-events-none" />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    prevImage();
-                  }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    nextImage();
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prevImage();
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        nextImage();
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
               </button>
 
-              {/* Side tiles */}
-              {[1, 2, 3, 4].map((offset, i) => {
-                const img = images[offset];
-                if (!img) {
-                  return (
-                    <div
-                      key={i}
-                      className="hidden md:flex col-span-1 row-span-1 bg-muted items-center justify-center"
-                    >
-                      <Building2 className="h-6 w-6 text-muted-foreground/30" />
-                    </div>
-                  );
-                }
+              {/* Side tiles — only real photos */}
+              {images.slice(1, 5).map((img, i) => {
+                const offset = i + 1;
                 const isLast = i === 3;
                 const extra = images.length - 5;
                 return (
                   <button
-                    key={i}
+                    key={offset}
                     type="button"
                     onClick={() => {
                       setCurrentImageIndex(offset);
@@ -280,7 +250,7 @@ const HotelDetail = () => {
                   >
                     <img
                       src={img}
-                      alt=""
+                      alt={`${hotel.name} photo ${offset + 1}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       decoding="async"
@@ -295,406 +265,320 @@ const HotelDetail = () => {
               })}
             </div>
 
-            {/* Floating chips */}
-            <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
-              {hasDiscount && (
-                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white border-0 shadow-lg px-3 py-1.5 text-xs font-semibold">
-                  {discountPct}% OFF · JaagaX Exclusive
-                </Badge>
-              )}
-            </div>
-            <div className="absolute top-4 right-4 flex gap-2">
-              <Badge
-                variant="secondary"
-                className="gap-1.5 bg-background/95 backdrop-blur shadow-md px-2.5 py-1.5"
-              >
-                <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">Verified Partner</span>
+            {hasDiscount && (
+              <Badge className="absolute top-4 left-4 bg-emerald-500 hover:bg-emerald-500 text-white border-0 shadow-lg px-3 py-1.5 text-xs font-semibold">
+                {discountPct}% OFF
               </Badge>
-            </div>
+            )}
 
-            {/* Bottom-right: view all photos */}
-            <button
-              onClick={() => setGalleryOpen(true)}
-              className="absolute bottom-4 right-4 gap-2 inline-flex items-center px-3.5 py-2 rounded-lg bg-background/95 backdrop-blur shadow-md text-xs font-semibold hover:bg-background transition"
-            >
-              <Images className="h-3.5 w-3.5" />
-              View all {images.length} photos
-            </button>
-
-            {/* Mobile dots */}
-            <div className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-              {images.slice(0, 6).map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === currentImageIndex ? "w-5 bg-white" : "w-1.5 bg-white/60"
-                  }`}
-                />
-              ))}
-            </div>
+            {images.length > 1 && (
+              <button
+                onClick={() => setGalleryOpen(true)}
+                className="absolute bottom-4 right-4 gap-2 inline-flex items-center px-3.5 py-2 rounded-lg bg-background/95 backdrop-blur shadow-md text-xs font-semibold hover:bg-background transition"
+              >
+                <Images className="h-3.5 w-3.5" />
+                View all {images.length} photos
+              </button>
+            )}
           </div>
         </section>
 
-        {/* Main Content */}
-        <section className="container mx-auto max-w-7xl px-4 py-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* LEFT */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Header */}
-              <header className="space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 space-y-2">
-                    <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-tight text-foreground">
-                      {titleCase(hotel.name)}
-                    </h1>
-                    <div className="flex items-center gap-3 flex-wrap text-sm">
+        <div className="container mx-auto max-w-5xl px-4 py-8 space-y-10">
+          {/* 2 — BASIC HOTEL INFORMATION */}
+          <section>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 space-y-2">
+                <h1 className="text-3xl md:text-[2.25rem] font-bold tracking-tight leading-tight text-foreground">
+                  {titleCase(hotel.name)}
+                </h1>
+                <div className="flex items-center gap-3 flex-wrap text-sm">
+                  {starCount > 0 && (
+                    <>
                       <div className="flex gap-0.5">{renderStars(starCount)}</div>
-                      {starCount > 0 && (
-                        <span className="text-muted-foreground">
-                          {starCount}-Star Hotel
-                        </span>
-                      )}
-                      {locationLine && (
-                        <>
-                          <span className="text-muted-foreground/40">·</span>
-                          <span className="text-muted-foreground inline-flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {locationLine}
-                          </span>
-                        </>
-                      )}
-                      {totalRooms > 0 && (
-                        <>
-                          <span className="text-muted-foreground/40">·</span>
-                          <span className="text-muted-foreground">{totalRooms} Rooms</span>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary">
-                        <ShieldCheck className="h-3 w-3" /> JaagaX Verified
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600">
-                        <Award className="h-3 w-3" /> Preferred Partner
-                      </span>
-                      {hotel.pet_friendly && (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-                          Pet Friendly
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full h-10 w-10"
-                      onClick={() => {
-                        setLiked(!liked);
-                        toast.success(liked ? "Removed from wishlist" : "Added to wishlist");
-                      }}
-                    >
-                      <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full h-10 w-10"
-                      onClick={() => {
-                        navigator.clipboard.writeText(window.location.href);
-                        toast.success("Link copied!");
-                      }}
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <span className="text-muted-foreground">{starCount}-Star</span>
+                    </>
+                  )}
+                  {locationLine && (
+                    <span className="text-muted-foreground inline-flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {locationLine}
+                    </span>
+                  )}
+                  {totalRooms > 0 && <span className="text-muted-foreground">{totalRooms} Rooms</span>}
                 </div>
+                {hotel.address && <p className="text-sm text-muted-foreground">{hotel.address}</p>}
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-10 w-10"
+                  onClick={() => {
+                    setLiked(!liked);
+                    toast.success(liked ? "Removed from wishlist" : "Added to wishlist");
+                  }}
+                >
+                  <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-10 w-10"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link copied!");
+                  }}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-                {hotel.description && (
-                  <p className="text-muted-foreground leading-relaxed">{hotel.description}</p>
-                )}
-              </header>
+            {hotel.description && (
+              <p className="text-muted-foreground leading-relaxed mt-4">{hotel.description}</p>
+            )}
 
-              {/* Quick info chips */}
-              <div className="flex flex-wrap gap-2">
-                {quickInfo.map((item, i) => (
-                  <div
-                    key={i}
-                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5"
+            {/* Only real, manager-provided facts */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {hotel.check_in_time && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
+                  <Clock className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-muted-foreground">Check-in</span>
+                  <span className="font-semibold">{hotel.check_in_time}</span>
+                </span>
+              )}
+              {hotel.check_out_time && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
+                  <Clock className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-muted-foreground">Check-out</span>
+                  <span className="font-semibold">{hotel.check_out_time}</span>
+                </span>
+              )}
+              {hotel.partner_since && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
+                  <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-muted-foreground">Partner since</span>
+                  <span className="font-semibold">
+                    {new Date(hotel.partner_since).toLocaleDateString("en-IN", { year: "numeric", month: "short" })}
+                  </span>
+                </span>
+              )}
+            </div>
+
+            {(hotel.contact_phone || hotel.contact_email) && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                {hotel.contact_phone && (
+                  <a
+                    href={`tel:${hotel.contact_phone}`}
+                    className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition"
                   >
-                    <span className="text-primary">{item.icon}</span>
-                    <span className="text-xs text-muted-foreground">{item.label}</span>
-                    <span className="text-xs font-semibold text-foreground">{item.value}</span>
+                    <Phone className="h-4 w-4 text-primary" /> {hotel.contact_phone}
+                  </a>
+                )}
+                {hotel.contact_email && (
+                  <a
+                    href={`mailto:${hotel.contact_email}`}
+                    className="inline-flex items-center gap-2 text-sm hover:text-primary transition"
+                  >
+                    <Mail className="h-4 w-4 text-primary" /> {hotel.contact_email}
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* 3 — AVAILABILITY */}
+          <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
+            <h2 className="text-sm font-semibold mb-3">Check availability</h2>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
+                <input
+                  type="date"
+                  value={checkIn}
+                  min={todayISO()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setCheckIn(v);
+                    if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
+                  }}
+                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
+                <input
+                  type="date"
+                  value={checkOut}
+                  min={nextDayISO(checkIn) || todayISO()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
+                      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                      return;
+                    }
+                    setCheckOut(v);
+                  }}
+                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={adults}
+                  onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
+                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Children</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={childrenCount}
+                  onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
+                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={roomsWanted}
+                  onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
+                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <Button
+                className="h-10 font-semibold"
+                onClick={() => {
+                  if (checkOut <= checkIn) {
+                    toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                    return;
+                  }
+                  setSearchNonce((n) => n + 1);
+                  scrollToId("rooms");
+                }}
+              >
+                Search Rooms
+              </Button>
+            </div>
+          </section>
+
+          {/* 4 — ROOMS */}
+          <section id="rooms" className="scroll-mt-24">
+            <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+              <BedDouble className="h-5 w-5 text-primary" />
+              Rooms
+            </h2>
+            <HotelRoomTypes
+              key={searchNonce}
+              hotelId={hotel.id}
+              hotelName={hotel.name}
+              hotelCity={hotel.city}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              adults={adults}
+              children={childrenCount}
+              roomsWanted={roomsWanted}
+            />
+          </section>
+
+          {/* 5 — AMENITIES (only if provided) */}
+          {amenities.length > 0 && (
+            <section>
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Amenities & Facilities
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {amenities.map((amenity) => (
+                  <div
+                    key={amenity}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/40"
+                  >
+                    <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <ShieldCheck className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-medium">{amenity}</span>
                   </div>
                 ))}
               </div>
+            </section>
+          )}
 
-              {/* Availability search */}
-              <div className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold">Check availability</h2>
-                  <span className="text-[11px] text-muted-foreground">Instant confirmation</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                  <div className="flex flex-col">
-                    <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
-                    <input
-                      type="date"
-                      value={checkIn}
-                      min={todayISO()}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setCheckIn(v);
-                        if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
-                      }}
-                      className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                    />
+          {/* 6 — POLICIES (only manager-provided) */}
+          {(policyEntries.length > 0 || hotel.check_in_time || hotel.check_out_time) && (
+            <section>
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                <Info className="h-5 w-5 text-primary" />
+                Policies
+              </h2>
+              <div className="grid md:grid-cols-2 gap-3">
+                {hotel.check_in_time && (
+                  <div className="rounded-xl border border-border/50 bg-card p-4">
+                    <p className="text-xs text-muted-foreground mb-1">Check-in</p>
+                    <p className="text-sm font-medium">From {hotel.check_in_time}</p>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
-                    <input
-                      type="date"
-                      value={checkOut}
-                      min={nextDayISO(checkIn) || todayISO()}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
-                          toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                          return;
-                        }
-                        setCheckOut(v);
-                      }}
-                      className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                    />
+                )}
+                {hotel.check_out_time && (
+                  <div className="rounded-xl border border-border/50 bg-card p-4">
+                    <p className="text-xs text-muted-foreground mb-1">Check-out</p>
+                    <p className="text-sm font-medium">By {hotel.check_out_time}</p>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      value={adults}
-                      onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
-                      className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                    />
+                )}
+                {policyEntries.map(([key, value]) => (
+                  <div key={key} className="rounded-xl border border-border/50 bg-card p-4">
+                    <p className="text-xs text-muted-foreground mb-1">{humanize(key)}</p>
+                    <p className="text-sm font-medium whitespace-pre-line">
+                      {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+                    </p>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-[11px] text-muted-foreground mb-1">Children</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={10}
-                      value={childrenCount}
-                      onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
-                      className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={roomsWanted}
-                      onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
-                      className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                    />
-                  </div>
-                  <Button
-                    className="h-10 font-semibold"
-                    onClick={() => {
-                      if (checkOut <= checkIn) {
-                        toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                        return;
-                      }
-                      setActiveTab("rooms");
-                      setSearchNonce((n) => n + 1);
-                    }}
-                  >
-                    Search Rooms
-                  </Button>
-                </div>
+                ))}
               </div>
+            </section>
+          )}
 
-              {/* Tabs */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full grid grid-cols-4 h-12 rounded-xl bg-muted/60 p-1">
-                  <TabsTrigger value="specs" className="text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                    Overview
-                  </TabsTrigger>
-                  <TabsTrigger value="rooms" className="text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                    Rooms
-                  </TabsTrigger>
-                  <TabsTrigger value="nearby" className="text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                    Nearby
-                  </TabsTrigger>
-                  <TabsTrigger value="policies" className="text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                    Policies
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="specs" className="mt-6 focus-visible:outline-none">
-                  <HotelSpecsGrid hotel={hotel} />
-                </TabsContent>
-                <TabsContent value="rooms" className="mt-6 focus-visible:outline-none">
-                  <HotelRoomTypes
-                    key={searchNonce}
-                    hotelId={hotel.id}
-                    hotelName={hotel.name}
-                    hotelCity={hotel.city}
-                    checkIn={checkIn}
-                    checkOut={checkOut}
-                    adults={adults}
-                    children={childrenCount}
-                    roomsWanted={roomsWanted}
-                  />
-                </TabsContent>
-                <TabsContent value="nearby" className="mt-6 focus-visible:outline-none">
-                  <HotelNearbyAttractions city={hotel.city} locality={hotel.locality} />
-                </TabsContent>
-                <TabsContent value="policies" className="mt-6 focus-visible:outline-none">
-                  <HotelPolicies hotel={hotel} />
-                </TabsContent>
-              </Tabs>
+          {/* 7 — BOOKING */}
+          <section
+            id="booking"
+            className="rounded-2xl border border-border bg-gradient-to-br from-primary/8 via-primary/4 to-transparent p-5 md:p-6"
+          >
+            <h2 className="text-lg font-semibold mb-1">Book your stay</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Rates and taxes are confirmed on the selected room at checkout.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                className="flex-1 h-12 text-sm font-semibold gap-2 shadow-md"
+                onClick={() => {
+                  setBookingType("hotel_only");
+                  setBookingModalOpen(true);
+                }}
+              >
+                <BedDouble className="h-4 w-4" />
+                Book Hotel Only
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 h-12 text-sm font-semibold gap-2 bg-background/70"
+                onClick={() => {
+                  setBookingType("visit_stay");
+                  setBookingModalOpen(true);
+                }}
+              >
+                <Calendar className="h-4 w-4" />
+                Book with Site Visit
+              </Button>
             </div>
-
-            {/* RIGHT — Sticky booking */}
-            <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-4">
-                <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
-                  {/* Price header */}
-                  <div className="p-6 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent border-b border-border/60">
-                    {hasPrice ? (
-                      <>
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          {hasDiscount && (
-                            <span className="text-base text-muted-foreground line-through">
-                              ₹{basePrice.toLocaleString()}
-                            </span>
-                          )}
-                          <span className="text-[2.25rem] leading-none font-bold text-foreground">
-                            ₹{Math.round(discountedPrice).toLocaleString()}
-                          </span>
-                          <span className="text-sm text-muted-foreground">/ night</span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mt-1">
-                          Taxes & fees calculated at checkout
-                        </p>
-                        {hasDiscount && savings > 0 && (
-                          <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 text-xs font-semibold">
-                            <Sparkles className="h-3 w-3" />
-                            You save ₹{savings.toLocaleString()} per night
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-2xl font-bold text-foreground">Price on request</div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Contact the partner directly for latest rates.
-                        </p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* CTAs */}
-                  <div className="p-5 space-y-3">
-                    <Button
-                      className="w-full h-12 text-sm font-semibold gap-2 shadow-md"
-                      onClick={() => {
-                        setBookingType("visit_stay");
-                        setBookingModalOpen(true);
-                      }}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      Book with Site Visit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 text-sm font-semibold gap-2"
-                      onClick={() => {
-                        setBookingType("hotel_only");
-                        setBookingModalOpen(true);
-                      }}
-                    >
-                      <BedDouble className="h-4 w-4" />
-                      Book Hotel Only
-                    </Button>
-
-                    <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                      Free cancellation on most rooms · No booking fees
-                    </div>
-                  </div>
-
-                  {/* Contact */}
-                  {(hotel.contact_phone || hotel.contact_email) && (
-                    <div className="px-5 pb-5">
-                      <div className="border-t border-border/60 pt-4 space-y-1.5">
-                        {hotel.contact_phone && (
-                          <a
-                            href={`tel:${hotel.contact_phone}`}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/60 transition"
-                          >
-                            <span className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                              <Phone className="h-3.5 w-3.5" />
-                            </span>
-                            <span className="text-sm font-medium">{hotel.contact_phone}</span>
-                          </a>
-                        )}
-                        {hotel.contact_email && (
-                          <a
-                            href={`mailto:${hotel.contact_email}`}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/60 transition"
-                          >
-                            <span className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                              <Mail className="h-3.5 w-3.5" />
-                            </span>
-                            <span className="text-sm truncate">{hotel.contact_email}</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {hotel.partner_since && (
-                    <div className="px-5 pb-5">
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground border-t border-border/60 pt-3">
-                        <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                        JaagaX Partner since{" "}
-                        {new Date(hotel.partner_since).toLocaleDateString("en-IN", {
-                          year: "numeric",
-                          month: "short",
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Cross-sell */}
-                <div className="rounded-2xl border border-border bg-gradient-to-br from-accent/40 to-primary/10 p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <h3 className="font-semibold text-sm">Exploring properties in {locCity}?</h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Bundle nearby property visits with your stay for exclusive discounts.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-1.5 bg-background/70"
-                    onClick={() => navigate(`/search?city=${hotel.city}`)}
-                  >
-                    <Navigation2 className="h-3.5 w-3.5" />
-                    Explore Properties
-                  </Button>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
 
       <Footer />
