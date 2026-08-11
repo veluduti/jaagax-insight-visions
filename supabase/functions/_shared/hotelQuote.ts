@@ -157,6 +157,172 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
   return { result, room, hotel, promo, lineItems: result.lineItems, available };
 }
 
+/* -------------------------------------------------------------------------
+ * MULTI-ROOM (combination) quotes
+ * A group = one room type, N units, with its own guest allocation, meals and
+ * extra beds. Each group is priced with its OWN room configuration.
+ * ---------------------------------------------------------------------- */
+
+export interface GroupRequest {
+  room_id: string;
+  quantity: number;
+  adults: number;
+  children: number;
+  extra_beds?: number;
+  meals?: MealType[];
+}
+
+export interface MultiQuote {
+  error?: string;
+  status?: number;
+  hotel?: any;
+  groups?: { group: GroupRequest; room: any; result: PricingResult }[];
+  totals?: {
+    nights: number;
+    roomCharges: number;
+    mealTotal: number;
+    extraBedTotal: number;
+    addonTotal: number;
+    discount: number;
+    taxableSubtotal: number;
+    taxAmount: number;
+    grandTotal: number;
+    gstRate: number;
+    totalRooms: number;
+    adults: number;
+    children: number;
+  };
+}
+
+export async function buildMultiQuote(
+  supabase: any,
+  body: { hotel_id: string; check_in: string; check_out: string; groups: GroupRequest[] },
+): Promise<MultiQuote> {
+  const { hotel_id, check_in, check_out } = body;
+  const groups = (body.groups || []).filter((g) => g && g.room_id && Number(g.quantity) > 0);
+  if (!hotel_id || !check_in || !check_out || !groups.length) {
+    return { error: "Missing booking selection", status: 400 };
+  }
+  // A room type must not appear twice — merge would break inventory checks.
+  const ids = new Set(groups.map((g) => g.room_id));
+  if (ids.size !== groups.length) return { error: "Duplicate room selection", status: 400 };
+
+  const out: { group: GroupRequest; room: any; result: PricingResult }[] = [];
+  let hotel: any = null;
+
+  for (const g of groups) {
+    const q = await buildServerQuote(supabase, {
+      hotel_id,
+      room_id: g.room_id,
+      check_in,
+      check_out,
+      adults: Math.max(1, Number(g.adults) || 0),
+      children: Math.max(0, Number(g.children) || 0),
+      num_rooms: Math.max(1, Number(g.quantity) || 1),
+      extra_beds: Math.max(0, Number(g.extra_beds) || 0),
+      meals: g.meals || [],
+    });
+    if (q.error || !q.result) return { error: q.error, status: q.status || 400 };
+    hotel = q.hotel;
+    out.push({ group: g, room: q.room, result: q.result });
+  }
+
+  const sum = (fn: (r: PricingResult) => number) => out.reduce((s, x) => s + fn(x.result), 0);
+  const totals = {
+    nights: out[0].result.nights,
+    roomCharges: sum((r) => r.roomCharges),
+    mealTotal: sum((r) => r.mealTotal),
+    extraBedTotal: sum((r) => r.extraBedTotal),
+    addonTotal: sum((r) => r.addonTotal),
+    discount: sum((r) => r.discount),
+    taxableSubtotal: sum((r) => r.taxableSubtotal),
+    taxAmount: sum((r) => r.taxAmount),
+    grandTotal: sum((r) => r.grandTotal),
+    gstRate: out[0].result.gstRate,
+    totalRooms: groups.reduce((s, g) => s + Number(g.quantity), 0),
+    adults: groups.reduce((s, g) => s + Number(g.adults), 0),
+    children: groups.reduce((s, g) => s + Number(g.children || 0), 0),
+  };
+
+  return { hotel, groups: out, totals };
+}
+
+/** Persists line items for every group, prefixed with its room type. */
+export async function saveMultiBookingItems(
+  supabase: any,
+  bookingId: string,
+  hotelId: string,
+  groups: { group: GroupRequest; room: any; result: PricingResult }[],
+) {
+  const rows: any[] = [];
+  for (const g of groups) {
+    for (const li of g.result.lineItems) {
+      rows.push({
+        booking_id: bookingId,
+        hotel_id: hotelId,
+        item_type: li.item_type,
+        item_name: `${g.room?.room_type ?? "Room"} · ${li.item_name}`,
+        quantity: li.quantity,
+        unit_price: li.unit_price,
+        units: li.units,
+        adult_count: li.adult_count,
+        child_count: li.child_count,
+        subtotal: li.subtotal,
+        tax_amount: 0,
+        total_amount: li.subtotal,
+        price_snapshot: { ...li.price_snapshot, room_id: g.group.room_id, room_type: g.room?.room_type },
+      });
+    }
+    rows.push({
+      booking_id: bookingId, hotel_id: hotelId, item_type: "tax",
+      item_name: `${g.room?.room_type ?? "Room"} · GST @ ${g.result.gstRate}%`,
+      quantity: 1, unit_price: g.result.taxAmount, units: 1,
+      adult_count: 0, child_count: 0, subtotal: g.result.taxAmount,
+      tax_amount: g.result.taxAmount, total_amount: g.result.taxAmount,
+      price_snapshot: { gst_rate: g.result.gstRate, room_id: g.group.room_id },
+    });
+  }
+  if (rows.length) await supabase.from("hotel_booking_items").insert(rows);
+}
+
+export function multiBookingPriceColumns(
+  totals: NonNullable<MultiQuote["totals"]>,
+  groups: { group: GroupRequest; room: any; result: PricingResult }[],
+) {
+  return {
+    room_charges: totals.roomCharges,
+    meal_total: totals.mealTotal,
+    extra_bed_total: totals.extraBedTotal,
+    addon_total: totals.addonTotal,
+    discount_total: totals.discount,
+    taxable_subtotal: totals.taxableSubtotal,
+    gst_rate: totals.gstRate,
+    tax_amount: totals.taxAmount,
+    total_amount: totals.grandTotal,
+    meals: Array.from(new Set(groups.flatMap((g) => g.group.meals || []))),
+    price_snapshot: {
+      computed_at: new Date().toISOString(),
+      multi_room: true,
+      totals,
+      allocation: groups.map((g) => ({
+        room_id: g.group.room_id,
+        room_type: g.room?.room_type ?? null,
+        quantity: g.group.quantity,
+        adults: g.group.adults,
+        children: g.group.children,
+        extra_beds: g.group.extra_beds ?? 0,
+        meals: g.group.meals || [],
+        per_night: g.result.perNight,
+        room_charges: g.result.roomCharges,
+        total: g.result.grandTotal,
+        line_items: g.result.lineItems,
+      })),
+    },
+  };
+}
+
+
+
 export async function saveBookingItems(
   supabase: any, bookingId: string, hotelId: string, result: PricingResult,
 ) {
