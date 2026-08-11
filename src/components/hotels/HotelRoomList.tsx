@@ -10,7 +10,7 @@ import {
   ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
-import { buildRoomCombinations, roomsFittingGuests, comboLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
+import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
