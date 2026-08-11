@@ -425,7 +425,7 @@ const Hotels = () => {
           ? false
           : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
             buildRoomCombinations(hotelRooms, adults, children, {
-              maxRooms: Math.max(rooms, 4), limit: 1,
+              maxRooms: Math.max(rooms, 6), limit: 1,
             }).length > 0;
 
       return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
@@ -435,6 +435,21 @@ const Hotels = () => {
 
     return result;
   }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms]);
+
+  // "Needs N rooms" hint per hotel when a single room cannot host the group.
+  const roomsNeededByHotel = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredAndSortedHotels.forEach((h) => {
+      const hotelRooms = roomsByHotel[h.id] || [];
+      if (hotelRooms.some((r) => roomFitsAlone(r, adults, children))) return;
+      const combo = buildRoomCombinations(hotelRooms, adults, children, {
+        maxRooms: Math.max(rooms, 6), limit: 1,
+      })[0];
+      if (combo) map[h.id] = combo.totalRooms;
+    });
+    return map;
+  }, [filteredAndSortedHotels, roomsByHotel, adults, children, rooms]);
+
 
 
   // After a Search click, report result count once the filter memo has resettled.
