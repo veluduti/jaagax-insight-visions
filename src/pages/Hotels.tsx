@@ -1194,6 +1194,16 @@ const Hotels = () => {
                           </span>
                         </div>
 
+                        {roomsNeededByHotel[hotel.id] ? (
+                          <Badge
+                            variant="outline"
+                            className="mb-2 text-[9px] px-2 py-0.5 rounded-full border-primary/30 bg-primary/5 text-primary"
+                          >
+                            Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests
+                          </Badge>
+                        ) : null}
+
+
                         {hotel.amenities && hotel.amenities.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 3).map((amenity) => (
