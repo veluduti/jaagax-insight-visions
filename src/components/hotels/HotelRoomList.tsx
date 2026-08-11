@@ -10,7 +10,7 @@ import {
   ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
-import { buildRoomCombinations, roomsFittingGuests, comboLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
+import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
@@ -165,20 +165,27 @@ export default function HotelRoomList({
   const quotesReady = hasDates && rooms.length > 0 && rooms.every((r) => quotes[r.id] && !quotes[r.id].loading);
 
   const occupancyPool: OccupancyRoom[] = useMemo(
-    () => rooms.map((r) => ({
-      id: r.id,
-      room_type: r.room_type,
-      max_occupancy: Number(r.max_occupancy) || 0,
+    () => rooms.map((r) => toOccupancyRoom(r, {
       available: quotesReady ? Number(quotes[r.id]?.available ?? 0) : Number(r.total_units) || 0,
       perNight: Number(quotes[r.id]?.perNight ?? r.base_price) || 0,
     })),
     [rooms, quotes, quotesReady],
   );
 
-  // Rooms whose occupancy can host the party (given the requested room count)
+  // Rooms whose configured occupancy can host the whole party on their own
+  const fittingIds = useMemo(() => {
+    const ids = new Set<string>();
+    occupancyPool.forEach((r) => {
+      if (adults <= r.maxAdults && children <= r.maxChildren && adults + children <= r.maxTotal) {
+        ids.add(r.id);
+      }
+    });
+    return ids;
+  }, [occupancyPool, adults, children]);
+
   const fittingRooms = useMemo(
-    () => roomsFittingGuests(rooms, guests, roomsWanted),
-    [rooms, guests, roomsWanted],
+    () => rooms.filter((r) => fittingIds.has(r.id)),
+    [rooms, fittingIds],
   );
 
   const bookableRooms = useMemo(() => {
@@ -188,8 +195,8 @@ export default function HotelRoomList({
 
   const combinations = useMemo(() => {
     if (!quotesReady || bookableRooms.length > 0) return [];
-    return buildRoomCombinations(occupancyPool, guests);
-  }, [quotesReady, bookableRooms.length, occupancyPool, guests]);
+    return buildRoomCombinations(occupancyPool, adults, children);
+  }, [quotesReady, bookableRooms.length, occupancyPool, adults, children]);
 
   const displayRooms = quotesReady ? bookableRooms : fittingRooms;
 

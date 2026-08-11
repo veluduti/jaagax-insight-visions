@@ -51,7 +51,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
-import { buildRoomCombinations, roomsFittingGuests, type OccupancyRoom } from "@/lib/roomOccupancy";
+import { buildRoomCombinations, roomFitsAlone, toOccupancyRoom, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
 
 interface PartnerHotel {
@@ -243,7 +243,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, total_units, is_active")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -253,13 +253,12 @@ const Hotels = () => {
         (roomsRes.data || []).forEach((r: any) => {
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
-          (occByHotel[r.hotel_id] ||= []).push({
-            id: r.id,
-            room_type: r.room_type || "Room",
-            max_occupancy: Number(r.max_occupancy) || 0,
-            available: Number(r.total_units) || 1,
-            perNight: p,
-          });
+          (occByHotel[r.hotel_id] ||= []).push(
+            toOccupancyRoom(
+              { ...r, room_type: r.room_type || "Room" },
+              { available: Number(r.total_units) || 1, perNight: p },
+            ),
+          );
           if (p <= 0) return;
           if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
         });
@@ -418,14 +417,16 @@ const Hotels = () => {
         }
       }
 
-      // Occupancy: hotel must have room(s) that can actually host the guests
-      const totalGuests = adults + children;
+      // Occupancy: hotel must have room(s) that can actually host the guests,
+      // either a single fitting room or a valid multi-room combination.
       const hotelRooms = roomsByHotel[hotel.id] || [];
       const matchesOccupancy =
         hotelRooms.length === 0
           ? false
-          : roomsFittingGuests(hotelRooms, totalGuests, rooms).length > 0 ||
-            buildRoomCombinations(hotelRooms, totalGuests, { maxRooms: Math.max(rooms, 4), limit: 1 }).length > 0;
+          : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
+            buildRoomCombinations(hotelRooms, adults, children, {
+              maxRooms: Math.max(rooms, 4), limit: 1,
+            }).length > 0;
 
       return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
     });

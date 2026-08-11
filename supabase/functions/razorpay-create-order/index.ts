@@ -2,7 +2,10 @@
 // The final amount is ALWAYS recalculated server-side from the hotel's own
 // room rates, meal configuration, extra-bed rules, add-ons and GST settings.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { buildServerQuote, saveBookingItems, bookingPriceColumns } from "../_shared/hotelQuote.ts";
+import {
+  buildServerQuote, saveBookingItems, bookingPriceColumns,
+  buildMultiQuote, saveMultiBookingItems, multiBookingPriceColumns,
+} from "../_shared/hotelQuote.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,7 +31,11 @@ Deno.serve(async (req) => {
       booked_by_agent_id = null,
     } = body;
 
-    if (!hotel_id || !room_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone) {
+    const groups = Array.isArray(body.groups) ? body.groups : [];
+    const isMulti = groups.length > 0;
+
+    if (!hotel_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone
+      || (!isMulti && !room_id)) {
       return json({ error: "Missing required fields" }, 400);
     }
 
@@ -47,6 +54,80 @@ Deno.serve(async (req) => {
         .from("agents").select("id").eq("user_id", user_id).maybeSingle();
       if (agentRow?.id) resolvedAgentId = agentRow.id as string;
     }
+
+    /* ---------------- MULTI-ROOM (combination) booking ---------------- */
+    if (isMulti) {
+      const m = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups });
+      if (m.error || !m.totals || !m.groups) return json({ error: m.error }, m.status || 400);
+
+      const primary = m.groups[0];
+      const grandTotal = m.totals.grandTotal;
+
+      const { data: booking, error: mErr } = await supabase.from("hotel_bookings").insert({
+        hotel_id,
+        room_id: primary.group.room_id,
+        user_id: user_id || null,
+        booked_by_agent_id: resolvedAgentId,
+        guest_name, guest_email, guest_phone,
+        check_in, check_out,
+        room_type: m.groups.map((g: any) => `${g.room?.room_type} ×${g.group.quantity}`).join(" + "),
+        num_guests: m.totals.adults + m.totals.children,
+        adults: m.totals.adults,
+        children: m.totals.children,
+        num_rooms: m.totals.totalRooms,
+        extra_beds: groups.reduce((s: number, g: any) => s + (Number(g.extra_beds) || 0), 0),
+        status: "pending",
+        payment_status: "pending",
+        payment_method: "razorpay",
+        special_requests: special_requests || null,
+        booking_type: "hotel_only",
+        source: resolvedAgentId ? "agent" : "direct",
+        currency: "INR",
+        hotel_name: m.hotel?.name ?? null,
+        hotel_address: [m.hotel?.address, m.hotel?.locality, m.hotel?.city].filter(Boolean).join(", "),
+        payment_attempted_at: new Date().toISOString(),
+        ...multiBookingPriceColumns(m.totals, m.groups),
+      }).select().single();
+
+      if (mErr) return json({ error: mErr.message }, 400);
+      await saveMultiBookingItems(supabase, booking.id, hotel_id, m.groups);
+
+      const amt = Math.round(grandTotal * 100);
+      const res = await fetch("https://api.razorpay.com/v1/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${btoa(`${RZP_KEY}:${RZP_SECRET}`)}`,
+        },
+        body: JSON.stringify({
+          amount: amt, currency: "INR",
+          receipt: booking.booking_reference || booking.id,
+          notes: { booking_id: booking.id, hotel_id, check_in, check_out, multi_room: "true" },
+        }),
+      });
+      const ord = await res.json();
+      if (!res.ok || !ord.id) {
+        await supabase.from("hotel_bookings").update({
+          status: "cancelled", payment_status: "failed",
+          cancellation_reason: "Razorpay order creation failed",
+        }).eq("id", booking.id);
+        return json({ error: ord?.error?.description || "Failed to create payment order" }, 502);
+      }
+      await supabase.from("hotel_bookings").update({ razorpay_order_id: ord.id }).eq("id", booking.id);
+
+      return json({
+        booking_id: booking.id,
+        booking_reference: booking.booking_reference ?? null,
+        order_id: ord.id,
+        amount: amt,
+        currency: "INR",
+        key_id: RZP_KEY,
+        multi_room: true,
+        breakdown: { ...m.totals, total: grandTotal },
+        hotel: m.hotel ?? null,
+      });
+    }
+
 
     // Prevent duplicate pending payment attempts for the same selection.
     const { data: existingPending } = await supabase.from("hotel_bookings")

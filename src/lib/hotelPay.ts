@@ -46,10 +46,22 @@ export const razorpayCheckoutConfig = {
   },
 };
 
+export interface HotelPayGroup {
+  room_id: string;
+  quantity: number;
+  adults: number;
+  children: number;
+  extra_beds?: number;
+  meals?: string[];
+}
+
 export interface HotelPayInput {
   hotel_id: string;
   hotel_name?: string | null;
-  room_id: string;
+  /** Single-room booking. Omit when `groups` is provided. */
+  room_id?: string;
+  /** Multi-room (combination) booking with per-room guest allocation. */
+  groups?: HotelPayGroup[];
   check_in: string;
   check_out: string;
   adults: number;
@@ -76,7 +88,8 @@ export async function payForHotelBooking(input: HotelPayInput): Promise<string> 
   const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
     body: {
       hotel_id: input.hotel_id,
-      room_id: input.room_id,
+      room_id: input.room_id ?? null,
+      groups: input.groups ?? [],
       check_in: input.check_in,
       check_out: input.check_out,
       adults: input.adults,
