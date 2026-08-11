@@ -206,25 +206,48 @@ export function buildRoomCombinations(
     });
   };
 
-  const walk = (startIdx: number, counts: number[], roomCount: number, capacity: number, price: number) => {
+  const walk = (
+    startIdx: number,
+    counts: number[],
+    roomCount: number,
+    capacity: number,
+    price: number,
+    adultCap: number,
+    childCap: number,
+  ) => {
     if (visited++ > 4000 || results.length > 300) return;
     if (roomCount > 0) {
       const exact = opts.exactRooms;
       if (exact == null || roomCount === exact) consider(counts, roomCount, capacity, price);
-      // Minimality: stop growing once capacity already covers the group,
-      // unless an exact room count is requested.
-      if (exact == null && capacity >= guests) return;
+      // Minimality: stop growing only when the current set can actually seat the
+      // group — total capacity AND per-type adult / child limits must all cover
+      // the request. (A 2-adult room pair has capacity 6 but seats 4 adults.)
+      if (
+        exact == null &&
+        capacity >= guests &&
+        adultCap >= adults &&
+        childCap >= children
+      ) return;
     }
     if (roomCount >= maxRooms) return;
     for (let i = startIdx; i < pool.length; i++) {
       if (counts[i] >= pool[i].available) continue;
       counts[i] += 1;
-      walk(i, counts, roomCount + 1, capacity + pool[i].maxTotal, price + pool[i].perNight);
+      walk(
+        i,
+        counts,
+        roomCount + 1,
+        capacity + pool[i].maxTotal,
+        price + pool[i].perNight,
+        adultCap + pool[i].maxAdults,
+        childCap + pool[i].maxChildren,
+      );
       counts[i] -= 1;
     }
   };
 
-  walk(0, new Array(pool.length).fill(0), 0, 0, 0);
+  walk(0, new Array(pool.length).fill(0), 0, 0, 0, 0, 0);
+
 
   results.sort((a, b) =>
     a.totalRooms - b.totalRooms ||
