@@ -2,7 +2,10 @@
 // The final amount is ALWAYS recalculated server-side from the hotel's own
 // room rates, meal configuration, extra-bed rules, add-ons and GST settings.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { buildServerQuote, saveBookingItems, bookingPriceColumns } from "../_shared/hotelQuote.ts";
+import {
+  buildServerQuote, saveBookingItems, bookingPriceColumns,
+  buildMultiQuote, saveMultiBookingItems, multiBookingPriceColumns,
+} from "../_shared/hotelQuote.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
