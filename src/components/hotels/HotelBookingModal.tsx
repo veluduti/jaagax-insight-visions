@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CalendarIcon, Users, Loader2, Hotel, ChevronDown, Plus, Minus,
-  BedDouble, Eye, AlertCircle, ArrowLeft, Check,
+  BedDouble, Eye, AlertCircle, ArrowLeft, Check, Layers,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -17,11 +17,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
-import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
-import { MealSelector, ExtraBedSelector, PriceBreakdown, inr } from "@/components/hotels/BookingPricingControls";
+import { inr } from "@/components/hotels/BookingPricingControls";
+import { RoomGroupExtras, type GroupSelection } from "@/components/hotels/RoomGroupExtras";
 import { payForHotelBooking } from "@/lib/hotelPay";
 import { Input } from "@/components/ui/input";
-import type { MealType } from "@/lib/hotelPricing";
+import type { MealType, PricingResult } from "@/lib/hotelPricing";
+import {
+  buildRoomCombinations, toOccupancyRoom, allocationLabel,
+  type OccupancyRoom, type RoomCombination,
+} from "@/lib/roomOccupancy";
 
 interface HotelBookingModalProps {
   open: boolean;
@@ -98,14 +102,15 @@ const HotelBookingModal = ({
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
-  const [extraBeds, setExtraBeds] = useState(0);
+  const [showAllRooms, setShowAllRooms] = useState(false);
+  const [groups, setGroups] = useState<GroupSelection[]>([]);
+  const [groupPrices, setGroupPrices] = useState<Record<string, { price: PricingResult | null; error: string | null }>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
   const checkInStr = checkIn ? ymd(checkIn) : "";
   const checkOutStr = checkOut ? ymd(checkOut) : "";
+  const totalGuests = adults + numChildren;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,9 +126,9 @@ const HotelBookingModal = ({
   useEffect(() => {
     if (!open) return;
     setStep("dates");
-    setSelectedRoomId(null);
-    setSelectedMeals([]);
-    setExtraBeds(0);
+    setGroups([]);
+    setGroupPrices({});
+    setShowAllRooms(false);
     if (initialCheckIn) setCheckIn(initialCheckIn);
     if (initialCheckOut) setCheckOut(initialCheckOut);
     if (initialGuests) setAdults(Math.max(1, initialGuests));
@@ -170,6 +175,8 @@ const HotelBookingModal = ({
   }, [open, hotel.id]);
 
   // --- Server-authoritative per-room quote (rate calendar, stop-sell, inventory) ---
+  // Quoted for ONE unit so availability and per-night price are room-level facts;
+  // the combination engine decides how many units are actually needed.
   useEffect(() => {
     if (!open || step !== "room" || !rooms.length || !checkInStr || !checkOutStr) return;
     let cancelled = false;
@@ -182,8 +189,7 @@ const HotelBookingModal = ({
             body: {
               hotel_id: hotel.id, room_id: room.id,
               check_in: checkInStr, check_out: checkOutStr,
-              adults, children: numChildren, guests: adults + numChildren,
-              num_rooms: numRooms,
+              adults: 1, children: 0, guests: 1, num_rooms: 1,
             },
           });
           if (cancelled) return;
@@ -209,44 +215,107 @@ const HotelBookingModal = ({
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, step, rooms, checkInStr, checkOutStr, adults, numChildren, numRooms, hotel.id]);
+  }, [open, step, rooms, checkInStr, checkOutStr, hotel.id]);
 
-  // --- Selected room configuration (meals / extra bed / rate calendar) ---
-  const config = useHotelPricingConfig(open ? hotel.id : null, selectedRoomId);
-  const { price: livePrice, error: liveError } = useLivePrice({
-    room: config.room,
-    meals: config.meals,
-    rateCalendar: config.rateCalendar,
-    gstRate: config.gstRate,
-    checkIn: checkInStr,
-    checkOut: checkOutStr,
-    adults,
-    children: numChildren,
-    numRooms,
-    extraBeds,
-    selectedMeals,
-    addons: [],
-    discount: 0,
-  });
+  const quotesReady = rooms.length > 0 && rooms.every((r) => quotes[r.id] && !quotes[r.id].loading);
 
-  const selectedRoom = useMemo(
-    () => rooms.find((r) => r.id === selectedRoomId) || null,
-    [rooms, selectedRoomId],
+  /** Bookable inventory per room type for EVERY night of the stay. */
+  const pool: OccupancyRoom[] = useMemo(
+    () => rooms
+      .map((r) => {
+        const q = quotes[r.id];
+        // A quote error means stop-sell / blocked dates / no inventory.
+        const available = q?.error ? 0 : Number(q?.available ?? r.total_units ?? 0);
+        return toOccupancyRoom(r, { available, perNight: Number(q?.perNight ?? r.base_price) || 0 });
+      })
+      .filter((r) => r.available > 0),
+    [rooms, quotes],
   );
 
-  const totalGuests = adults + numChildren;
-
-  const step2Rooms = useMemo(
-    () =>
-      rooms.filter((r) => {
-        const maxGuests = Number(r.max_occupancy || 0) * numRooms;
-        return maxGuests <= 0 || maxGuests >= totalGuests;
-      }),
-    [rooms, numRooms, totalGuests],
+  /** Rooms that host the whole party on their own, with enough units. */
+  const singleMatches = useMemo(
+    () => pool.filter((r) =>
+      adults <= r.maxAdults && numChildren <= r.maxChildren &&
+      totalGuests <= r.maxTotal && r.available >= numRooms),
+    [pool, adults, numChildren, totalGuests, numRooms],
   );
 
-  const toggleMeal = (m: MealType) =>
-    setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+  /** Best valid combinations using EXACTLY the requested number of rooms. */
+  const exactCombos = useMemo(
+    () => (quotesReady
+      ? buildRoomCombinations(pool, adults, numChildren, { exactRooms: numRooms, limit: 5 })
+      : []),
+    [quotesReady, pool, adults, numChildren, numRooms],
+  );
+
+  /** Fallback: minimum valid combination when the requested count is not enough. */
+  const fallbackCombos = useMemo(
+    () => (quotesReady && exactCombos.length === 0 && singleMatches.length === 0
+      ? buildRoomCombinations(pool, adults, numChildren, { maxRooms: 6, limit: 4 })
+      : []),
+    [quotesReady, exactCombos.length, singleMatches.length, pool, adults, numChildren],
+  );
+
+  const recommendedRooms = fallbackCombos[0]?.totalRooms ?? null;
+  const showSingleList = numRooms === 1 && singleMatches.length > 0;
+  const comboList = showSingleList ? [] : (exactCombos.length ? exactCombos : fallbackCombos);
+
+  const otherRooms = useMemo(
+    () => rooms.filter((r) => !singleMatches.some((s) => s.id === r.id)),
+    [rooms, singleMatches],
+  );
+
+  const selectCombo = (combo: RoomCombination) => {
+    setGroups(combo.items.map((it) => ({
+      roomId: it.room.id,
+      roomType: it.room.room_type,
+      quantity: it.quantity,
+      adults: it.adults,
+      children: it.children,
+      meals: [] as MealType[],
+      extraBeds: 0,
+    })));
+    setGroupPrices({});
+    if (combo.totalRooms !== numRooms) setNumRooms(combo.totalRooms);
+    setStep("extras");
+  };
+
+  const selectSingleRoom = (room: OccupancyRoom) => {
+    setGroups([{
+      roomId: room.id,
+      roomType: room.room_type,
+      quantity: numRooms,
+      adults,
+      children: numChildren,
+      meals: [],
+      extraBeds: 0,
+    }]);
+    setGroupPrices({});
+    setStep("extras");
+  };
+
+  const patchGroup = (roomId: string, patch: Partial<GroupSelection>) =>
+    setGroups((prev) => prev.map((g) => (g.roomId === roomId ? { ...g, ...patch } : g)));
+
+  const handleGroupPrice = (roomId: string, price: PricingResult | null, error: string | null) =>
+    setGroupPrices((prev) => ({ ...prev, [roomId]: { price, error } }));
+
+  const totals = useMemo(() => {
+    const list = groups.map((g) => groupPrices[g.roomId]?.price).filter(Boolean) as PricingResult[];
+    if (!groups.length || list.length !== groups.length) return null;
+    const sum = (fn: (p: PricingResult) => number) => list.reduce((s, p) => s + fn(p), 0);
+    return {
+      roomCharges: sum((p) => p.roomCharges),
+      mealTotal: sum((p) => p.mealTotal),
+      extraBedTotal: sum((p) => p.extraBedTotal),
+      taxableSubtotal: sum((p) => p.taxableSubtotal),
+      taxAmount: sum((p) => p.taxAmount),
+      grandTotal: sum((p) => p.grandTotal),
+      gstRate: list[0].gstRate,
+    };
+  }, [groups, groupPrices]);
+
+  const priceError = groups.map((g) => groupPrices[g.roomId]?.error).find(Boolean) || null;
 
   const bump = (type: "adults" | "rooms" | "children", delta: number) => {
     if (type === "adults") setAdults((v) => Math.min(20, Math.max(1, v + delta)));
@@ -261,8 +330,8 @@ const HotelBookingModal = ({
   };
 
   const handlePayment = async () => {
-    if (!selectedRoomId || !checkIn || !checkOut) return;
-    if (liveError) return toast.error(liveError);
+    if (!groups.length || !checkIn || !checkOut) return;
+    if (priceError) return toast.error(priceError);
     if (!guestName.trim() || guestName.trim().length < 2) return toast.error("Please enter your name");
     if (!/^\S+@\S+\.\S+$/.test(guestEmail.trim())) return toast.error("Please enter a valid email");
     if (!/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) return toast.error("Please enter a valid phone number");
@@ -285,14 +354,19 @@ const HotelBookingModal = ({
       const bookingId = await payForHotelBooking({
         hotel_id: hotel.id,
         hotel_name: hotel.name,
-        room_id: selectedRoomId,
+        groups: groups.map((g) => ({
+          room_id: g.roomId,
+          quantity: g.quantity,
+          adults: g.adults,
+          children: g.children,
+          extra_beds: g.extraBeds,
+          meals: g.meals,
+        })),
         check_in: checkInStr,
         check_out: checkOutStr,
         adults,
         children: numChildren,
-        num_rooms: numRooms,
-        extra_beds: extraBeds,
-        meals: selectedMeals,
+        num_rooms: groups.reduce((s, g) => s + g.quantity, 0),
         guest_name: guestName.trim(),
         guest_email: guestEmail.trim(),
         guest_phone: guestPhone.trim(),
@@ -312,6 +386,77 @@ const HotelBookingModal = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const renderRoomCard = (r: RoomRow, occ: OccupancyRoom | undefined, fits: boolean) => {
+    const q = quotes[r.id];
+    const blocked = !!q?.error || (occ?.available ?? 0) < 1;
+    const amenities = Array.isArray(r.amenities) ? r.amenities.slice(0, 4) : [];
+    return (
+      <div key={r.id} className={cn("rounded-lg border p-3 flex gap-3", blocked && "opacity-70")}>
+        <img
+          src={r.photos?.[0] || FALLBACK_IMG}
+          onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK_IMG)}
+          alt={r.room_type}
+          className="h-24 w-28 rounded-md object-cover shrink-0"
+        />
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="font-semibold leading-tight">{r.room_type}</div>
+              {r.category && <div className="text-xs text-muted-foreground">{r.category}</div>}
+            </div>
+            <div className="text-right shrink-0">
+              {q?.loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : (
+                <>
+                  <div className="font-bold">{inr(q?.perNight ?? r.base_price)}</div>
+                  <div className="text-[10px] text-muted-foreground">/ room / night</div>
+                </>
+              )}
+            </div>
+          </div>
+          {r.description && <p className="text-xs text-muted-foreground line-clamp-2">{r.description}</p>}
+          <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+            {r.bed_type && <span className="flex items-center gap-1"><BedDouble className="h-3 w-3" />{r.bed_type}</span>}
+            {r.view_type && <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{r.view_type}</span>}
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              Max {occ?.maxAdults ?? r.max_adults ?? r.max_occupancy} adults
+              {occ?.maxChildren ? ` + ${occ.maxChildren} child` : ""} · {occ?.maxTotal ?? r.max_occupancy} guests
+            </span>
+          </div>
+          {amenities.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {amenities.map((a: string) => (
+                <Badge key={a} variant="secondary" className="text-[10px] font-normal">{a}</Badge>
+              ))}
+            </div>
+          )}
+          {blocked ? (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" /> {q?.error || "Not available for these dates"}
+            </p>
+          ) : (
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-emerald-500 flex items-center gap-1">
+                {fits && <Check className="h-3 w-3" />}
+                {fits ? "Fits all guests" : "Cannot host your whole group"}
+                {occ?.available != null ? ` · ${occ.available} left` : ""}
+              </span>
+              <Button
+                size="sm"
+                disabled={!fits || q?.loading || (occ?.available ?? 0) < numRooms}
+                onClick={() => occ && selectSingleRoom(occ)}
+              >
+                Select Room
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -439,19 +584,20 @@ const HotelBookingModal = ({
             </div>
 
             <Button className="w-full h-11" onClick={goToRooms}>
-              Select room · {nights} night{nights > 1 ? "s" : ""}
+              Search rooms · {nights} night{nights > 1 ? "s" : ""}
             </Button>
           </div>
         )}
 
-        {/* ---------------- STEP 2 : ROOM SELECTION ---------------- */}
+        {/* ---------------- STEP 2 : OCCUPANCY-AWARE ROOM SELECTION ---------------- */}
         {step === "room" && (
           <div className="space-y-3">
             <button className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground" onClick={() => setStep("dates")}>
               <ArrowLeft className="h-3 w-3" /> {checkInStr} → {checkOutStr} · {numRooms} room{numRooms > 1 ? "s" : ""} · {adults} adult{adults > 1 ? "s" : ""}{numChildren ? `, ${numChildren} child` : ""}
             </button>
 
-            {loadingRooms && [1, 2].map((i) => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}
+            {(loadingRooms || !quotesReady) && rooms.length >= 0 &&
+              [1, 2].map((i) => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}
 
             {!loadingRooms && rooms.length === 0 && (
               <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
@@ -460,114 +606,128 @@ const HotelBookingModal = ({
               </div>
             )}
 
-            {!loadingRooms && rooms.length > 0 && step2Rooms.length === 0 && (
-              <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-                <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-                No room can host {totalGuests} guest{totalGuests > 1 ? "s" : ""} in {numRooms} room{numRooms > 1 ? "s" : ""}. Try adding rooms.
-              </div>
-            )}
+            {quotesReady && (
+              <>
+                {/* Case 1 — a single room type fits the whole group */}
+                {showSingleList && (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      Rooms that can host {adults} adult{adults > 1 ? "s" : ""}
+                      {numChildren ? ` and ${numChildren} child${numChildren > 1 ? "ren" : ""}` : ""}.
+                    </p>
+                    {singleMatches.map((occ) => {
+                      const raw = rooms.find((r) => r.id === occ.id)!;
+                      return renderRoomCard(raw, occ, true);
+                    })}
+                  </>
+                )}
 
-            {step2Rooms.map((r) => {
-              const q = quotes[r.id];
-              const blocked = !!q?.error;
-              const amenities = Array.isArray(r.amenities) ? r.amenities.slice(0, 4) : [];
-              return (
-                <div key={r.id} className={cn("rounded-lg border p-3 flex gap-3", blocked && "opacity-70")}>
-                  <img
-                    src={r.photos?.[0] || FALLBACK_IMG}
-                    onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK_IMG)}
-                    alt={r.room_type}
-                    className="h-24 w-28 rounded-md object-cover shrink-0"
-                  />
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-semibold leading-tight">{r.room_type}</div>
-                        {r.category && <div className="text-xs text-muted-foreground">{r.category}</div>}
+                {/* Case 2 — needs a combination */}
+                {!showSingleList && comboList.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm space-y-1">
+                      <div className="flex items-center gap-2 font-medium">
+                        <Layers className="h-4 w-4" /> Your group needs more than one room.
                       </div>
-                      <div className="text-right shrink-0">
-                        {q?.loading ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        ) : (
-                          <>
-                            <div className="font-bold">{inr(q?.perNight ?? r.base_price)}</div>
-                            <div className="text-[10px] text-muted-foreground">/ night</div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {r.description && <p className="text-xs text-muted-foreground line-clamp-2">{r.description}</p>}
-                    <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-                      {r.bed_type && <span className="flex items-center gap-1"><BedDouble className="h-3 w-3" />{r.bed_type}</span>}
-                      {r.view_type && <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{r.view_type}</span>}
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        Max {r.max_adults ?? r.max_occupancy} adults{r.max_children ? ` + ${r.max_children} child` : ""}
-                      </span>
-                    </div>
-                    {amenities.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {amenities.map((a: string) => (
-                          <Badge key={a} variant="secondary" className="text-[10px] font-normal">{a}</Badge>
-                        ))}
-                      </div>
-                    )}
-                    {blocked ? (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" /> {q?.error}
+                      <p className="text-xs text-muted-foreground">
+                        {adults} Adult{adults > 1 ? "s" : ""}
+                        {numChildren ? ` · ${numChildren} Child${numChildren > 1 ? "ren" : ""}` : ""}
+                        {" — "}
+                        {exactCombos.length
+                          ? `valid options for ${numRooms} room${numRooms > 1 ? "s" : ""}`
+                          : `${numRooms} room${numRooms > 1 ? "s" : ""} cannot accommodate all selected guests.`}
                       </p>
-                    ) : (
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px] text-emerald-500">
-                          {q?.available != null ? `${q.available} room(s) available` : "Available"}
-                        </span>
-                        <Button size="sm" onClick={() => { setSelectedRoomId(r.id); setSelectedMeals([]); setExtraBeds(0); setStep("extras"); }} disabled={q?.loading}>
-                          Select Room
+                      {!exactCombos.length && recommendedRooms && (
+                        <p className="text-xs font-semibold">Recommended: {recommendedRooms} rooms</p>
+                      )}
+                    </div>
+
+                    {comboList.map((combo) => (
+                      <div key={combo.key} className="rounded-lg border p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="text-sm font-semibold">
+                            Recommended combination · {combo.totalRooms} room{combo.totalRooms > 1 ? "s" : ""}
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold">{inr(combo.perNightTotal)}</div>
+                            <div className="text-[10px] text-muted-foreground">/ night · taxes extra</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {combo.items.flatMap((it) =>
+                            it.units.map((u, i) => (
+                              <div key={`${it.room.id}-${i}`} className="flex items-center justify-between text-xs rounded-md bg-muted/40 px-2 py-1.5">
+                                <span className="font-medium">{it.room.room_type}</span>
+                                <span className="text-muted-foreground">{allocationLabel(u)}</span>
+                                <span>{inr(it.room.perNight)}</span>
+                              </div>
+                            )),
+                          )}
+                        </div>
+                        <Button className="w-full" size="sm" onClick={() => selectCombo(combo)}>
+                          {combo.totalRooms === numRooms
+                            ? `Select These ${combo.totalRooms} Room${combo.totalRooms > 1 ? "s" : ""}`
+                            : `Use ${combo.totalRooms} Rooms`}
                         </Button>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-              );
-            })}
+                )}
+
+                {/* Nothing can host the group */}
+                {!showSingleList && comboList.length === 0 && (
+                  <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+                    <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                    No available rooms can accommodate {adults} adult{adults > 1 ? "s" : ""}
+                    {numChildren ? ` and ${numChildren} child${numChildren > 1 ? "ren" : ""}` : ""} for these dates.
+                    Try different dates or reduce the number of guests.
+                  </div>
+                )}
+
+                {/* Other room options */}
+                {otherRooms.length > 0 && (
+                  <>
+                    <Button variant="ghost" size="sm" className="w-full"
+                      onClick={() => setShowAllRooms((v) => !v)}>
+                      {showAllRooms ? "Hide other room options" : "View Other Room Options"}
+                    </Button>
+                    {showAllRooms && otherRooms.map((r) => {
+                      const occ = pool.find((p) => p.id === r.id);
+                      const fits = !!occ && adults <= occ.maxAdults && numChildren <= occ.maxChildren
+                        && totalGuests <= occ.maxTotal;
+                      return renderRoomCard(r, occ, fits);
+                    })}
+                  </>
+                )}
+              </>
+            )}
           </div>
         )}
 
-        {/* ---------------- STEP 3 : MEALS, EXTRA BED, LIVE PRICE ---------------- */}
-        {step === "extras" && selectedRoom && (
+        {/* ---------------- STEP 3 : MEALS, EXTRA BEDS, LIVE PRICE ---------------- */}
+        {step === "extras" && groups.length > 0 && (
           <div className="space-y-4">
             <button className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground" onClick={() => setStep("room")}>
-              <ArrowLeft className="h-3 w-3" /> Change room
+              <ArrowLeft className="h-3 w-3" /> Change room selection
             </button>
 
-            <div className="flex gap-3 rounded-lg border p-3">
-              <img
-                src={selectedRoom.photos?.[0] || FALLBACK_IMG}
-                onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK_IMG)}
-                alt={selectedRoom.room_type}
-                className="h-20 w-24 rounded-md object-cover"
-              />
-              <div className="text-sm">
-                <div className="font-semibold flex items-center gap-1">
-                  <Check className="h-3.5 w-3.5 text-emerald-500" />{selectedRoom.room_type}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {[selectedRoom.bed_type, selectedRoom.view_type].filter(Boolean).join(" · ")}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {checkInStr} → {checkOutStr} · {nights} night{nights > 1 ? "s" : ""} · {numRooms} room{numRooms > 1 ? "s" : ""}
-                </div>
-              </div>
+            <div className="rounded-lg border p-3 text-xs text-muted-foreground">
+              {checkInStr} → {checkOutStr} · {nights} night{nights > 1 ? "s" : ""} ·{" "}
+              {groups.reduce((s, g) => s + g.quantity, 0)} room(s) · {adults} adult{adults > 1 ? "s" : ""}
+              {numChildren ? `, ${numChildren} child${numChildren > 1 ? "ren" : ""}` : ""}
             </div>
 
-            {config.loading ? (
-              <Skeleton className="h-24 w-full rounded-lg" />
-            ) : (
-              <>
-                <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
-                <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
-              </>
-            )}
+            {groups.map((g) => (
+              <RoomGroupExtras
+                key={g.roomId}
+                hotelId={hotel.id}
+                group={g}
+                checkIn={checkInStr}
+                checkOut={checkOutStr}
+                onChange={(patch) => patchGroup(g.roomId, patch)}
+                onPrice={handleGroupPrice}
+              />
+            ))}
 
             <Separator />
 
@@ -582,14 +742,28 @@ const HotelBookingModal = ({
             </div>
 
             <Separator />
-            {liveError && <p className="text-xs text-destructive">{liveError}</p>}
-            <PriceBreakdown price={livePrice} />
+            {priceError && <p className="text-xs text-destructive">{priceError}</p>}
 
-            <Button className="w-full h-12" onClick={handlePayment} disabled={submitting || !!liveError || !livePrice}>
+            {totals && (
+              <div className="space-y-1 text-sm">
+                <Row label={`Room charges (${nights} night${nights !== 1 ? "s" : ""})`} value={inr(totals.roomCharges)} />
+                {totals.mealTotal > 0 && <Row label="Meals" value={inr(totals.mealTotal)} />}
+                {totals.extraBedTotal > 0 && <Row label="Extra beds" value={inr(totals.extraBedTotal)} />}
+                <Separator className="my-2" />
+                <Row label="Subtotal" value={inr(totals.taxableSubtotal)} />
+                <Row label={`GST (${totals.gstRate}%)`} value={inr(totals.taxAmount)} />
+                <Separator className="my-2" />
+                <div className="flex items-center justify-between text-base font-semibold">
+                  <span>Grand total</span><span>{inr(totals.grandTotal)}</span>
+                </div>
+              </div>
+            )}
+
+            <Button className="w-full h-12" onClick={handlePayment} disabled={submitting || !!priceError || !totals}>
               {submitting ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing payment...</>
               ) : (
-                `Payment · ${inr(livePrice?.grandTotal || 0)}`
+                `Payment · ${inr(totals?.grandTotal || 0)}`
               )}
             </Button>
             <p className="text-[11px] text-center text-muted-foreground">
@@ -602,5 +776,14 @@ const HotelBookingModal = ({
     </Dialog>
   );
 };
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
 
 export default HotelBookingModal;
