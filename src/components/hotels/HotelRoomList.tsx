@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BedDouble, Users, Maximize, Check, Coffee, ShieldCheck,
-  ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers,
+  ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers, Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
+import { boardLabel } from "@/types/hotelCanonical";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
@@ -71,6 +72,8 @@ export default function HotelRoomList({
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
   const [galleryIdx, setGalleryIdx] = useState<Record<string, number>>({});
+  const [ratePlans, setRatePlans] = useState<any[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   // Load rooms
@@ -96,6 +99,30 @@ export default function HotelRoomList({
       setMeals(data || []);
     })();
   }, [hotelId]);
+
+  // Rate plans — board / refundability variants a room can be sold on.
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("hotel_rate_plans").select("*")
+        .eq("hotel_id", hotelId).eq("is_active", true);
+      setRatePlans(data || []);
+    })();
+  }, [hotelId]);
+
+  /** Room-specific plans first, then hotel-wide plans. */
+  const plansForRoom = (roomId: string) =>
+    ratePlans.filter((p) => !p.room_id || p.room_id === roomId);
+
+  /** Per-night price for a room once a rate plan adjustment is applied. */
+  const planPerNight = (basePerNight: number, plan: any) => {
+    if (!plan) return basePerNight;
+    const value = Number(plan.adjustment_value) || 0;
+    const adjusted = plan.adjustment_type === "percent"
+      ? basePerNight * (1 + value / 100)
+      : basePerNight + value;
+    return Math.max(0, Math.round(adjusted));
+  };
 
   /** Room-level meal config overrides the hotel-level default. */
   const mealsForRoom = (roomId: string) => {
@@ -217,7 +244,7 @@ export default function HotelRoomList({
     );
   }
 
-  const goCheckout = (roomId: string, qty: number) => {
+  const goCheckout = (roomId: string, qty: number, ratePlanId?: string) => {
     if (!hasDates) { toast.info("Please select check-in and check-out dates first"); return; }
     const params = new URLSearchParams({
       room: roomId,
@@ -227,6 +254,8 @@ export default function HotelRoomList({
       children: String(children ?? 0),
       rooms: String(qty),
     });
+    const plan = ratePlanId ?? selectedPlan[roomId];
+    if (plan) params.set("rate_plan", plan);
     navigate(`/hotels/${hotelId}/checkout?${params.toString()}`);
   };
 
@@ -404,6 +433,36 @@ export default function HotelRoomList({
                     )}
                   </div>
 
+                  {plansForRoom(room.id).length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                        <Tag className="h-3 w-3" /> Choose a rate
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {plansForRoom(room.id).map((plan) => {
+                          const active = (selectedPlan[room.id] ?? plansForRoom(room.id)[0]?.id) === plan.id;
+                          const base = q && !q.loading ? q.perNight : Number(room.base_price);
+                          return (
+                            <button
+                              key={plan.id}
+                              type="button"
+                              onClick={() => setSelectedPlan((p) => ({ ...p, [room.id]: plan.id }))}
+                              className={`rounded-lg border px-3 py-1.5 text-left text-[11px] transition ${
+                                active ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
+                              }`}
+                            >
+                              <span className="block font-medium">{plan.rate_plan_name || plan.name}</span>
+                              <span className="block text-muted-foreground">
+                                {boardLabel(plan.board)} · {plan.is_refundable ? "Refundable" : "Non refundable"} · ₹
+                                {planPerNight(base, plan).toLocaleString()}/night
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {hasDates && q && !q.loading && (
                     <div className="pt-1">
                       {soldOut ? (
@@ -451,7 +510,13 @@ export default function HotelRoomList({
                   <Button
                     className="w-full"
                     disabled={!!soldOut}
-                    onClick={() => goCheckout(room.id, roomsWanted ?? 1)}
+                    onClick={() =>
+                      goCheckout(
+                        room.id,
+                        roomsWanted ?? 1,
+                        selectedPlan[room.id] ?? plansForRoom(room.id)[0]?.id,
+                      )
+                    }
                   >
                     {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
                   </Button>
