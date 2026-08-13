@@ -248,7 +248,7 @@ const HotelCheckout = () => {
 
       const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
         body: {
-          hotel_id: hotelId, room_id: roomId,
+          hotel_id: hotelId, room_id: roomId, rate_plan_id: ratePlanId,
           check_in: checkIn, check_out: checkOut,
           adults, children, num_rooms: numRooms,
           extra_beds: extraBeds, meals: selectedMeals,
