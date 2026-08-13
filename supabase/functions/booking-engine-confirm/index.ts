@@ -307,13 +307,18 @@ Deno.serve(async (req) => {
     const origin = req.headers.get("origin") || Deno.env.get("APP_ORIGIN") || "";
     const portal_url = `${origin}/stay/${token}`;
 
-    try {
-      await fetch(new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!), {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
-        body: JSON.stringify({ booking_id: booking.id, guest_portal_url: portal_url }),
-      });
-    } catch { /* ignore */ }
+    // Payment-driven flows email the guest only after the payment is verified.
+    const shouldEmail = send_email ?? (booking_status === "confirmed" && payment_status !== "pending");
+    if (shouldEmail) {
+      try {
+        await fetch(new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+          body: JSON.stringify({ booking_id: booking.id, guest_portal_url: portal_url }),
+        });
+      } catch { /* ignore */ }
+    }
+
 
     return json({
       booking, portal_url,
