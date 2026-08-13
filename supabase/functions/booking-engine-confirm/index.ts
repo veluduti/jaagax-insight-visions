@@ -43,7 +43,13 @@ Deno.serve(async (req) => {
       idempotency_key = null, agency_reference = null,
       lead_guest = null, rooms: roomInputs = null, groups = null,
       meta = [], payment_details = null,
+      // Payment-driven flows create the booking BEFORE the money is captured:
+      // they pass status "pending" and confirm it in razorpay-verify-payment.
+      booking_status = "confirmed", payment_status = "pending",
+      payment_method = null, booking_type = "hotel_only",
+      booked_by_agent_id = null, send_email = null,
     } = body;
+
 
     if (!hotel_id || !check_in || !check_out || !guest_name || !guest_email) {
       return json({ error: "Missing fields" }, 400);
@@ -193,6 +199,8 @@ Deno.serve(async (req) => {
       guest_name, guest_email, guest_phone,
       lead_guest: leadGuest,
       user_id: user_id || null,
+      booked_by_agent_id: booked_by_agent_id || null,
+      booking_type,
       special_requests,
       promo_code: promo_code || null,
       source,
@@ -203,8 +211,11 @@ Deno.serve(async (req) => {
       idempotency_key: idempotency_key ?? null,
       currency: "INR",
       guest_portal_token: token,
-      status: "confirmed",
-      payment_status: "pending",
+      status: booking_status,
+      payment_status,
+      payment_method,
+      payment_attempted_at: payment_method ? new Date().toISOString() : null,
+
       taxes_total: totals.taxAmount ?? 0,
       cancellation_policy_snapshot: policySnapshot,
       ...priceCols,
@@ -265,7 +276,7 @@ Deno.serve(async (req) => {
         ...(idempotency_key ? [{ reference_type: "idempotency", reference_value: idempotency_key }] : []),
       ],
       meta,
-      status: "confirmed",
+      status: booking_status,
       status_source: isHyperGuest ? HG : "jaaga",
       financial_model: { source: isHyperGuest ? HG : "jaaga", items: jaagaFinancialItems(totals), raw: externalRaw ?? null },
     });
@@ -296,13 +307,18 @@ Deno.serve(async (req) => {
     const origin = req.headers.get("origin") || Deno.env.get("APP_ORIGIN") || "";
     const portal_url = `${origin}/stay/${token}`;
 
-    try {
-      await fetch(new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!), {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
-        body: JSON.stringify({ booking_id: booking.id, guest_portal_url: portal_url }),
-      });
-    } catch { /* ignore */ }
+    // Payment-driven flows email the guest only after the payment is verified.
+    const shouldEmail = send_email ?? (booking_status === "confirmed" && payment_status !== "pending");
+    if (shouldEmail) {
+      try {
+        await fetch(new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+          body: JSON.stringify({ booking_id: booking.id, guest_portal_url: portal_url }),
+        });
+      } catch { /* ignore */ }
+    }
+
 
     return json({
       booking, portal_url,

@@ -45,10 +45,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Mint a stay-portal token
+    // Keep the stay-portal token minted at booking time (canonical flow);
+    // mint one only for bookings created without it.
     const tokBytes = new Uint8Array(20);
     crypto.getRandomValues(tokBytes);
     const portalToken = Array.from(tokBytes, b => b.toString(16).padStart(2, "0")).join("");
+
+    const { data: existing } = await supabase
+      .from("hotel_bookings").select("guest_portal_token").eq("id", booking_id).maybeSingle();
 
     const { data: booking, error: bErr } = await supabase
       .from("hotel_bookings")
@@ -57,12 +61,13 @@ Deno.serve(async (req) => {
         payment_status: "paid",
         razorpay_payment_id,
         razorpay_signature,
-        guest_portal_token: portalToken,
+        guest_portal_token: existing?.guest_portal_token || portalToken,
         updated_at: new Date().toISOString(),
       })
       .eq("id", booking_id)
       .eq("razorpay_order_id", razorpay_order_id)
       .select().single();
+
 
     if (bErr || !booking) return json({ error: bErr?.message || "Booking not found" }, 404);
 
