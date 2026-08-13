@@ -276,7 +276,7 @@ Deno.serve(async (req) => {
         ...(idempotency_key ? [{ reference_type: "idempotency", reference_value: idempotency_key }] : []),
       ],
       meta,
-      status: "confirmed",
+      status: booking_status,
       status_source: isHyperGuest ? HG : "jaaga",
       financial_model: { source: isHyperGuest ? HG : "jaaga", items: jaagaFinancialItems(totals), raw: externalRaw ?? null },
     });
