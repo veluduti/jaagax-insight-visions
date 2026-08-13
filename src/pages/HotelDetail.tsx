@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
+import HotelExtraServices from "@/components/hotels/HotelExtraServices";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 
 interface HotelData {
@@ -492,6 +493,9 @@ const HotelDetail = () => {
               </div>
             </section>
           )}
+
+          {/* 6 — EVENTS & FACILITIES (JAAGA extra services, enquiry only) */}
+          <HotelExtraServices hotelId={hotel.id} />
 
         </div>
       </main>
