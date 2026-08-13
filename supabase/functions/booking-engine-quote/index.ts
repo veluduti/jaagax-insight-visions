@@ -73,6 +73,23 @@ Deno.serve(async (req) => {
       total: r.grandTotal,
       line_items: r.lineItems,
       available: q.available ?? null,
+      // Rate plan (first-class) + HyperGuest-compatible financial detail
+      rate_plan: q.ratePlan
+        ? {
+          id: q.ratePlan.id,
+          rate_plan_code: q.ratePlan.rate_plan_code ?? null,
+          rate_plan_name: q.ratePlan.rate_plan_name ?? q.ratePlan.name ?? null,
+          board: q.ratePlan.board ?? null,
+          is_immediate: q.ratePlan.is_immediate ?? true,
+          is_promotion: q.ratePlan.is_promotion ?? false,
+          external_rate_plan_id: q.ratePlan.hyperguest_rate_plan_id ?? null,
+        }
+        : null,
+      taxes: q.taxes ?? [],
+      fees: q.fees ?? [],
+      fee_total: (r as any).feeTotal ?? 0,
+      cancellation_policies: q.cancellationPolicies ?? [],
+      currency: "INR",
     });
   } catch (e) {
     return json({ error: String(e) }, 500);

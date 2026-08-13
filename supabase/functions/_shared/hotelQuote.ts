@@ -9,6 +9,9 @@ import {
 export interface QuoteRequest {
   hotel_id: string;
   room_id: string;
+  /** Optional JAAGA rate plan. When omitted the room's default plan is used. */
+  rate_plan_id?: string | null;
+  infants?: number;
   check_in: string;
   check_out: string;
   adults?: number;
@@ -31,11 +34,15 @@ export interface ServerQuote {
   promo?: { code: string; discount: number } | null;
   lineItems?: LineItem[];
   available?: number;
+  ratePlan?: any;
+  cancellationPolicies?: any[];
+  taxes?: any[];
+  fees?: any[];
 }
 
 export async function buildServerQuote(supabase: any, body: QuoteRequest): Promise<ServerQuote> {
   const {
-    hotel_id, room_id, check_in, check_out,
+    hotel_id, room_id, check_in, check_out, rate_plan_id = null,
     num_rooms = 1, extra_beds = 0, meals = [], addons = [], promo_code,
   } = body;
 
@@ -76,6 +83,32 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
     .from("hotel_rate_calendar").select("*")
     .eq("room_id", room_id).gte("date", dates[0]).lte("date", dates[dates.length - 1]);
 
+  // Rate plan (first-class): adjustment, board, taxes, fees and cancellation policy.
+  let ratePlan: any = null;
+  let planTaxes: any[] = [];
+  let planFees: any[] = [];
+  let planPolicies: any[] = [];
+  if (rate_plan_id) {
+    const { data: rp } = await supabase.from("hotel_rate_plans").select("*").eq("id", rate_plan_id).maybeSingle();
+    if (!rp || rp.hotel_id !== hotel_id) return { error: "Rate plan not found", status: 404 };
+    if (rp.is_active === false) return { error: "This rate plan is no longer available", status: 400 };
+    if (rp.room_id && rp.room_id !== room_id) return { error: "Rate plan does not apply to this room", status: 400 };
+    ratePlan = rp;
+    const [t, f, c] = await Promise.all([
+      supabase.from("rate_plan_taxes").select("*").eq("rate_plan_id", rp.id),
+      supabase.from("rate_plan_fees").select("*").eq("rate_plan_id", rp.id),
+      supabase.from("rate_plan_cancellation_policies").select("*").eq("rate_plan_id", rp.id),
+    ]);
+    planTaxes = t.data || []; planFees = f.data || []; planPolicies = c.data || [];
+  }
+
+  const applyPlan = (price: number) => {
+    if (!ratePlan || !ratePlan.adjustment_type || ratePlan.adjustment_value == null) return price;
+    return ratePlan.adjustment_type === "percent"
+      ? price + (price * Number(ratePlan.adjustment_value)) / 100
+      : price + Number(ratePlan.adjustment_value);
+  };
+
   for (const r of rateRows || []) {
     if (r.stop_sell) return { error: `Stay dates include a blocked date (${r.date}).`, status: 409 };
     if (r.available_units != null && Number(r.available_units) < numRooms) {
@@ -115,10 +148,10 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
   }
 
   const baseInput = {
-    room: room as any,
+    room: { ...room, base_price: applyPlan(Number(room.base_price ?? 0)) } as any,
     meals: mealConfigs as any,
     rateCalendar: (rateRows || []).map((r: any) => ({
-      date: r.date, price: Number(r.price), stop_sell: r.stop_sell, available_units: r.available_units,
+      date: r.date, price: applyPlan(Number(r.price)), stop_sell: r.stop_sell, available_units: r.available_units,
     })),
     checkIn: check_in,
     checkOut: check_out,
@@ -154,7 +187,21 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
   }
 
   const result = computeBookingPrice({ ...baseInput, discount } as any);
-  return { result, room, hotel, promo, lineItems: result.lineItems, available };
+
+  // Rate plan fees are charged on top of the JAAGA computed total.
+  const feeTotal = planFees.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
+  if (feeTotal) {
+    (result as any).feeTotal = feeTotal;
+    (result as any).grandTotal = Math.round((result.grandTotal + feeTotal) * 100) / 100;
+  }
+
+  return {
+    result, room, hotel, promo, lineItems: result.lineItems, available,
+    ratePlan,
+    taxes: planTaxes,
+    fees: planFees,
+    cancellationPolicies: planPolicies,
+  };
 }
 
 /* -------------------------------------------------------------------------
@@ -165,6 +212,7 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
 
 export interface GroupRequest {
   room_id: string;
+  rate_plan_id?: string | null;
   quantity: number;
   adults: number;
   children: number;
@@ -214,6 +262,7 @@ export async function buildMultiQuote(
     const q = await buildServerQuote(supabase, {
       hotel_id,
       room_id: g.room_id,
+      rate_plan_id: g.rate_plan_id ?? null,
       check_in,
       check_out,
       adults: Math.max(1, Number(g.adults) || 0),
