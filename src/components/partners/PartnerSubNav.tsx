@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare,
-  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal,
+  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +19,8 @@ const primary = [
 ];
 
 const more = [
+  { to: "/partners/rate-plans", label: "Rate Plans", icon: Tag },
+  { to: "/partners/extra-services", label: "Extra Services", icon: PartyPopper },
   { to: "/partners/addons", label: "Add-ons", icon: Sparkles },
   { to: "/partners/payouts", label: "Payouts", icon: Wallet },
   { to: "/partners/inbox", label: "Inbox", icon: MessageSquare },

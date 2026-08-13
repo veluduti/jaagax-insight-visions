@@ -156,6 +156,8 @@ const PartnerGuests = lazy(() => import("./pages/partners/PartnerGuests"));
 const PartnerAnalytics = lazy(() => import("./pages/partners/PartnerAnalytics"));
 const PartnerPayouts = lazy(() => import("./pages/partners/PartnerPayouts"));
 const PartnerInbox = lazy(() => import("./pages/partners/PartnerInbox"));
+const PartnerRatePlans = lazy(() => import("./pages/partners/PartnerRatePlans"));
+const PartnerExtraServices = lazy(() => import("./pages/partners/PartnerExtraServices"));
 const Promotions = lazy(() => import("./pages/Promotions"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
@@ -546,6 +548,8 @@ const App = () => (
                   <Route path="/partners/staff" element={<PartnerStaff />} />
                   <Route path="/partners/pricing" element={<PartnerPricing />} />
                   <Route path="/partners/addons" element={<PartnerAddons />} />
+                  <Route path="/partners/rate-plans" element={<PartnerRatePlans />} />
+                  <Route path="/partners/extra-services" element={<PartnerExtraServices />} />
                   <Route path="/partners/booking-engine" element={<PartnerBookingEngine />} />
                   <Route path="/book/:hotelId" element={<BookingEngine />} />
                   <Route path="/stay/:token" element={<GuestPortal />} />
