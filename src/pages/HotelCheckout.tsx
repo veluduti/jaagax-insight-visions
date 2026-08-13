@@ -85,6 +85,7 @@ const HotelCheckout = () => {
   const adults = Math.max(1, Number(params.get("adults") || 2));
   const children = Math.max(0, Number(params.get("children") || 0));
   const numRooms = Math.max(1, Number(params.get("rooms") || 1));
+  const ratePlanId = params.get("rate_plan") || null;
 
   const [hotel, setHotel] = useState<HotelRow | null>(null);
   const [room, setRoom] = useState<RoomRow | null>(null);
@@ -128,7 +129,7 @@ const HotelCheckout = () => {
 
 
       const { data: q } = await supabase.functions.invoke("booking-engine-quote", {
-        body: { hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut, guests: adults + children },
+        body: { hotel_id: hotelId, room_id: roomId, rate_plan_id: ratePlanId, check_in: checkIn, check_out: checkOut, guests: adults + children },
       });
       setQuote(q);
 
@@ -182,7 +183,7 @@ const HotelCheckout = () => {
     (async () => {
       const { data } = await supabase.functions.invoke("booking-engine-quote", {
         body: {
-          hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut,
+          hotel_id: hotelId, room_id: roomId, rate_plan_id: ratePlanId, check_in: checkIn, check_out: checkOut,
           adults, children, guests: adults + children, num_rooms: numRooms,
           extra_beds: extraBeds, meals: selectedMeals,
         },
@@ -190,7 +191,7 @@ const HotelCheckout = () => {
       if (!cancelled && data && !(data as any).error) setQuote(data);
     })();
     return () => { cancelled = true; };
-  }, [hotelId, roomId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+  }, [hotelId, roomId, ratePlanId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
 
   const total = Number(quote?.grand_total ?? livePrice?.grandTotal ?? 0);
 
