@@ -43,7 +43,13 @@ Deno.serve(async (req) => {
       idempotency_key = null, agency_reference = null,
       lead_guest = null, rooms: roomInputs = null, groups = null,
       meta = [], payment_details = null,
+      // Payment-driven flows create the booking BEFORE the money is captured:
+      // they pass status "pending" and confirm it in razorpay-verify-payment.
+      booking_status = "confirmed", payment_status = "pending",
+      payment_method = null, booking_type = "hotel_only",
+      booked_by_agent_id = null, send_email = null,
     } = body;
+
 
     if (!hotel_id || !check_in || !check_out || !guest_name || !guest_email) {
       return json({ error: "Missing fields" }, 400);
