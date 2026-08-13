@@ -356,9 +356,11 @@ const HotelBookingModal = ({
         hotel_name: hotel.name,
         groups: groups.map((g) => ({
           room_id: g.roomId,
+          rate_plan_id: (g as any).ratePlanId ?? null,
           quantity: g.quantity,
           adults: g.adults,
           children: g.children,
+          infants: 0,
           extra_beds: g.extraBeds,
           meals: g.meals,
         })),
@@ -370,9 +372,11 @@ const HotelBookingModal = ({
         guest_name: guestName.trim(),
         guest_email: guestEmail.trim(),
         guest_phone: guestPhone.trim(),
+        booking_type: bookingType,
         user_id: user.id,
         booked_by_agent_id: bookedByAgentId,
       });
+
 
       toast.success("Payment successful — booking confirmed!", {
         description: "A confirmation email is on its way.",
