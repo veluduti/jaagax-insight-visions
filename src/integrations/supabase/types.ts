@@ -4729,61 +4729,103 @@ export type Database = {
       }
       hotel_extra_services: {
         Row: {
+          advance_booking_days: number | null
+          amenities: string[] | null
           availability_type: string
+          cancellation_policy: string | null
           capacity: number | null
+          capacity_max: number | null
+          capacity_min: number | null
+          category: string | null
+          cleanup_time: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
           currency: string
           description: string | null
+          duration: string | null
           hotel_id: string
           id: string
           images: string[]
           is_active: boolean
           location: string | null
+          max_booking_duration: string | null
+          min_booking_duration: string | null
           name: string
           price: number | null
           pricing_type: string
           service_type: string
+          setup_time: string | null
+          special_instructions: string | null
+          tags: string[] | null
           updated_at: string
+          video_url: string | null
         }
         Insert: {
+          advance_booking_days?: number | null
+          amenities?: string[] | null
           availability_type?: string
+          cancellation_policy?: string | null
           capacity?: number | null
+          capacity_max?: number | null
+          capacity_min?: number | null
+          category?: string | null
+          cleanup_time?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          duration?: string | null
           hotel_id: string
           id?: string
           images?: string[]
           is_active?: boolean
           location?: string | null
+          max_booking_duration?: string | null
+          min_booking_duration?: string | null
           name: string
           price?: number | null
           pricing_type?: string
           service_type: string
+          setup_time?: string | null
+          special_instructions?: string | null
+          tags?: string[] | null
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
+          advance_booking_days?: number | null
+          amenities?: string[] | null
           availability_type?: string
+          cancellation_policy?: string | null
           capacity?: number | null
+          capacity_max?: number | null
+          capacity_min?: number | null
+          category?: string | null
+          cleanup_time?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          duration?: string | null
           hotel_id?: string
           id?: string
           images?: string[]
           is_active?: boolean
           location?: string | null
+          max_booking_duration?: string | null
+          min_booking_duration?: string | null
           name?: string
           price?: number | null
           pricing_type?: string
           service_type?: string
+          setup_time?: string | null
+          special_instructions?: string | null
+          tags?: string[] | null
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {

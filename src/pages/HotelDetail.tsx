@@ -78,6 +78,8 @@ const HotelDetail = () => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [extrasCount, setExtrasCount] = useState(0);
+
   const [liked, setLiked] = useState(false);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -284,7 +286,10 @@ const HotelDetail = () => {
           </div>
         </section>
 
-        <div className="container mx-auto max-w-5xl px-4 py-8 space-y-10">
+        <div className="container mx-auto max-w-5xl px-4 py-8">
+        <div className={extrasCount > 0 ? "grid lg:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start" : ""}>
+        <div className="min-w-0 space-y-10">
+
           {/* 2 — BASIC HOTEL INFORMATION */}
           <section>
             <div className="flex items-start justify-between gap-4">
@@ -495,10 +500,21 @@ const HotelDetail = () => {
           )}
 
           {/* 6 — EVENTS & FACILITIES (JAAGA extra services, enquiry only) */}
-          <HotelExtraServices hotelId={hotel.id} />
+          {extrasCount === 0 && (
+            <div className="hidden"><HotelExtraServices hotelId={hotel.id} onCount={setExtrasCount} /></div>
+          )}
 
         </div>
+
+        <aside className={extrasCount > 0 ? "lg:sticky lg:top-24" : "hidden"}>
+          {extrasCount > 0 && (
+            <HotelExtraServices hotelId={hotel.id} variant="sidebar" onCount={setExtrasCount} />
+          )}
+        </aside>
+        </div>
+        </div>
       </main>
+
 
       <Footer />
 
