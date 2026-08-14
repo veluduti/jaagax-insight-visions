@@ -85,9 +85,16 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
             : row;
         });
 
+        const cityMatches = city
+          ? rows.filter((r: any) =>
+              String(r.city || "").toLowerCase().includes(String(city).toLowerCase()),
+            )
+          : [];
+        const cityFallback = (cityMatches.length ? cityMatches : rows).slice(0, 12);
+
         if (!hasCoords) {
           setRadius(null);
-          setItems(rows.slice(0, 12));
+          setItems(cityFallback);
           return;
         }
 
