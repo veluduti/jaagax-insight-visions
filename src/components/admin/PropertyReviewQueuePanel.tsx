@@ -175,6 +175,20 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     }
   };
 
+  const openReport = async (p: PropRow) => {
+    setReportFor(p);
+    setReportNotes("");
+    setReport(null);
+    const { data } = await (supabase as any)
+      .from("property_verifications")
+      .select("id, property_id, photos, video_url, remarks, submitted_at")
+      .eq("property_id", p.id)
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setReport((data ?? null) as VerificationRow | null);
+  };
+
   if (loading) return <Skeleton className="h-48 w-full" />;
 
   const held = props.filter((p) => p.hold_admin_id === uid);
