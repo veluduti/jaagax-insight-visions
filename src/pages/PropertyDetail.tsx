@@ -158,12 +158,15 @@ const PropertyDetail = () => {
         return;
       }
 
-      // Validate critical fields (against the public view)
-      if (!view.title || !view.city || !view.locality || !view.price) {
+      // Validate only the truly critical field. Listings still moving through
+      // the admin review workflow often miss locality/price, and admins must
+      // still be able to open them from the review queue.
+      if (!view.title) {
         setProperty(null);
         setLoading(false);
         return;
       }
+
 
       // Use type assertion to handle the DB schema (raw row kept for fields
       // not yet surfaced through final_data, e.g. building metadata).
