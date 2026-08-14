@@ -881,6 +881,10 @@ export default function AgentDashboard() {
         </motion.div>
 
         {/* ===== PHASE 1: KYC & Subscription Row ===== */}
+        <div className="mb-6">
+          <AgentVerificationAssignments />
+        </div>
+
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentKYCVerification />
