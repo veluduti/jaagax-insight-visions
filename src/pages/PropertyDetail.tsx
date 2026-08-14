@@ -473,67 +473,62 @@ const PropertyDetail = () => {
         </div>
       </div>
 
-      {/* Media Hub - Enhanced with video, 360 tour, floorplans */}
-      <MediaHub
-        images={property.images}
-        videos={property.video_urls}
-        virtualTourUrl={property.video_urls?.find(url => url.includes('virtual-tour') || url.includes('360'))}
-        floorplans={[]}
-        brochureUrl={undefined}
-        propertyId={property.id}
-        propertyTitle={property.title}
-      />
+      {/* Hero gallery + AI property video */}
+      <div className="container mx-auto px-4">
+        <PropertyHeroGallery
+          images={property.images || []}
+          videos={property.video_urls || []}
+          propertyTitle={property.title}
+        />
+      </div>
 
-      {/* Property Video Reels from YouTube/Instagram */}
-      {property.video_urls.length > 0 && (
-        <div className="container mx-auto px-4 mt-6">
-          <PropertyVideoReels videoUrls={property.video_urls} propertyTitle={property.title} />
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="container mx-auto px-4 -mt-8 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+      {/* Action Bar */}
+      <div className="container mx-auto px-4 mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+          className="glass-panel rounded-xl p-4 flex flex-col lg:flex-row lg:items-center gap-3"
         >
-          {isNotLive && (
-            <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300 md:mb-0 md:mr-4">
-              This listing is visible as approved inventory, but live enquiries are currently limited.
-            </div>
-          )}
-          <PropertyActions 
+          <PropertyActions
             propertyId={property.id}
             propertyTitle={property.title}
             propertyType="property"
           />
-          
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              onClick={toggleFavorite} 
-              variant={isFavorite ? "default" : "outline"} 
-              size="lg" 
-              className="gap-2 hidden md:inline-flex"
+
+          <div className="hidden lg:block h-8 w-px bg-border" />
+
+          <div className="flex flex-wrap gap-2 lg:ml-auto">
+            <Button
+              onClick={toggleFavorite}
+              variant={isFavorite ? "default" : "outline"}
+              size="lg"
+              className="gap-2"
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
             </Button>
-            <Button size="lg" className="gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
-              <Calendar className="h-4 w-4" />
-              Book Visit
-            </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="gap-2 bg-primary hover:bg-primary/90"
               onClick={() => setShowPreCallModal(true)}
             >
               <Brain className="h-4 w-4" />
               Talk to AI Expert
             </Button>
+            <Button size="lg" variant="outline" className="gap-2 border-primary/50 text-primary hover:bg-primary/10" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
+              <Calendar className="h-4 w-4" />
+              Book Visit
+            </Button>
           </div>
         </motion.div>
+
+        {isNotLive && (
+          <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+            This listing is visible as approved inventory, but live enquiries are currently limited.
+          </div>
+        )}
       </div>
+
 
       <div className="container mx-auto px-4 py-8">
         {/* AI Decision Panel - Above Price Section */}
