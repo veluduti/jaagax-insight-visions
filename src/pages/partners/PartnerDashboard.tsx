@@ -676,13 +676,15 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Arrivals · {format(date, "dd MMM yyyy")}</DialogTitle>
-            <DialogDescription>{day.checkins.length} guest(s) yet to check in</DialogDescription>
+            <DialogDescription>
+              {day.arrivals.length} arrival(s) · {day.checkins.length} yet to check in
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {day.checkins.length === 0 && (
-              <p className="text-sm text-muted-foreground">No pending arrivals.</p>
+            {day.arrivals.length === 0 && (
+              <p className="text-sm text-muted-foreground">No arrivals for this day.</p>
             )}
-            {day.checkins.map((b) => (
+            {day.arrivals.map((b) => (
               <div key={b.id} className="rounded-lg border border-border/60 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
@@ -693,11 +695,12 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
                     <p className="text-sm text-muted-foreground">
                       {roomLabel(b)} · {b.num_rooms || 1} room(s)
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {b.num_guests || 1} guest(s)
-                    </p>
+                    <p className="text-sm text-muted-foreground">{b.num_guests || 1} guest(s)</p>
                     <p className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" /> Expected from 2:00 PM
+                      <Clock className="h-3.5 w-3.5" />
+                      {b.actual_check_in_at
+                        ? `Checked in · ${safeTime(b.actual_check_in_at)}`
+                        : "Expected from 2:00 PM"}
                     </p>
                     {b.guest_phone && (
                       <p className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -724,9 +727,19 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
                       >
                         View Booking
                       </Button>
-                      <Button size="sm" disabled={busy === b.id} onClick={() => doCheckIn(b)}>
-                        {busy === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Check-In"}
-                      </Button>
+                      {!b.actual_check_in_at ? (
+                        <Button size="sm" disabled={busy === b.id} onClick={() => doCheckIn(b)}>
+                          {busy === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Check-In"}
+                        </Button>
+                      ) : !b.actual_check_out_at ? (
+                        <Button size="sm" disabled={busy === b.id} onClick={() => doCheckOut(b)}>
+                          {busy === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Check-Out"}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          Checked out · {safeTime(b.actual_check_out_at)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
