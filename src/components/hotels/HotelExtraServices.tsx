@@ -17,10 +17,19 @@ import { Building2, Users, MapPin, Phone, Loader2 } from "lucide-react";
  * JAAGA-only hotel extra services (banquet hall, pub, conference hall, …).
  * Completely independent from room inventory — guests enquire or contact.
  */
-export default function HotelExtraServices({ hotelId }: { hotelId: string }) {
+export default function HotelExtraServices({
+  hotelId,
+  variant = "section",
+  onCount,
+}: {
+  hotelId: string;
+  variant?: "section" | "sidebar";
+  onCount?: (n: number) => void;
+}) {
   const [services, setServices] = useState<HotelExtraService[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<HotelExtraService | null>(null);
+  const [viewing, setViewing] = useState<HotelExtraService | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     guest_name: "", guest_email: "", guest_phone: "", event_date: "", guests_count: "", message: "",
@@ -29,13 +38,15 @@ export default function HotelExtraServices({ hotelId }: { hotelId: string }) {
   useEffect(() => {
     let alive = true;
     listExtraServices(hotelId)
-      .then((rows) => alive && setServices(rows))
-      .catch(() => alive && setServices([]))
+      .then((rows) => { if (alive) { setServices(rows); onCount?.(rows.length); } })
+      .catch(() => { if (alive) { setServices([]); onCount?.(0); } })
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotelId]);
 
   if (loading || !services.length) return null;
+
 
   const submit = async () => {
     if (!form.guest_name.trim()) { toast.error("Please enter your name"); return; }
