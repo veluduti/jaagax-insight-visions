@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { School, Hospital, ShoppingBag, Train, MapPin, Utensils, Trees, Loader2 } from "lucide-react";
+import { School, Hospital, ShoppingBag, Train, MapPin, Utensils, Trees, Loader2, Pill } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,6 +23,7 @@ interface POIItem {
 const poiIcons: Record<string, any> = {
   school: School,
   hospital: Hospital,
+  pharmacy: Pill,
   shopping_mall: ShoppingBag,
   transit_station: Train,
   restaurant: Utensils,
@@ -33,7 +34,8 @@ const poiIcons: Record<string, any> = {
 const poiLabels: Record<string, string> = {
   school: "Schools",
   hospital: "Hospitals",
-  shopping_mall: "Shopping Malls",
+  pharmacy: "Pharmacies & Medical Shops",
+  shopping_mall: "Shopping & Supermarkets",
   transit_station: "Transit Stations",
   restaurant: "Restaurants",
   park: "Parks",
@@ -42,6 +44,7 @@ const poiLabels: Record<string, string> = {
 const poiColors: Record<string, string> = {
   school: "bg-blue-500/10 text-blue-500",
   hospital: "bg-red-500/10 text-red-500",
+  pharmacy: "bg-teal-500/10 text-teal-500",
   shopping_mall: "bg-purple-500/10 text-purple-500",
   transit_station: "bg-green-500/10 text-green-500",
   restaurant: "bg-orange-500/10 text-orange-500",
