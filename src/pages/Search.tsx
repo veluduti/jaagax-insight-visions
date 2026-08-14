@@ -312,10 +312,10 @@ const Search = () => {
     const from = (pageNum - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    // City-based discovery with nearby prioritization.
-    // Strategy: fetch ALL properties matching the user's city (no hard radius),
-    // then sort client-side by distance to user coords so nearby localities rank first.
-    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true);
+    // Discovery: show every publicly listed property. Location is used for
+    // ranking (nearest first), never as a hard filter — many listings have no
+    // coordinates and were previously being dropped entirely.
+    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb
       .order("is_featured", { ascending: false })
@@ -324,12 +324,9 @@ const Search = () => {
     if (error) return;
 
     const all = ((data as any[]) || []).map(toPublicRow);
-    const normalizedLocation = canonicalizeCity(location);
-    let filtered = all
-      .filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation))
-      .filter((p) => classifyProperty(p) !== "draft");
+    let filtered = all.filter((p) => classifyProperty(p) !== "draft");
 
-    // 10km radius hard filter + nearby-first sort when we have user coords.
+    // Nearby-first ordering when we know the user's coordinates.
     const uLat = savedLocation?.latitude;
     const uLng = savedLocation?.longitude;
     if (typeof uLat === "number" && typeof uLng === "number") {
@@ -341,14 +338,13 @@ const Search = () => {
         const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
         return 2 * R * Math.asin(Math.sqrt(a));
       };
-      const RADIUS_KM = 10;
-      filtered = filtered
-        .filter((p) => {
-          if (typeof p.latitude !== "number" || typeof p.longitude !== "number") return false;
-          return haversine(p.latitude, p.longitude) <= RADIUS_KM;
-        })
-        .sort((a, b) => haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude));
+      const dist = (p: any) =>
+        typeof p.latitude === "number" && typeof p.longitude === "number"
+          ? haversine(p.latitude, p.longitude)
+          : Number.POSITIVE_INFINITY;
+      filtered = [...filtered].sort((a, b) => dist(a) - dist(b));
     }
+
 
     setProperties((prev) => (append ? [...prev, ...filtered] : filtered));
     setTotal(count || filtered.length);
