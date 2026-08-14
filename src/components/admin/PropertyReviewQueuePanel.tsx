@@ -210,6 +210,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                   <a href={`/property/${p.id}`} target="_blank" rel="noreferrer">Open & verify</a>
                 </Button>
                 {p.lifecycle_status !== "owner_review" && (
+                  <Button size="sm" variant="secondary" disabled={busy === p.id}
+                    onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
+                    <CalendarClock className="h-4 w-4 mr-1" />
+                    {p.verification_visit_at ? "Reschedule visit" : "Schedule visit"}
+                  </Button>
+                )}
+                {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" disabled={busy === p.id} onClick={() => { setVerifyFor(p); setVerifyNotes(""); }}>
                     <CheckCircle2 className="h-4 w-4 mr-1" /> Submit verification to owner
                   </Button>
