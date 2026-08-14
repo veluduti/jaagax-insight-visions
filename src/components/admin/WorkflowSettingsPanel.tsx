@@ -17,6 +17,9 @@ type Settings = {
   max_hold_hours: number;
   visit_window_days: number;
   owner_approval_hours: number;
+  no_agent_max_hold_hours: number;
+  no_agent_review_days_min: number;
+  no_agent_review_days_max: number;
   auto_release_enabled: boolean;
 };
 
