@@ -125,8 +125,13 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
             usedRadius = step;
           }
         }
-        setRadius(usedRadius);
-        setItems(picked.slice(0, 12));
+        if (!picked.length) {
+          setRadius(null);
+          setItems(cityFallback);
+        } else {
+          setRadius(usedRadius);
+          setItems(picked.slice(0, 12));
+        }
       } finally {
         if (alive) setLoading(false);
       }
