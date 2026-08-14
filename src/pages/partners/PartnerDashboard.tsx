@@ -754,13 +754,15 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Departures · {format(date, "dd MMM yyyy")}</DialogTitle>
-            <DialogDescription>{day.checkouts.length} guest(s) yet to check out</DialogDescription>
+            <DialogDescription>
+              {day.departures.length} departure(s) · {day.checkouts.length} yet to check out
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {day.checkouts.length === 0 && (
-              <p className="text-sm text-muted-foreground">No pending departures.</p>
+            {day.departures.length === 0 && (
+              <p className="text-sm text-muted-foreground">No departures for this day.</p>
             )}
-            {day.checkouts.map((b) => (
+            {day.departures.map((b) => (
               <div key={b.id} className="rounded-lg border border-border/60 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
@@ -773,6 +775,11 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
                       Extra charges: {inr(Number(b.extra_charges || 0))}
                     </p>
                     <p className="text-sm text-muted-foreground">Pending amount: {inr(due(b))}</p>
+                    {b.actual_check_out_at && (
+                      <p className="text-sm text-muted-foreground">
+                        Checked out · {safeTime(b.actual_check_out_at)}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <PayBadge b={b} />
@@ -785,9 +792,21 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
                       <Button size="sm" variant="outline" onClick={() => printInvoice(b)}>
                         <FileText className="mr-1.5 h-3.5 w-3.5" /> Invoice
                       </Button>
-                      <Button size="sm" disabled={busy === b.id} onClick={() => doCheckOut(b)}>
-                        {busy === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Check-Out"}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setView(null);
+                          setDetail(b);
+                        }}
+                      >
+                        View Booking
                       </Button>
+                      {!b.actual_check_out_at && (
+                        <Button size="sm" disabled={busy === b.id} onClick={() => doCheckOut(b)}>
+                          {busy === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Check-Out"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
