@@ -498,10 +498,19 @@ const HotelDetail = () => {
           )}
 
           {/* 6 — EVENTS & FACILITIES (JAAGA extra services, enquiry only) */}
-          <HotelExtraServices hotelId={hotel.id} />
+          {extrasCount === 0 && <HotelExtraServices hotelId={hotel.id} onCount={setExtrasCount} />}
 
         </div>
+
+        <aside className={extrasCount > 0 ? "lg:sticky lg:top-24" : "hidden"}>
+          {extrasCount > 0 && (
+            <HotelExtraServices hotelId={hotel.id} variant="sidebar" onCount={setExtrasCount} />
+          )}
+        </aside>
+        </div>
+        </div>
       </main>
+
 
       <Footer />
 
