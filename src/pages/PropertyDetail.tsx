@@ -190,13 +190,14 @@ const PropertyDetail = () => {
       const mappedProperty: Property = {
         id: view.id,
         title: view.title,
-        city: view.city!,
-        locality: view.locality!,
+        city: view.city ?? "N/A",
+        locality: view.locality ?? "N/A",
         lat: view.latitude ?? null,
         lng: view.longitude ?? null,
-        price: view.price!,
+        price: view.price ?? 0,
         area: view.area_sqft ?? null,
         type: view.type ?? "Apartment",
+
         beds: view.bedrooms || view.bhk || 0,
         baths: view.bathrooms || 0,
         bhk: view.bhk ?? null,
