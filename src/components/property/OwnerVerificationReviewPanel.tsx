@@ -53,18 +53,17 @@ export default function OwnerVerificationReviewPanel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [reason, setReason] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [closeFor, setCloseFor] = useState<Row | null>(null);
+  const [closeReason, setCloseReason] = useState(OWNER_CLOSE_REASONS[0]);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const { data } = await (supabase as any)
       .from("properties")
-      .select("id, title, city, district, lifecycle_status, queue_level, needs_agent, agent_notes, is_locked")
+      .select("id, title, city, district, lifecycle_status, queue_level, needs_agent, agent_notes, is_locked, verification_visit_at, verification_visit_notes")
       .eq("submitted_by", u.user.id)
-      .in("lifecycle_status", [
-        "submitted", "country_queue", "country_hold", "state_queue", "state_hold",
-        "district_queue", "district_hold", "owner_review", "pending_admin_review",
-      ]);
+      .in("lifecycle_status", TRACKED_STATUSES);
     setRows((data ?? []) as Row[]);
   }, []);
 
