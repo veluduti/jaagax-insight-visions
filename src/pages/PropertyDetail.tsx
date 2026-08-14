@@ -158,12 +158,15 @@ const PropertyDetail = () => {
         return;
       }
 
-      // Validate critical fields (against the public view)
-      if (!view.title || !view.city || !view.locality || !view.price) {
+      // Validate only the truly critical field. Listings still moving through
+      // the admin review workflow often miss locality/price, and admins must
+      // still be able to open them from the review queue.
+      if (!view.title) {
         setProperty(null);
         setLoading(false);
         return;
       }
+
 
       // Use type assertion to handle the DB schema (raw row kept for fields
       // not yet surfaced through final_data, e.g. building metadata).
@@ -187,13 +190,14 @@ const PropertyDetail = () => {
       const mappedProperty: Property = {
         id: view.id,
         title: view.title,
-        city: view.city!,
-        locality: view.locality!,
+        city: view.city ?? "N/A",
+        locality: view.locality ?? "N/A",
         lat: view.latitude ?? null,
         lng: view.longitude ?? null,
-        price: view.price!,
+        price: view.price ?? 0,
         area: view.area_sqft ?? null,
         type: view.type ?? "Apartment",
+
         beds: view.bedrooms || view.bhk || 0,
         baths: view.bathrooms || 0,
         bhk: view.bhk ?? null,
