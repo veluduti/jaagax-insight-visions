@@ -500,7 +500,9 @@ const HotelDetail = () => {
           )}
 
           {/* 6 — EVENTS & FACILITIES (JAAGA extra services, enquiry only) */}
-          {extrasCount === 0 && <HotelExtraServices hotelId={hotel.id} onCount={setExtrasCount} />}
+          {extrasCount === 0 && (
+            <div className="hidden"><HotelExtraServices hotelId={hotel.id} onCount={setExtrasCount} /></div>
+          )}
 
         </div>
 
