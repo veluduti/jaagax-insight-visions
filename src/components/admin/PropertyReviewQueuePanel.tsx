@@ -104,6 +104,10 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [visitNotes, setVisitNotes] = useState("");
   const [closeFor, setCloseFor] = useState<PropRow | null>(null);
   const [closeReason, setCloseReason] = useState(CLOSE_REASONS[0]);
+  const [assignFor, setAssignFor] = useState<PropRow | null>(null);
+  const [reportFor, setReportFor] = useState<PropRow | null>(null);
+  const [reportNotes, setReportNotes] = useState("");
+  const [report, setReport] = useState<VerificationRow | null>(null);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
