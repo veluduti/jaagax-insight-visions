@@ -226,9 +226,9 @@ export default function PartnerDashboard() {
     const arrivals = active.filter(
       (b) =>
         dayOf(b.check_in) === dayStart ||
-        dayOf(b.actual_check_in_at) === dayStart ||
-        (!b.actual_check_in_at && !b.actual_check_out_at && dayOf(b.check_in) < dayStart && dayOf(b.check_out) >= dayStart),
+        dayOf(b.actual_check_in_at) === dayStart,
     );
+
     const checkins = arrivals.filter((b) => !b.actual_check_in_at);
 
     // Departures for the day = stays scheduled to leave today, plus any guest
