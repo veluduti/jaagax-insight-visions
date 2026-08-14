@@ -101,6 +101,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [loading, setLoading] = useState(true);
   const [timers, setTimers] = useState<TimerRow[]>([]);
   const [props, setProps] = useState<PropRow[]>([]);
+  const [oversight, setOversight] = useState<PropRow[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<PropRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -135,10 +136,37 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
 
+    // Oversight: every submission inside this admin's geography, even when the
+    // active queue belongs to a lower level (district owns the operation).
+    const { data: scope } = await (supabase as any)
+      .from("admin_scopes")
+      .select("role, country, state, district")
+      .eq("user_id", me)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    let overs: PropRow[] = [];
+    if (scope) {
+      let q = (supabase as any)
+        .from("properties")
+        .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
+        .not("queue_level", "is", null)
+        .order("queue_started_at", { ascending: false })
+        .limit(100);
+      if (scope.country) q = q.ilike("country", scope.country);
+      if (scope.state) q = q.ilike("state", scope.state);
+      if (scope.district) q = q.ilike("district", scope.district);
+      const { data: o } = await q;
+      const own = new Set([...(ids ?? []), ...(((p ?? []) as PropRow[]).map((r) => r.id))]);
+      overs = ((o ?? []) as PropRow[]).filter((r) => !own.has(r.id));
+    }
+
     setTimers((t ?? []) as TimerRow[]);
     setProps((p ?? []) as PropRow[]);
+    setOversight(overs);
     setLoading(false);
   }, []);
+
 
   useEffect(() => { load(); }, [load]);
 
@@ -194,7 +222,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const held = props.filter((p) => p.hold_admin_id === uid);
   const queued = props.filter((p) => p.hold_admin_id !== uid && p.queue_level);
 
-  const renderCard = (p: PropRow, mine: boolean) => {
+  const renderCard = (p: PropRow, mine: boolean, monitorOnly = false) => {
     const t = timerFor.get(p.id);
     const lvl = p.queue_level ?? t?.level ?? "country";
     const lockedByOther = !!p.is_locked && !mine;
@@ -247,7 +275,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           )}
         </div>
 
-        {!readOnly && (
+        {!readOnly && !monitorOnly && (
           <div className="flex flex-wrap gap-2 pt-1">
             {!mine && !lockedByOther && (
               <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
@@ -330,6 +358,21 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           {queued.length === 0 ? (
             <p className="text-sm text-muted-foreground">No properties waiting in your queue.</p>
           ) : queued.map((p) => renderCard(p, false))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />All submissions in your region</CardTitle>
+          <CardDescription>
+            Every property posted inside your area, including the ones currently owned by a lower admin level. View only —
+            these become actionable for you if they escalate to your level.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {oversight.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active submissions in your region right now.</p>
+          ) : oversight.map((p) => renderCard(p, false, true))}
         </CardContent>
       </Card>
 
