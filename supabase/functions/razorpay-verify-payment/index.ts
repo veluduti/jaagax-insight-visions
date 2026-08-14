@@ -52,13 +52,20 @@ Deno.serve(async (req) => {
     const portalToken = Array.from(tokBytes, b => b.toString(16).padStart(2, "0")).join("");
 
     const { data: existing } = await supabase
-      .from("hotel_bookings").select("guest_portal_token").eq("id", booking_id).maybeSingle();
+      .from("hotel_bookings")
+      .select("guest_portal_token,total_amount,extra_charges")
+      .eq("id", booking_id)
+      .maybeSingle();
+
+    const paidTotal =
+      Number(existing?.total_amount || 0) + Number(existing?.extra_charges || 0);
 
     const { data: booking, error: bErr } = await supabase
       .from("hotel_bookings")
       .update({
         status: "confirmed",
         payment_status: "paid",
+        amount_paid: paidTotal,
         razorpay_payment_id,
         razorpay_signature,
         guest_portal_token: existing?.guest_portal_token || portalToken,
