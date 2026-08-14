@@ -14,11 +14,12 @@ const json = (body: unknown, status = 200) =>
 
 type SubRole = "country_admin" | "state_admin" | "district_admin";
 
-const HIERARCHY: Record<string, SubRole | null> = {
-  global_admin: "country_admin",
-  country_admin: "state_admin",
-  state_admin: "district_admin",
-  district_admin: null,
+// Roles each admin level is allowed to create (first entry is the default).
+const ALLOWED: Record<string, SubRole[]> = {
+  global_admin: ["country_admin", "state_admin", "district_admin"],
+  country_admin: ["state_admin", "district_admin"],
+  state_admin: ["district_admin"],
+  district_admin: [],
 };
 
 serve(async (req) => {
@@ -39,6 +40,7 @@ serve(async (req) => {
       fullName, phone, email, password,
       country, state, district,
       country_id, state_id, district_id,
+      role: requestedRole,
       isActive = true,
     } = body ?? {};
     if (!email || !password || !fullName) return json({ error: "fullName, email and password are required" }, 400);
@@ -60,8 +62,14 @@ serve(async (req) => {
     }
     if (!callerRole) return json({ error: "Forbidden" }, 403);
 
-    const targetRole = HIERARCHY[callerRole];
-    if (!targetRole) return json({ error: "You cannot create sub-admins" }, 403);
+    const allowed = ALLOWED[callerRole] ?? [];
+    if (!allowed.length) return json({ error: "You cannot create sub-admins" }, 403);
+    const targetRole: SubRole = (requestedRole && allowed.includes(requestedRole))
+      ? requestedRole as SubRole
+      : allowed[0];
+    if (requestedRole && !allowed.includes(requestedRole)) {
+      return json({ error: "You cannot create that admin role" }, 403);
+    }
 
     // Enforce scope inheritance
     let finalCountry: string | null = null;
