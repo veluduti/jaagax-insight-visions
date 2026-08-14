@@ -252,6 +252,17 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                     {p.verification_visit_at ? "Reschedule visit" : "Schedule visit"}
                   </Button>
                 )}
+                {p.needs_agent && p.lifecycle_status !== "owner_review" &&
+                  (!p.assigned_agent_id || p.agent_assignment_status === "rejected") && (
+                  <Button size="sm" variant="secondary" disabled={busy === p.id} onClick={() => setAssignFor(p)}>
+                    <UserCheck className="h-4 w-4 mr-1" /> Assign agent
+                  </Button>
+                )}
+                {p.lifecycle_status === "verification_submitted" && (
+                  <Button size="sm" disabled={busy === p.id} onClick={() => openReport(p)}>
+                    <ClipboardCheck className="h-4 w-4 mr-1" /> Review agent report
+                  </Button>
+                )}
                 {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" disabled={busy === p.id} onClick={() => { setVerifyFor(p); setVerifyNotes(""); }}>
                     <CheckCircle2 className="h-4 w-4 mr-1" /> Submit verification to owner
