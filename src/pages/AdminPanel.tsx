@@ -107,13 +107,13 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
   </button>
 );
 
-function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean }) {
+function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean; flowOnly?: boolean }) {
   const navigate = useNavigate();
   const { effective: scope } = useAdminScopeFilter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "signups");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || (flowOnly ? "review-queue" : "signups"));
   useEffect(() => {
     const t = searchParams.get("tab");
     if (t && t !== activeTab) setActiveTab(t);
@@ -140,7 +140,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   // ============================================================================
   // NAVIGATION GROUPS - DROPDOWN BASED
   // ============================================================================
-  const NAV_GROUPS = [
+  const ALL_NAV_GROUPS = [
     {
       label: "Dashboard",
       icon: LayoutDashboard,
@@ -204,6 +204,20 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
       ],
     },
   ];
+
+  // Country / State / District admins only see the property review flow.
+  const NAV_GROUPS = flowOnly
+    ? [
+        {
+          label: "Verification",
+          icon: Shield,
+          items: [
+            { value: "review-queue", label: "Review Queue", icon: Timer },
+            { value: "workflow-rules", label: "Workflow Rules", icon: Settings2 },
+          ],
+        },
+      ]
+    : ALL_NAV_GROUPS;
 
   // ============================================================================
   // FILTER OPTIONS
@@ -512,10 +526,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
         <AdminScopeFilterBar />
 
         {/* Builder Profiles created by this Admin */}
-        <CreatedBuilderProfilesSection creatorRole="admin" title="Admin-Created Builder Profiles" />
+        {!flowOnly && (
+          <CreatedBuilderProfilesSection creatorRole="admin" title="Admin-Created Builder Profiles" />
+        )}
 
 
         {/* Stats Grid - 3x2 or 6 columns */}
+        {!flowOnly && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
 
           {[
@@ -544,6 +561,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
             </motion.div>
           ))}
         </div>
+        )}
 
         {/* ================================================================ */}
         {/* MAIN TABS - FIXED WITH DROPDOWN NAVIGATION */}
@@ -610,6 +628,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           </div>
 
           {/* ROW 2: FILTER OPTIONS */}
+          {!flowOnly && (
           <div className="flex flex-wrap items-center gap-1.5 p-2 bg-muted/30 rounded-lg border mb-4">
             <span className="text-xs font-medium text-muted-foreground mr-1 flex items-center gap-1">
               <Filter className="h-3 w-3" />
@@ -626,6 +645,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
               />
             ))}
           </div>
+          )}
 
           {/* ================================================================ */}
           {/* TAB CONTENTS */}
@@ -995,7 +1015,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   );
 }
 
-export default function AdminPanel(props: { title?: string; subtitle?: string; readOnly?: boolean } = {}) {
+export default function AdminPanel(props: { title?: string; subtitle?: string; readOnly?: boolean; flowOnly?: boolean } = {}) {
   return (
     <AdminScopeFilterProvider>
       <AdminPanelInner {...props} />
