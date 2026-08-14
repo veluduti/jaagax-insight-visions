@@ -162,10 +162,64 @@ export default function OwnerVerificationReviewPanel() {
                   {STAGE_TEXT[r.lifecycle_status ?? ""] ?? "In review"}
                 </div>
               )}
+
+              {r.verification_visit_at && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 text-xs">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <CalendarClock className="h-3.5 w-3.5 text-primary" />
+                    Verification visit on{" "}
+                    {new Date(r.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </span>
+                  {r.verification_visit_notes && (
+                    <span className="mt-1 block text-muted-foreground whitespace-pre-wrap">{r.verification_visit_notes}</span>
+                  )}
+                </div>
+              )}
+
+              {!r.needs_agent && !awaiting && !["live", "agent_assigned"].includes(r.lifecycle_status ?? "") && (
+                <p className="text-xs text-muted-foreground">
+                  Owner-managed listing — JAAGAX usually completes this review in 7–10 days.
+                </p>
+              )}
+
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === r.id}
+                  onClick={() => { setCloseFor(r); setCloseReason(OWNER_CLOSE_REASONS[0]); }}
+                >
+                  <Archive className="mr-1 h-4 w-4" /> Close listing
+                </Button>
+              </div>
             </div>
           );
         })}
       </CardContent>
+
+      <Dialog open={!!closeFor} onOpenChange={(o) => !o && setCloseFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Close this listing</DialogTitle>
+            <DialogDescription>
+              The property is removed from JAAGAX and from every admin review queue. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Reason</Label>
+            <Select value={closeReason} onValueChange={setCloseReason}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {OWNER_CLOSE_REASONS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseFor(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={closeProperty}>Close listing</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
