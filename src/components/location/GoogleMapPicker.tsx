@@ -96,6 +96,13 @@ const GoogleMapPicker = ({
         readyRef.current = true;
       } catch (err) {
         console.error("[GoogleMapPicker] load failed", err);
+        if (!cancelled) {
+          setLoadError(
+            err instanceof Error && /key missing/i.test(err.message)
+              ? "Map key not configured for this domain."
+              : "Map couldn't load on this domain.",
+          );
+        }
       }
     })();
     return () => {
