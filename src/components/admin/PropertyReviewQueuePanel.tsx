@@ -39,6 +39,7 @@ type PropRow = {
   is_locked: boolean | null;
   hold_admin_id: string | null;
   hold_expires_at: string | null;
+  verification_visit_at: string | null;
 };
 
 const LEVEL_LABEL: Record<string, string> = {
