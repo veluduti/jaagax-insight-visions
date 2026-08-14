@@ -275,7 +275,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           )}
         </div>
 
-        {!readOnly && (
+        {!readOnly && !monitorOnly && (
           <div className="flex flex-wrap gap-2 pt-1">
             {!mine && !lockedByOther && (
               <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
