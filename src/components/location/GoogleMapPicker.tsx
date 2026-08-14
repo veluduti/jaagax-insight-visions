@@ -138,11 +138,43 @@ const GoogleMapPicker = ({
   return (
     <div>
       {label && <p className="text-xs text-muted-foreground mb-2">{label}</p>}
-      <div
-        ref={containerRef}
-        style={{ width: "100%", height }}
-        className="rounded-xl overflow-hidden border border-border bg-muted"
-      />
+      <div className="relative rounded-xl overflow-hidden border border-border bg-muted" style={{ width: "100%", height }}>
+        <div ref={containerRef} className="absolute inset-0" />
+        {loadError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center bg-muted">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <p className="text-sm font-medium">{loadError}</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              You can still continue — search the place above to set the exact coordinates,
+              or type them manually below.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="Latitude"
+                defaultValue={hasCoords ? String(lat) : ""}
+                onBlur={(e) => {
+                  const la = parseFloat(e.target.value);
+                  if (!Number.isNaN(la) && lngRef.current !== null) onChangeRef.current(la, lngRef.current);
+                }}
+                className="h-8 w-28 rounded-md border border-border bg-background px-2 text-xs"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="Longitude"
+                defaultValue={hasCoords ? String(lng) : ""}
+                onBlur={(e) => {
+                  const ln = parseFloat(e.target.value);
+                  if (!Number.isNaN(ln) && latRef.current !== null) onChangeRef.current(latRef.current, ln);
+                }}
+                className="h-8 w-28 rounded-md border border-border bg-background px-2 text-xs"
+              />
+            </div>
+          </div>
+        )}
+      </div>
       {hasCoords && (
         <p className="text-xs text-muted-foreground mt-2">
           Pinned: <span className="font-mono">{Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}</span> — drag the pin to fine-tune
