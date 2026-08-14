@@ -593,6 +593,14 @@ const PropertyDetail = () => {
             {/* Map — only renders when real coordinates exist */}
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
+            {/* Nearby Hotels (based on property location) */}
+            <NearbyPropertyHotels
+              latitude={property.lat}
+              longitude={property.lng}
+              city={property.city}
+              propertyTitle={property.title}
+            />
+
             {/* Nearby POI */}
             <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} locality={property.locality} />
 
