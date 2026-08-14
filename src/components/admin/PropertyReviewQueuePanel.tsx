@@ -361,6 +361,21 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />All submissions in your region</CardTitle>
+          <CardDescription>
+            Every property posted inside your area, including the ones currently owned by a lower admin level. View only —
+            these become actionable for you if they escalate to your level.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {oversight.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active submissions in your region right now.</p>
+          ) : oversight.map((p) => renderCard(p, false, true))}
+        </CardContent>
+      </Card>
+
       {/* Reject dialog */}
       <Dialog open={!!rejectFor} onOpenChange={(o) => !o && setRejectFor(null)}>
         <DialogContent>
