@@ -76,56 +76,129 @@ export default function HotelExtraServices({
     }
   };
 
+  const priceLabel = (s: HotelExtraService) =>
+    s.price ? (
+      <span className="whitespace-nowrap text-sm font-semibold">
+        ₹{Number(s.price).toLocaleString("en-IN")}
+        <span className="text-xs font-normal text-muted-foreground">
+          {" "}/ {s.pricing_type.replace(/_/g, " ")}
+        </span>
+      </span>
+    ) : (
+      <span className="text-xs text-muted-foreground">On request</span>
+    );
+
+  const sidebar = variant === "sidebar";
+
   return (
-    <section className="space-y-4">
+    <section className={sidebar ? "space-y-3" : "space-y-4"}>
       <div>
-        <h2 className="text-xl font-semibold">Events & Facilities</h2>
-        <p className="text-sm text-muted-foreground">
+        <h2 className={sidebar ? "text-base font-semibold flex items-center gap-2" : "text-xl font-semibold"}>
+          {sidebar && <Building2 className="h-4 w-4 text-primary" />}
+          Events & Facilities
+        </h2>
+        <p className={sidebar ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
           Banquet halls, conference rooms and other venues at this property — enquire directly.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {services.map((s) => (
-          <Card key={s.id} className="overflow-hidden">
-            {s.images?.[0] && (
-              <img src={s.images[0]} alt={s.name} loading="lazy" className="h-36 w-full object-cover" />
-            )}
-            <CardContent className="space-y-2 p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-medium">{s.name}</h3>
-                  <Badge variant="secondary" className="mt-1 capitalize">
-                    {s.service_type.replace(/_/g, " ")}
-                  </Badge>
+      {sidebar ? (
+        <div className="space-y-3">
+          {services.map((s) => (
+            <Card key={s.id} className="overflow-hidden border-border/60">
+              <CardContent className="p-3 space-y-2">
+                <div className="flex gap-3">
+                  {s.images?.[0] && (
+                    <img src={s.images[0]} alt={s.name} loading="lazy" className="h-14 w-14 rounded-lg object-cover shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-medium truncate">{s.name}</h3>
+                    <Badge variant="secondary" className="mt-1 capitalize text-[10px]">
+                      {s.service_type.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
                 </div>
-                {s.price ? (
-                  <span className="whitespace-nowrap text-sm font-semibold">
-                    ₹{Number(s.price).toLocaleString("en-IN")}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {" "}/ {s.pricing_type.replace(/_/g, " ")}
+                <div className="flex items-center justify-between gap-2">
+                  {priceLabel(s)}
+                  {s.capacity ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />{s.capacity}
                     </span>
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">On request</span>
-                )}
-              </div>
+                  ) : null}
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => setViewing(s)}>
+                    View
+                  </Button>
+                  <Button size="sm" className="flex-1 h-8 text-xs" onClick={() => setSelected(s)}>
+                    Enquire
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {services.map((s) => (
+            <Card key={s.id} className="overflow-hidden">
+              {s.images?.[0] && (
+                <img src={s.images[0]} alt={s.name} loading="lazy" className="h-36 w-full object-cover" />
+              )}
+              <CardContent className="space-y-2 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-medium">{s.name}</h3>
+                    <Badge variant="secondary" className="mt-1 capitalize">
+                      {s.service_type.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
+                  {priceLabel(s)}
+                </div>
 
-              {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}
+                {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}
 
-              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                {s.capacity ? <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{s.capacity} guests</span> : null}
-                {s.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{s.location}</span> : null}
-                {s.contact_phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{s.contact_phone}</span> : null}
-              </div>
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  {s.capacity ? <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{s.capacity} guests</span> : null}
+                  {s.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{s.location}</span> : null}
+                  {s.contact_phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{s.contact_phone}</span> : null}
+                </div>
 
-              <Button size="sm" className="w-full" onClick={() => setSelected(s)}>
-                <Building2 className="mr-1.5 h-4 w-4" /> Enquire
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <Button size="sm" className="w-full" onClick={() => setSelected(s)}>
+                  <Building2 className="mr-1.5 h-4 w-4" /> Enquire
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{viewing?.name}</DialogTitle>
+            <DialogDescription className="capitalize">
+              {viewing?.service_type.replace(/_/g, " ")}
+            </DialogDescription>
+          </DialogHeader>
+          {viewing?.images?.[0] && (
+            <img src={viewing.images[0]} alt={viewing.name} className="h-44 w-full rounded-lg object-cover" />
+          )}
+          <div className="space-y-2 text-sm">
+            {viewing?.description && <p className="text-muted-foreground">{viewing.description}</p>}
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              {viewing?.capacity ? <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{viewing.capacity} guests</span> : null}
+              {viewing?.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{viewing.location}</span> : null}
+              {viewing?.contact_phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{viewing.contact_phone}</span> : null}
+            </div>
+            {viewing ? <div>{priceLabel(viewing)}</div> : null}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => { setSelected(viewing); setViewing(null); }}>Enquire now</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-md">
