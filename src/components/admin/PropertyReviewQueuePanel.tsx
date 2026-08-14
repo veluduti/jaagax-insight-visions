@@ -189,6 +189,12 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           {p.price ? <span className="text-xs text-muted-foreground">₹{Number(p.price).toLocaleString("en-IN")}</span> : null}
           {lockedByOther && <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />Held by another admin</Badge>}
           {p.lifecycle_status === "owner_review" && <Badge variant="secondary">Awaiting owner approval</Badge>}
+          {p.verification_visit_at && (
+            <Badge variant="outline" className="gap-1">
+              <CalendarClock className="h-3 w-3" />
+              Visit {new Date(p.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+            </Badge>
+          )}
         </div>
 
         {!readOnly && (
