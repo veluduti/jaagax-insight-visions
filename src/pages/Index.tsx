@@ -25,12 +25,17 @@ import SEO from "@/components/SEO";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
-  const { role } = useAuth();
+  const { role, user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("properties");
 
-  // Hotel managers have their own dedicated Partner portal — send them there instead of the buyer/seller home.
+  // Avoid a flash of the consumer home page while the signed-in user's role resolves.
+  if (user && authLoading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  // Hotel managers have their own dedicated Partner portal — send them straight to their dashboard.
   if (role === "hotel_manager") {
-    return <Navigate to="/partners" replace />;
+    return <Navigate to="/partners/dashboard" replace />;
   }
 
   const showBuyRent = canSee(role, "buyRent");
