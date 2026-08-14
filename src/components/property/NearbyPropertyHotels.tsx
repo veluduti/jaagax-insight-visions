@@ -29,10 +29,10 @@ function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function formatPrice(p: number | null | undefined) {
+function formatPrice(p: number | null | undefined): string | null {
   const n = Number(p) || 0;
-  if (!n) return "Price on request";
-  return `₹${n.toLocaleString("en-IN")}/night`;
+  if (!n) return null;
+  return `₹${n.toLocaleString("en-IN")}`;
 }
 
 /**
