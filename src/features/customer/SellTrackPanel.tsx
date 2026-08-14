@@ -237,5 +237,6 @@ export default function SellTrackPanel({ onNavigateTab }: { onNavigateTab: (id: 
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
