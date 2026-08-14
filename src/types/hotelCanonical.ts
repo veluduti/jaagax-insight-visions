@@ -168,6 +168,13 @@ export interface HotelExtraService {
   contact_phone: string | null;
   contact_email: string | null;
   is_active: boolean;
+  category?: string | null;
+  capacity_min?: number | null;
+  capacity_max?: number | null;
+  amenities?: string[] | null;
+  tags?: string[] | null;
+  video_url?: string | null;
+  duration?: string | null;
 }
 
 export interface CanonicalSearchResponse {

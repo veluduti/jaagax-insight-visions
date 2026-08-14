@@ -101,9 +101,10 @@ export async function submitExtraServiceEnquiry(payload: {
   preferred_time_to?: string | null;
 }) {
   const { data: { user } } = await supabase.auth.getUser();
-  const { error } = await (supabase as any).from("hotel_extra_service_enquiries").insert({
+  const { data, error } = await (supabase as any).from("hotel_extra_service_enquiries").insert({
     ...payload,
     user_id: user?.id ?? null,
-  });
+  }).select("id").maybeSingle();
   if (error) throw error;
+  return { id: (data?.id as string) ?? null };
 }
