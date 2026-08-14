@@ -470,6 +470,85 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Assign agent */}
+      {assignFor && (
+        <AssignAgentDialog
+          propertyId={assignFor.id}
+          propertyTitle={assignFor.title || "Untitled property"}
+          open={!!assignFor}
+          onOpenChange={(o) => !o && setAssignFor(null)}
+          onAssigned={load}
+        />
+      )}
+
+      {/* Review agent verification report */}
+      <Dialog open={!!reportFor} onOpenChange={(o) => !o && setReportFor(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Agent verification report</DialogTitle>
+            <DialogDescription>
+              Approve to send the verified listing to the owner for final confirmation, or send it back to the agent for
+              rework.
+            </DialogDescription>
+          </DialogHeader>
+
+          {!report ? (
+            <p className="text-sm text-muted-foreground">No report found for this property yet.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground">
+                Submitted {report.submitted_at ? new Date(report.submitted_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+              </div>
+              {report.photos && report.photos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {report.photos.map((src, i) => (
+                    <a key={i} href={src} target="_blank" rel="noreferrer" className="block">
+                      <img src={src} alt={`Verification photo ${i + 1}`} loading="lazy"
+                        className="h-24 w-full rounded-lg object-cover border border-border" />
+                    </a>
+                  ))}
+                </div>
+              )}
+              {report.video_url && (
+                <a className="text-sm text-primary underline" href={report.video_url} target="_blank" rel="noreferrer">
+                  Watch video tour
+                </a>
+              )}
+              {report.remarks && (
+                <p className="text-sm whitespace-pre-wrap rounded-lg border border-border p-3">{report.remarks}</p>
+              )}
+            </div>
+          )}
+
+          <Textarea rows={3} placeholder="Notes for the agent / owner (optional)"
+            value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReportFor(null)}>Cancel</Button>
+            <Button variant="destructive"
+              onClick={async () => {
+                const p = reportFor!;
+                setReportFor(null);
+                await call("property_admin_review_verification",
+                  { _property_id: p.id, _approve: false, _notes: reportNotes.trim() || null },
+                  "Sent back to the agent for rework");
+              }}>
+              Request rework
+            </Button>
+            <Button
+              onClick={async () => {
+                const p = reportFor!;
+                setReportFor(null);
+                await call("property_admin_review_verification",
+                  { _property_id: p.id, _approve: true, _notes: reportNotes.trim() || null },
+                  "Report approved — sent to the owner for final approval");
+              }}>
+              Approve report
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
