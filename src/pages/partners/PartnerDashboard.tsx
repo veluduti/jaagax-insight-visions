@@ -221,7 +221,14 @@ export default function PartnerDashboard() {
       return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
     };
 
-    const arrivals = active.filter((b) => dayOf(b.check_in) === dayStart);
+    // Arrivals = stays scheduled to arrive today PLUS anyone actually checked
+    // in today (early / late check-ins land on the day the action happened).
+    const arrivals = active.filter(
+      (b) =>
+        dayOf(b.check_in) === dayStart ||
+        dayOf(b.actual_check_in_at) === dayStart ||
+        (!b.actual_check_in_at && !b.actual_check_out_at && dayOf(b.check_in) < dayStart && dayOf(b.check_out) >= dayStart),
+    );
     const checkins = arrivals.filter((b) => !b.actual_check_in_at);
 
     // Departures for the day = stays scheduled to leave today, plus any guest
@@ -233,6 +240,7 @@ export default function PartnerDashboard() {
         (isCheckedIn(b) && dayOf(b.check_out) < dayStart),
     );
     const checkouts = departures.filter((b) => !b.actual_check_out_at);
+
 
     const inhouse = active.filter(
       (b) =>
