@@ -508,7 +508,7 @@ export default function HotelRoomList({
                     )}
                   </div>
                   <Button
-                    className="w-full"
+                    className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}
                     onClick={() =>
                       goCheckout(
