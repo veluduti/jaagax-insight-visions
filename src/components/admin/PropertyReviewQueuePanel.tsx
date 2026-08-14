@@ -228,6 +228,10 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                 <Button size="sm" variant="destructive" disabled={busy === p.id} onClick={() => { setRejectFor(p); setRejectReason(""); }}>
                   <XCircle className="h-4 w-4 mr-1" /> Reject
                 </Button>
+                <Button size="sm" variant="outline" disabled={busy === p.id}
+                  onClick={() => { setCloseFor(p); setCloseReason(CLOSE_REASONS[0]); }}>
+                  <Archive className="h-4 w-4 mr-1" /> Mark closed
+                </Button>
               </>
             )}
           </div>
