@@ -33,6 +33,7 @@ import { resolveHotelImages } from "@/lib/hotelImage";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelExtraServices from "@/components/hotels/HotelExtraServices";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
+import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
 
 interface HotelData {
   id: string;
