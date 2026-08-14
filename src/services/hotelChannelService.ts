@@ -96,6 +96,9 @@ export async function submitExtraServiceEnquiry(payload: {
   event_date?: string | null;
   guests_count?: number | null;
   message?: string | null;
+  event_type?: string | null;
+  preferred_time_from?: string | null;
+  preferred_time_to?: string | null;
 }) {
   const { data: { user } } = await supabase.auth.getUser();
   const { error } = await (supabase as any).from("hotel_extra_service_enquiries").insert({

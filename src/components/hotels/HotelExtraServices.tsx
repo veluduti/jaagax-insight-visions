@@ -12,6 +12,10 @@ import { listExtraServices, submitExtraServiceEnquiry } from "@/services/hotelCh
 import type { HotelExtraService } from "@/types/hotelCanonical";
 import { toast } from "sonner";
 import { Building2, Users, MapPin, Phone, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+
+const EVENT_TYPES = ["Wedding", "Engagement", "Birthday", "Corporate Event", "Conference", "Party", "Other"];
 
 /**
  * JAAGA-only hotel extra services (banquet hall, pub, conference hall, …).
@@ -31,9 +35,35 @@ export default function HotelExtraServices({
   const [selected, setSelected] = useState<HotelExtraService | null>(null);
   const [viewing, setViewing] = useState<HotelExtraService | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
+  const emptyForm = {
     guest_name: "", guest_email: "", guest_phone: "", event_date: "", guests_count: "", message: "",
-  });
+    event_type: "Wedding", preferred_time_from: "18:00", preferred_time_to: "23:00",
+  };
+  const [form, setForm] = useState(emptyForm);
+  const [prefill, setPrefill] = useState<{ guest_name: string; guest_email: string; guest_phone: string } | null>(null);
+
+  // Fetch logged-in customer details once so the enquiry form is pre-filled.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await (supabase as any)
+        .from("profiles").select("full_name, email, phone").eq("id", user.id).maybeSingle();
+      if (!alive) return;
+      setPrefill({
+        guest_name: profile?.full_name || user.user_metadata?.full_name || "",
+        guest_email: profile?.email || user.email || "",
+        guest_phone: profile?.phone || user.phone || "",
+      });
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const openEnquiry = (s: HotelExtraService | null) => {
+    setForm({ ...emptyForm, ...(prefill ?? {}) });
+    setSelected(s);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -50,10 +80,10 @@ export default function HotelExtraServices({
 
   const submit = async () => {
     if (!form.guest_name.trim()) { toast.error("Please enter your name"); return; }
-    if (!form.guest_phone.trim() && !form.guest_email.trim()) {
-      toast.error("Please add a phone number or email so the hotel can reach you");
-      return;
-    }
+    if (!form.guest_phone.trim()) { toast.error("Please enter your phone number"); return; }
+    if (!form.event_type) { toast.error("Please select the event / occasion"); return; }
+    if (!form.event_date) { toast.error("Please choose an event date"); return; }
+    if (!form.guests_count) { toast.error("Please enter the number of guests"); return; }
     setSubmitting(true);
     try {
       await submitExtraServiceEnquiry({
@@ -65,10 +95,13 @@ export default function HotelExtraServices({
         event_date: form.event_date || null,
         guests_count: form.guests_count ? Number(form.guests_count) : null,
         message: form.message.trim() || null,
+        event_type: form.event_type || null,
+        preferred_time_from: form.preferred_time_from || null,
+        preferred_time_to: form.preferred_time_to || null,
       });
       toast.success("Enquiry sent — the hotel will contact you shortly");
       setSelected(null);
-      setForm({ guest_name: "", guest_email: "", guest_phone: "", event_date: "", guests_count: "", message: "" });
+      setForm(emptyForm);
     } catch (e: any) {
       toast.error(e.message || "Could not send the enquiry");
     } finally {
@@ -130,7 +163,7 @@ export default function HotelExtraServices({
                   <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => setViewing(s)}>
                     View
                   </Button>
-                  <Button size="sm" className="flex-1 h-8 text-xs" onClick={() => setSelected(s)}>
+                  <Button size="sm" className="flex-1 h-8 text-xs" onClick={() => openEnquiry(s)}>
                     Enquire
                   </Button>
                 </div>
@@ -164,7 +197,7 @@ export default function HotelExtraServices({
                   {s.contact_phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{s.contact_phone}</span> : null}
                 </div>
 
-                <Button size="sm" className="w-full" onClick={() => setSelected(s)}>
+                <Button size="sm" className="w-full" onClick={() => openEnquiry(s)}>
                   <Building2 className="mr-1.5 h-4 w-4" /> Enquire
                 </Button>
               </CardContent>
@@ -194,7 +227,7 @@ export default function HotelExtraServices({
             {viewing ? <div>{priceLabel(viewing)}</div> : null}
           </div>
           <DialogFooter>
-            <Button onClick={() => { setSelected(viewing); setViewing(null); }}>Enquire now</Button>
+            <Button onClick={() => { openEnquiry(viewing); setViewing(null); }}>Enquire now</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -213,7 +246,7 @@ export default function HotelExtraServices({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Phone</Label>
+                <Label className="text-xs">Phone *</Label>
                 <Input value={form.guest_phone} onChange={(e) => setForm({ ...form, guest_phone: e.target.value })} />
               </div>
               <div>
@@ -221,18 +254,35 @@ export default function HotelExtraServices({
                 <Input type="email" value={form.guest_email} onChange={(e) => setForm({ ...form, guest_email: e.target.value })} />
               </div>
             </div>
+            <div>
+              <Label className="text-xs">Event / Occasion *</Label>
+              <Select value={form.event_type} onValueChange={(v) => setForm({ ...form, event_type: v })}>
+                <SelectTrigger><SelectValue placeholder="Select occasion" /></SelectTrigger>
+                <SelectContent>
+                  {EVENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Event date</Label>
+                <Label className="text-xs">Event date *</Label>
                 <Input type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Guests</Label>
+                <Label className="text-xs">Guests *</Label>
                 <Input type="number" min={1} value={form.guests_count} onChange={(e) => setForm({ ...form, guests_count: e.target.value })} />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Message</Label>
+              <Label className="text-xs">Preferred time</Label>
+              <div className="flex items-center gap-2">
+                <Input type="time" value={form.preferred_time_from} onChange={(e) => setForm({ ...form, preferred_time_from: e.target.value })} />
+                <span className="text-xs text-muted-foreground">to</span>
+                <Input type="time" value={form.preferred_time_to} onChange={(e) => setForm({ ...form, preferred_time_to: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Message / Requirements</Label>
               <Textarea rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
             </div>
           </div>

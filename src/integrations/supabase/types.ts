@@ -4662,6 +4662,7 @@ export type Database = {
         Row: {
           created_at: string
           event_date: string | null
+          event_type: string | null
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
@@ -4670,6 +4671,8 @@ export type Database = {
           id: string
           manager_response: string | null
           message: string | null
+          preferred_time_from: string | null
+          preferred_time_to: string | null
           responded_at: string | null
           service_id: string | null
           status: string
@@ -4679,6 +4682,7 @@ export type Database = {
         Insert: {
           created_at?: string
           event_date?: string | null
+          event_type?: string | null
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
@@ -4687,6 +4691,8 @@ export type Database = {
           id?: string
           manager_response?: string | null
           message?: string | null
+          preferred_time_from?: string | null
+          preferred_time_to?: string | null
           responded_at?: string | null
           service_id?: string | null
           status?: string
@@ -4696,6 +4702,7 @@ export type Database = {
         Update: {
           created_at?: string
           event_date?: string | null
+          event_type?: string | null
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
@@ -4704,6 +4711,8 @@ export type Database = {
           id?: string
           manager_response?: string | null
           message?: string | null
+          preferred_time_from?: string | null
+          preferred_time_to?: string | null
           responded_at?: string | null
           service_id?: string | null
           status?: string
