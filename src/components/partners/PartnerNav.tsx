@@ -44,8 +44,9 @@ export default function PartnerNav() {
           <LayoutDashboard className="mr-1.5 h-4 w-4" /> Dashboard
         </Button>
       </Link>
-      {/* Multi-role switcher — lets a hotel manager add Buyer / Agent / Builder etc. and jump across dashboards */}
-      <ProfileSwitcher />
+      <Button variant="outline" size="sm" onClick={handleSignOut}>
+        <LogOut className="mr-1.5 h-4 w-4" /> Sign out
+      </Button>
     </>
   );
 
