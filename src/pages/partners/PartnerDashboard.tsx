@@ -503,14 +503,14 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
           <Kpi
             icon={<LogIn className="h-4 w-4" />}
             label={`${dayLabel}'s check-ins`}
-            value={day.arrivals.reduce((s, b) => s + (b.num_guests || 1), 0)}
+            value={day.arrivals.length}
             sub={`${day.checkins.length} arrival(s) pending`}
             onClick={() => setView("checkins")}
           />
           <Kpi
             icon={<LogOut className="h-4 w-4" />}
             label={`${dayLabel}'s check-outs`}
-            value={day.departures.reduce((s, b) => s + (b.num_guests || 1), 0)}
+            value={day.departures.length}
             sub={`${day.checkouts.length} departure(s) pending`}
             onClick={() => setView("checkouts")}
           />
