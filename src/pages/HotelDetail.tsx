@@ -499,16 +499,138 @@ const HotelDetail = () => {
             </section>
           )}
 
-          {/* 6 — EVENTS & FACILITIES (JAAGA extra services, enquiry only) */}
-          {extrasCount === 0 && (
-            <div className="hidden"><HotelExtraServices hotelId={hotel.id} onCount={setExtrasCount} /></div>
-          )}
-
         </div>
 
-        <aside className={extrasCount > 0 ? "lg:sticky lg:top-24" : "hidden"}>
-          {extrasCount > 0 && (
+        {/* RIGHT RAIL */}
+        <aside className="lg:sticky lg:top-24 space-y-4">
+          {/* Book your stay */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
+            <h3 className="font-semibold">Book your stay</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
+                <input
+                  type="date"
+                  value={checkIn}
+                  min={todayISO()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setCheckIn(v);
+                    if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
+                  }}
+                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
+                <input
+                  type="date"
+                  value={checkOut}
+                  min={nextDayISO(checkIn) || todayISO()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
+                      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                      return;
+                    }
+                    setCheckOut(v);
+                  }}
+                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={adults}
+                  onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
+                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Children</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={childrenCount}
+                  onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
+                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={roomsWanted}
+                  onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
+                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+            </div>
+            <Button
+              className="w-full h-11 font-semibold"
+              onClick={() => {
+                if (checkOut <= checkIn) {
+                  toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                  return;
+                }
+                setSearchNonce((n) => n + 1);
+                scrollToId("rooms");
+              }}
+            >
+              Search Rooms
+            </Button>
+          </div>
+
+          {/* Events & Facilities (extra services) */}
+          <div className={extrasCount > 0 ? "" : "hidden"}>
             <HotelExtraServices hotelId={hotel.id} variant="sidebar" onCount={setExtrasCount} />
+          </div>
+
+          {/* Why book with JaagaX */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <h3 className="font-semibold mb-3">Why book with JaagaX?</h3>
+            <ul className="space-y-3">
+              {[
+                { icon: BadgeCheck, title: "Best Price Guarantee", sub: "Get the best deal, always" },
+                { icon: ShieldCheck, title: "Verified Partner Hotel", sub: "Quality checked & trusted" },
+                { icon: Info, title: "Secure Payments", sub: "100% safe and secure" },
+                { icon: Clock, title: "24x7 Support", sub: "We are always here to help" },
+              ].map((f) => (
+                <li key={f.title} className="flex items-start gap-3">
+                  <f.icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-tight">{f.title}</p>
+                    <p className="text-xs text-muted-foreground">{f.sub}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Location */}
+          {(hotel.address || locationLine) && (
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-2">
+              <h3 className="font-semibold">Location</h3>
+              <p className="text-sm text-muted-foreground">{hotel.address || locationLine}</p>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  `${hotel.name} ${hotel.address || locationLine}`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                <MapPin className="h-3.5 w-3.5" /> View on map
+              </a>
+            </div>
           )}
         </aside>
         </div>
