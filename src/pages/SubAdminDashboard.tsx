@@ -48,8 +48,9 @@ export const DistrictAdminDashboard = () => (
 );
 
 /**
- * COUNTRY / STATE ADMIN — read-only monitoring dashboards.
- * They can View, run Reports and Monitor. They cannot assign, approve or reject.
+ * COUNTRY / STATE ADMIN — workflow participants for their active queue level.
+ * Queue cards are actionable only when backend timers assign that property to
+ * the signed-in admin; lower-level submissions remain monitoring-only.
  */
 function ReadOnlyMonitoringDashboard({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -84,19 +85,17 @@ import AdminPanel from "@/pages/AdminPanel";
 
 export const CountryAdminDashboard = () => (
   <AdminPanel
-    readOnly
     flowOnly
     title="Country Admin Dashboard"
-    subtitle="Monitor property activity across your country. Operational actions are performed by District Admins."
+    subtitle="Hold, review, release, reject, and verify properties assigned to your country queue."
   />
 );
 
 export const StateAdminDashboard = () => (
   <AdminPanel
-    readOnly
     flowOnly
     title="State Admin Dashboard"
-    subtitle="Monitor property activity across your state. Operational actions are performed by District Admins."
+    subtitle="Review properties escalated to your state queue while monitoring activity across your state."
   />
 );
 
