@@ -651,7 +651,7 @@ const App = () => (
                     }
                   />
                   {/* Admin routes */}
-                  <Route path="/admin/workflow-diagram" element={<WorkflowDiagram />} />>
+                  <Route path="/admin/workflow-diagram" element={<WorkflowDiagram />} />
                   <Route
                     path="/dashboard/admin"
                     element={
