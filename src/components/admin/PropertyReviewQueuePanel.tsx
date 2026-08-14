@@ -232,7 +232,20 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     const lockedByOther = !!p.is_locked && !mine;
 
     return (
-      <div key={p.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+      <div
+        key={p.id}
+        role="link"
+        tabIndex={0}
+        aria-label={`View details for ${p.title || "property"}`}
+        className="rounded-xl border border-border bg-card p-4 space-y-3 cursor-pointer transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        onClick={() => window.open(`/property/${p.id}`, "_blank", "noopener,noreferrer")}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            window.open(`/property/${p.id}`, "_blank", "noopener,noreferrer");
+          }
+        }}
+      >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="font-semibold truncate">{p.title || "Untitled property"}</div>
@@ -281,28 +294,15 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
         </div>
 
         {!readOnly && !monitorOnly && (
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
             {!mine && !lockedByOther && (
-              <>
-                <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
-                  <Lock className="h-4 w-4 mr-1" /> Hold
-                </Button>
-                <Button size="sm" variant="outline" disabled={busy === p.id}
-                  title="Release this property back to the queue"
-                  onClick={() => call("property_release", { _property_id: p.id, _reason: "Released by admin" }, "Released — other admin timers resumed")}>
-                  <Unlock className="h-4 w-4 mr-1" /> Release
-                </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <a href={`/property/${p.id}`} target="_blank" rel="noreferrer">Open & verify</a>
-                </Button>
-              </>
+              <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
+                <Lock className="h-4 w-4 mr-1" /> Hold
+              </Button>
             )}
 
             {mine && (
               <>
-                <Button size="sm" variant="outline" asChild>
-                  <a href={`/property/${p.id}`} target="_blank" rel="noreferrer">Open & verify</a>
-                </Button>
                 {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" variant="secondary" disabled={busy === p.id}
                     onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
