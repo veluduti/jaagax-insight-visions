@@ -4,8 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { ShieldCheck, Clock, MapPin } from "lucide-react";
+import { ShieldCheck, Clock, MapPin, CalendarClock, Archive } from "lucide-react";
 
 type Row = {
   id: string;
@@ -17,7 +24,17 @@ type Row = {
   needs_agent: boolean | null;
   agent_notes: string | null;
   is_locked: boolean | null;
+  verification_visit_at: string | null;
+  verification_visit_notes: string | null;
 };
+
+const OWNER_CLOSE_REASONS = ["Already Sold", "Already Rented", "No longer selling"];
+
+const TRACKED_STATUSES = [
+  "submitted", "country_queue", "country_hold", "state_queue", "state_hold",
+  "district_queue", "district_hold", "owner_review", "pending_admin_review",
+  "live", "agent_assigned",
+];
 
 const STAGE_TEXT: Record<string, string> = {
   submitted: "Submitted — entering the review queue",
@@ -28,6 +45,8 @@ const STAGE_TEXT: Record<string, string> = {
   district_queue: "Waiting for a JAAGAX District Admin to pick it up",
   district_hold: "A JAAGAX District Admin is reviewing your property",
   pending_admin_review: "With the JAAGAX head office review team",
+  live: "Live on JAAGAX",
+  agent_assigned: "Live — your JAAGAX agent is handling buyer enquiries",
 };
 
 export default function OwnerVerificationReviewPanel() {
