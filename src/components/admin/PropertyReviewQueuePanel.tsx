@@ -222,7 +222,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const held = props.filter((p) => p.hold_admin_id === uid);
   const queued = props.filter((p) => p.hold_admin_id !== uid && p.queue_level);
 
-  const renderCard = (p: PropRow, mine: boolean) => {
+  const renderCard = (p: PropRow, mine: boolean, monitorOnly = false) => {
     const t = timerFor.get(p.id);
     const lvl = p.queue_level ?? t?.level ?? "country";
     const lockedByOther = !!p.is_locked && !mine;
