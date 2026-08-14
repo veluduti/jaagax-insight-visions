@@ -286,8 +286,8 @@ const HotelDetail = () => {
           </div>
         </section>
 
-        <div className="container mx-auto max-w-5xl px-4 py-8">
-        <div className={extrasCount > 0 ? "grid lg:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start" : ""}>
+        <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-8 items-start">
         <div className="min-w-0 space-y-10">
 
           {/* 2 — BASIC HOTEL INFORMATION */}
