@@ -637,6 +637,13 @@ const HotelDetail = () => {
           )}
         </aside>
         </div>
+
+        <NearbyHotelProperties
+          latitude={(hotel as any).latitude}
+          longitude={(hotel as any).longitude}
+          city={hotel.city}
+          hotelName={hotel.name}
+        />
         </div>
       </main>
 
