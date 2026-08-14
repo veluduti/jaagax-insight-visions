@@ -75,16 +75,25 @@ export default function HotelExtraServices({
     return () => { alive = false; };
   }, []);
 
-  if (loading || !services.length) return null;
+  if (loading) {
+    return (
+      <section className={variant === "sidebar" ? "space-y-3" : "space-y-4"}>
+        <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+        <div className="h-24 w-full animate-pulse rounded-lg bg-muted" />
+      </section>
+    );
+  }
+  const visibleServices = (services || []).filter(Boolean);
+  if (!visibleServices.length) return null;
 
-  const openView = (s: HotelExtraService) => { setGallery(0); setViewing(s); };
+  const openView = (s: HotelExtraService | null) => { if (!s) return; setGallery(0); setViewing(s); };
   const openEnquiry = (s: HotelExtraService | null) => {
     setForm({ ...emptyForm, ...(prefill ?? {}) });
-    setSelected(s);
+    setSelected(s ?? null);
   };
 
-  const priceLabel = (s: HotelExtraService, prefix = true) =>
-    s.price ? (
+  const priceLabel = (s: HotelExtraService | null | undefined, prefix = true) =>
+    s?.price ? (
       <span className="whitespace-nowrap text-sm font-semibold text-foreground">
         {prefix ? "From " : ""}₹{Number(s.price).toLocaleString("en-IN")}
         <span className="text-xs font-normal text-muted-foreground">
@@ -95,11 +104,13 @@ export default function HotelExtraServices({
       <span className="text-xs text-muted-foreground">Price on request</span>
     );
 
-  const capacityLabel = (s: HotelExtraService) => {
+  const capacityLabel = (s: HotelExtraService | null | undefined) => {
+    if (!s) return null;
     const max = s.capacity_max ?? s.capacity;
     if (!max) return null;
     return s.capacity_min ? `${s.capacity_min}–${max} guests` : `Up to ${max} guests`;
   };
+
 
   const submit = async () => {
     if (!form.guest_name.trim()) { toast.error("Please enter your name"); return; }
