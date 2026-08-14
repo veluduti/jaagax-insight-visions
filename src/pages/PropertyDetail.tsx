@@ -689,6 +689,8 @@ const PropertyDetail = () => {
           </Button>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
