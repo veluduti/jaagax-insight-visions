@@ -101,6 +101,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [loading, setLoading] = useState(true);
   const [timers, setTimers] = useState<TimerRow[]>([]);
   const [props, setProps] = useState<PropRow[]>([]);
+  const [oversight, setOversight] = useState<PropRow[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<PropRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
