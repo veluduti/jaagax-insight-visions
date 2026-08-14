@@ -31,6 +31,7 @@ const GoogleMapPicker = ({
   const readyRef = useRef(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const hasCoords = lat !== null && lng !== null && !Number.isNaN(Number(lat)) && !Number.isNaN(Number(lng));
 
