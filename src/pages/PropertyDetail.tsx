@@ -32,7 +32,7 @@ import PropertyActions from "@/components/property/PropertyActions";
 import Navigation from "@/components/Navigation";
 import PaymentPlans from "@/components/property/PaymentPlans";
 import PropertyStats from "@/components/property/PropertyStats";
-import MediaHub from "@/components/property/MediaHub";
+import PropertyHeroGallery from "@/components/property/PropertyHeroGallery";
 import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";
 import NearbyAgents from "@/components/property/NearbyAgents";
 import MicroComparables from "@/components/property/MicroComparables";
