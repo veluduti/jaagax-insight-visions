@@ -29,10 +29,10 @@ function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function formatPrice(p: number | null | undefined) {
+function formatPrice(p: number | null | undefined): string | null {
   const n = Number(p) || 0;
-  if (!n) return "Price on request";
-  return `₹${n.toLocaleString("en-IN")}/night`;
+  if (!n) return null;
+  return `₹${n.toLocaleString("en-IN")}`;
 }
 
 /**
@@ -188,8 +188,37 @@ const NearbyPropertyHotels = ({ latitude, longitude, city, propertyTitle }: Prop
                       {[h.locality, h.city].filter(Boolean).join(", ") || "N/A"}
                     </span>
                   </div>
-                  <div className="text-base font-bold text-primary mt-2">
-                    {formatPrice(h.price_per_night)}
+
+                  <div className="flex items-end justify-between gap-2 mt-3 pt-3 border-t">
+                    <div className="min-w-0">
+                      {formatPrice(h.price_per_night) ? (
+                        <>
+                          <div className="text-lg font-bold text-primary leading-none">
+                            {formatPrice(h.price_per_night)}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-1">per night</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-sm font-semibold leading-none">
+                            Live rates at booking
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            Pick your dates to see the best price
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      className="shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`/hotels/${h.id}`, "_blank");
+                      }}
+                    >
+                      View rooms
+                    </Button>
                   </div>
                 </div>
               </Card>
