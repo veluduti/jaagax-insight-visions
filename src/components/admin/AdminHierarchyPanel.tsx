@@ -11,6 +11,7 @@ import { Loader2, Shield, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import LocationMasterSelector from "@/components/location/LocationMasterSelector";
 import { emptyMasterLocation, type MasterLocationSelection } from "@/hooks/useLocationMaster";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 type AdminRole = "global_admin" | "country_admin" | "state_admin" | "district_admin";
@@ -33,11 +34,11 @@ const ROLE_LABEL: Record<AdminRole, string> = {
   district_admin: "District Admin",
 };
 
-const CHILD_ROLE: Record<AdminRole, AdminRole | null> = {
-  global_admin: "country_admin",
-  country_admin: "state_admin",
-  state_admin: "district_admin",
-  district_admin: null,
+const CREATABLE_ROLES: Record<AdminRole, AdminRole[]> = {
+  global_admin: ["country_admin", "state_admin", "district_admin"],
+  country_admin: ["state_admin", "district_admin"],
+  state_admin: ["district_admin"],
+  district_admin: [],
 };
 
 export default function AdminHierarchyPanel() {
@@ -62,7 +63,12 @@ export default function AdminHierarchyPanel() {
 
 
   const effectiveRole: AdminRole | null = myScope?.role ?? (isGlobalFallback ? "global_admin" : null);
-  const targetRole = effectiveRole ? CHILD_ROLE[effectiveRole] : null;
+  const creatableRoles = effectiveRole ? CREATABLE_ROLES[effectiveRole] : [];
+  const [targetRole, setTargetRole] = useState<AdminRole | null>(null);
+
+  useEffect(() => {
+    if (!targetRole && creatableRoles.length) setTargetRole(creatableRoles[0]);
+  }, [creatableRoles.join(","), targetRole]);
 
   const loadAll = async () => {
     if (!user) return;
@@ -102,7 +108,7 @@ export default function AdminHierarchyPanel() {
     return [];
   }, [targetRole]);
 
-  const canCreate = !!targetRole;
+  const canCreate = !!targetRole && creatableRoles.length > 0;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +144,7 @@ export default function AdminHierarchyPanel() {
           email: form.email,
           phone: form.phone,
           password: form.password,
+          role: targetRole,
           country, state, district,
           country_id: loc.country_id,
           state_id: loc.state_id,
@@ -218,6 +225,19 @@ export default function AdminHierarchyPanel() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {creatableRoles.length > 1 && (
+                <div className="md:col-span-2">
+                  <Label>Admin Level</Label>
+                  <Select value={targetRole ?? undefined} onValueChange={(v) => setTargetRole(v as AdminRole)}>
+                    <SelectTrigger><SelectValue placeholder="Select admin level" /></SelectTrigger>
+                    <SelectContent>
+                      {creatableRoles.map((r) => (
+                        <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label>Full Name</Label>
                 <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
