@@ -14,6 +14,17 @@ interface State {
   error: Error | null;
 }
 
+function isChunkError(error: Error): boolean {
+  const m = `${error?.message || ""} ${error?.name || ""}`.toLowerCase();
+  return (
+    m.includes("dynamically imported module") ||
+    m.includes("loading chunk") ||
+    m.includes("importing a module script failed") ||
+    m.includes("failed to fetch dynamically")
+  );
+}
+
+
 export class AppErrorBoundary extends Component<{ children: ReactNode }, State> {
   state: State = { error: null };
 
