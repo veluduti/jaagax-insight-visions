@@ -40,6 +40,19 @@ type PropRow = {
   hold_admin_id: string | null;
   hold_expires_at: string | null;
   verification_visit_at: string | null;
+  assigned_agent_id: string | null;
+  agent_assignment_status: string | null;
+  agent_response_deadline: string | null;
+  agent_visit_at: string | null;
+};
+
+type VerificationRow = {
+  id: string;
+  property_id: string;
+  photos: string[] | null;
+  video_url: string | null;
+  remarks: string | null;
+  submitted_at: string | null;
 };
 
 const LEVEL_LABEL: Record<string, string> = {
