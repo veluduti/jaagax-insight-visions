@@ -175,7 +175,7 @@ const HotelDetail = () => {
 
       <main className="flex-1">
         {/* Breadcrumb */}
-        <div className="container mx-auto max-w-5xl px-4 pt-5 pb-3">
+        <div className="container mx-auto max-w-6xl px-4 pt-5 pb-3">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
             <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">
               Hotels
@@ -188,7 +188,7 @@ const HotelDetail = () => {
         </div>
 
         {/* 1 — HOTEL PHOTOS */}
-        <section className="container mx-auto max-w-5xl px-4">
+        <section className="container mx-auto max-w-6xl px-4">
           <div className="relative">
             <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[440px] rounded-2xl overflow-hidden">
               <button
