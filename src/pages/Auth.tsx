@@ -173,14 +173,14 @@ export default function Auth() {
           if (role) redirectToDashboard();
         } else if (list.length === 1) {
           localStorage.setItem("jaagax.activeProfileId", list[0].id);
-          navigate(dashPath(list[0].type));
+          navigate(dashPath(list[0].type), { replace: true });
         } else {
           // Multiple profiles: prefer last-used, else fall back to first active profile.
           const storedId = localStorage.getItem("jaagax.activeProfileId");
           const stored = storedId ? list.find((p) => p.id === storedId) : null;
           const target = stored ?? list[0];
           localStorage.setItem("jaagax.activeProfileId", target.id);
-          navigate(dashPath(target.type));
+          navigate(dashPath(target.type), { replace: true });
         }
       })();
     }
@@ -331,7 +331,7 @@ export default function Auth() {
       const stored = storedId ? active.find((p) => p.id === storedId) : null;
       const target = stored ?? active[0];
       localStorage.setItem("jaagax.activeProfileId", target.id);
-      navigate(dashPath(target.type));
+      navigate(dashPath(target.type), { replace: true });
       return;
     }
     if (active.length === 1) {
@@ -341,7 +341,7 @@ export default function Auth() {
         active_profile_id: active[0].id,
         updated_at: new Date().toISOString(),
       });
-      navigate(dashPath(active[0].type));
+      navigate(dashPath(active[0].type), { replace: true });
       return;
     }
     if (roles.length > 0) {
