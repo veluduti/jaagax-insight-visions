@@ -212,6 +212,18 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
               Visit {new Date(p.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
             </Badge>
           )}
+          {p.assigned_agent_id && (
+            <Badge variant="outline" className="gap-1">
+              <UserCheck className="h-3 w-3" />
+              Agent {AGENT_STATE_LABEL[p.agent_assignment_status ?? ""] ?? p.agent_assignment_status}
+            </Badge>
+          )}
+          {p.agent_visit_at && (
+            <Badge variant="outline" className="gap-1">
+              <CalendarClock className="h-3 w-3" />
+              Agent visit {new Date(p.agent_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+            </Badge>
+          )}
         </div>
 
         {!readOnly && (
