@@ -232,7 +232,7 @@ export default function PartnerDashboard() {
 
     const paymentsReceived = active
       .filter((b) => b.updated_at && isSameDay(new Date(b.updated_at), d))
-      .reduce((s, b) => s + Number(b.amount_paid || 0), 0);
+      .reduce((s, b) => s + paidAmt(b), 0);
     const pendingAmount = pending.reduce((s, b) => s + due(b), 0);
     const cancelled = all.filter((b) => isCancelled(b) && isSameDay(new Date(b.check_in), d));
     const noShows = all.filter((b) => isNoShow(b) && isSameDay(new Date(b.check_in), d));
@@ -392,7 +392,7 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
 <tr><th>Stay</th><td>${safeDate(b.check_in)} → ${safeDate(b.check_out)} (${nights(b)} night(s))</td></tr>
 <tr><th>Room charges</th><td>${inr(Number(b.total_amount || 0))}</td></tr>
 <tr><th>Extra charges</th><td>${inr(Number(b.extra_charges || 0))}</td></tr>
-<tr><th>Paid</th><td>${inr(Number(b.amount_paid || 0))}</td></tr>
+<tr><th>Paid</th><td>${inr(paidAmt(b))}</td></tr>
 <tr class="tot"><th>Balance due</th><td>${inr(due(b))}</td></tr>
 </table></body></html>`);
     w.document.close();
@@ -1015,7 +1015,7 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
               <Section title="Payment information">
                 <Row label="Room charges" value={inr(Number(detail.total_amount || 0))} />
                 <Row label="Extra charges" value={inr(Number(detail.extra_charges || 0))} />
-                <Row label="Paid" value={inr(Number(detail.amount_paid || 0))} />
+                <Row label="Paid" value={inr(paidAmt(detail))} />
                 <Row label="Balance due" value={inr(due(detail))} />
                 <Row label="Method" value={detail.payment_method || "—"} />
                 <Row label="Payment status" value={<PayBadge b={detail} />} />
@@ -1306,7 +1306,7 @@ function PayBadge({ b }: { b: Booking }) {
   const s =
     low(b.payment_status) === "paid" || due(b) === 0
       ? "paid"
-      : Number(b.amount_paid || 0) > 0
+      : paidAmt(b) > 0
         ? "partial"
         : low(b.payment_status) === "refunded"
           ? "refunded"
