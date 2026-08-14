@@ -547,8 +547,7 @@ const PropertyDetail = () => {
           />
         </AuthGate>
 
-        {/* Property Stats */}
-        <PropertyStats entityId={property.id} entityType="property" />
+
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
