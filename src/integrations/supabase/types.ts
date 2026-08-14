@@ -9973,11 +9973,16 @@ export type Database = {
           force_verification: boolean
           furnishing: string | null
           has_price_drop_ribbon: boolean | null
+          hold_admin_id: string | null
+          hold_admin_role: string | null
+          hold_expires_at: string | null
+          hold_started_at: string | null
           id: string
           images: string[] | null
           is_draft: boolean | null
           is_featured: boolean
           is_live: boolean
+          is_locked: boolean
           is_premium: boolean
           is_sold: boolean | null
           last_verified_at: string | null
@@ -9993,7 +9998,9 @@ export type Database = {
           locality_id: string | null
           longitude: number | null
           maintenance_charges: number | null
+          needs_agent: boolean
           original_snapshot: Json | null
+          owner_review_requested_at: string | null
           pincode: string | null
           previous_price: number | null
           price: number | null
@@ -10007,6 +10014,9 @@ export type Database = {
           price_negotiable: boolean | null
           property_age: string | null
           published_at: string | null
+          queue_expires_at: string | null
+          queue_level: string | null
+          queue_started_at: string | null
           rejection_reason: string | null
           rera_document_url: string | null
           rera_id: string | null
@@ -10034,6 +10044,8 @@ export type Database = {
           verification_requested: boolean
           verification_status: string
           verified: boolean | null
+          verified_by_admin_id: string | null
+          verified_level: string | null
           video_urls: string[] | null
           visit_confirmed_at: string | null
           visit_scheduled_at: string | null
@@ -10088,11 +10100,16 @@ export type Database = {
           force_verification?: boolean
           furnishing?: string | null
           has_price_drop_ribbon?: boolean | null
+          hold_admin_id?: string | null
+          hold_admin_role?: string | null
+          hold_expires_at?: string | null
+          hold_started_at?: string | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_locked?: boolean
           is_premium?: boolean
           is_sold?: boolean | null
           last_verified_at?: string | null
@@ -10108,7 +10125,9 @@ export type Database = {
           locality_id?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
+          needs_agent?: boolean
           original_snapshot?: Json | null
+          owner_review_requested_at?: string | null
           pincode?: string | null
           previous_price?: number | null
           price?: number | null
@@ -10122,6 +10141,9 @@ export type Database = {
           price_negotiable?: boolean | null
           property_age?: string | null
           published_at?: string | null
+          queue_expires_at?: string | null
+          queue_level?: string | null
+          queue_started_at?: string | null
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
@@ -10149,6 +10171,8 @@ export type Database = {
           verification_requested?: boolean
           verification_status?: string
           verified?: boolean | null
+          verified_by_admin_id?: string | null
+          verified_level?: string | null
           video_urls?: string[] | null
           visit_confirmed_at?: string | null
           visit_scheduled_at?: string | null
@@ -10203,11 +10227,16 @@ export type Database = {
           force_verification?: boolean
           furnishing?: string | null
           has_price_drop_ribbon?: boolean | null
+          hold_admin_id?: string | null
+          hold_admin_role?: string | null
+          hold_expires_at?: string | null
+          hold_started_at?: string | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_locked?: boolean
           is_premium?: boolean
           is_sold?: boolean | null
           last_verified_at?: string | null
@@ -10223,7 +10252,9 @@ export type Database = {
           locality_id?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
+          needs_agent?: boolean
           original_snapshot?: Json | null
+          owner_review_requested_at?: string | null
           pincode?: string | null
           previous_price?: number | null
           price?: number | null
@@ -10237,6 +10268,9 @@ export type Database = {
           price_negotiable?: boolean | null
           property_age?: string | null
           published_at?: string | null
+          queue_expires_at?: string | null
+          queue_level?: string | null
+          queue_started_at?: string | null
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
@@ -10264,6 +10298,8 @@ export type Database = {
           verification_requested?: boolean
           verification_status?: string
           verified?: boolean | null
+          verified_by_admin_id?: string | null
+          verified_level?: string | null
           video_urls?: string[] | null
           visit_confirmed_at?: string | null
           visit_scheduled_at?: string | null
@@ -10321,6 +10357,56 @@ export type Database = {
             columns: ["state_id"]
             isOneToOne: false
             referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_admin_timers: {
+        Row: {
+          admin_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          level: string
+          paused_at: string | null
+          property_id: string
+          remaining_seconds: number | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          level: string
+          paused_at?: string | null
+          property_id: string
+          remaining_seconds?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          level?: string
+          paused_at?: string | null
+          property_id?: string
+          remaining_seconds?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_admin_timers_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -10526,6 +10612,47 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      property_hold_events: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          level: string | null
+          metadata: Json
+          property_id: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          metadata?: Json
+          property_id: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          metadata?: Json
+          property_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_hold_events_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_leads: {
         Row: {
@@ -12569,6 +12696,45 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_settings: {
+        Row: {
+          auto_release_enabled: boolean
+          country_timer_minutes: number
+          created_at: string
+          district_timer_minutes: number
+          id: string
+          max_hold_hours: number
+          owner_approval_hours: number
+          state_timer_minutes: number
+          updated_at: string
+          visit_window_days: number
+        }
+        Insert: {
+          auto_release_enabled?: boolean
+          country_timer_minutes?: number
+          created_at?: string
+          district_timer_minutes?: number
+          id?: string
+          max_hold_hours?: number
+          owner_approval_hours?: number
+          state_timer_minutes?: number
+          updated_at?: string
+          visit_window_days?: number
+        }
+        Update: {
+          auto_release_enabled?: boolean
+          country_timer_minutes?: number
+          created_at?: string
+          district_timer_minutes?: number
+          id?: string
+          max_hold_hours?: number
+          owner_approval_hours?: number
+          state_timer_minutes?: number
+          updated_at?: string
+          visit_window_days?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       project_stats_view: {
@@ -12872,6 +13038,32 @@ export type Database = {
         Args: { _property_id: string }
         Returns: undefined
       }
+      property_enter_queue: {
+        Args: { _level: string; _property_id: string }
+        Returns: Json
+      }
+      property_escalate: { Args: { _property_id: string }; Returns: Json }
+      property_hold: { Args: { _property_id: string }; Returns: Json }
+      property_owner_decision: {
+        Args: { _approve: boolean; _property_id: string; _reason?: string }
+        Returns: Json
+      }
+      property_reject_review: {
+        Args: { _property_id: string; _reason: string }
+        Returns: Json
+      }
+      property_release: {
+        Args: { _property_id: string; _reason?: string }
+        Returns: Json
+      }
+      property_submit_for_review: {
+        Args: { _needs_agent?: boolean; _property_id: string }
+        Returns: Json
+      }
+      property_submit_verification_to_owner: {
+        Args: { _notes?: string; _property_id: string }
+        Returns: Json
+      }
       purchase_agent_subscription: { Args: { _user_id: string }; Returns: Json }
       purchase_financial_lead: { Args: { _lead_id: string }; Returns: Json }
       purchase_financial_promotion: {
@@ -13068,6 +13260,21 @@ export type Database = {
         Args: { _profile_id: string; _user_id: string }
         Returns: boolean
       }
+      workflow_admin_level: { Args: { _user_id: string }; Returns: string }
+      workflow_eligible_admins: {
+        Args: {
+          _country: string
+          _district: string
+          _level: string
+          _state: string
+        }
+        Returns: {
+          user_id: string
+        }[]
+      }
+      workflow_level_role: { Args: { _level: string }; Returns: string }
+      workflow_next_level: { Args: { _level: string }; Returns: string }
+      workflow_tick: { Args: never; Returns: Json }
     }
     Enums: {
       agent_assignment_state: "pending" | "accepted" | "rejected"
@@ -13094,6 +13301,18 @@ export type Database = {
         | "cancelled_by_owner"
         | "visit_confirmed"
         | "visit_reschedule_requested"
+        | "country_queue"
+        | "country_hold"
+        | "country_verified"
+        | "state_queue"
+        | "state_hold"
+        | "state_verified"
+        | "district_queue"
+        | "district_hold"
+        | "district_verified"
+        | "owner_review"
+        | "sold"
+        | "closed"
       verification_artifact_status:
         | "in_progress"
         | "submitted"
@@ -13250,6 +13469,18 @@ export const Constants = {
         "cancelled_by_owner",
         "visit_confirmed",
         "visit_reschedule_requested",
+        "country_queue",
+        "country_hold",
+        "country_verified",
+        "state_queue",
+        "state_hold",
+        "state_verified",
+        "district_queue",
+        "district_hold",
+        "district_verified",
+        "owner_review",
+        "sold",
+        "closed",
       ],
       verification_artifact_status: [
         "in_progress",

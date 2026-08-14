@@ -17,7 +17,17 @@ const LABELS: Record<string, { label: string; tone: "default" | "secondary" | "d
   renewed: { label: "Renewed", tone: "secondary" },
   rejected: { label: "Rejected", tone: "destructive" },
   cancelled_by_owner: { label: "Cancelled", tone: "outline" },
+  country_queue: { label: "Country Admin Queue", tone: "secondary" },
+  country_hold: { label: "Held · Country Admin", tone: "secondary" },
+  state_queue: { label: "State Admin Queue", tone: "secondary" },
+  state_hold: { label: "Held · State Admin", tone: "secondary" },
+  district_queue: { label: "District Admin Queue", tone: "secondary" },
+  district_hold: { label: "Held · District Admin", tone: "secondary" },
+  owner_review: { label: "Awaiting Owner Approval", tone: "secondary" },
+  sold: { label: "Sold", tone: "outline" },
+  closed: { label: "Closed", tone: "outline" },
 };
+
 
 export function PropertyStatusBadge({ status }: { status?: string | null }) {
   const cfg = LABELS[status ?? ""] ?? { label: status ?? "Unknown", tone: "outline" as const };
