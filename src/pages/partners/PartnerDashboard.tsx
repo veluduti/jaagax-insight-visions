@@ -90,7 +90,13 @@ const low = (v?: string | null) => String(v || "").toLowerCase();
 const isCancelled = (b: Booking) => low(b.status) === "cancelled";
 const isNoShow = (b: Booking) => ["no_show", "noshow"].includes(low(b.status));
 const gross = (b: Booking) => Number(b.total_amount || 0) + Number(b.extra_charges || 0);
-const due = (b: Booking) => Math.max(0, gross(b) - Number(b.amount_paid || 0));
+// Some gateway-confirmed bookings never wrote amount_paid; treat "paid" as fully settled.
+const paidAmt = (b: Booking) => {
+  const rec = Number(b.amount_paid || 0);
+  if (rec > 0) return rec;
+  return low(b.payment_status) === "paid" ? gross(b) : 0;
+};
+const due = (b: Booking) => Math.max(0, gross(b) - paidAmt(b));
 const isPending = (b: Booking) => low(b.payment_status) !== "paid" && low(b.payment_status) !== "refunded" && due(b) > 0;
 const isCheckedIn = (b: Booking) => !!b.actual_check_in_at && !b.actual_check_out_at;
 const isCheckedOut = (b: Booking) => !!b.actual_check_out_at;
