@@ -58,15 +58,15 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
     (async () => {
       setLoading(true);
       try {
-        let query = supabase
+        const query = supabase
           .from("properties")
           .select("*")
-          .eq("is_live", true)
+          .neq("is_draft", true)
+          .not("title", "is", null)
           .limit(400);
 
-        if (!hasCoords && city) query = query.ilike("city", `%${city}%`);
-
-        const { data } = await query;
+        const { data, error } = await query;
+        if (error) console.error("[NearbyHotelProperties]", error);
         if (!alive) return;
 
         const rows = (data || []).map((row: any) => {
