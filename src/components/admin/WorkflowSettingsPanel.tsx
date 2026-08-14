@@ -30,6 +30,9 @@ const FIELDS: { key: keyof Settings; label: string; hint: string }[] = [
   { key: "max_hold_hours", label: "Maximum hold time (hours)", hint: "After this, the hold auto-releases and other timers resume." },
   { key: "visit_window_days", label: "Visit scheduling window (days)", hint: "How soon the holding admin must visit the property." },
   { key: "owner_approval_hours", label: "Owner approval time (hours)", hint: "How long the owner has to approve the verification." },
+  { key: "no_agent_max_hold_hours", label: "Hold limit without agent (hours)", hint: "Scenario 2 — owner did not ask for a JAAGAX agent. Hold auto-releases after this." },
+  { key: "no_agent_review_days_min", label: "No-agent review estimate — from (days)", hint: "Shown to the owner as the expected review time." },
+  { key: "no_agent_review_days_max", label: "No-agent review estimate — to (days)", hint: "Upper bound of the estimate shown to the owner." },
 ];
 
 export default function WorkflowSettingsPanel() {
