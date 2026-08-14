@@ -9963,6 +9963,9 @@ export type Database = {
           building_name: string | null
           city: string | null
           city_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closed_reason: string | null
           completion_stage: string | null
           country: string | null
           country_id: string | null
@@ -10052,6 +10055,8 @@ export type Database = {
           updated_at: string | null
           verification_requested: boolean
           verification_status: string
+          verification_visit_at: string | null
+          verification_visit_notes: string | null
           verified: boolean | null
           verified_by_admin_id: string | null
           verified_level: string | null
@@ -10090,6 +10095,9 @@ export type Database = {
           building_name?: string | null
           city?: string | null
           city_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?: string | null
           completion_stage?: string | null
           country?: string | null
           country_id?: string | null
@@ -10179,6 +10187,8 @@ export type Database = {
           updated_at?: string | null
           verification_requested?: boolean
           verification_status?: string
+          verification_visit_at?: string | null
+          verification_visit_notes?: string | null
           verified?: boolean | null
           verified_by_admin_id?: string | null
           verified_level?: string | null
@@ -10217,6 +10227,9 @@ export type Database = {
           building_name?: string | null
           city?: string | null
           city_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?: string | null
           completion_stage?: string | null
           country?: string | null
           country_id?: string | null
@@ -10306,6 +10319,8 @@ export type Database = {
           updated_at?: string | null
           verification_requested?: boolean
           verification_status?: string
+          verification_visit_at?: string | null
+          verification_visit_notes?: string | null
           verified?: boolean | null
           verified_by_admin_id?: string | null
           verified_level?: string | null
@@ -12713,6 +12728,9 @@ export type Database = {
           district_timer_minutes: number
           id: string
           max_hold_hours: number
+          no_agent_max_hold_hours: number
+          no_agent_review_days_max: number
+          no_agent_review_days_min: number
           owner_approval_hours: number
           state_timer_minutes: number
           updated_at: string
@@ -12725,6 +12743,9 @@ export type Database = {
           district_timer_minutes?: number
           id?: string
           max_hold_hours?: number
+          no_agent_max_hold_hours?: number
+          no_agent_review_days_max?: number
+          no_agent_review_days_min?: number
           owner_approval_hours?: number
           state_timer_minutes?: number
           updated_at?: string
@@ -12737,6 +12758,9 @@ export type Database = {
           district_timer_minutes?: number
           id?: string
           max_hold_hours?: number
+          no_agent_max_hold_hours?: number
+          no_agent_review_days_max?: number
+          no_agent_review_days_min?: number
           owner_approval_hours?: number
           state_timer_minutes?: number
           updated_at?: string
@@ -13047,6 +13071,10 @@ export type Database = {
         Args: { _property_id: string }
         Returns: undefined
       }
+      property_close: {
+        Args: { _property_id: string; _reason: string }
+        Returns: Json
+      }
       property_enter_queue: {
         Args: { _level: string; _property_id: string }
         Returns: Json
@@ -13063,6 +13091,10 @@ export type Database = {
       }
       property_release: {
         Args: { _property_id: string; _reason?: string }
+        Returns: Json
+      }
+      property_schedule_verification_visit: {
+        Args: { _notes?: string; _property_id: string; _visit_at: string }
         Returns: Json
       }
       property_submit_for_review: {
