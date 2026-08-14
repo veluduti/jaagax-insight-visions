@@ -27,6 +27,7 @@ import EMICalculator from "@/components/property/EMICalculator";
 import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
 import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
+import NearbyPropertyHotels from "@/components/property/NearbyPropertyHotels";
 import PropertyActions from "@/components/property/PropertyActions";
 import Navigation from "@/components/Navigation";
 import PaymentPlans from "@/components/property/PaymentPlans";
