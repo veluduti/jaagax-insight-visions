@@ -41,6 +41,7 @@ function DashboardShell({ title, subtitle, children }: Props) {
  */
 export const DistrictAdminDashboard = () => (
   <AdminPanel
+    flowOnly
     title="District Admin Dashboard"
     subtitle="You are the operational owner for properties in your district."
   />
@@ -84,6 +85,7 @@ import AdminPanel from "@/pages/AdminPanel";
 export const CountryAdminDashboard = () => (
   <AdminPanel
     readOnly
+    flowOnly
     title="Country Admin Dashboard"
     subtitle="Monitor property activity across your country. Operational actions are performed by District Admins."
   />
@@ -92,6 +94,7 @@ export const CountryAdminDashboard = () => (
 export const StateAdminDashboard = () => (
   <AdminPanel
     readOnly
+    flowOnly
     title="State Admin Dashboard"
     subtitle="Monitor property activity across your state. Operational actions are performed by District Admins."
   />
