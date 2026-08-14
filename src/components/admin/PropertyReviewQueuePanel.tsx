@@ -125,7 +125,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
     const { data: p } = await (supabase as any)
       .from("properties")
-      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at")
+      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
 
     setTimers((t ?? []) as TimerRow[]);
