@@ -14,9 +14,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive } from "lucide-react";
+import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck } from "lucide-react";
+import { AssignAgentDialog } from "@/components/admin/AssignAgentDialog";
 
 const CLOSE_REASONS = ["Already Sold", "Already Rented", "Owner Cancelled"];
+
+const AGENT_STATE_LABEL: Record<string, string> = {
+  pending: "awaiting response",
+  accepted: "accepted",
+  rejected: "declined",
+};
 
 type TimerRow = {
   property_id: string;
@@ -40,6 +47,19 @@ type PropRow = {
   hold_admin_id: string | null;
   hold_expires_at: string | null;
   verification_visit_at: string | null;
+  assigned_agent_id: string | null;
+  agent_assignment_status: string | null;
+  agent_response_deadline: string | null;
+  agent_visit_at: string | null;
+};
+
+type VerificationRow = {
+  id: string;
+  property_id: string;
+  photos: string[] | null;
+  video_url: string | null;
+  remarks: string | null;
+  submitted_at: string | null;
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -91,6 +111,10 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [visitNotes, setVisitNotes] = useState("");
   const [closeFor, setCloseFor] = useState<PropRow | null>(null);
   const [closeReason, setCloseReason] = useState(CLOSE_REASONS[0]);
+  const [assignFor, setAssignFor] = useState<PropRow | null>(null);
+  const [reportFor, setReportFor] = useState<PropRow | null>(null);
+  const [reportNotes, setReportNotes] = useState("");
+  const [report, setReport] = useState<VerificationRow | null>(null);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -108,7 +132,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
     const { data: p } = await (supabase as any)
       .from("properties")
-      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at")
+      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
 
     setTimers((t ?? []) as TimerRow[]);
@@ -149,6 +173,20 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     } finally {
       setBusy(null);
     }
+  };
+
+  const openReport = async (p: PropRow) => {
+    setReportFor(p);
+    setReportNotes("");
+    setReport(null);
+    const { data } = await (supabase as any)
+      .from("property_verifications")
+      .select("id, property_id, photos, video_url, remarks, submitted_at")
+      .eq("property_id", p.id)
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setReport((data ?? null) as VerificationRow | null);
   };
 
   if (loading) return <Skeleton className="h-48 w-full" />;
@@ -195,6 +233,18 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
               Visit {new Date(p.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
             </Badge>
           )}
+          {p.assigned_agent_id && (
+            <Badge variant="outline" className="gap-1">
+              <UserCheck className="h-3 w-3" />
+              Agent {AGENT_STATE_LABEL[p.agent_assignment_status ?? ""] ?? p.agent_assignment_status}
+            </Badge>
+          )}
+          {p.agent_visit_at && (
+            <Badge variant="outline" className="gap-1">
+              <CalendarClock className="h-3 w-3" />
+              Agent visit {new Date(p.agent_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+            </Badge>
+          )}
         </div>
 
         {!readOnly && (
@@ -214,6 +264,17 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                     onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
                     <CalendarClock className="h-4 w-4 mr-1" />
                     {p.verification_visit_at ? "Reschedule visit" : "Schedule visit"}
+                  </Button>
+                )}
+                {p.needs_agent && p.lifecycle_status !== "owner_review" &&
+                  (!p.assigned_agent_id || p.agent_assignment_status === "rejected") && (
+                  <Button size="sm" variant="secondary" disabled={busy === p.id} onClick={() => setAssignFor(p)}>
+                    <UserCheck className="h-4 w-4 mr-1" /> Assign agent
+                  </Button>
+                )}
+                {p.lifecycle_status === "verification_submitted" && (
+                  <Button size="sm" disabled={busy === p.id} onClick={() => openReport(p)}>
+                    <ClipboardCheck className="h-4 w-4 mr-1" /> Review agent report
                   </Button>
                 )}
                 {p.lifecycle_status !== "owner_review" && (
@@ -405,6 +466,85 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
               }}
             >
               Close property
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign agent */}
+      {assignFor && (
+        <AssignAgentDialog
+          propertyId={assignFor.id}
+          propertyTitle={assignFor.title || "Untitled property"}
+          open={!!assignFor}
+          onOpenChange={(o) => !o && setAssignFor(null)}
+          onAssigned={load}
+        />
+      )}
+
+      {/* Review agent verification report */}
+      <Dialog open={!!reportFor} onOpenChange={(o) => !o && setReportFor(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Agent verification report</DialogTitle>
+            <DialogDescription>
+              Approve to send the verified listing to the owner for final confirmation, or send it back to the agent for
+              rework.
+            </DialogDescription>
+          </DialogHeader>
+
+          {!report ? (
+            <p className="text-sm text-muted-foreground">No report found for this property yet.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground">
+                Submitted {report.submitted_at ? new Date(report.submitted_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+              </div>
+              {report.photos && report.photos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {report.photos.map((src, i) => (
+                    <a key={i} href={src} target="_blank" rel="noreferrer" className="block">
+                      <img src={src} alt={`Verification photo ${i + 1}`} loading="lazy"
+                        className="h-24 w-full rounded-lg object-cover border border-border" />
+                    </a>
+                  ))}
+                </div>
+              )}
+              {report.video_url && (
+                <a className="text-sm text-primary underline" href={report.video_url} target="_blank" rel="noreferrer">
+                  Watch video tour
+                </a>
+              )}
+              {report.remarks && (
+                <p className="text-sm whitespace-pre-wrap rounded-lg border border-border p-3">{report.remarks}</p>
+              )}
+            </div>
+          )}
+
+          <Textarea rows={3} placeholder="Notes for the agent / owner (optional)"
+            value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReportFor(null)}>Cancel</Button>
+            <Button variant="destructive"
+              onClick={async () => {
+                const p = reportFor!;
+                setReportFor(null);
+                await call("property_admin_review_verification",
+                  { _property_id: p.id, _approve: false, _notes: reportNotes.trim() || null },
+                  "Sent back to the agent for rework");
+              }}>
+              Request rework
+            </Button>
+            <Button
+              onClick={async () => {
+                const p = reportFor!;
+                setReportFor(null);
+                await call("property_admin_review_verification",
+                  { _property_id: p.id, _approve: true, _notes: reportNotes.trim() || null },
+                  "Report approved — sent to the owner for final approval");
+              }}>
+              Approve report
             </Button>
           </DialogFooter>
         </DialogContent>

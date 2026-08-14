@@ -64,6 +64,7 @@ import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 
 // Phase 1 Agent Components
 import AgentKYCVerification from "@/components/agent/AgentKYCVerification";
+import AgentVerificationAssignments from "@/components/agent/AgentVerificationAssignments";
 import AgentSubscriptionManager from "@/components/agent/AgentSubscriptionManager";
 import AgentTrialStatusCard from "@/components/agent/AgentTrialStatusCard";
 import AgentBadgeLevel from "@/components/agent/AgentBadgeLevel";
@@ -881,6 +882,10 @@ export default function AgentDashboard() {
         </motion.div>
 
         {/* ===== PHASE 1: KYC & Subscription Row ===== */}
+        <div className="mb-6">
+          <AgentVerificationAssignments />
+        </div>
+
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentKYCVerification />

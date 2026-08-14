@@ -20,6 +20,8 @@ type Settings = {
   no_agent_max_hold_hours: number;
   no_agent_review_days_min: number;
   no_agent_review_days_max: number;
+  agent_response_minutes: number;
+  agent_visit_days: number;
   auto_release_enabled: boolean;
 };
 
@@ -33,6 +35,8 @@ const FIELDS: { key: keyof Settings; label: string; hint: string }[] = [
   { key: "no_agent_max_hold_hours", label: "Hold limit without agent (hours)", hint: "Scenario 2 — owner did not ask for a JAAGAX agent. Hold auto-releases after this." },
   { key: "no_agent_review_days_min", label: "No-agent review estimate — from (days)", hint: "Shown to the owner as the expected review time." },
   { key: "no_agent_review_days_max", label: "No-agent review estimate — to (days)", hint: "Upper bound of the estimate shown to the owner." },
+  { key: "agent_response_minutes", label: "Agent response time (minutes)", hint: "How long an assigned agent has to accept or decline before the job is cancelled." },
+  { key: "agent_visit_days", label: "Agent visit window (days)", hint: "How soon the agent must complete the site visit after accepting." },
 ];
 
 export default function WorkflowSettingsPanel() {

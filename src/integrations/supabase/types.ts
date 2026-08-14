@@ -9948,7 +9948,10 @@ export type Database = {
           agent_notes: string | null
           agent_rejected_at: string | null
           agent_rejection_reason: string | null
+          agent_response_deadline: string | null
           agent_submitted_at: string | null
+          agent_visit_at: string | null
+          agent_visit_completed_at: string | null
           amenities: string[] | null
           area_sqft: number | null
           assigned_agent_id: string | null
@@ -10080,7 +10083,10 @@ export type Database = {
           agent_notes?: string | null
           agent_rejected_at?: string | null
           agent_rejection_reason?: string | null
+          agent_response_deadline?: string | null
           agent_submitted_at?: string | null
+          agent_visit_at?: string | null
+          agent_visit_completed_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
           assigned_agent_id?: string | null
@@ -10212,7 +10218,10 @@ export type Database = {
           agent_notes?: string | null
           agent_rejected_at?: string | null
           agent_rejection_reason?: string | null
+          agent_response_deadline?: string | null
           agent_submitted_at?: string | null
+          agent_visit_at?: string | null
+          agent_visit_completed_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
           assigned_agent_id?: string | null
@@ -12722,6 +12731,8 @@ export type Database = {
       }
       workflow_settings: {
         Row: {
+          agent_response_minutes: number
+          agent_visit_days: number
           auto_release_enabled: boolean
           country_timer_minutes: number
           created_at: string
@@ -12737,6 +12748,8 @@ export type Database = {
           visit_window_days: number
         }
         Insert: {
+          agent_response_minutes?: number
+          agent_visit_days?: number
           auto_release_enabled?: boolean
           country_timer_minutes?: number
           created_at?: string
@@ -12752,6 +12765,8 @@ export type Database = {
           visit_window_days?: number
         }
         Update: {
+          agent_response_minutes?: number
+          agent_visit_days?: number
           auto_release_enabled?: boolean
           country_timer_minutes?: number
           created_at?: string
@@ -13070,6 +13085,36 @@ export type Database = {
       owner_request_verification: {
         Args: { _property_id: string }
         Returns: undefined
+      }
+      property_admin_review_verification: {
+        Args: { _approve: boolean; _notes?: string; _property_id: string }
+        Returns: Json
+      }
+      property_agent_respond: {
+        Args: { _accept: boolean; _property_id: string; _reason?: string }
+        Returns: Json
+      }
+      property_agent_schedule_visit: {
+        Args: { _notes?: string; _property_id: string; _visit_at: string }
+        Returns: Json
+      }
+      property_agent_start_verification: {
+        Args: { _property_id: string }
+        Returns: Json
+      }
+      property_agent_submit_report: {
+        Args: {
+          _geo_photos?: Json
+          _photos?: string[]
+          _property_id: string
+          _remarks?: string
+          _video_url?: string
+        }
+        Returns: Json
+      }
+      property_assign_agent: {
+        Args: { _agent_user_id: string; _property_id: string }
+        Returns: Json
       }
       property_close: {
         Args: { _property_id: string; _reason: string }
