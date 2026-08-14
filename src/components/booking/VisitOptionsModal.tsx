@@ -107,59 +107,8 @@ export const VisitOptionsModal = ({
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Visit + Stay */}
-            {/*   <Card 
-              className={`cursor-pointer transition-all hover:shadow-md relative overflow-hidden ${
-                hoveredOption === 'stay' ? 'ring-2 ring-primary/50' : ''
-              } ${shouldSuggestStay ? 'border-amber-500/30' : ''}`}
-              onMouseEnter={() => setHoveredOption('stay')}
-              onMouseLeave={() => setHoveredOption(null)}
-              onClick={onSelectVisitStay}
-            >
-              {shouldSuggestStay && (
-                <div className="absolute top-0 right-0">
-                  <Badge className="rounded-none rounded-bl-lg bg-amber-500 text-xs">
-                    Recommended
-                  </Badge>
-                </div>
-              )}
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20">
-                    <Hotel className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      Visit + Stay
-                      <Badge className="text-xs bg-gradient-to-r from-primary to-purple-500 text-white">
-                        New
-                      </Badge>
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Book property visit with nearby partner hotel at exclusive discounts
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Badge variant="secondary" className="text-xs">
-                        <Hotel className="h-3 w-3 mr-1" />
-                        1-3 nights
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        <Plane className="h-3 w-3 mr-1" />
-                        Airport pickup
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs text-green-600">
-                        Up to 25% OFF
-                      </Badge>
-                    </div>
-                  </div>
-                  <ArrowRight className={`h-5 w-5 transition-transform ${
-                    hoveredOption === 'stay' ? 'translate-x-1' : ''
-                  }`} />
-                </div>
-              </CardContent>
-            </Card>
-          </div> */}
 
           {/* Hotel Only Option Link */}
           <div className="text-center pt-2">
