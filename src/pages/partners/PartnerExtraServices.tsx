@@ -434,8 +434,14 @@ export default function PartnerExtraServices() {
                         </p>
                         <p className="text-muted-foreground">
                           {[e.guest_phone, e.guest_email].filter(Boolean).join(" · ")}
-                          {e.event_date ? ` · ${e.event_date}` : ""}
-                          {e.guests_count ? ` · ${e.guests_count} guests` : ""}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {[
+                            e.event_type,
+                            e.event_date,
+                            e.guests_count ? `${e.guests_count} guests` : null,
+                            e.preferred_time_from ? `${e.preferred_time_from}${e.preferred_time_to ? ` - ${e.preferred_time_to}` : ""}` : null,
+                          ].filter(Boolean).join(" · ")}
                         </p>
                         {e.message && <p className="mt-1 text-muted-foreground">{e.message}</p>}
                       </div>
