@@ -46,6 +46,7 @@ import {
   Activity,
   BellRing,
   IndianRupee,
+  Timer, Settings2,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
@@ -57,6 +58,8 @@ import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
 import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPanel";
+import PropertyReviewQueuePanel from "@/components/admin/PropertyReviewQueuePanel";
+import WorkflowSettingsPanel from "@/components/admin/WorkflowSettingsPanel";
 import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
@@ -163,6 +166,8 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
       label: "Verification",
       icon: Shield,
       items: [
+        { value: "review-queue", label: "Review Queue", icon: Timer },
+        { value: "workflow-rules", label: "Workflow Rules", icon: Settings2 },
         { value: "rera", label: "RERA Verifications", icon: Shield },
         { value: "documents", label: "Documents", icon: FileText },
         { value: "kyc", label: "KYC", icon: FileCheck },
@@ -625,6 +630,15 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           {/* ================================================================ */}
           {/* TAB CONTENTS */}
           {/* ================================================================ */}
+
+          {/* PROPERTY REVIEW QUEUE */}
+          <TabsContent value="review-queue" className="mt-4">
+            <PropertyReviewQueuePanel readOnly={readOnly} />
+          </TabsContent>
+
+          <TabsContent value="workflow-rules" className="mt-4">
+            <WorkflowSettingsPanel />
+          </TabsContent>
 
           {/* KYC */}
           <TabsContent value="kyc" className="mt-4">

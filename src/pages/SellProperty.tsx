@@ -3346,12 +3346,13 @@ export default function SellProperty() {
         },
 
         verification_requested: verificationRequested,
+        needs_agent: verificationRequested,
       };
-      // If owner declined verification, route admin to direct-approval (no agent)
-      if (!verificationRequested) {
-        payload.verification_status = "pending";
-        payload.assigned_agent_id = null;
-      }
+      // Every listing now enters the multi-level admin review queue.
+      // The Yes/No answer only decides whether the reviewing admin becomes the assigned agent.
+      payload.verification_status = "pending";
+      payload.assigned_agent_id = null;
+
 
       // Safety net: only send columns that exist on the `properties` table.
       const PROPERTIES_COLUMNS = new Set([
@@ -3416,6 +3417,8 @@ export default function SellProperty() {
         "boost_payment_ref",
         "builder_id",
         "verification_requested",
+        "needs_agent",
+
       ]);
       const cleanPayload: any = {};
       for (const k of Object.keys(payload)) {
@@ -3513,25 +3516,27 @@ export default function SellProperty() {
         }
       }
 
-      // ✅ STEP 4: Nearby verification agent — only when the owner said "Yes, verify"
-      let assignmentMessage = "Listed without verification. You can request verification later from your dashboard.";
-      if (propertyId && verificationRequested && !(isAgentMode && isTrustedAgent)) {
+      // ✅ STEP 4: Enter the JAAGAX multi-level admin review queue (Country → State → District)
+      let assignmentMessage = "Your listing is now in the JAAGAX Country Admin review queue.";
+      if (propertyId) {
         try {
-          const { data: assignRes, error: assignErr } = await supabase.functions.invoke("auto-assign-agent", {
-            body: { property_id: propertyId },
+          const { data: queueRes, error: queueErr } = await (supabase as any).rpc("property_submit_for_review", {
+            _property_id: propertyId,
+            _needs_agent: verificationRequested,
           });
-          if (assignErr) throw assignErr;
-          if (assignRes?.assigned === false) {
-            assignmentMessage =
-              "No nearby agent was free right now — our admin team will assign one and keep you posted.";
-          } else {
-            assignmentMessage = "A nearby JAAGA verification agent has been assigned. You'll be notified shortly.";
+          if (queueErr) throw queueErr;
+          const level = (queueRes as any)?.level;
+          if ((queueRes as any)?.escalated_to === "super_admin") {
+            assignmentMessage = "No regional admin is available — the JAAGAX head office team will review your listing.";
+          } else if (level) {
+            assignmentMessage = `Your listing is in the JAAGAX ${level.charAt(0).toUpperCase() + level.slice(1)} Admin review queue.`;
           }
         } catch (e) {
-          console.warn("auto-assign failed", e);
-          assignmentMessage = "We couldn't reach an agent automatically — our admin team will assign one shortly.";
+          console.warn("submit-for-review failed", e);
+          assignmentMessage = "Submitted. Our admin team will pick up your listing for review shortly.";
         }
       }
+
       await refreshEntitlement();
 
 
@@ -4792,11 +4797,13 @@ export default function SellProperty() {
                         {!isFinancial && (
                           <div className="rounded-xl border border-border bg-card p-3 mb-1">
                             <div className="text-sm font-semibold mb-1">
-                              Would you like a nearby JAAGA verification agent to verify your property?
+                              Do you need a JAAGAX Agent?
                             </div>
                             <div className="text-[11px] text-muted-foreground mb-2">
-                              Verified listings get a trust badge and rank higher. You can skip this and list as
-                              unverified.
+                              Every listing is verified by a JAAGAX admin. Choose <strong>Yes</strong> and the verifying
+                              admin also becomes your assigned agent — they handle buyer calls, visits and negotiation,
+                              and your personal number stays hidden. Choose <strong>No</strong> and your own contact
+                              details are shown once the listing is verified.
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -4806,7 +4813,7 @@ export default function SellProperty() {
                                 onClick={() => setVerificationRequested(true)}
                                 className="flex-1"
                               >
-                                Yes, verify
+                                Yes, assign an agent
                               </Button>
                               <Button
                                 type="button"
@@ -4815,9 +4822,10 @@ export default function SellProperty() {
                                 onClick={() => setVerificationRequested(false)}
                                 className="flex-1"
                               >
-                                No, list as unverified
+                                No, I'll handle it
                               </Button>
                             </div>
+
                           </div>
                         )}
                         <div className="flex gap-2">
