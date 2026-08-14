@@ -213,9 +213,25 @@ export default function PartnerDashboard() {
 
     // Arrivals for the day that have not been checked in yet stay in the list;
     // once checked in they move to in-house.
-    const arrivals = active.filter((b) => isSameDay(new Date(b.check_in), d));
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const dayOf = (v?: string | null) => {
+      if (!v) return NaN;
+      const x = new Date(v);
+      if (isNaN(x.getTime())) return NaN;
+      return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    };
+
+    const arrivals = active.filter((b) => dayOf(b.check_in) === dayStart);
     const checkins = arrivals.filter((b) => !b.actual_check_in_at);
-    const departures = active.filter((b) => isSameDay(new Date(b.check_out), d));
+
+    // Departures for the day = stays scheduled to leave today, plus any guest
+    // currently checked in whose departure date has already passed (overdue).
+    const departures = active.filter(
+      (b) =>
+        dayOf(b.check_out) === dayStart ||
+        dayOf(b.actual_check_out_at) === dayStart ||
+        (isCheckedIn(b) && dayOf(b.check_out) < dayStart),
+    );
     const checkouts = departures.filter((b) => !b.actual_check_out_at);
 
     const inhouse = active.filter(
@@ -223,8 +239,8 @@ export default function PartnerDashboard() {
         isCheckedIn(b) ||
         (!b.actual_check_in_at &&
           !b.actual_check_out_at &&
-          new Date(b.check_in) < d &&
-          new Date(b.check_out) > d),
+          dayOf(b.check_in) < dayStart &&
+          dayOf(b.check_out) > dayStart),
     );
 
     const cleaning = active.filter(needsCleaning);
