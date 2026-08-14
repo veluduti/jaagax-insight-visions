@@ -345,9 +345,13 @@ export default function Auth() {
       return;
     }
     if (roles.length > 0) {
-      const r = roles[0];
-      const target = r === "customer" ? "buyer" : r === "hotel_manager" ? "hotel-manager" : r;
-      navigate(`/dashboard/${target}`);
+      const r = roles.includes("hotel_manager") ? "hotel_manager" : roles[0];
+      if (r === "hotel_manager") {
+        navigate("/partners/dashboard", { replace: true });
+        return;
+      }
+      const target = r === "customer" ? "buyer" : r;
+      navigate(`/dashboard/${target}`, { replace: true });
       return;
     }
     navigate("/dashboard");
