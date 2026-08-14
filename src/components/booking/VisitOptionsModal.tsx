@@ -109,7 +109,7 @@ export const VisitOptionsModal = ({
             </Card>
 
             {/* Visit + Stay */}
-            <Card 
+            {/*   <Card 
               className={`cursor-pointer transition-all hover:shadow-md relative overflow-hidden ${
                 hoveredOption === 'stay' ? 'ring-2 ring-primary/50' : ''
               } ${shouldSuggestStay ? 'border-amber-500/30' : ''}`}
@@ -159,7 +159,7 @@ export const VisitOptionsModal = ({
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* Hotel Only Option Link */}
           <div className="text-center pt-2">
