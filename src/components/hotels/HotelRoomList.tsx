@@ -354,7 +354,7 @@ export default function HotelRoomList({
         return (
           <Card key={room.id} className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="grid md:grid-cols-[280px_1fr_240px] gap-0">
+              <div className="grid gap-0 sm:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_220px]">
                 {/* Gallery */}
                 <div className="relative bg-muted h-56 md:h-full min-h-[220px] group">
                   <img
