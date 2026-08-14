@@ -216,6 +216,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
             { value: "workflow-rules", label: "Workflow Rules", icon: Settings2 },
           ],
         },
+        {
+          label: "Admins",
+          icon: Shield,
+          items: [{ value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield }],
+        },
       ]
     : ALL_NAV_GROUPS;
 
