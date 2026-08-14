@@ -249,7 +249,9 @@ const HotelDetail = () => {
                       setCurrentImageIndex(offset);
                       if (isLast && extra > 0) setGalleryOpen(true);
                     }}
-                    className="hidden md:block col-span-1 row-span-1 relative overflow-hidden group"
+                    className={`hidden md:block col-span-1 relative overflow-hidden group ${
+                      images.length <= 3 ? "row-span-2" : "row-span-1"
+                    }`}
                   >
                     <img
                       src={img}
