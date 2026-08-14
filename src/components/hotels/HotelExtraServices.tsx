@@ -145,7 +145,7 @@ export default function HotelExtraServices({
   };
 
   const sidebar = variant === "sidebar";
-  const viewImages = viewing?.images?.length ? viewing.images : [];
+  const viewImages = Array.isArray(viewing?.images) ? viewing.images.filter(Boolean) : [];
 
   return (
     <section className={sidebar ? "space-y-3" : "space-y-4"}>
@@ -160,14 +160,14 @@ export default function HotelExtraServices({
       </div>
 
       <div className={sidebar ? "space-y-3" : "grid gap-4 sm:grid-cols-2"}>
-        {services.map((s) => (
+        {visibleServices.map((s) => (
           <Card key={s.id} className="overflow-hidden border-border/60 transition-shadow hover:shadow-md">
             <CardContent className="p-3">
               <div className="flex gap-3">
                 {s.images?.[0] ? (
                   <img
                     src={s.images[0]}
-                    alt={s.name}
+                    alt={s.name || "Service"}
                     loading="lazy"
                     className={sidebar ? "h-16 w-16 shrink-0 rounded-lg object-cover" : "h-20 w-24 shrink-0 rounded-lg object-cover"}
                   />
@@ -177,7 +177,7 @@ export default function HotelExtraServices({
                   </div>
                 )}
                 <div className="min-w-0 flex-1 space-y-1">
-                  <h3 className="truncate text-sm font-semibold">{s.name}</h3>
+                  <h3 className="truncate text-sm font-semibold">{s.name || "Service"}</h3>
                   <Badge variant="secondary" className="capitalize text-[10px]">
                     {String(s.service_type || "").replace(/_/g, " ")}
                   </Badge>
@@ -206,7 +206,7 @@ export default function HotelExtraServices({
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-h-[88vh] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{viewing?.name}</DialogTitle>
+            <DialogTitle>{viewing?.name || "Service"}</DialogTitle>
             <DialogDescription className="capitalize">
               {String(viewing?.service_type || "").replace(/_/g, " ")}
             </DialogDescription>
@@ -216,7 +216,7 @@ export default function HotelExtraServices({
             <div className="space-y-2">
               <img
                 src={viewImages[Math.min(gallery, viewImages.length - 1)]}
-                alt={viewing?.name}
+                alt={viewing?.name || ""}
                 className="h-52 w-full rounded-xl object-cover"
               />
               {viewImages.length > 1 && (
@@ -241,8 +241,8 @@ export default function HotelExtraServices({
             {viewing?.description && <p className="text-muted-foreground">{viewing.description}</p>}
 
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              {capacityLabel(viewing as HotelExtraService) && (
-                <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{capacityLabel(viewing as HotelExtraService)}</span>
+              {capacityLabel(viewing) && (
+                <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{capacityLabel(viewing)}</span>
               )}
               {viewing?.location && (
                 <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{viewing.location}</span>
@@ -252,11 +252,11 @@ export default function HotelExtraServices({
               )}
             </div>
 
-            {viewing?.amenities?.length ? (
+            {Array.isArray(viewing?.amenities) && viewing.amenities.length ? (
               <div>
                 <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Facilities</p>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {viewing.amenities.slice(0, 6).map((a) => (
+                  {viewing.amenities.filter(Boolean).slice(0, 6).map((a) => (
                     <span key={a} className="inline-flex items-center gap-1.5 text-xs">
                       <Check className="h-3.5 w-3.5 text-primary" /> {a}
                     </span>
@@ -265,10 +265,10 @@ export default function HotelExtraServices({
               </div>
             ) : null}
 
-            {viewing?.tags?.length ? (
+            {Array.isArray(viewing?.tags) && viewing.tags.length ? (
               <div>
                 <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Perfect for</p>
-                <p className="text-xs text-muted-foreground">{viewing.tags.join(" • ")}</p>
+                <p className="text-xs text-muted-foreground">{viewing.tags.filter(Boolean).join(" • ")}</p>
               </div>
             ) : null}
 
@@ -295,7 +295,7 @@ export default function HotelExtraServices({
           </div>
 
           <DialogFooter>
-            <Button onClick={() => { openEnquiry(viewing); setViewing(null); }}>Enquire Now</Button>
+            <Button disabled={!viewing} onClick={() => { openEnquiry(viewing); setViewing(null); }}>Enquire Now</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -304,7 +304,7 @@ export default function HotelExtraServices({
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-h-[88vh] max-w-md overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Enquire — {selected?.name}</DialogTitle>
+            <DialogTitle>Enquire — {selected?.name || "Service"}</DialogTitle>
             <DialogDescription>The hotel team will get back to you with availability and pricing.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
