@@ -135,10 +135,37 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
 
+    // Oversight: every submission inside this admin's geography, even when the
+    // active queue belongs to a lower level (district owns the operation).
+    const { data: scope } = await (supabase as any)
+      .from("admin_scopes")
+      .select("role, country, state, district")
+      .eq("user_id", me)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    let overs: PropRow[] = [];
+    if (scope) {
+      let q = (supabase as any)
+        .from("properties")
+        .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
+        .not("queue_level", "is", null)
+        .order("queue_started_at", { ascending: false })
+        .limit(100);
+      if (scope.country) q = q.ilike("country", scope.country);
+      if (scope.state) q = q.ilike("state", scope.state);
+      if (scope.district) q = q.ilike("district", scope.district);
+      const { data: o } = await q;
+      const own = new Set([...(ids ?? []), ...(((p ?? []) as PropRow[]).map((r) => r.id))]);
+      overs = ((o ?? []) as PropRow[]).filter((r) => !own.has(r.id));
+    }
+
     setTimers((t ?? []) as TimerRow[]);
     setProps((p ?? []) as PropRow[]);
+    setOversight(overs);
     setLoading(false);
   }, []);
+
 
   useEffect(() => { load(); }, [load]);
 
