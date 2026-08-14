@@ -219,13 +219,18 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
   if (loading) return <Skeleton className="h-48 w-full" />;
 
-  const held = props.filter((p) => p.hold_admin_id === uid);
-  const queued = props.filter((p) => p.hold_admin_id !== uid && p.queue_level);
+  const heldByMe = (p: PropRow) =>
+    p.hold_admin_id === uid || timerFor.get(p.id)?.status === "held";
 
-  const renderCard = (p: PropRow, mine: boolean, monitorOnly = false) => {
+  const held = props.filter((p) => heldByMe(p));
+  const queued = props.filter((p) => !heldByMe(p) && p.queue_level);
+
+  const renderCard = (p: PropRow, mineArg: boolean, monitorOnly = false) => {
     const t = timerFor.get(p.id);
+    const mine = mineArg || heldByMe(p);
     const lvl = p.queue_level ?? t?.level ?? "country";
     const lockedByOther = !!p.is_locked && !mine;
+
     return (
       <div key={p.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
