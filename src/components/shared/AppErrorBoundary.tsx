@@ -24,6 +24,19 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
   componentDidCatch(error: Error, info: ErrorInfo) {
     // Surface to runtime-error tooling; do NOT swallow.
     console.error("[AppErrorBoundary]", error, info.componentStack);
+
+    // Stale-deploy self-heal: a chunk that no longer exists on the CDN throws
+    // a dynamic-import error. Reload once (guarded) to pick up the new build.
+    if (isChunkError(error)) {
+      try {
+        const KEY = "app_chunk_reload_at";
+        const last = Number(sessionStorage.getItem(KEY) || 0);
+        if (Date.now() - last > 30_000) {
+          sessionStorage.setItem(KEY, String(Date.now()));
+          window.location.reload();
+        }
+      } catch { /* storage blocked */ }
+    }
   }
 
   handleReset = () => {
@@ -36,7 +49,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
 
   render() {
     if (!this.state.error) return this.props.children;
-    const isDev = import.meta.env?.DEV;
+    const message = this.state.error?.message || String(this.state.error);
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="max-w-md w-full glass-panel rounded-2xl p-8 text-center space-y-4">
@@ -47,9 +60,9 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
           <p className="text-sm text-muted-foreground">
             We hit an unexpected error rendering this page. Try again, or reload the app.
           </p>
-          {isDev && this.state.error?.message && (
+          {message && (
             <pre className="text-left text-[11px] bg-muted/50 rounded-md p-2 overflow-auto max-h-40 whitespace-pre-wrap">
-              {this.state.error.message}
+              {message}
             </pre>
           )}
           <div className="flex gap-2 justify-center pt-2">
@@ -60,6 +73,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
       </div>
     );
   }
+
 }
 
 export default AppErrorBoundary;
