@@ -503,17 +503,18 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
           <Kpi
             icon={<LogIn className="h-4 w-4" />}
             label={`${dayLabel}'s check-ins`}
-            value={day.checkins.reduce((s, b) => s + (b.num_guests || 1), 0)}
+            value={day.arrivals.reduce((s, b) => s + (b.num_guests || 1), 0)}
             sub={`${day.checkins.length} arrival(s) pending`}
             onClick={() => setView("checkins")}
           />
           <Kpi
             icon={<LogOut className="h-4 w-4" />}
             label={`${dayLabel}'s check-outs`}
-            value={day.checkouts.reduce((s, b) => s + (b.num_guests || 1), 0)}
+            value={day.departures.reduce((s, b) => s + (b.num_guests || 1), 0)}
             sub={`${day.checkouts.length} departure(s) pending`}
             onClick={() => setView("checkouts")}
           />
+
           <Kpi
             icon={<Users className="h-4 w-4" />}
             label="In-house guests"
