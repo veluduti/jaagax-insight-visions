@@ -4,12 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive } from "lucide-react";
+
+const CLOSE_REASONS = ["Already Sold", "Already Rented", "Owner Cancelled"];
 
 type TimerRow = {
   property_id: string;
@@ -32,6 +39,7 @@ type PropRow = {
   is_locked: boolean | null;
   hold_admin_id: string | null;
   hold_expires_at: string | null;
+  verification_visit_at: string | null;
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -78,6 +86,11 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [rejectReason, setRejectReason] = useState("");
   const [verifyFor, setVerifyFor] = useState<PropRow | null>(null);
   const [verifyNotes, setVerifyNotes] = useState("");
+  const [visitFor, setVisitFor] = useState<PropRow | null>(null);
+  const [visitAt, setVisitAt] = useState("");
+  const [visitNotes, setVisitNotes] = useState("");
+  const [closeFor, setCloseFor] = useState<PropRow | null>(null);
+  const [closeReason, setCloseReason] = useState(CLOSE_REASONS[0]);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -95,7 +108,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
     const { data: p } = await (supabase as any)
       .from("properties")
-      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at")
+      .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
 
     setTimers((t ?? []) as TimerRow[]);
@@ -176,6 +189,12 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           {p.price ? <span className="text-xs text-muted-foreground">₹{Number(p.price).toLocaleString("en-IN")}</span> : null}
           {lockedByOther && <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />Held by another admin</Badge>}
           {p.lifecycle_status === "owner_review" && <Badge variant="secondary">Awaiting owner approval</Badge>}
+          {p.verification_visit_at && (
+            <Badge variant="outline" className="gap-1">
+              <CalendarClock className="h-3 w-3" />
+              Visit {new Date(p.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+            </Badge>
+          )}
         </div>
 
         {!readOnly && (
@@ -191,6 +210,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                   <a href={`/property/${p.id}`} target="_blank" rel="noreferrer">Open & verify</a>
                 </Button>
                 {p.lifecycle_status !== "owner_review" && (
+                  <Button size="sm" variant="secondary" disabled={busy === p.id}
+                    onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
+                    <CalendarClock className="h-4 w-4 mr-1" />
+                    {p.verification_visit_at ? "Reschedule visit" : "Schedule visit"}
+                  </Button>
+                )}
+                {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" disabled={busy === p.id} onClick={() => { setVerifyFor(p); setVerifyNotes(""); }}>
                     <CheckCircle2 className="h-4 w-4 mr-1" /> Submit verification to owner
                   </Button>
@@ -201,6 +227,10 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                 </Button>
                 <Button size="sm" variant="destructive" disabled={busy === p.id} onClick={() => { setRejectFor(p); setRejectReason(""); }}>
                   <XCircle className="h-4 w-4 mr-1" /> Reject
+                </Button>
+                <Button size="sm" variant="outline" disabled={busy === p.id}
+                  onClick={() => { setCloseFor(p); setCloseReason(CLOSE_REASONS[0]); }}>
+                  <Archive className="h-4 w-4 mr-1" /> Mark closed
                 </Button>
               </>
             )}
@@ -300,6 +330,81 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
               }}
             >
               Send for approval
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule visit dialog */}
+      <Dialog open={!!visitFor} onOpenChange={(o) => !o && setVisitFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule verification visit</DialogTitle>
+            <DialogDescription>
+              The visit must fall inside the visit window configured by the super admin. The owner is notified with the
+              date and time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="visit-at">Visit date &amp; time</Label>
+              <Input id="visit-at" type="datetime-local" value={visitAt} onChange={(e) => setVisitAt(e.target.value)} />
+            </div>
+            <Textarea
+              placeholder="Notes for the owner (optional)"
+              value={visitNotes}
+              onChange={(e) => setVisitNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVisitFor(null)}>Cancel</Button>
+            <Button
+              disabled={!visitAt}
+              onClick={async () => {
+                const p = visitFor!;
+                const when = new Date(visitAt).toISOString();
+                setVisitFor(null);
+                await call("property_schedule_verification_visit",
+                  { _property_id: p.id, _visit_at: when, _notes: visitNotes.trim() || null },
+                  "Visit scheduled — owner notified");
+              }}
+            >
+              Schedule visit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Close property dialog */}
+      <Dialog open={!!closeFor} onOpenChange={(o) => !o && setCloseFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark property closed</DialogTitle>
+            <DialogDescription>
+              Closing removes the property from every country, state and district queue and from public listings
+              immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Reason</Label>
+            <Select value={closeReason} onValueChange={setCloseReason}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CLOSE_REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseFor(null)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                const p = closeFor!;
+                setCloseFor(null);
+                await call("property_close", { _property_id: p.id, _reason: closeReason }, "Property closed");
+              }}
+            >
+              Close property
             </Button>
           </DialogFooter>
         </DialogContent>

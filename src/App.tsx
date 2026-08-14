@@ -75,6 +75,7 @@ const BuilderPromotions = lazy(() => import("./pages/BuilderPromotions"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const AgentAddProperty = lazy(() => import("./pages/AgentAddProperty"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const WorkflowDiagram = lazy(() => import("./pages/WorkflowDiagram"));
 const AgentRegistration = lazy(() => import("./pages/AgentRegistration"));
 const CountryAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.CountryAdminDashboard })));
 const StateAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.StateAdminDashboard })));
@@ -650,6 +651,7 @@ const App = () => (
                     }
                   />
                   {/* Admin routes */}
+                  <Route path="/admin/workflow-diagram" element={<WorkflowDiagram />} />
                   <Route
                     path="/dashboard/admin"
                     element={
