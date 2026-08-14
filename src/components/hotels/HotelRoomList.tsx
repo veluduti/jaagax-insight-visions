@@ -354,9 +354,9 @@ export default function HotelRoomList({
         return (
           <Card key={room.id} className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="grid md:grid-cols-[280px_1fr_240px] gap-0">
+              <div className="grid gap-0 sm:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_220px]">
                 {/* Gallery */}
-                <div className="relative bg-muted h-56 md:h-full min-h-[220px] group">
+                <div className="relative bg-muted h-48 sm:h-full min-h-[200px] group">
                   <img
                     src={photos[idx]}
                     alt={room.room_type}
@@ -479,7 +479,7 @@ export default function HotelRoomList({
                 </div>
 
                 {/* Price / CTA */}
-                <div className="p-4 md:p-5 border-t md:border-t-0 md:border-l border-border bg-muted/20 flex flex-col justify-between gap-3">
+                <div className="sm:col-span-2 xl:col-span-1 p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-border bg-muted/20 flex flex-row xl:flex-col items-end xl:items-stretch justify-between gap-3">
                   <div>
                     {hasDates && q && !q.loading ? (
                       <>
@@ -508,7 +508,7 @@ export default function HotelRoomList({
                     )}
                   </div>
                   <Button
-                    className="w-full"
+                    className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}
                     onClick={() =>
                       goCheckout(
