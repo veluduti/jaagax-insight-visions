@@ -479,7 +479,7 @@ export default function HotelRoomList({
                 </div>
 
                 {/* Price / CTA */}
-                <div className="p-4 md:p-5 border-t md:border-t-0 md:border-l border-border bg-muted/20 flex flex-col justify-between gap-3">
+                <div className="sm:col-span-2 xl:col-span-1 p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-border bg-muted/20 flex flex-row xl:flex-col items-end xl:items-stretch justify-between gap-3">
                   <div>
                     {hasDates && q && !q.loading ? (
                       <>
