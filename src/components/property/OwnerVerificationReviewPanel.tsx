@@ -95,6 +95,24 @@ export default function OwnerVerificationReviewPanel() {
     }
   };
 
+  const closeProperty = async () => {
+    const r = closeFor!;
+    setCloseFor(null);
+    setBusy(r.id);
+    try {
+      const { error } = await (supabase as any).rpc("property_close", {
+        _property_id: r.id, _reason: closeReason,
+      });
+      if (error) throw error;
+      toast.success("Listing closed — it is removed from JAAGAX");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not close the listing");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (rows.length === 0) return null;
 
   return (
