@@ -58,15 +58,15 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
     (async () => {
       setLoading(true);
       try {
-        let query = supabase
+        const query = supabase
           .from("properties")
           .select("*")
-          .eq("is_live", true)
+          .neq("is_draft", true)
+          .not("title", "is", null)
           .limit(400);
 
-        if (!hasCoords && city) query = query.ilike("city", `%${city}%`);
-
-        const { data } = await query;
+        const { data, error } = await query;
+        if (error) console.error("[NearbyHotelProperties]", error);
         if (!alive) return;
 
         const rows = (data || []).map((row: any) => {
@@ -85,9 +85,16 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
             : row;
         });
 
+        const cityMatches = city
+          ? rows.filter((r: any) =>
+              String(r.city || "").toLowerCase().includes(String(city).toLowerCase()),
+            )
+          : [];
+        const cityFallback = (cityMatches.length ? cityMatches : rows).slice(0, 12);
+
         if (!hasCoords) {
           setRadius(null);
-          setItems(rows.slice(0, 12));
+          setItems(cityFallback);
           return;
         }
 
@@ -118,8 +125,13 @@ const NearbyHotelProperties = ({ latitude, longitude, city, hotelName }: Props) 
             usedRadius = step;
           }
         }
-        setRadius(usedRadius);
-        setItems(picked.slice(0, 12));
+        if (!picked.length) {
+          setRadius(null);
+          setItems(cityFallback);
+        } else {
+          setRadius(usedRadius);
+          setItems(picked.slice(0, 12));
+        }
       } finally {
         if (alive) setLoading(false);
       }
