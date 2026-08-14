@@ -39,7 +39,6 @@ import MicroComparables from "@/components/property/MicroComparables";
 import AIDecisionPanel from "@/components/property/AIDecisionPanel";
 import AIPreCallContext from "@/components/property/AIPreCallContext";
 import AuthGate from "@/components/property/AuthGate";
-import PropertyVideoReels from "@/components/property/PropertyVideoReels";
 import { useAuth } from "@/hooks/useAuth";
 import { trackPropertyEvent } from "@/lib/propertyEvents";
 import SEO from "@/components/SEO";
