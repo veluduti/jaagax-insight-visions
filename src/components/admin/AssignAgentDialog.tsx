@@ -53,32 +53,19 @@ export function AssignAgentDialog({
   const assign = async (agentId: string) => {
     setAssigning(agentId);
     try {
-      const { error } = await supabase
-        .from("properties")
-        .update({
-          assigned_agent_id: agentId,
-          lifecycle_status: "agent_assigned" as any,
-        } as any)
-        .eq("id", propertyId);
-      if (error) throw error;
-
-      // Notify the agent (look up auth user_id) + owner
       const { data: agentRow } = await supabase
         .from("agents").select("user_id").eq("id", agentId).maybeSingle();
       const agentUserId = (agentRow as any)?.user_id as string | undefined;
+      if (!agentUserId) throw new Error("This agent has no linked login account yet");
 
-      const { data: prop } = await supabase
-        .from("properties").select("submitted_by, title").eq("id", propertyId).maybeSingle();
-      const notifs: any[] = [];
-      if (agentUserId) {
-        notifs.push({ user_id: agentUserId, title: "New verification task", message: `You've been assigned to verify "${prop?.title ?? propertyTitle}". Accept or reject from your dashboard.`, type: "alert", link: "/dashboard/agent" });
-      }
-      if (prop?.submitted_by) {
-        notifs.push({ user_id: prop.submitted_by, title: "Verification agent assigned", message: `An agent has been assigned to verify "${prop.title}". You can still edit until they accept.`, type: "info", link: "/dashboard/seller" });
-      }
-      if (notifs.length) await supabase.from("notifications").insert(notifs);
+      // Workflow engine: sets the response deadline, notifies agent + owner, writes the audit trail
+      const { error } = await (supabase as any).rpc("property_assign_agent", {
+        _property_id: propertyId,
+        _agent_user_id: agentUserId,
+      });
+      if (error) throw error;
 
-      toast({ title: "Agent assigned" });
+      toast({ title: "Agent assigned", description: "The agent must accept before the response deadline." });
       onAssigned?.();
       onOpenChange(false);
     } catch (e: any) {
