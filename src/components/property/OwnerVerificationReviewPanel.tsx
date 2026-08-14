@@ -4,8 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { ShieldCheck, Clock, MapPin } from "lucide-react";
+import { ShieldCheck, Clock, MapPin, CalendarClock, Archive } from "lucide-react";
 
 type Row = {
   id: string;
@@ -17,7 +24,17 @@ type Row = {
   needs_agent: boolean | null;
   agent_notes: string | null;
   is_locked: boolean | null;
+  verification_visit_at: string | null;
+  verification_visit_notes: string | null;
 };
+
+const OWNER_CLOSE_REASONS = ["Already Sold", "Already Rented", "No longer selling"];
+
+const TRACKED_STATUSES = [
+  "submitted", "country_queue", "country_hold", "state_queue", "state_hold",
+  "district_queue", "district_hold", "owner_review", "pending_admin_review",
+  "live", "agent_assigned",
+];
 
 const STAGE_TEXT: Record<string, string> = {
   submitted: "Submitted — entering the review queue",
@@ -28,24 +45,25 @@ const STAGE_TEXT: Record<string, string> = {
   district_queue: "Waiting for a JAAGAX District Admin to pick it up",
   district_hold: "A JAAGAX District Admin is reviewing your property",
   pending_admin_review: "With the JAAGAX head office review team",
+  live: "Live on JAAGAX",
+  agent_assigned: "Live — your JAAGAX agent is handling buyer enquiries",
 };
 
 export default function OwnerVerificationReviewPanel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [reason, setReason] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [closeFor, setCloseFor] = useState<Row | null>(null);
+  const [closeReason, setCloseReason] = useState(OWNER_CLOSE_REASONS[0]);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const { data } = await (supabase as any)
       .from("properties")
-      .select("id, title, city, district, lifecycle_status, queue_level, needs_agent, agent_notes, is_locked")
+      .select("id, title, city, district, lifecycle_status, queue_level, needs_agent, agent_notes, is_locked, verification_visit_at, verification_visit_notes")
       .eq("submitted_by", u.user.id)
-      .in("lifecycle_status", [
-        "submitted", "country_queue", "country_hold", "state_queue", "state_hold",
-        "district_queue", "district_hold", "owner_review", "pending_admin_review",
-      ]);
+      .in("lifecycle_status", TRACKED_STATUSES);
     setRows((data ?? []) as Row[]);
   }, []);
 
@@ -72,6 +90,24 @@ export default function OwnerVerificationReviewPanel() {
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "Could not submit your decision");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const closeProperty = async () => {
+    const r = closeFor!;
+    setCloseFor(null);
+    setBusy(r.id);
+    try {
+      const { error } = await (supabase as any).rpc("property_close", {
+        _property_id: r.id, _reason: closeReason,
+      });
+      if (error) throw error;
+      toast.success("Listing closed — it is removed from JAAGAX");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not close the listing");
     } finally {
       setBusy(null);
     }
@@ -126,10 +162,64 @@ export default function OwnerVerificationReviewPanel() {
                   {STAGE_TEXT[r.lifecycle_status ?? ""] ?? "In review"}
                 </div>
               )}
+
+              {r.verification_visit_at && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 text-xs">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <CalendarClock className="h-3.5 w-3.5 text-primary" />
+                    Verification visit on{" "}
+                    {new Date(r.verification_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </span>
+                  {r.verification_visit_notes && (
+                    <span className="mt-1 block text-muted-foreground whitespace-pre-wrap">{r.verification_visit_notes}</span>
+                  )}
+                </div>
+              )}
+
+              {!r.needs_agent && !awaiting && !["live", "agent_assigned"].includes(r.lifecycle_status ?? "") && (
+                <p className="text-xs text-muted-foreground">
+                  Owner-managed listing — JAAGAX usually completes this review in 7–10 days.
+                </p>
+              )}
+
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === r.id}
+                  onClick={() => { setCloseFor(r); setCloseReason(OWNER_CLOSE_REASONS[0]); }}
+                >
+                  <Archive className="mr-1 h-4 w-4" /> Close listing
+                </Button>
+              </div>
             </div>
           );
         })}
       </CardContent>
+
+      <Dialog open={!!closeFor} onOpenChange={(o) => !o && setCloseFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Close this listing</DialogTitle>
+            <DialogDescription>
+              The property is removed from JAAGAX and from every admin review queue. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Reason</Label>
+            <Select value={closeReason} onValueChange={setCloseReason}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {OWNER_CLOSE_REASONS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseFor(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={closeProperty}>Close listing</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
