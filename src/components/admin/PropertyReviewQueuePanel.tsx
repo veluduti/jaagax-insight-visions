@@ -283,10 +283,21 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
         {!readOnly && !monitorOnly && (
           <div className="flex flex-wrap gap-2 pt-1">
             {!mine && !lockedByOther && (
-              <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
-                <Lock className="h-4 w-4 mr-1" /> Hold
-              </Button>
+              <>
+                <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
+                  <Lock className="h-4 w-4 mr-1" /> Hold
+                </Button>
+                <Button size="sm" variant="outline" disabled={busy === p.id}
+                  title="Release this property back to the queue"
+                  onClick={() => call("property_release", { _property_id: p.id, _reason: "Released by admin" }, "Released — other admin timers resumed")}>
+                  <Unlock className="h-4 w-4 mr-1" /> Release
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <a href={`/property/${p.id}`} target="_blank" rel="noreferrer">Open & verify</a>
+                </Button>
+              </>
             )}
+
             {mine && (
               <>
                 <Button size="sm" variant="outline" asChild>
