@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import OwnerVerificationReviewPanel from "@/components/property/OwnerVerificationReviewPanel";
 
 type Row = { id: string; status: string | null; title: string | null };
 
@@ -85,6 +86,8 @@ export default function SellTrackPanel({ onNavigateTab }: { onNavigateTab: (id: 
   const usedPct = freeLimit > 0 ? Math.min(100, Math.round((freeUsed / freeLimit) * 100)) : 0;
 
   return (
+    <div className="space-y-4">
+    <OwnerVerificationReviewPanel />
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
