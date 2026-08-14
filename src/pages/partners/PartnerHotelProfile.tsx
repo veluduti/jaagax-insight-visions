@@ -202,7 +202,7 @@ export default function PartnerHotelProfile() {
                   </div>
                 )}
                 <div className="flex gap-2 mt-3">
-                  <Input placeholder="Or paste an image URL" value={amenityInput === "__" ? "" : undefined}
+                  <Input placeholder="Or paste an image URL and press Enter"
                     onKeyDown={(e) => {
                       const t = e.currentTarget;
                       if (e.key === "Enter" && t.value.trim()) {

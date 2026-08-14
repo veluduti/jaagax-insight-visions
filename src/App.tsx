@@ -150,6 +150,7 @@ const PartnerKYC = lazy(() => import("./pages/partners/PartnerKYC"));
 const PartnerStatus = lazy(() => import("./pages/partners/PartnerStatus"));
 const PartnerPmsSetup = lazy(() => import("./pages/partners/PartnerPmsSetup"));
 const PartnerDashboard = lazy(() => import("./pages/partners/PartnerDashboard"));
+const PartnerHotelProfile = lazy(() => import("./pages/partners/PartnerHotelProfile"));
 const PartnerRooms = lazy(() => import("./pages/partners/PartnerRooms"));
 const PartnerReservations = lazy(() => import("./pages/partners/PartnerReservations"));
 const PartnerGuests = lazy(() => import("./pages/partners/PartnerGuests"));
@@ -539,6 +540,7 @@ const App = () => (
                   <Route path="/partners/status" element={<PartnerStatus />} />
                   <Route path="/partners/pms-setup" element={<PartnerPmsSetup />} />
                   <Route path="/partners/dashboard" element={<PartnerDashboard />} />
+                  <Route path="/partners/hotel-profile" element={<PartnerHotelProfile />} />
                   <Route path="/partners/rooms" element={<PartnerRooms />} />
                   <Route path="/partners/reservations" element={<PartnerReservations />} />
                   <Route path="/partners/guests" element={<PartnerGuests />} />
