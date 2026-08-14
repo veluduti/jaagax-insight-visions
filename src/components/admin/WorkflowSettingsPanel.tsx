@@ -20,6 +20,8 @@ type Settings = {
   no_agent_max_hold_hours: number;
   no_agent_review_days_min: number;
   no_agent_review_days_max: number;
+  agent_response_minutes: number;
+  agent_visit_days: number;
   auto_release_enabled: boolean;
 };
 
