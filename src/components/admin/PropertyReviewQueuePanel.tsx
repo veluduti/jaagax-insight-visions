@@ -334,6 +334,81 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule visit dialog */}
+      <Dialog open={!!visitFor} onOpenChange={(o) => !o && setVisitFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule verification visit</DialogTitle>
+            <DialogDescription>
+              The visit must fall inside the visit window configured by the super admin. The owner is notified with the
+              date and time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="visit-at">Visit date &amp; time</Label>
+              <Input id="visit-at" type="datetime-local" value={visitAt} onChange={(e) => setVisitAt(e.target.value)} />
+            </div>
+            <Textarea
+              placeholder="Notes for the owner (optional)"
+              value={visitNotes}
+              onChange={(e) => setVisitNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVisitFor(null)}>Cancel</Button>
+            <Button
+              disabled={!visitAt}
+              onClick={async () => {
+                const p = visitFor!;
+                const when = new Date(visitAt).toISOString();
+                setVisitFor(null);
+                await call("property_schedule_verification_visit",
+                  { _property_id: p.id, _visit_at: when, _notes: visitNotes.trim() || null },
+                  "Visit scheduled — owner notified");
+              }}
+            >
+              Schedule visit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Close property dialog */}
+      <Dialog open={!!closeFor} onOpenChange={(o) => !o && setCloseFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark property closed</DialogTitle>
+            <DialogDescription>
+              Closing removes the property from every country, state and district queue and from public listings
+              immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Reason</Label>
+            <Select value={closeReason} onValueChange={setCloseReason}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CLOSE_REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseFor(null)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                const p = closeFor!;
+                setCloseFor(null);
+                await call("property_close", { _property_id: p.id, _reason: closeReason }, "Property closed");
+              }}
+            >
+              Close property
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
