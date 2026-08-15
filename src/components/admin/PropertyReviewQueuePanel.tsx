@@ -671,6 +671,75 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Edit property during verification */}
+      <Dialog open={!!editFor} onOpenChange={(o) => !o && setEditFor(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit property</DialogTitle>
+            <DialogDescription>
+              Correct or complete the listing details during verification. Leave a field blank to keep the current value.
+              Saving updates the live record, so the visit you schedule next uses the corrected details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["title", "Title", "text"],
+              ["price", "Price (₹)", "number"],
+              ["area_sqft", "Area (sq ft)", "number"],
+              ["bhk", "BHK", "number"],
+              ["bedrooms", "Bedrooms", "number"],
+              ["bathrooms", "Bathrooms", "number"],
+              ["furnishing", "Furnishing", "text"],
+              ["locality", "Locality", "text"],
+              ["city", "City", "text"],
+              ["district", "District", "text"],
+              ["state", "State", "text"],
+              ["latitude", "Latitude", "number"],
+              ["longitude", "Longitude", "number"],
+            ].map(([key, label, type]) => (
+              <div key={key} className="space-y-1.5">
+                <Label htmlFor={`edit-${key}`}>{label}</Label>
+                <Input
+                  id={`edit-${key}`}
+                  type={type}
+                  value={editForm[key] ?? ""}
+                  onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-address">Address</Label>
+            <Input id="edit-address" value={editForm.address ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea id="edit-description" rows={4} value={editForm.description ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-images">Image URLs (one per line)</Label>
+            <Textarea id="edit-images" rows={3} value={editForm.images ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, images: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-amenities">Amenities (comma separated)</Label>
+            <Input id="edit-amenities" value={editForm.amenities ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, amenities: e.target.value }))} />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditFor(null)}>Cancel</Button>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit(true)}>
+              <CalendarClock className="h-4 w-4 mr-1" /> Save &amp; schedule visit
+            </Button>
+            <Button disabled={editSaving} onClick={() => saveEdit(false)}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
