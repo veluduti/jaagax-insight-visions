@@ -13129,6 +13129,10 @@ export type Database = {
         Args: { _approve: boolean; _notes?: string; _property_id: string }
         Returns: Json
       }
+      property_admin_update_fields: {
+        Args: { _patch: Json; _property_id: string }
+        Returns: Json
+      }
       property_agent_respond: {
         Args: { _accept: boolean; _property_id: string; _reason?: string }
         Returns: Json
