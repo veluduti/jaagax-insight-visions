@@ -250,7 +250,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     });
   };
 
-  const saveEdit = async (thenScheduleVisit: boolean) => {
+  const saveEdit = async (next: "none" | "visit" | "owner" = "none") => {
     const p = editFor!;
     setEditSaving(true);
     try {
@@ -265,10 +265,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       toast.success("Property updated");
       setEditFor(null);
       await load();
-      if (thenScheduleVisit) {
+      if (next === "visit") {
         setVisitFor(p);
         setVisitAt("");
         setVisitNotes("");
+      } else if (next === "owner") {
+        setVerifyFor(p);
+        setVerifyNotes("");
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save the changes");
@@ -276,6 +279,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       setEditSaving(false);
     }
   };
+
 
   if (loading) return <Skeleton className="h-48 w-full" />;
 
@@ -733,10 +737,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditFor(null)}>Cancel</Button>
-            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit(true)}>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit("visit")}>
               <CalendarClock className="h-4 w-4 mr-1" /> Save &amp; schedule visit
             </Button>
-            <Button disabled={editSaving} onClick={() => saveEdit(false)}>Save changes</Button>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit("owner")}>
+              <CheckCircle2 className="h-4 w-4 mr-1" /> Save &amp; submit verification to owner
+            </Button>
+            <Button disabled={editSaving} onClick={() => saveEdit("none")}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
