@@ -3984,46 +3984,73 @@ export type Database = {
       }
       hotel_addons: {
         Row: {
+          availability_end: string | null
+          availability_start: string | null
           available_from: string | null
           available_to: string | null
           category: string
           created_at: string
+          days_available: number[]
           description: string | null
           hotel_id: string
           id: string
+          image_url: string | null
           is_active: boolean
+          is_taxable: boolean
+          max_quantity: number | null
+          min_quantity: number
           photo_url: string | null
           price: number
+          sort_order: number
+          tax_rate: number | null
           title: string
           unit: string
           updated_at: string
         }
         Insert: {
+          availability_end?: string | null
+          availability_start?: string | null
           available_from?: string | null
           available_to?: string | null
           category?: string
           created_at?: string
+          days_available?: number[]
           description?: string | null
           hotel_id: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          is_taxable?: boolean
+          max_quantity?: number | null
+          min_quantity?: number
           photo_url?: string | null
           price?: number
+          sort_order?: number
+          tax_rate?: number | null
           title: string
           unit?: string
           updated_at?: string
         }
         Update: {
+          availability_end?: string | null
+          availability_start?: string | null
           available_from?: string | null
           available_to?: string | null
           category?: string
           created_at?: string
+          days_available?: number[]
           description?: string | null
           hotel_id?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          is_taxable?: boolean
+          max_quantity?: number | null
+          min_quantity?: number
           photo_url?: string | null
           price?: number
+          sort_order?: number
+          tax_rate?: number | null
           title?: string
           unit?: string
           updated_at?: string
@@ -4041,34 +4068,46 @@ export type Database = {
       hotel_booking_addons: {
         Row: {
           addon_id: string
+          addon_title: string | null
           booking_id: string
           created_at: string
           id: string
           quantity: number
           status: string
+          tax_amount: number
+          tax_rate: number
           total_price: number
+          unit: string | null
           unit_price: number
           updated_at: string
         }
         Insert: {
           addon_id: string
+          addon_title?: string | null
           booking_id: string
           created_at?: string
           id?: string
           quantity?: number
           status?: string
+          tax_amount?: number
+          tax_rate?: number
           total_price?: number
+          unit?: string | null
           unit_price?: number
           updated_at?: string
         }
         Update: {
           addon_id?: string
+          addon_title?: string | null
           booking_id?: string
           created_at?: string
           id?: string
           quantity?: number
           status?: string
+          tax_amount?: number
+          tax_rate?: number
           total_price?: number
+          unit?: string | null
           unit_price?: number
           updated_at?: string
         }
