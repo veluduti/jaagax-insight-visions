@@ -363,6 +363,9 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
             {mine && (
               <>
+                <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => openEdit(p)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Edit property
+                </Button>
                 {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" variant="secondary" disabled={busy === p.id}
                     onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
