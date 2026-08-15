@@ -256,7 +256,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     try {
       const patch: Record<string, unknown> = { ...editForm };
       patch.images = editForm.images.split("\n").map((s) => s.trim()).filter(Boolean);
-      patch.amenities = editForm.amenities.split(", ").map((s) => s.trim()).filter(Boolean);
+      patch.amenities = editForm.amenities.split(",").map((s) => s.trim()).filter(Boolean);
       const { error } = await (supabase as any).rpc("property_admin_update_fields", {
         _property_id: p.id,
         _patch: patch,
@@ -737,10 +737,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditFor(null)}>Cancel</Button>
-            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit(true)}>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit("visit")}>
               <CalendarClock className="h-4 w-4 mr-1" /> Save &amp; schedule visit
             </Button>
-            <Button disabled={editSaving} onClick={() => saveEdit(false)}>Save changes</Button>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit("owner")}>
+              <CheckCircle2 className="h-4 w-4 mr-1" /> Save &amp; submit verification to owner
+            </Button>
+            <Button disabled={editSaving} onClick={() => saveEdit("none")}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
