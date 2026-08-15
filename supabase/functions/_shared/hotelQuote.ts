@@ -143,6 +143,7 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
       return [{
         addon_id: row.id, title: row.title,
         unit_price: Number(row.price), quantity: Math.max(0, Number(sel.quantity) || 0), units,
+        unit: row.unit ?? null,
       }];
     });
   }
@@ -244,7 +245,10 @@ export interface MultiQuote {
 
 export async function buildMultiQuote(
   supabase: any,
-  body: { hotel_id: string; check_in: string; check_out: string; groups: GroupRequest[] },
+  body: {
+    hotel_id: string; check_in: string; check_out: string; groups: GroupRequest[];
+    addons?: { addon_id: string; quantity: number }[];
+  },
 ): Promise<MultiQuote> {
   const { hotel_id, check_in, check_out } = body;
   const groups = (body.groups || []).filter((g) => g && g.room_id && Number(g.quantity) > 0);
@@ -258,8 +262,10 @@ export async function buildMultiQuote(
   const out: { group: GroupRequest; room: any; result: PricingResult }[] = [];
   let hotel: any = null;
 
-  for (const g of groups) {
+  for (const [gi, g] of groups.entries()) {
     const q = await buildServerQuote(supabase, {
+      // Booking-level add-ons are priced once, on the first group.
+      addons: gi === 0 ? (body.addons || []) : [],
       hotel_id,
       room_id: g.room_id,
       rate_plan_id: g.rate_plan_id ?? null,
