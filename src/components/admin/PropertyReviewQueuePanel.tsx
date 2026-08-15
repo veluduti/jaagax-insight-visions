@@ -116,6 +116,9 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [reportFor, setReportFor] = useState<PropRow | null>(null);
   const [reportNotes, setReportNotes] = useState("");
   const [report, setReport] = useState<VerificationRow | null>(null);
+  const [editFor, setEditFor] = useState<PropRow | null>(null);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
