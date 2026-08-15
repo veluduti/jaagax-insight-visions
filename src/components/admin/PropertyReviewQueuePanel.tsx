@@ -14,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck } from "lucide-react";
+import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck, Pencil } from "lucide-react";
 import { AssignAgentDialog } from "@/components/admin/AssignAgentDialog";
 
 const CLOSE_REASONS = ["Already Sold", "Already Rented", "Owner Cancelled"];
@@ -116,6 +116,9 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
   const [reportFor, setReportFor] = useState<PropRow | null>(null);
   const [reportNotes, setReportNotes] = useState("");
   const [report, setReport] = useState<VerificationRow | null>(null);
+  const [editFor, setEditFor] = useState<PropRow | null>(null);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -217,6 +220,63 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     setReport((data ?? null) as VerificationRow | null);
   };
 
+  const openEdit = async (p: PropRow) => {
+    setEditFor(p);
+    setEditForm({});
+    const { data } = await (supabase as any)
+      .from("properties")
+      .select("title, description, price, area_sqft, bedrooms, bathrooms, bhk, furnishing, address, locality, city, district, state, latitude, longitude, images, amenities")
+      .eq("id", p.id)
+      .maybeSingle();
+    const d: any = data ?? {};
+    setEditForm({
+      title: d.title ?? "",
+      description: d.description ?? "",
+      price: d.price != null ? String(d.price) : "",
+      area_sqft: d.area_sqft != null ? String(d.area_sqft) : "",
+      bedrooms: d.bedrooms != null ? String(d.bedrooms) : "",
+      bathrooms: d.bathrooms != null ? String(d.bathrooms) : "",
+      bhk: d.bhk != null ? String(d.bhk) : "",
+      furnishing: d.furnishing ?? "",
+      address: d.address ?? "",
+      locality: d.locality ?? "",
+      city: d.city ?? "",
+      district: d.district ?? "",
+      state: d.state ?? "",
+      latitude: d.latitude != null ? String(d.latitude) : "",
+      longitude: d.longitude != null ? String(d.longitude) : "",
+      images: Array.isArray(d.images) ? d.images.join("\n") : "",
+      amenities: Array.isArray(d.amenities) ? d.amenities.join(", ") : "",
+    });
+  };
+
+  const saveEdit = async (thenScheduleVisit: boolean) => {
+    const p = editFor!;
+    setEditSaving(true);
+    try {
+      const patch: Record<string, unknown> = { ...editForm };
+      patch.images = editForm.images.split("\n").map((s) => s.trim()).filter(Boolean);
+      patch.amenities = editForm.amenities.split(",").map((s) => s.trim()).filter(Boolean);
+      const { error } = await (supabase as any).rpc("property_admin_update_fields", {
+        _property_id: p.id,
+        _patch: patch,
+      });
+      if (error) throw error;
+      toast.success("Property updated");
+      setEditFor(null);
+      await load();
+      if (thenScheduleVisit) {
+        setVisitFor(p);
+        setVisitAt("");
+        setVisitNotes("");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not save the changes");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   if (loading) return <Skeleton className="h-48 w-full" />;
 
   const heldByMe = (p: PropRow) =>
@@ -303,6 +363,9 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
 
             {mine && (
               <>
+                <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => openEdit(p)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Edit property
+                </Button>
                 {p.lifecycle_status !== "owner_review" && (
                   <Button size="sm" variant="secondary" disabled={busy === p.id}
                     onClick={() => { setVisitFor(p); setVisitAt(""); setVisitNotes(""); }}>
@@ -605,6 +668,75 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
               }}>
               Approve report
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Edit property during verification */}
+      <Dialog open={!!editFor} onOpenChange={(o) => !o && setEditFor(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit property</DialogTitle>
+            <DialogDescription>
+              Correct or complete the listing details during verification. Leave a field blank to keep the current value.
+              Saving updates the live record, so the visit you schedule next uses the corrected details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["title", "Title", "text"],
+              ["price", "Price (₹)", "number"],
+              ["area_sqft", "Area (sq ft)", "number"],
+              ["bhk", "BHK", "number"],
+              ["bedrooms", "Bedrooms", "number"],
+              ["bathrooms", "Bathrooms", "number"],
+              ["furnishing", "Furnishing", "text"],
+              ["locality", "Locality", "text"],
+              ["city", "City", "text"],
+              ["district", "District", "text"],
+              ["state", "State", "text"],
+              ["latitude", "Latitude", "number"],
+              ["longitude", "Longitude", "number"],
+            ].map(([key, label, type]) => (
+              <div key={key} className="space-y-1.5">
+                <Label htmlFor={`edit-${key}`}>{label}</Label>
+                <Input
+                  id={`edit-${key}`}
+                  type={type}
+                  value={editForm[key] ?? ""}
+                  onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-address">Address</Label>
+            <Input id="edit-address" value={editForm.address ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea id="edit-description" rows={4} value={editForm.description ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-images">Image URLs (one per line)</Label>
+            <Textarea id="edit-images" rows={3} value={editForm.images ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, images: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-amenities">Amenities (comma separated)</Label>
+            <Input id="edit-amenities" value={editForm.amenities ?? ""}
+              onChange={(e) => setEditForm((f) => ({ ...f, amenities: e.target.value }))} />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditFor(null)}>Cancel</Button>
+            <Button variant="secondary" disabled={editSaving} onClick={() => saveEdit(true)}>
+              <CalendarClock className="h-4 w-4 mr-1" /> Save &amp; schedule visit
+            </Button>
+            <Button disabled={editSaving} onClick={() => saveEdit(false)}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
