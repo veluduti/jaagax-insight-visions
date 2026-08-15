@@ -413,16 +413,31 @@ export default function HotelRoomList({
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                    {mealsForRoom(room.id).map((m) => (
-                      <span key={m.meal_type} className="flex items-center gap-1 text-emerald-600 font-medium capitalize">
-                        <Coffee className="h-3.5 w-3.5" />
-                        {m.pricing_mode === "included"
-                          ? `${m.meal_type} included`
-                          : `${m.meal_type} ₹${Number(m.adult_price).toLocaleString()}/adult`}
-                      </span>
-                    ))}
+                  {mealsForRoom(room.id).length > 0 && (
+                    <div className="rounded-md border border-border/60 bg-muted/30 p-2.5 space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        <Coffee className="h-3.5 w-3.5 text-emerald-600" />
+                        Meals available <span className="text-muted-foreground">· Extra charges apply</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        {mealsForRoom(room.id).map((m) => (
+                          <div key={m.meal_type} className="flex items-center justify-between text-xs">
+                            <span className="capitalize text-muted-foreground">{m.meal_type}</span>
+                            <span className="font-medium">
+                              {m.pricing_mode === "included"
+                                ? "Included"
+                                : `₹${Number(m.adult_price).toLocaleString("en-IN")}/adult`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Not included in the room price — add during booking.
+                      </p>
+                    </div>
+                  )}
 
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                     {room.cancellation_policy && (
                       <span className="flex items-center gap-1 text-emerald-600 font-medium">
                         <ShieldCheck className="h-3.5 w-3.5" /> {room.cancellation_policy}
@@ -432,6 +447,7 @@ export default function HotelRoomList({
                       <span className="text-muted-foreground">Min {room.min_nights} nights</span>
                     )}
                   </div>
+
 
                   {plansForRoom(room.id).length > 0 && (
                     <div className="space-y-1.5 pt-1">
