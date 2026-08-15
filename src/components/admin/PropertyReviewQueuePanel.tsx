@@ -250,13 +250,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     });
   };
 
-  const saveEdit = async (thenScheduleVisit: boolean) => {
+  const saveEdit = async (next: "none" | "visit" | "owner" = "none") => {
     const p = editFor!;
     setEditSaving(true);
     try {
       const patch: Record<string, unknown> = { ...editForm };
       patch.images = editForm.images.split("\n").map((s) => s.trim()).filter(Boolean);
-      patch.amenities = editForm.amenities.split(",").map((s) => s.trim()).filter(Boolean);
+      patch.amenities = editForm.amenities.split(", ").map((s) => s.trim()).filter(Boolean);
       const { error } = await (supabase as any).rpc("property_admin_update_fields", {
         _property_id: p.id,
         _patch: patch,
@@ -265,10 +265,13 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       toast.success("Property updated");
       setEditFor(null);
       await load();
-      if (thenScheduleVisit) {
+      if (next === "visit") {
         setVisitFor(p);
         setVisitAt("");
         setVisitNotes("");
+      } else if (next === "owner") {
+        setVerifyFor(p);
+        setVerifyNotes("");
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save the changes");
@@ -276,6 +279,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
       setEditSaving(false);
     }
   };
+
 
   if (loading) return <Skeleton className="h-48 w-full" />;
 
