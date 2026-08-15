@@ -220,6 +220,63 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     setReport((data ?? null) as VerificationRow | null);
   };
 
+  const openEdit = async (p: PropRow) => {
+    setEditFor(p);
+    setEditForm({});
+    const { data } = await (supabase as any)
+      .from("properties")
+      .select("title, description, price, area_sqft, bedrooms, bathrooms, bhk, furnishing, address, locality, city, district, state, latitude, longitude, images, amenities")
+      .eq("id", p.id)
+      .maybeSingle();
+    const d: any = data ?? {};
+    setEditForm({
+      title: d.title ?? "",
+      description: d.description ?? "",
+      price: d.price != null ? String(d.price) : "",
+      area_sqft: d.area_sqft != null ? String(d.area_sqft) : "",
+      bedrooms: d.bedrooms != null ? String(d.bedrooms) : "",
+      bathrooms: d.bathrooms != null ? String(d.bathrooms) : "",
+      bhk: d.bhk != null ? String(d.bhk) : "",
+      furnishing: d.furnishing ?? "",
+      address: d.address ?? "",
+      locality: d.locality ?? "",
+      city: d.city ?? "",
+      district: d.district ?? "",
+      state: d.state ?? "",
+      latitude: d.latitude != null ? String(d.latitude) : "",
+      longitude: d.longitude != null ? String(d.longitude) : "",
+      images: Array.isArray(d.images) ? d.images.join("\n") : "",
+      amenities: Array.isArray(d.amenities) ? d.amenities.join(", ") : "",
+    });
+  };
+
+  const saveEdit = async (thenScheduleVisit: boolean) => {
+    const p = editFor!;
+    setEditSaving(true);
+    try {
+      const patch: Record<string, unknown> = { ...editForm };
+      patch.images = editForm.images.split("\n").map((s) => s.trim()).filter(Boolean);
+      patch.amenities = editForm.amenities.split(",").map((s) => s.trim()).filter(Boolean);
+      const { error } = await (supabase as any).rpc("property_admin_update_fields", {
+        _property_id: p.id,
+        _patch: patch,
+      });
+      if (error) throw error;
+      toast.success("Property updated");
+      setEditFor(null);
+      await load();
+      if (thenScheduleVisit) {
+        setVisitFor(p);
+        setVisitAt("");
+        setVisitNotes("");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not save the changes");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   if (loading) return <Skeleton className="h-48 w-full" />;
 
   const heldByMe = (p: PropRow) =>
