@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     let multiQuote: any = null;
 
     if (multi) {
-      multiQuote = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups });
+      multiQuote = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups, addons });
       if (multiQuote.error || !multiQuote.totals) return json({ error: multiQuote.error }, multiQuote.status || 400);
       totals = multiQuote.totals;
     } else {
@@ -285,14 +285,25 @@ Deno.serve(async (req) => {
     if (multi) await saveMultiBookingItems(supabase, booking.id, hotel_id, multiQuote.groups);
     else await saveBookingItems(supabase, booking.id, hotel_id, singleQuote.result);
 
-    // Add-on rows for operational views
-    const addonItems = (singleQuote?.result?.lineItems ?? []).filter((li: any) => li.item_type === "addon");
+    // Add-on rows for operational views (price snapshot kept forever)
+    const allLineItems: any[] = multi
+      ? (multiQuote?.groups ?? []).flatMap((g: any) => g.result?.lineItems ?? [])
+      : (singleQuote?.result?.lineItems ?? []);
+    const addonItems = allLineItems.filter((li: any) => li.item_type === "addon");
     if (addonItems.length) {
+      const gstRate = Number(totals?.gstRate ?? 0);
       await supabase.from("hotel_booking_addons").insert(
         addonItems.map((a: any) => ({
           booking_id: booking.id,
           addon_id: (a.price_snapshot as any)?.addon_id ?? null,
-          quantity: a.quantity, unit_price: a.unit_price, total_price: a.subtotal,
+          addon_title: a.item_name ?? null,
+          unit: (a.price_snapshot as any)?.unit ?? null,
+          quantity: a.quantity,
+          unit_price: a.unit_price,
+          total_price: a.subtotal,
+          tax_rate: gstRate,
+          tax_amount: Math.round(((Number(a.subtotal) || 0) * gstRate) / 100 * 100) / 100,
+          status: "pending",
         })).filter((r: any) => r.addon_id),
       );
     }

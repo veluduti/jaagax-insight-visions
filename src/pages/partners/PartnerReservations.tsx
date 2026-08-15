@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import BookingAddonsPanel from "@/components/partners/BookingAddonsPanel";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { Loader2, Plus, Search, CalendarRange, Phone, Mail, IndianRupee, LogIn, LogOut, XCircle, Save } from "lucide-react";
 import { addDays, differenceInDays, format, isAfter, isBefore } from "date-fns";
@@ -267,6 +268,8 @@ export default function PartnerReservations() {
                   {selected.special_requests}
                 </div>
               )}
+
+              <BookingAddonsPanel bookingId={selected.id} />
 
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => changeStatus("checked_in")}><LogIn className="mr-1 h-3.5 w-3.5" />Check in</Button>
