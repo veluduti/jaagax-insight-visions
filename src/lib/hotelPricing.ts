@@ -64,6 +64,7 @@ export interface AddonSelection {
   quantity: number;
   /** nights / guests multiplier already resolved by the caller */
   units?: number;
+  unit?: string | null;
 }
 
 export interface PricingInput {
@@ -259,7 +260,7 @@ export function computeBookingPrice(input: PricingInput): PricingResult {
       adult_count: 0,
       child_count: 0,
       subtotal: total,
-      price_snapshot: { addon_id: a.addon_id ?? null, unit_price: Number(a.unit_price) },
+      price_snapshot: { addon_id: a.addon_id ?? null, unit_price: Number(a.unit_price), unit: (a as any).unit ?? null },
     });
   }
 

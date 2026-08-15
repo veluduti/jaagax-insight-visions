@@ -32,6 +32,7 @@ import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/l
 import { resolveHotelImages } from "@/lib/hotelImage";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelExtraServices from "@/components/hotels/HotelExtraServices";
+import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
 
@@ -478,6 +479,9 @@ const HotelDetail = () => {
               roomsWanted={roomsWanted}
             />
           </section>
+
+          {/* 4b — ADD-ONS / UPSELLS */}
+          <HotelAddonsShowcase hotelId={hotel.id} onAdd={() => scrollToId("rooms")} />
 
           {/* 5 — AMENITIES (only if provided) */}
           {amenities.length > 0 && (

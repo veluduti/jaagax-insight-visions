@@ -19,6 +19,7 @@ import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
 import { inr } from "@/components/hotels/BookingPricingControls";
 import { RoomGroupExtras, type GroupSelection } from "@/components/hotels/RoomGroupExtras";
+import { AddonSelector, useAddonTotals, type AddonSelectionMap } from "@/components/hotels/HotelAddons";
 import { payForHotelBooking } from "@/lib/hotelPay";
 import { Input } from "@/components/ui/input";
 import type { MealType, PricingResult } from "@/lib/hotelPricing";
@@ -106,6 +107,7 @@ const HotelBookingModal = ({
   const [groups, setGroups] = useState<GroupSelection[]>([]);
   const [groupPrices, setGroupPrices] = useState<Record<string, { price: PricingResult | null; error: string | null }>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [addonSelection, setAddonSelection] = useState<AddonSelectionMap>({});
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
   const checkInStr = checkIn ? ymd(checkIn) : "";
@@ -127,6 +129,7 @@ const HotelBookingModal = ({
     if (!open) return;
     setStep("dates");
     setGroups([]);
+    setAddonSelection({});
     setGroupPrices({});
     setShowAllRooms(false);
     if (initialCheckIn) setCheckIn(initialCheckIn);
@@ -300,20 +303,26 @@ const HotelBookingModal = ({
   const handleGroupPrice = (roomId: string, price: PricingResult | null, error: string | null) =>
     setGroupPrices((prev) => ({ ...prev, [roomId]: { price, error } }));
 
+  const addonTotals = useAddonTotals(hotel.id, addonSelection, nights, adults + numChildren);
+
   const totals = useMemo(() => {
     const list = groups.map((g) => groupPrices[g.roomId]?.price).filter(Boolean) as PricingResult[];
     if (!groups.length || list.length !== groups.length) return null;
     const sum = (fn: (p: PricingResult) => number) => list.reduce((s, p) => s + fn(p), 0);
+    const gstRate = list[0].gstRate;
+    const addonTotal = addonTotals.total;
+    const addonTax = Math.round(((addonTotal * gstRate) / 100) * 100) / 100;
     return {
       roomCharges: sum((p) => p.roomCharges),
       mealTotal: sum((p) => p.mealTotal),
       extraBedTotal: sum((p) => p.extraBedTotal),
-      taxableSubtotal: sum((p) => p.taxableSubtotal),
-      taxAmount: sum((p) => p.taxAmount),
-      grandTotal: sum((p) => p.grandTotal),
-      gstRate: list[0].gstRate,
+      addonTotal,
+      taxableSubtotal: sum((p) => p.taxableSubtotal) + addonTotal,
+      taxAmount: sum((p) => p.taxAmount) + addonTax,
+      grandTotal: sum((p) => p.grandTotal) + addonTotal + addonTax,
+      gstRate,
     };
-  }, [groups, groupPrices]);
+  }, [groups, groupPrices, addonTotals.total]);
 
   const priceError = groups.map((g) => groupPrices[g.roomId]?.error).find(Boolean) || null;
 
@@ -372,6 +381,7 @@ const HotelBookingModal = ({
         guest_name: guestName.trim(),
         guest_email: guestEmail.trim(),
         guest_phone: guestPhone.trim(),
+        addons: addonTotals.rows.map((r) => ({ addon_id: r.addon.id, quantity: r.quantity })),
         booking_type: bookingType,
         user_id: user.id,
         booked_by_agent_id: bookedByAgentId,
@@ -733,6 +743,14 @@ const HotelBookingModal = ({
               />
             ))}
 
+            <AddonSelector
+              hotelId={hotel.id}
+              nights={nights}
+              guests={adults + numChildren}
+              value={addonSelection}
+              onChange={setAddonSelection}
+            />
+
             <Separator />
 
             {/* Guest details (pre-filled from the signed-in account) */}
@@ -753,6 +771,9 @@ const HotelBookingModal = ({
                 <Row label={`Room charges (${nights} night${nights !== 1 ? "s" : ""})`} value={inr(totals.roomCharges)} />
                 {totals.mealTotal > 0 && <Row label="Meals" value={inr(totals.mealTotal)} />}
                 {totals.extraBedTotal > 0 && <Row label="Extra beds" value={inr(totals.extraBedTotal)} />}
+                {addonTotals.rows.map((r) => (
+                  <Row key={r.addon.id} label={`${r.addon.title} × ${r.quantity}`} value={inr(r.total)} />
+                ))}
                 <Separator className="my-2" />
                 <Row label="Subtotal" value={inr(totals.taxableSubtotal)} />
                 <Row label={`GST (${totals.gstRate}%)`} value={inr(totals.taxAmount)} />
