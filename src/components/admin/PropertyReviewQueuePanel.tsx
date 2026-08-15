@@ -14,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck } from "lucide-react";
+import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck, Pencil } from "lucide-react";
 import { AssignAgentDialog } from "@/components/admin/AssignAgentDialog";
 
 const CLOSE_REASONS = ["Already Sold", "Already Rented", "Owner Cancelled"];
