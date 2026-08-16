@@ -785,7 +785,7 @@ const Search = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-primary">{formatPrice(property.price)}</span>
-                      <span className="text-xs text-muted-foreground">{property.area_sqft} sq.ft</span>
+                      <span className="text-xs text-muted-foreground">{formatArea(property as any) ?? ""}</span>
                     </div>
                   </div>
                 </Card>
