@@ -2,6 +2,14 @@ import { useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
+import {
+  getPropertyImages,
+  formatArea,
+  getPropertyTypeLabel,
+  getListingIntent,
+  formatListingPrice,
+} from "@/lib/propertyDisplay";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,15 +55,20 @@ interface Property {
   locality: string | null;
   price: number;
   area_sqft: number | null;
+  area_value?: number | null;
+  area_unit?: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
   bhk: number | null;
   type: string | null;
+  listing_type?: string | null;
+  document_urls?: any;
   images: any;
   verified: boolean | null;
   trust_score: number | null;
   is_featured?: boolean | null;
 }
+
 
 interface PropertyCardWithAIProps {
   property: Property;
@@ -67,24 +80,16 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
-  const imageUrls: string[] = Array.isArray(property.images)
-    ? property.images
-    : typeof property.images === "string"
-      ? property.images
-          .split("\n")
-          .map((s: string) => s.trim())
-          .filter(Boolean)
-      : [];
+  const imageUrls: string[] = getPropertyImages(property.images);
+  const heroImage = imageUrls[0] || null;
 
   const beds = property.bedrooms ?? property.bhk;
   const baths = property.bathrooms;
-  const area = property.area_sqft;
+  const areaLabel = formatArea(property as any);
+  const typeLabel = getPropertyTypeLabel(property as any);
+  const intent = getListingIntent(property as any);
+  const priceLabel = formatListingPrice(property as any);
 
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
-    return `₹${price.toLocaleString()}`;
-  };
 
   const getVerdictConfig = (verdict: string) => {
     switch (verdict) {
@@ -150,18 +155,33 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
         } ${decision ? "border-2" : ""}`}
         onClick={handleCardClick}
       >
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={imageUrls[0] || ""}
-            alt={property.title}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              e.currentTarget.src = "";
-            }}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+        {/* Image — owner-uploaded only, never a stock fallback */}
+        <div className="relative h-48 overflow-hidden bg-muted">
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={property.title}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+              No photos uploaded
+            </div>
+          )}
+          {/* Type + intent ribbon */}
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+            <Badge className="bg-background/90 text-foreground backdrop-blur">
+              {intent === "rent" ? "For Rent" : "For Sale"}
+            </Badge>
+            {typeLabel && (
+              <Badge variant="secondary" className="backdrop-blur">
+                {typeLabel}
+              </Badge>
+            )}
+          </div>
+
           <div className="absolute top-3 right-3 flex gap-2">
             {property.is_featured && (
               <Badge className="bg-amber-500 text-white backdrop-blur gap-1">
@@ -222,7 +242,7 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
 
           <div className="flex items-center justify-between pt-2 border-t">
             <span className="text-xl font-bold text-primary">
-              {formatPrice(property.price)}
+              {priceLabel ?? <span className="text-base font-semibold text-muted-foreground">Price on request</span>}
             </span>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               {beds != null && beds > 0 && (
@@ -237,14 +257,15 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
                   {baths}
                 </span>
               )}
-              {area != null && (
+              {areaLabel && (
                 <span className="flex items-center gap-1">
                   <Square className="w-4 h-4" />
-                  {area} sq.ft
+                  {areaLabel}
                 </span>
               )}
             </div>
           </div>
+
 
           {/* AI Expand Button */}
           {decision && (

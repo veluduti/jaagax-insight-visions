@@ -43,6 +43,13 @@ import AuthGate from "@/components/property/AuthGate";
 import { useAuth } from "@/hooks/useAuth";
 import { trackPropertyEvent } from "@/lib/propertyEvents";
 import SEO from "@/components/SEO";
+import {
+  formatArea,
+  getListingIntentLabel,
+  getPropertyTypeLabel,
+  getPropertyImages,
+} from "@/lib/propertyDisplay";
+
 
 interface Property {
   id: string;
@@ -53,8 +60,11 @@ interface Property {
   lng: number | null;
   price: number;
   area: number | null;
+  areaLabel: string | null;
+  listingIntentLabel: string;
   type: string | null;
   beds: number;
+
   baths: number;
   bhk: number | null;
   status: string;
@@ -172,20 +182,11 @@ const PropertyDetail = () => {
       // not yet surfaced through final_data, e.g. building metadata).
       const dbProperty = propertyData as any;
 
-      // Parse images from the public view — handle both array and newline-string forms
-      const rawImages = view.images;
-      let parsedImages: string[] = [];
-      if (rawImages) {
-        if (Array.isArray(rawImages)) {
-          parsedImages = rawImages.flatMap((img: string) =>
-            typeof img === 'string' && img.includes('\n')
-              ? img.split('\n').map((url: string) => url.trim()).filter(Boolean)
-              : img
-          );
-        } else if (typeof rawImages === 'string') {
-          parsedImages = (rawImages as string).split('\n').map((url: string) => url.trim()).filter(Boolean);
-        }
-      }
+      // Owner-uploaded images only — no stock fallbacks.
+      const parsedImages: string[] = getPropertyImages(view.images).flatMap((img) =>
+        img.includes("\n") ? img.split("\n").map((u) => u.trim()).filter(Boolean) : img,
+      );
+
 
       const mappedProperty: Property = {
         id: view.id,
@@ -196,7 +197,10 @@ const PropertyDetail = () => {
         lng: view.longitude ?? null,
         price: view.price ?? 0,
         area: view.area_sqft ?? null,
-        type: view.type ?? "Apartment",
+        areaLabel: formatArea({ ...(dbProperty || {}), area_sqft: view.area_sqft ?? dbProperty?.area_sqft }),
+        listingIntentLabel: getListingIntentLabel(dbProperty || {}),
+        type: getPropertyTypeLabel({ ...(dbProperty || {}), type: view.type ?? dbProperty?.type }),
+
 
         beds: view.bedrooms || view.bhk || 0,
         baths: view.bathrooms || 0,

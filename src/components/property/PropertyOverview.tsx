@@ -9,6 +9,8 @@ interface PropertyOverviewProps {
     locality: string;
     price: number;
     area: number | null;
+    areaLabel?: string | null;
+    listingIntentLabel?: string;
     beds: number;
     baths: number;
     bhk: number | null;
@@ -17,6 +19,7 @@ interface PropertyOverviewProps {
     type?: string | null;
   };
 }
+
 
 const formatPrice = (price: number) => {
   if (!price || price <= 0) return null;
@@ -44,14 +47,17 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
   const residential = isResidential(property.type);
   const showBeds = residential && property.beds > 0;
   const showBaths = residential && property.baths > 0;
-  const showArea = property.area && property.area > 0;
+  const areaText = property.areaLabel ?? (property.area && property.area > 0
+    ? `${property.area.toLocaleString("en-IN")} sq ft`
+    : null);
   const showStatus = !!property.status?.trim();
 
   const stats: { icon: any; label: string; value: string }[] = [];
   if (showBeds) stats.push({ icon: Bed, label: "Bedrooms", value: String(property.beds) });
   if (showBaths) stats.push({ icon: Bath, label: "Bathrooms", value: String(property.baths) });
-  if (showArea) stats.push({ icon: Square, label: "Area", value: `${property.area!.toLocaleString("en-IN")} sq.ft` });
+  if (areaText) stats.push({ icon: Square, label: "Area", value: areaText });
   if (showStatus) stats.push({ icon: Clock, label: "Status", value: property.status });
+
 
   const gridCols =
     stats.length >= 4 ? "md:grid-cols-4" :
@@ -80,11 +86,17 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
         )}
       </div>
 
-      {priceLabel && (
-        <div className="text-4xl font-bold mb-6 text-primary">
-          ₹{priceLabel}
+      {priceLabel ? (
+        <div className="mb-6 flex items-baseline gap-3">
+          <span className="text-4xl font-bold text-primary">₹{priceLabel}</span>
+          {property.listingIntentLabel === "For Rent" && (
+            <span className="text-lg text-muted-foreground">/month</span>
+          )}
         </div>
+      ) : (
+        <div className="mb-6 text-2xl font-semibold text-muted-foreground">Price on request</div>
       )}
+
 
       {stats.length > 0 && (
         <div className={`grid grid-cols-2 ${gridCols} gap-4 mb-6`}>
@@ -101,7 +113,9 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
       )}
 
       <div className="flex flex-wrap gap-2">
+        {property.listingIntentLabel && <Badge>{property.listingIntentLabel}</Badge>}
         {residential && property.bhk ? <Badge variant="secondary">{property.bhk} BHK</Badge> : null}
+
         {property.type ? <Badge variant="secondary" className="capitalize">{property.type}</Badge> : null}
         {showStatus && <Badge variant="secondary">{property.status}</Badge>}
         {property.verified && <Badge variant="default">RERA Verified</Badge>}
