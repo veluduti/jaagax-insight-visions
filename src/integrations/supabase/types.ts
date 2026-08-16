@@ -9993,6 +9993,8 @@ export type Database = {
           agent_visit_completed_at: string | null
           amenities: string[] | null
           area_sqft: number | null
+          area_unit: string | null
+          area_value: number | null
           assigned_agent_id: string | null
           balconies: number | null
           bathrooms: number | null
@@ -10128,6 +10130,8 @@ export type Database = {
           agent_visit_completed_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
+          area_unit?: string | null
+          area_value?: number | null
           assigned_agent_id?: string | null
           balconies?: number | null
           bathrooms?: number | null
@@ -10263,6 +10267,8 @@ export type Database = {
           agent_visit_completed_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
+          area_unit?: string | null
+          area_value?: number | null
           assigned_agent_id?: string | null
           balconies?: number | null
           bathrooms?: number | null
