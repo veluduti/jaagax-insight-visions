@@ -182,20 +182,11 @@ const PropertyDetail = () => {
       // not yet surfaced through final_data, e.g. building metadata).
       const dbProperty = propertyData as any;
 
-      // Parse images from the public view — handle both array and newline-string forms
-      const rawImages = view.images;
-      let parsedImages: string[] = [];
-      if (rawImages) {
-        if (Array.isArray(rawImages)) {
-          parsedImages = rawImages.flatMap((img: string) =>
-            typeof img === 'string' && img.includes('\n')
-              ? img.split('\n').map((url: string) => url.trim()).filter(Boolean)
-              : img
-          );
-        } else if (typeof rawImages === 'string') {
-          parsedImages = (rawImages as string).split('\n').map((url: string) => url.trim()).filter(Boolean);
-        }
-      }
+      // Owner-uploaded images only — no stock fallbacks.
+      const parsedImages: string[] = getPropertyImages(view.images).flatMap((img) =>
+        img.includes("\n") ? img.split("\n").map((u) => u.trim()).filter(Boolean) : img,
+      );
+
 
       const mappedProperty: Property = {
         id: view.id,
