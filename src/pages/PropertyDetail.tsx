@@ -53,8 +53,11 @@ interface Property {
   lng: number | null;
   price: number;
   area: number | null;
+  areaLabel: string | null;
+  listingIntentLabel: string;
   type: string | null;
   beds: number;
+
   baths: number;
   bhk: number | null;
   status: string;
