@@ -55,15 +55,20 @@ interface Property {
   locality: string | null;
   price: number;
   area_sqft: number | null;
+  area_value?: number | null;
+  area_unit?: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
   bhk: number | null;
   type: string | null;
+  listing_type?: string | null;
+  document_urls?: any;
   images: any;
   verified: boolean | null;
   trust_score: number | null;
   is_featured?: boolean | null;
 }
+
 
 interface PropertyCardWithAIProps {
   property: Property;
