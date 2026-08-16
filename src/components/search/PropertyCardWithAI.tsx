@@ -2,6 +2,14 @@ import { useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
+import {
+  getPropertyImages,
+  formatArea,
+  getPropertyTypeLabel,
+  getListingIntent,
+  formatListingPrice,
+} from "@/lib/propertyDisplay";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
