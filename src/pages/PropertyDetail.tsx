@@ -199,7 +199,10 @@ const PropertyDetail = () => {
         lng: view.longitude ?? null,
         price: view.price ?? 0,
         area: view.area_sqft ?? null,
-        type: view.type ?? "Apartment",
+        areaLabel: formatArea({ ...(dbProperty || {}), area_sqft: view.area_sqft ?? dbProperty?.area_sqft }),
+        listingIntentLabel: getListingIntentLabel(dbProperty || {}),
+        type: getPropertyTypeLabel({ ...(dbProperty || {}), type: view.type ?? dbProperty?.type }),
+
 
         beds: view.bedrooms || view.bhk || 0,
         baths: view.bathrooms || 0,
