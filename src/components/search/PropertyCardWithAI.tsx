@@ -229,7 +229,7 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
 
           <div className="flex items-center justify-between pt-2 border-t">
             <span className="text-xl font-bold text-primary">
-              {formatPrice(property.price)}
+              {priceLabel ?? <span className="text-base font-semibold text-muted-foreground">Price on request</span>}
             </span>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               {beds != null && beds > 0 && (
@@ -244,14 +244,15 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
                   {baths}
                 </span>
               )}
-              {area != null && (
+              {areaLabel && (
                 <span className="flex items-center gap-1">
                   <Square className="w-4 h-4" />
-                  {area} sq.ft
+                  {areaLabel}
                 </span>
               )}
             </div>
           </div>
+
 
           {/* AI Expand Button */}
           {decision && (
