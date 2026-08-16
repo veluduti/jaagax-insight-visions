@@ -142,18 +142,33 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
         } ${decision ? "border-2" : ""}`}
         onClick={handleCardClick}
       >
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={imageUrls[0] || ""}
-            alt={property.title}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              e.currentTarget.src = "";
-            }}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+        {/* Image — owner-uploaded only, never a stock fallback */}
+        <div className="relative h-48 overflow-hidden bg-muted">
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={property.title}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+              No photos uploaded
+            </div>
+          )}
+          {/* Type + intent ribbon */}
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+            <Badge className="bg-background/90 text-foreground backdrop-blur">
+              {intent === "rent" ? "For Rent" : "For Sale"}
+            </Badge>
+            {typeLabel && (
+              <Badge variant="secondary" className="backdrop-blur">
+                {typeLabel}
+              </Badge>
+            )}
+          </div>
+
           <div className="absolute top-3 right-3 flex gap-2">
             {property.is_featured && (
               <Badge className="bg-amber-500 text-white backdrop-blur gap-1">
