@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getPropertyImages, formatArea } from "@/lib/propertyDisplay";
+
 import { useBuyerContext } from "@/hooks/useBuyerContext";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useInView } from "@/hooks/useInView";
