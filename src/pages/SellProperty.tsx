@@ -3237,6 +3237,11 @@ export default function SellProperty() {
 
         area_sqft: areaSqft,
 
+        // Owner's original area exactly as entered — never converted for display
+        area_value: area || null,
+        area_unit: editForm.area_unit || null,
+
+
         // ============================================
         // CONFIGURATION
         // ============================================
