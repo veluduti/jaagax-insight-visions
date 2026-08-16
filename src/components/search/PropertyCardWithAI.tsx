@@ -67,24 +67,16 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
-  const imageUrls: string[] = Array.isArray(property.images)
-    ? property.images
-    : typeof property.images === "string"
-      ? property.images
-          .split("\n")
-          .map((s: string) => s.trim())
-          .filter(Boolean)
-      : [];
+  const imageUrls: string[] = getPropertyImages(property.images);
+  const heroImage = imageUrls[0] || null;
 
   const beds = property.bedrooms ?? property.bhk;
   const baths = property.bathrooms;
-  const area = property.area_sqft;
+  const areaLabel = formatArea(property as any);
+  const typeLabel = getPropertyTypeLabel(property as any);
+  const intent = getListingIntent(property as any);
+  const priceLabel = formatListingPrice(property as any);
 
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
-    return `₹${price.toLocaleString()}`;
-  };
 
   const getVerdictConfig = (verdict: string) => {
     switch (verdict) {
