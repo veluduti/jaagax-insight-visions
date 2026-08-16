@@ -47,14 +47,17 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
   const residential = isResidential(property.type);
   const showBeds = residential && property.beds > 0;
   const showBaths = residential && property.baths > 0;
-  const showArea = property.area && property.area > 0;
+  const areaText = property.areaLabel ?? (property.area && property.area > 0
+    ? `${property.area.toLocaleString("en-IN")} sq ft`
+    : null);
   const showStatus = !!property.status?.trim();
 
   const stats: { icon: any; label: string; value: string }[] = [];
   if (showBeds) stats.push({ icon: Bed, label: "Bedrooms", value: String(property.beds) });
   if (showBaths) stats.push({ icon: Bath, label: "Bathrooms", value: String(property.baths) });
-  if (showArea) stats.push({ icon: Square, label: "Area", value: `${property.area!.toLocaleString("en-IN")} sq.ft` });
+  if (areaText) stats.push({ icon: Square, label: "Area", value: areaText });
   if (showStatus) stats.push({ icon: Clock, label: "Status", value: property.status });
+
 
   const gridCols =
     stats.length >= 4 ? "md:grid-cols-4" :
