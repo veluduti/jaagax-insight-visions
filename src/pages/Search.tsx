@@ -750,14 +750,21 @@ const Search = () => {
                   className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all"
                   onClick={() => openInNewTab(propertyPath(property))}
                 >
-                  <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={property.images?.[0] || "/placeholder.svg"}
-                      alt={property.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                  <div className="relative h-40 overflow-hidden bg-muted">
+                    {getPropertyImages(property.images)[0] ? (
+                      <img
+                        src={getPropertyImages(property.images)[0]}
+                        alt={property.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                        No photos uploaded
+                      </div>
+                    )}
+
                     <Badge className="absolute top-3 left-3 bg-green-500 text-white">
                       {searchType === "rented" ? "Rented" : "Sold"}
                     </Badge>
