@@ -9,6 +9,8 @@ interface PropertyOverviewProps {
     locality: string;
     price: number;
     area: number | null;
+    areaLabel?: string | null;
+    listingIntentLabel?: string;
     beds: number;
     baths: number;
     bhk: number | null;
@@ -17,6 +19,7 @@ interface PropertyOverviewProps {
     type?: string | null;
   };
 }
+
 
 const formatPrice = (price: number) => {
   if (!price || price <= 0) return null;
