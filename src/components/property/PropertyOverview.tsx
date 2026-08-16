@@ -86,11 +86,17 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
         )}
       </div>
 
-      {priceLabel && (
-        <div className="text-4xl font-bold mb-6 text-primary">
-          ₹{priceLabel}
+      {priceLabel ? (
+        <div className="mb-6 flex items-baseline gap-3">
+          <span className="text-4xl font-bold text-primary">₹{priceLabel}</span>
+          {property.listingIntentLabel === "For Rent" && (
+            <span className="text-lg text-muted-foreground">/month</span>
+          )}
         </div>
+      ) : (
+        <div className="mb-6 text-2xl font-semibold text-muted-foreground">Price on request</div>
       )}
+
 
       {stats.length > 0 && (
         <div className={`grid grid-cols-2 ${gridCols} gap-4 mb-6`}>
