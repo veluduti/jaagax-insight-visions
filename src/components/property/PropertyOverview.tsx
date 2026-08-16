@@ -113,7 +113,9 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
       )}
 
       <div className="flex flex-wrap gap-2">
+        {property.listingIntentLabel && <Badge>{property.listingIntentLabel}</Badge>}
         {residential && property.bhk ? <Badge variant="secondary">{property.bhk} BHK</Badge> : null}
+
         {property.type ? <Badge variant="secondary" className="capitalize">{property.type}</Badge> : null}
         {showStatus && <Badge variant="secondary">{property.status}</Badge>}
         {property.verified && <Badge variant="default">RERA Verified</Badge>}
