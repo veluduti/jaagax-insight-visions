@@ -43,6 +43,13 @@ import AuthGate from "@/components/property/AuthGate";
 import { useAuth } from "@/hooks/useAuth";
 import { trackPropertyEvent } from "@/lib/propertyEvents";
 import SEO from "@/components/SEO";
+import {
+  formatArea,
+  getListingIntentLabel,
+  getPropertyTypeLabel,
+  getPropertyImages,
+} from "@/lib/propertyDisplay";
+
 
 interface Property {
   id: string;
