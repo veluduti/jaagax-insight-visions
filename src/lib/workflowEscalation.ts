@@ -2,26 +2,26 @@
  * Mirror of the database property review escalation ladder
  * (public.workflow_next_level / workflow_level_role / property_enter_queue).
  *
- * District is the operational ownership level: every submission enters the
- * district queue first and only escalates upward when nobody acts.
+ * Country is the entry level: every submission enters the country queue first
+ * and escalates downward when nobody acts, ending at the super admin.
  *
- * district -> state -> country -> super_admin
+ * country -> state -> district -> super_admin
  */
 
-export type QueueLevel = "district" | "state" | "country";
+export type QueueLevel = "country" | "state" | "district";
 export type EscalationTarget = QueueLevel | "super_admin";
 export type AdminRole = "district_admin" | "state_admin" | "country_admin";
 
-export const SUBMIT_LEVEL: QueueLevel = "district";
+export const SUBMIT_LEVEL: QueueLevel = "country";
 
-export const ESCALATION_CHAIN: QueueLevel[] = ["district", "state", "country"];
+export const ESCALATION_CHAIN: QueueLevel[] = ["country", "state", "district"];
 
 export function nextLevel(level: QueueLevel): QueueLevel | null {
   switch (level) {
-    case "district":
+    case "country":
       return "state";
     case "state":
-      return "country";
+      return "district";
     default:
       return null;
   }
