@@ -13,7 +13,7 @@
  */
 
 export type QueueLevel = "country" | "state" | "district";
-export type EscalationTarget = QueueLevel | "super_admin";
+export type EscalationTarget = QueueLevel | "super_admin" | "agent";
 export type AdminRole = "district_admin" | "state_admin" | "country_admin";
 
 export const SUBMIT_LEVEL: QueueLevel = "country";
