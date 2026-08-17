@@ -13404,6 +13404,7 @@ export type Database = {
         Returns: boolean
       }
       workflow_admin_level: { Args: { _user_id: string }; Returns: string }
+      workflow_e2e_agent_assignment_test: { Args: never; Returns: Json }
       workflow_eligible_admins: {
         Args: {
           _country: string

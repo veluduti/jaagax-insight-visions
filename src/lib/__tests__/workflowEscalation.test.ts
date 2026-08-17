@@ -59,6 +59,20 @@ describe("property review escalation ladder", () => {
     expect(res.finalTarget).toBe("super_admin");
   });
 
+  it("auto-assigns the best matched agent when the ladder is exhausted and needs_agent is true", () => {
+    const res = simulateEscalation({ country: 1, state: 1, district: 1 }, { needsAgent: true });
+    expect(res.visited).toEqual(["country", "state", "district"]);
+    expect(res.finalTarget).toBe("agent");
+  });
+
+  it("falls back to super admin when needs_agent is true but no agent is available", () => {
+    const res = simulateEscalation(
+      { country: 1, state: 1, district: 1 },
+      { needsAgent: true, agentAvailable: false },
+    );
+    expect(res.finalTarget).toBe("super_admin");
+  });
+
   it("never routes a fresh submission to the district admin first", () => {
     const res = simulateEscalation({ country: 1, state: 1, district: 1 }, { actsAt: null });
     expect(res.visited[0]).not.toBe("district");

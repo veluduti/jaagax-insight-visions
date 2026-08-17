@@ -13,7 +13,7 @@
  */
 
 export type QueueLevel = "country" | "state" | "district";
-export type EscalationTarget = QueueLevel | "super_admin";
+export type EscalationTarget = QueueLevel | "super_admin" | "agent";
 export type AdminRole = "district_admin" | "state_admin" | "country_admin";
 
 export const SUBMIT_LEVEL: QueueLevel = "country";
@@ -55,11 +55,14 @@ export function lifecycleStatusForLevel(level: QueueLevel): string {
  */
 export function simulateEscalation(
   eligibleAdmins: Partial<Record<QueueLevel, number>>,
-  opts: { actsAt?: QueueLevel | null } = {},
+  opts: { actsAt?: QueueLevel | null; needsAgent?: boolean; agentAvailable?: boolean } = {},
 ): { visited: QueueLevel[]; skipped: QueueLevel[]; finalTarget: EscalationTarget } {
   const visited: QueueLevel[] = [];
   const skipped: QueueLevel[] = [];
   let level: QueueLevel | null = SUBMIT_LEVEL;
+
+  const exhausted = (): EscalationTarget =>
+    opts.needsAgent && opts.agentAvailable !== false ? "agent" : "super_admin";
 
   while (level) {
     const count = eligibleAdmins[level] ?? 0;
@@ -73,10 +76,10 @@ export function simulateEscalation(
     }
     const next: QueueLevel | null = nextLevel(level);
     if (!next) {
-      return { visited, skipped, finalTarget: "super_admin" };
+      return { visited, skipped, finalTarget: exhausted() };
     }
     level = next;
   }
 
-  return { visited, skipped, finalTarget: "super_admin" };
+  return { visited, skipped, finalTarget: exhausted() };
 }

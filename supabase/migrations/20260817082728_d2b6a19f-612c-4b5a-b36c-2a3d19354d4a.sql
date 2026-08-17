@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.workflow_e2e_agent_assignment_test() TO postgres;
