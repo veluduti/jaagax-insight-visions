@@ -6,6 +6,10 @@
  * and escalates downward when nobody acts, ending at the super admin.
  *
  * country -> state -> district -> super_admin
+ *
+ * Exception: when the owner asked for a JAAGAX agent (needs_agent) and all
+ * three levels released/expired, the backend auto-assigns the best matched
+ * nearby verified agent instead of parking the listing with the super admin.
  */
 
 export type QueueLevel = "country" | "state" | "district";

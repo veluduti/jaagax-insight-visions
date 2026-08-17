@@ -13165,6 +13165,14 @@ export type Database = {
         Args: { _agent_user_id: string; _property_id: string }
         Returns: Json
       }
+      property_auto_assign_agent: {
+        Args: { _property_id: string }
+        Returns: Json
+      }
+      property_best_matched_agent: {
+        Args: { _property_id: string }
+        Returns: string
+      }
       property_close: {
         Args: { _property_id: string; _reason: string }
         Returns: Json
