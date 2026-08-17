@@ -87,7 +87,7 @@ export const CountryAdminDashboard = () => (
   <AdminPanel
     flowOnly
     title="Country Admin Dashboard"
-    subtitle="Hold, review, release, reject, and verify properties assigned to your country queue."
+    subtitle="First review level — every new submission lands here. Hold, verify, assign agents, release or reject."
   />
 );
 
