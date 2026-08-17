@@ -36,14 +36,14 @@ function DashboardShell({ title, subtitle, children }: Props) {
 }
 
 /**
- * DISTRICT ADMIN — operational owner for property workflow.
- * Full capabilities identical to Global Admin, RLS auto-scopes to their district.
+ * DISTRICT ADMIN — final queue level before super-admin escalation.
+ * Full workflow capabilities, RLS auto-scopes to their district.
  */
 export const DistrictAdminDashboard = () => (
   <AdminPanel
     flowOnly
     title="District Admin Dashboard"
-    subtitle="You are the operational owner for properties in your district."
+    subtitle="Final review level — hold, verify, assign agents and approve properties escalated to your district."
   />
 );
 
@@ -87,7 +87,7 @@ export const CountryAdminDashboard = () => (
   <AdminPanel
     flowOnly
     title="Country Admin Dashboard"
-    subtitle="Hold, review, release, reject, and verify properties assigned to your country queue."
+    subtitle="First review level — every new submission lands here. Hold, verify, assign agents, release or reject."
   />
 );
 

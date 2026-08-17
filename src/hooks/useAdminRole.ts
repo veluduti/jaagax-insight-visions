@@ -28,10 +28,12 @@ export function useAdminRole() {
     return () => { alive = false; };
   }, []);
 
-  const isOperator = role === "district_admin" || role === "global_admin";
-  // Phase 3: only District Admin performs operational property actions.
-  // Global Admin retains all other admin capabilities but the property workflow
-  // (assign agent / approve / reject) is now District-Admin-only.
-  const canOperateProperty = role === "district_admin";
+  const isOperator =
+    role === "country_admin" || role === "state_admin" || role === "district_admin" || role === "global_admin";
+  // Country -> State -> District ladder: every hierarchical admin can hold,
+  // review, assign an agent, approve or reject a property once it reaches
+  // their queue level. Backend timers decide who is eligible at any moment.
+  const canOperateProperty =
+    role === "country_admin" || role === "state_admin" || role === "district_admin" || role === "global_admin";
   return { role, loading, isOperator, canOperateProperty };
 }

@@ -9,15 +9,15 @@ import {
 } from "@/lib/workflowEscalation";
 
 describe("property review escalation ladder", () => {
-  it("submits into the district queue (district is the operational owner)", () => {
-    expect(SUBMIT_LEVEL).toBe("district");
-    expect(ESCALATION_CHAIN[0]).toBe("district");
+  it("submits into the country queue (country is the entry level)", () => {
+    expect(SUBMIT_LEVEL).toBe("country");
+    expect(ESCALATION_CHAIN[0]).toBe("country");
   });
 
-  it("escalates district -> state -> country -> super admin", () => {
-    expect(nextLevel("district")).toBe("state");
-    expect(nextLevel("state")).toBe("country");
-    expect(nextLevel("country")).toBeNull();
+  it("escalates country -> state -> district -> super admin", () => {
+    expect(nextLevel("country")).toBe("state");
+    expect(nextLevel("state")).toBe("district");
+    expect(nextLevel("district")).toBeNull();
   });
 
   it("maps each queue level to its admin role and lifecycle status", () => {
@@ -30,38 +30,38 @@ describe("property review escalation ladder", () => {
   });
 
   it("walks every level then reaches super admin when nobody acts", () => {
-    const res = simulateEscalation({ district: 2, state: 1, country: 1 });
-    expect(res.visited).toEqual(["district", "state", "country"]);
+    const res = simulateEscalation({ country: 2, state: 1, district: 1 });
+    expect(res.visited).toEqual(["country", "state", "district"]);
     expect(res.skipped).toEqual([]);
     expect(res.finalTarget).toBe("super_admin");
   });
 
   it("stops at the level where an admin acts", () => {
-    expect(simulateEscalation({ district: 1, state: 1, country: 1 }, { actsAt: "district" })).toEqual({
-      visited: ["district"],
+    expect(simulateEscalation({ country: 1, state: 1, district: 1 }, { actsAt: "country" })).toEqual({
+      visited: ["country"],
       skipped: [],
-      finalTarget: "district",
+      finalTarget: "country",
     });
-    expect(simulateEscalation({ district: 1, state: 1, country: 1 }, { actsAt: "state" }).finalTarget).toBe("state");
+    expect(simulateEscalation({ country: 1, state: 1, district: 1 }, { actsAt: "state" }).finalTarget).toBe("state");
   });
 
   it("skips levels that have no eligible admins", () => {
-    const res = simulateEscalation({ district: 0, state: 0, country: 1 }, { actsAt: "country" });
-    expect(res.skipped).toEqual(["district", "state"]);
-    expect(res.visited).toEqual(["country"]);
-    expect(res.finalTarget).toBe("country");
+    const res = simulateEscalation({ country: 0, state: 0, district: 1 }, { actsAt: "district" });
+    expect(res.skipped).toEqual(["country", "state"]);
+    expect(res.visited).toEqual(["district"]);
+    expect(res.finalTarget).toBe("district");
   });
 
   it("goes straight to super admin when no admins exist anywhere", () => {
     const res = simulateEscalation({});
     expect(res.visited).toEqual([]);
-    expect(res.skipped).toEqual(["district", "state", "country"]);
+    expect(res.skipped).toEqual(["country", "state", "district"]);
     expect(res.finalTarget).toBe("super_admin");
   });
 
-  it("never routes a fresh submission to the country admin first", () => {
-    const res = simulateEscalation({ district: 1, state: 1, country: 1 }, { actsAt: null });
-    expect(res.visited[0]).not.toBe("country");
-    expect(res.visited[0]).toBe("district");
+  it("never routes a fresh submission to the district admin first", () => {
+    const res = simulateEscalation({ country: 1, state: 1, district: 1 }, { actsAt: null });
+    expect(res.visited[0]).not.toBe("district");
+    expect(res.visited[0]).toBe("country");
   });
 });
