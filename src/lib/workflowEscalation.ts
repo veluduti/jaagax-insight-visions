@@ -61,8 +61,10 @@ export function simulateEscalation(
   const skipped: QueueLevel[] = [];
   let level: QueueLevel | null = SUBMIT_LEVEL;
 
-  const exhausted = (): EscalationTarget =>
-    opts.needsAgent && opts.agentAvailable !== false ? "agent" : "super_admin";
+  // A release by any admin ends that whole level and moves the property to the
+  // next one. Once the district level is done the backend always tries the best
+  // matched nearby verified agent, falling back to the super admin.
+  const exhausted = (): EscalationTarget => (opts.agentAvailable === false ? "super_admin" : "agent");
 
   while (level) {
     const count = eligibleAdmins[level] ?? 0;
