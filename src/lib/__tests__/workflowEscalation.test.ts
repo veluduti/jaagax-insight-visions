@@ -29,10 +29,15 @@ describe("property review escalation ladder", () => {
     expect(lifecycleStatusForLevel("country")).toBe("country_queue");
   });
 
-  it("walks every level then reaches super admin when nobody acts", () => {
+  it("walks every level then auto-assigns an agent when nobody acts", () => {
     const res = simulateEscalation({ country: 2, state: 1, district: 1 });
     expect(res.visited).toEqual(["country", "state", "district"]);
     expect(res.skipped).toEqual([]);
+    expect(res.finalTarget).toBe("agent");
+  });
+
+  it("falls back to super admin after the district level when no agent exists", () => {
+    const res = simulateEscalation({ country: 2, state: 1, district: 1 }, { agentAvailable: false });
     expect(res.finalTarget).toBe("super_admin");
   });
 
@@ -52,11 +57,11 @@ describe("property review escalation ladder", () => {
     expect(res.finalTarget).toBe("district");
   });
 
-  it("goes straight to super admin when no admins exist anywhere", () => {
+  it("skips every empty level and lands on an agent", () => {
     const res = simulateEscalation({});
     expect(res.visited).toEqual([]);
     expect(res.skipped).toEqual(["country", "state", "district"]);
-    expect(res.finalTarget).toBe("super_admin");
+    expect(res.finalTarget).toBe("agent");
   });
 
   it("auto-assigns the best matched agent when the ladder is exhausted and needs_agent is true", () => {
