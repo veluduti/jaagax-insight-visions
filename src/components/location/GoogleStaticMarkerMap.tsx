@@ -33,9 +33,10 @@ const GoogleStaticMarkerMap = ({
     (async () => {
       try {
         const google = await loadGoogleMaps();
+        const { Map, Marker, InfoWindow } = (await google.maps.importLibrary("maps")) as any;
         if (cancelled || !containerRef.current || mapRef.current) return;
 
-        mapRef.current = new google.maps.Map(containerRef.current, {
+        mapRef.current = new Map(containerRef.current, {
           center: { lat, lng },
           zoom,
           mapTypeControl: false,
@@ -44,7 +45,7 @@ const GoogleStaticMarkerMap = ({
           clickableIcons: false,
         });
 
-        const marker = new google.maps.Marker({
+        const marker = new Marker({
           position: { lat, lng },
           map: mapRef.current,
           icon: variant === "verified"
@@ -60,7 +61,7 @@ const GoogleStaticMarkerMap = ({
         });
 
         if (label) {
-          const info = new google.maps.InfoWindow({
+          const info = new InfoWindow({
             content: `<div style="font-weight:600;font-size:13px;padding:2px 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a1a">${label.replace(/[<>&]/g, "")}</div>`,
             disableAutoPan: true,
           });
