@@ -36,6 +36,7 @@ import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
 import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 interface HotelData {
   id: string;
@@ -95,6 +96,9 @@ const HotelDetail = () => {
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [roomsWanted, setRoomsWanted] = useState<number>(1);
   const [searchNonce, setSearchNonce] = useState(0);
+  const [hotelCoords, setHotelCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coordsLoading, setCoordsLoading] = useState(false);
+
 
   useEffect(() => {
     if (!id) return;
@@ -112,6 +116,54 @@ const HotelDetail = () => {
     };
     fetchHotel();
   }, [id]);
+
+  // Geocode hotel location if coordinates are missing so the map always renders
+  useEffect(() => {
+    if (!hotel) return;
+    const lat = Number((hotel as any).latitude);
+    const lng = Number((hotel as any).longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0) {
+      setHotelCoords({ lat, lng });
+      return;
+    }
+    const query =
+      hotel.address ||
+      [hotel.locality, hotel.city].filter(Boolean).join(", ") ||
+      hotel.name;
+    if (!query) return;
+    let cancelled = false;
+    setCoordsLoading(true);
+    loadGoogleMaps()
+      .then(async (google) => {
+        if (cancelled) return;
+        const { Geocoder } = (await google.maps.importLibrary("geocoding")) as any;
+        const geocoder = new Geocoder();
+        geocoder.geocode({ address: query }, (results: any, status: any) => {
+          if (cancelled) return;
+          if (status === "OK" && results?.[0]?.geometry?.location) {
+            const location = results[0].geometry.location;
+            const coords = { lat: location.lat(), lng: location.lng() };
+            setHotelCoords(coords);
+            // Persist best-effort so future loads are instant (ignore auth failures)
+            supabase
+              .from("partner_hotels")
+              .update({ latitude: coords.lat, longitude: coords.lng })
+              .eq("id", hotel.id)
+              .then(({ error }) => {
+                if (error) console.warn("[HotelDetail] coord persist skipped", error.message);
+              });
+          }
+          setCoordsLoading(false);
+        });
+      })
+      .catch((err) => {
+        console.warn("[HotelDetail] geocode failed", err);
+        setCoordsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hotel]);
 
   const images = useMemo(() => (hotel?.images && hotel.images.length ? hotel.images : [FALLBACK_IMG]), [hotel]);
 
@@ -628,19 +680,19 @@ const HotelDetail = () => {
             <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
               <h3 className="font-semibold">Location</h3>
               <p className="text-sm text-muted-foreground">{hotel.address || locationLine}</p>
-              {Number.isFinite(Number((hotel as any).latitude)) &&
-              Number.isFinite(Number((hotel as any).longitude)) &&
-              Number((hotel as any).latitude) !== 0 ? (
+              {hotelCoords ? (
                 <div className="overflow-hidden rounded-xl border border-border">
                   <GoogleStaticMarkerMap
-                    lat={Number((hotel as any).latitude)}
-                    lng={Number((hotel as any).longitude)}
+                    lat={hotelCoords.lat}
+                    lng={hotelCoords.lng}
                     label={hotel.name}
-                    height="220px"
+                    height="240px"
                     zoom={14}
                     variant="verified"
                   />
                 </div>
+              ) : coordsLoading ? (
+                <div className="h-60 rounded-xl border border-border bg-muted animate-pulse" />
               ) : null}
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
