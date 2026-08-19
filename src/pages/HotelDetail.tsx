@@ -35,6 +35,7 @@ import HotelExtraServices from "@/components/hotels/HotelExtraServices";
 import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
+import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
 
 interface HotelData {
   id: string;
@@ -624,9 +625,23 @@ const HotelDetail = () => {
 
           {/* Location */}
           {(hotel.address || locationLine) && (
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-2">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
               <h3 className="font-semibold">Location</h3>
               <p className="text-sm text-muted-foreground">{hotel.address || locationLine}</p>
+              {Number.isFinite(Number((hotel as any).latitude)) &&
+              Number.isFinite(Number((hotel as any).longitude)) &&
+              Number((hotel as any).latitude) !== 0 ? (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <GoogleStaticMarkerMap
+                    lat={Number((hotel as any).latitude)}
+                    lng={Number((hotel as any).longitude)}
+                    label={hotel.name}
+                    height="220px"
+                    zoom={14}
+                    variant="verified"
+                  />
+                </div>
+              ) : null}
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                   `${hotel.name} ${hotel.address || locationLine}`
@@ -639,6 +654,7 @@ const HotelDetail = () => {
               </a>
             </div>
           )}
+
         </aside>
         </div>
 
