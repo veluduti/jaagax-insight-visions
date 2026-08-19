@@ -35,6 +35,7 @@ import HotelExtraServices from "@/components/hotels/HotelExtraServices";
 import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
+import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
 
 interface HotelData {
   id: string;
