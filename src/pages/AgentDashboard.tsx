@@ -892,6 +892,7 @@ export default function AgentDashboard() {
             <AgentKYCVerification />
             <AgentTrialStatusCard />
             <AgentSubscriptionManager />
+            <AgentUpgradeRequestCard agentId={agentProfile.id} />
           </div>
         )}
 
