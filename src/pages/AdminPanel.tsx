@@ -1002,6 +1002,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
             <AdminHierarchyPanel />
           </TabsContent>
 
+          {/* AGENT UPGRADE REQUESTS */}
+          <TabsContent value="agent-upgrades" className="mt-4">
+            <AgentUpgradeRequestsPanel />
+          </TabsContent>
+
           {/* LOCATION MASTER */}
           <TabsContent value="location-master" className="mt-4">
             <LocationMasterPanel />
