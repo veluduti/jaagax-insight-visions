@@ -67,6 +67,7 @@ import AgentKYCVerification from "@/components/agent/AgentKYCVerification";
 import AgentVerificationAssignments from "@/components/agent/AgentVerificationAssignments";
 import AgentSubscriptionManager from "@/components/agent/AgentSubscriptionManager";
 import AgentTrialStatusCard from "@/components/agent/AgentTrialStatusCard";
+import AgentUpgradeRequestCard from "@/components/agent/AgentUpgradeRequestCard";
 import AgentBadgeLevel from "@/components/agent/AgentBadgeLevel";
 import AgentSuccessScore from "@/components/agent/AgentSuccessScore";
 import AgentReferralProgram from "@/components/agent/AgentReferralProgram";
