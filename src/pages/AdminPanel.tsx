@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import AdminHierarchyPanel from "@/components/admin/AdminHierarchyPanel";
+import AgentUpgradeRequestsPanel from "@/components/admin/AgentUpgradeRequestsPanel";
 import PricingSettingsPanel from "@/components/admin/PricingSettingsPanel";
 import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
 import {
@@ -198,6 +199,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "agent-upgrades", label: "Agent Upgrade Requests", icon: Briefcase },
         { value: "location-master", label: "Location Master", icon: MapPin },
         { value: "activity", label: "Activity Timeline", icon: Activity },
         { value: "pricing", label: "Pricing & Payments", icon: IndianRupee },
@@ -219,7 +221,10 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         {
           label: "Admins",
           icon: Shield,
-          items: [{ value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield }],
+          items: [
+            { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+            { value: "agent-upgrades", label: "Agent Upgrade Requests", icon: Briefcase },
+          ],
         },
       ]
     : ALL_NAV_GROUPS;
@@ -995,6 +1000,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           {/* ADMIN HIERARCHY */}
           <TabsContent value="admin-hierarchy" className="mt-4">
             <AdminHierarchyPanel />
+          </TabsContent>
+
+          {/* AGENT UPGRADE REQUESTS */}
+          <TabsContent value="agent-upgrades" className="mt-4">
+            <AgentUpgradeRequestsPanel />
           </TabsContent>
 
           {/* LOCATION MASTER */}
