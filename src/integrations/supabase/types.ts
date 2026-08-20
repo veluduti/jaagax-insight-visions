@@ -123,6 +123,69 @@ export type Database = {
           },
         ]
       }
+      agent_admin_upgrade_requests: {
+        Row: {
+          agent_id: string | null
+          country: string | null
+          country_id: string | null
+          created_at: string
+          district: string | null
+          district_id: string | null
+          granted_role: string | null
+          id: string
+          reason: string | null
+          requested_role: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          state: string | null
+          state_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          country?: string | null
+          country_id?: string | null
+          created_at?: string
+          district?: string | null
+          district_id?: string | null
+          granted_role?: string | null
+          id?: string
+          reason?: string | null
+          requested_role: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          state?: string | null
+          state_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          country?: string | null
+          country_id?: string | null
+          created_at?: string
+          district?: string | null
+          district_id?: string | null
+          granted_role?: string | null
+          id?: string
+          reason?: string | null
+          requested_role?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          state?: string | null
+          state_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_applications: {
         Row: {
           aadhaar_back_url: string | null
@@ -12504,6 +12567,20 @@ export type Database = {
         Args: { _property_id: string }
         Returns: undefined
       }
+      approve_agent_admin_upgrade: {
+        Args: {
+          _country?: string
+          _country_id?: string
+          _district?: string
+          _district_id?: string
+          _notes?: string
+          _request_id: string
+          _role: string
+          _state?: string
+          _state_id?: string
+        }
+        Returns: Json
+      }
       approve_profile: { Args: { _profile_id: string }; Returns: undefined }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
@@ -12693,6 +12770,7 @@ export type Database = {
         Args: { _application_id: string }
         Returns: boolean
       }
+      is_hierarchy_admin: { Args: { _user_id: string }; Returns: boolean }
       is_hotel_member: {
         Args: { _hotel_id: string; _user_id: string }
         Returns: boolean
@@ -12846,6 +12924,10 @@ export type Database = {
         }[]
       }
       redeem_cashback: { Args: { _user_id: string }; Returns: number }
+      reject_agent_admin_upgrade: {
+        Args: { _notes?: string; _request_id: string }
+        Returns: Json
+      }
       reject_profile: {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined
