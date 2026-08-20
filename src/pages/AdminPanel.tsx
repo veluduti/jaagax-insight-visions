@@ -198,6 +198,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "agent-upgrades", label: "Agent Upgrade Requests", icon: Briefcase },
         { value: "location-master", label: "Location Master", icon: MapPin },
         { value: "activity", label: "Activity Timeline", icon: Activity },
         { value: "pricing", label: "Pricing & Payments", icon: IndianRupee },
