@@ -220,7 +220,10 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         {
           label: "Admins",
           icon: Shield,
-          items: [{ value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield }],
+          items: [
+            { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+            { value: "agent-upgrades", label: "Agent Upgrade Requests", icon: Briefcase },
+          ],
         },
       ]
     : ALL_NAV_GROUPS;
