@@ -69,15 +69,13 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
     const country = loc.country ?? null;
     const state = loc.state ?? null;
     const district = loc.district ?? null;
-    if (level === "country_admin" && !country) return toast({ title: "Select a country", variant: "destructive" });
-    if (level === "state_admin" && (!country || !state)) return toast({ title: "Select country and state", variant: "destructive" });
-    if (level === "district_admin" && (!country || !state || !district)) return toast({ title: "Select country, state and district", variant: "destructive" });
+    if (!country || !state || !district) return toast({ title: "Select country, state and district", variant: "destructive" });
 
     setSubmitting(true);
     const { error } = await (supabase as any).from("agent_admin_upgrade_requests").insert({
       user_id: user.id,
       agent_id: agentId ?? null,
-      requested_role: level,
+      requested_role: "district_admin",
       country, state, district,
       country_id: loc.country_id, state_id: loc.state_id, district_id: loc.district_id,
       reason: reason || null,
