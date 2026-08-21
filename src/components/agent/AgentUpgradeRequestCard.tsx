@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ShieldPlus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import LocationMasterSelector from "@/components/location/LocationMasterSelector";
@@ -42,9 +41,15 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [request, setRequest] = useState<RequestRow | null>(null);
   const [scopes, setScopes] = useState<Array<{ role: string; country: string | null; state: string | null; district: string | null }>>([]);
-  const [level, setLevel] = useState<Level>("district_admin");
   const [reason, setReason] = useState("");
   const [loc, setLoc] = useState<MasterLocationSelection>(emptyMasterLocation);
+
+  const derivedLevel = useMemo<Level | null>(() => {
+    if (loc.district) return "district_admin";
+    if (loc.state) return "state_admin";
+    if (loc.country) return "country_admin";
+    return null;
+  }, [loc.country, loc.state, loc.district]);
 
   const load = async () => {
     if (!user) return;
@@ -70,6 +75,9 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
     const country = loc.country ?? null;
     const state = loc.state ?? null;
     const district = loc.district ?? null;
+    const level = derivedLevel;
+
+    if (!level) return toast({ title: "Select an area", description: "Choose at least a country to request an admin level.", variant: "destructive" });
     if (level === "country_admin" && !country) return toast({ title: "Select a country", variant: "destructive" });
     if (level === "state_admin" && (!country || !state)) return toast({ title: "Select country and state", variant: "destructive" });
     if (level === "district_admin" && (!country || !state || !district)) return toast({ title: "Select country, state and district", variant: "destructive" });
@@ -151,21 +159,18 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
               dashboard for your Country, State or District.
             </p>
             <div>
-              <Label>Level you want</Label>
-              <Select value={level} onValueChange={(v) => setLevel(v as Level)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="district_admin">District Admin</SelectItem>
-                  <SelectItem value="state_admin">State Admin</SelectItem>
-                  <SelectItem value="country_admin">Country Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label className="mb-2 block">Area you want to manage</Label>
               <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                 <LocationMasterSelector value={loc} onChange={setLoc} showLocality={false} />
               </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Requested level</Label>
+              {derivedLevel ? (
+                <Badge variant="secondary" className="text-sm px-3 py-1">{LEVEL_LABEL[derivedLevel]}</Badge>
+              ) : (
+                <p className="text-sm text-muted-foreground">Select an area to see the matching admin level.</p>
+              )}
             </div>
             <div>
               <Label>Why should you be upgraded?</Label>
