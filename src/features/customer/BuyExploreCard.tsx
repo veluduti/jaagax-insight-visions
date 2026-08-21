@@ -14,12 +14,12 @@ interface PropRow {
   slug?: string | null;
   title: string | null;
   city: string | null;
-  property_type: string | null;
+  type: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
   area_sqft: number | null;
   images: any;
-  status: string | null;
+  lifecycle_status: string | null;
 }
 
 const TOOLS = [
@@ -49,8 +49,8 @@ export default function BuyExploreCard({ onNavigateTab }: { onNavigateTab: (id: 
       try {
         const { data } = await (supabase as any)
           .from("properties")
-          .select("id,slug,title,city,property_type,bedrooms,bathrooms,area_sqft,images,status")
-          .in("status", ["live", "live_verified"])
+          .select("id,slug,title,city,type,bedrooms,bathrooms,area_sqft,images,lifecycle_status")
+          .in("lifecycle_status", ["live", "live_verified"])
           .order("created_at", { ascending: false })
           .limit(24);
         if (!cancelled) setRows((data as PropRow[]) || []);
@@ -134,14 +134,14 @@ export default function BuyExploreCard({ onNavigateTab }: { onNavigateTab: (id: 
                   <div className="space-y-1 p-3">
                     <div className="truncate text-sm font-semibold">
                       {p.bedrooms ? `${p.bedrooms} BHK • ` : ""}
-                      {p.property_type || p.title || "Property"}
+                      {p.type || p.title || "Property"}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {[p.bedrooms ? `${p.bedrooms} BHK` : null, p.bathrooms ? `${p.bathrooms} Baths` : null, p.area_sqft ? `${p.area_sqft} sq ft` : null]
                         .filter(Boolean)
                         .join(" • ") || "Details on request"}
                     </div>
-                    {p.status === "live_verified" && <Badge variant="secondary">Verified</Badge>}
+                    {p.lifecycle_status === "live_verified" && <Badge variant="secondary">Verified</Badge>}
                     <button
                       type="button"
                       className="block pt-1 text-xs font-medium text-primary hover:underline"
