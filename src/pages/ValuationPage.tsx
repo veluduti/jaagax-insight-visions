@@ -143,7 +143,7 @@ export default function ValuationPage() {
       let query = supabase
         .from("properties")
         .select("id, slug, title, price, bedrooms, area_sqft, city, locality")
-        .eq("status", "active")
+        .neq("is_draft", true)
         .limit(3);
       if (city) query = query.ilike("city", `%${city}%`);
       if (locality) query = query.ilike("locality", `%${locality}%`);

@@ -46,7 +46,7 @@ interface Row {
   reschedule_preferred_time?: string | null;
   verification_status?: string | null;
   verification_requested?: boolean | null;
-  is_verified?: boolean | null;
+  verified?: boolean | null;
   agent?: Agent | null;
 }
 
@@ -95,7 +95,7 @@ export function OwnerPropertyStatusPanel() {
       if (!user) return;
       setUserId(user.id);
       const { data } = await (supabase.from as any)("properties")
-        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, is_verified")
+        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, verified")
         .eq("submitted_by", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -331,7 +331,7 @@ export function OwnerPropertyStatusPanel() {
             )}
 
             {/* Waiting-for-agent — allow owner to request verification later */}
-            {r.verification_status === "agent_unavailable" && r.verification_requested && !r.is_verified && (
+            {r.verification_status === "agent_unavailable" && r.verification_requested && !r.verified && (
               <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
                 <div className="text-xs font-semibold text-amber-700 mb-1">Waiting for a nearby verification agent</div>
                 <div className="text-xs text-muted-foreground mb-2">
