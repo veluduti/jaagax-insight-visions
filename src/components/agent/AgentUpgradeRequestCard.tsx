@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ShieldPlus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import LocationMasterSelector from "@/components/location/LocationMasterSelector";
@@ -42,7 +41,7 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [request, setRequest] = useState<RequestRow | null>(null);
   const [scopes, setScopes] = useState<Array<{ role: string; country: string | null; state: string | null; district: string | null }>>([]);
-  const [level, setLevel] = useState<Level>("district_admin");
+  
   const [reason, setReason] = useState("");
   const [loc, setLoc] = useState<MasterLocationSelection>(emptyMasterLocation);
 
@@ -70,15 +69,13 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
     const country = loc.country ?? null;
     const state = loc.state ?? null;
     const district = loc.district ?? null;
-    if (level === "country_admin" && !country) return toast({ title: "Select a country", variant: "destructive" });
-    if (level === "state_admin" && (!country || !state)) return toast({ title: "Select country and state", variant: "destructive" });
-    if (level === "district_admin" && (!country || !state || !district)) return toast({ title: "Select country, state and district", variant: "destructive" });
+    if (!country || !state || !district) return toast({ title: "Select country, state and district", variant: "destructive" });
 
     setSubmitting(true);
     const { error } = await (supabase as any).from("agent_admin_upgrade_requests").insert({
       user_id: user.id,
       agent_id: agentId ?? null,
-      requested_role: level,
+      requested_role: "district_admin",
       country, state, district,
       country_id: loc.country_id, state_id: loc.state_id, district_id: loc.district_id,
       reason: reason || null,
@@ -150,17 +147,6 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
               Request admin powers for your area. Once approved you keep every agent feature and also get an admin
               dashboard for your Country, State or District.
             </p>
-            <div>
-              <Label>Level you want</Label>
-              <Select value={level} onValueChange={(v) => setLevel(v as Level)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="district_admin">District Admin</SelectItem>
-                  <SelectItem value="state_admin">State Admin</SelectItem>
-                  <SelectItem value="country_admin">Country Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <div>
               <Label className="mb-2 block">Area you want to manage</Label>
               <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
