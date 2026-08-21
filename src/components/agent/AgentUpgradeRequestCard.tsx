@@ -41,7 +41,7 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [request, setRequest] = useState<RequestRow | null>(null);
   const [scopes, setScopes] = useState<Array<{ role: string; country: string | null; state: string | null; district: string | null }>>([]);
-  const [level, setLevel] = useState<Level>("district_admin");
+  
   const [reason, setReason] = useState("");
   const [loc, setLoc] = useState<MasterLocationSelection>(emptyMasterLocation);
 
