@@ -148,17 +148,6 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
               dashboard for your Country, State or District.
             </p>
             <div>
-              <Label>Level you want</Label>
-              <Select value={level} onValueChange={(v) => setLevel(v as Level)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="district_admin">District Admin</SelectItem>
-                  <SelectItem value="state_admin">State Admin</SelectItem>
-                  <SelectItem value="country_admin">Country Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label className="mb-2 block">Area you want to manage</Label>
               <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                 <LocationMasterSelector value={loc} onChange={setLoc} showLocality={false} />
