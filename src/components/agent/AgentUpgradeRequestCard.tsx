@@ -75,6 +75,9 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
     const country = loc.country ?? null;
     const state = loc.state ?? null;
     const district = loc.district ?? null;
+    const level = derivedLevel;
+
+    if (!level) return toast({ title: "Select an area", description: "Choose at least a country to request an admin level.", variant: "destructive" });
     if (level === "country_admin" && !country) return toast({ title: "Select a country", variant: "destructive" });
     if (level === "state_admin" && (!country || !state)) return toast({ title: "Select country and state", variant: "destructive" });
     if (level === "district_admin" && (!country || !state || !district)) return toast({ title: "Select country, state and district", variant: "destructive" });
