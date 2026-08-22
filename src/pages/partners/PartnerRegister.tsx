@@ -31,6 +31,8 @@ const step1Schema = z.object({
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(8, "At least 8 characters"),
 });
+const step1SchemaLoggedIn = step1Schema.omit({ password: true });
+
 const step2Schema = z.object({
   hotel_name: z.string().trim().min(2).max(120),
   company_name: z.string().trim().max(150).optional().or(z.literal("")),
