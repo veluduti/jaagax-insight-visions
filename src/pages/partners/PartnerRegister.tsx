@@ -215,12 +215,24 @@ export default function PartnerRegister() {
               <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
                 {step === 0 && (
                   <div className="grid gap-4 sm:grid-cols-2">
+                    {account && (
+                      <div className="sm:col-span-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
+                        {usingAccount ? (
+                          <>Continuing with your JAAGA account <span className="font-medium text-emerald-400">{account.email}</span> — no new password needed. Edit any detail below, or use a different email to register a separate hotel account.</>
+                        ) : (
+                          <>You're signed in as <span className="font-medium text-emerald-400">{account.email}</span>. You entered a different email, so a separate hotel account will be created.</>
+                        )}
+                      </div>
+                    )}
                     <Field label="Owner name" value={form.owner_name} onChange={set("owner_name")} />
                     <Field label="Mobile" type="tel" value={form.phone} onChange={set("phone")} />
                     <Field label="Email" type="email" value={form.email} onChange={set("email")} />
-                    <Field label="Password" type="password" value={form.password} onChange={set("password")} hint="Minimum 8 characters" />
+                    {!usingAccount && (
+                      <Field label="Password" type="password" value={form.password} onChange={set("password")} hint="Minimum 8 characters" />
+                    )}
                   </div>
                 )}
+
 
                 {step === 1 && (
                   <div className="grid gap-4 sm:grid-cols-2">
