@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
@@ -12,6 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, Building2, ShieldCheck, User2, Landmark } from "lucide-react";
 import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const steps = [
   { key: "account", label: "Account", icon: User2 },
@@ -29,6 +31,8 @@ const step1Schema = z.object({
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(8, "At least 8 characters"),
 });
+const step1SchemaLoggedIn = step1Schema.omit({ password: true });
+
 const step2Schema = z.object({
   hotel_name: z.string().trim().min(2).max(120),
   company_name: z.string().trim().max(150).optional().or(z.literal("")),
@@ -63,12 +67,38 @@ export default function PartnerRegister() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
+
+  // Prefill from the signed-in customer account so they can continue with
+  // their existing details (fully editable).
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await (supabase as any)
+        .from("profiles")
+        .select("full_name, email, phone, city")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setAccount({ id: user.id, email: user.email ?? "" });
+      setForm((f) => ({
+        ...f,
+        owner_name: f.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
+        email: f.email || profile?.email || user.email || "",
+        phone: f.phone && f.phone !== "+91" ? f.phone : (profile?.phone || (user.user_metadata as any)?.phone || "+91"),
+        city: f.city || profile?.city || "",
+      }));
+    })();
+  }, []);
+
+  // Reusing the signed-in account: no new signup, no "already registered" error.
+  const usingAccount = !!account && form.email.trim().toLowerCase() === account.email.toLowerCase();
 
   const set = (k: keyof FormData) => (v: any) => setForm((f) => ({ ...f, [k]: v }));
 
   const next = () => {
     try {
-      if (step === 0) step1Schema.parse(form);
+      if (step === 0) (usingAccount ? step1SchemaLoggedIn : step1Schema).parse(form);
       if (step === 1) step2Schema.parse(form);
       if (step === 2) step3Schema.parse(form);
       setStep((s) => Math.min(s + 1, steps.length - 1));
@@ -84,6 +114,31 @@ export default function PartnerRegister() {
     try {
       // Persist the form snapshot so KYC step can prefill after login
       sessionStorage.setItem("partner_signup_snapshot", JSON.stringify(form));
+
+      // Existing signed-in user reusing their own email → attach the hotel
+      // partner profile to that account instead of creating a new one.
+      if (usingAccount && account) {
+        try {
+          const { data: existing } = await (supabase as any)
+            .from("profiles")
+            .select("id")
+            .eq("user_id", account.id)
+            .eq("type", "hotel_manager")
+            .maybeSingle();
+          if (!existing) {
+            await (supabase as any).from("profiles").insert({ user_id: account.id, type: "hotel_manager" });
+          }
+          await (supabase as any)
+            .from("user_roles")
+            .upsert({ user_id: account.id, role: "hotel_manager" }, { onConflict: "user_id,role" });
+        } catch (e) {
+          console.warn("Could not attach hotel manager profile:", e);
+        }
+        toast.success("Using your JAAGA account — let's finish your hotel listing");
+        navigate("/partners/welcome", { replace: true });
+        return;
+      }
+
       const { data, error } = await initSignupOtp({
         email: form.email,
         password: form.password,
@@ -119,6 +174,7 @@ export default function PartnerRegister() {
       setSubmitting(false);
     }
   };
+
 
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -159,12 +215,24 @@ export default function PartnerRegister() {
               <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
                 {step === 0 && (
                   <div className="grid gap-4 sm:grid-cols-2">
+                    {account && (
+                      <div className="sm:col-span-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
+                        {usingAccount ? (
+                          <>Continuing with your JAAGA account <span className="font-medium text-emerald-400">{account.email}</span> — no new password needed. Edit any detail below, or use a different email to register a separate hotel account.</>
+                        ) : (
+                          <>You're signed in as <span className="font-medium text-emerald-400">{account.email}</span>. You entered a different email, so a separate hotel account will be created.</>
+                        )}
+                      </div>
+                    )}
                     <Field label="Owner name" value={form.owner_name} onChange={set("owner_name")} />
                     <Field label="Mobile" type="tel" value={form.phone} onChange={set("phone")} />
                     <Field label="Email" type="email" value={form.email} onChange={set("email")} />
-                    <Field label="Password" type="password" value={form.password} onChange={set("password")} hint="Minimum 8 characters" />
+                    {!usingAccount && (
+                      <Field label="Password" type="password" value={form.password} onChange={set("password")} hint="Minimum 8 characters" />
+                    )}
                   </div>
                 )}
+
 
                 {step === 1 && (
                   <div className="grid gap-4 sm:grid-cols-2">
