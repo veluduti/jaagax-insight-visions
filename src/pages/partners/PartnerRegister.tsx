@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
@@ -12,6 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, Building2, ShieldCheck, User2, Landmark } from "lucide-react";
 import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const steps = [
   { key: "account", label: "Account", icon: User2 },
