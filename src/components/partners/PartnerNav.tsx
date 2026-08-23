@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+import { Building2, Menu, X, LayoutDashboard, LogOut, Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,14 +18,33 @@ const nav = [
 export default function PartnerNav() {
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isPartner, setIsPartner] = useState(false);
   const loc = useLocation();
   const nav_ = useNavigate();
   const onLanding = loc.pathname === "/partners";
 
+  const loadPartnerStatus = async (uid: string | null) => {
+    if (!uid) { setIsPartner(false); return; }
+    const { data } = await (supabase as any)
+      .from("hotel_partner_applications")
+      .select("status")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setIsPartner(data?.status === "approved");
+  };
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    supabase.auth.getUser().then(({ data }) => {
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      loadPartnerStatus(uid);
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUserId(session?.user?.id ?? null);
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      loadPartnerStatus(uid);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -36,7 +55,8 @@ export default function PartnerNav() {
     nav_("/partners", { replace: true });
   };
 
-  const authedActions = (
+  // Approved hotel partner: full partner controls
+  const partnerActions = (
     <>
       <Link to="/partners/dashboard">
         <Button variant="ghost" size="sm">
@@ -49,6 +69,21 @@ export default function PartnerNav() {
     </>
   );
 
+  // Signed-in customer who is not yet a verified partner
+  const customerActions = (
+    <>
+      <Link to="/dashboard/customer">
+        <Button variant="ghost" size="sm">
+          <Home className="mr-1.5 h-4 w-4" /> My dashboard
+        </Button>
+      </Link>
+      <Link to="/partners/register">
+        <Button size="sm" className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">
+          List your hotel
+        </Button>
+      </Link>
+    </>
+  );
 
   const guestActions = (
     <>
@@ -62,6 +97,9 @@ export default function PartnerNav() {
       </Link>
     </>
   );
+
+  const desktopActions = userId ? (isPartner ? partnerActions : customerActions) : guestActions;
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -86,8 +124,9 @@ export default function PartnerNav() {
         )}
 
         <div className="hidden items-center gap-2 md:flex">
-          {userId ? authedActions : guestActions}
+          {desktopActions}
         </div>
+
 
         <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -102,7 +141,7 @@ export default function PartnerNav() {
                 {n.label}
               </a>
             ))}
-            {userId ? (
+            {userId && isPartner ? (
               <>
                 <Link to="/partners/dashboard" onClick={() => setOpen(false)}>
                   <Button variant="outline" className="w-full">
@@ -116,6 +155,17 @@ export default function PartnerNav() {
                   <LogOut className="mr-1.5 h-4 w-4" /> Sign out
                 </Button>
               </>
+            ) : userId ? (
+              <>
+                <Link to="/dashboard/customer" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    <Home className="mr-1.5 h-4 w-4" /> My dashboard
+                  </Button>
+                </Link>
+                <Link to="/partners/register" onClick={() => setOpen(false)}>
+                  <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/partners/login" onClick={() => setOpen(false)}>
@@ -126,6 +176,7 @@ export default function PartnerNav() {
                 </Link>
               </>
             )}
+
           </div>
         </div>
       )}
