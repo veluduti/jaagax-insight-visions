@@ -14,6 +14,10 @@ import {
 } from "@/lib/savedLocation";
 import { canonicalizeCity, getCityAliases } from "@/lib/cityNormalizer";
 
+/** How many times we may auto-ask for location, ever (per browser). */
+const MAX_AUTO_GPS_PROMPTS = 2;
+const GPS_PROMPT_COUNT_KEY = "jaagax_gps_auto_prompt_count";
+
 interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
