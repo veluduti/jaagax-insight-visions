@@ -183,9 +183,14 @@ export default function PartnerRegister() {
       <PartnerNav />
       <div className="container mx-auto max-w-4xl px-4 py-10">
         <div className="mb-6 flex items-center justify-between">
-          <Link to="/partners" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/partners"))}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
+          </button>
+
           <p className="text-sm text-muted-foreground">
             Already have an account? <Link to="/partners/login" className="text-emerald-400 hover:underline">Log in</Link>
           </p>
@@ -293,9 +298,18 @@ export default function PartnerRegister() {
             </AnimatePresence>
 
             <div className="mt-8 flex items-center justify-between gap-2">
-              <Button variant="ghost" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || submitting}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (step > 0) setStep((s) => Math.max(0, s - 1));
+                  else if (window.history.length > 1) navigate(-1);
+                  else navigate("/partners");
+                }}
+                disabled={submitting}
+              >
                 <ArrowLeft className="mr-1 h-4 w-4" /> Back
               </Button>
+
               {step < 3 && (
                 <Button onClick={next} disabled={submitting} className="bg-emerald-500 text-white hover:bg-emerald-600">
                   {step === 2 ? "Send code" : "Continue"} <ArrowRight className="ml-1 h-4 w-4" />
