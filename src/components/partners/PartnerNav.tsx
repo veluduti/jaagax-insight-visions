@@ -146,7 +146,7 @@ export default function PartnerNav() {
                 {n.label}
               </a>
             ))}
-            {userId && isPartner ? (
+            {showPartnerActions ? (
               <>
                 <Link to="/partners/dashboard" onClick={() => setOpen(false)}>
                   <Button variant="outline" className="w-full">
