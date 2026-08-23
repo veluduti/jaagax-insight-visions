@@ -98,7 +98,12 @@ export default function PartnerNav() {
     </>
   );
 
-  const desktopActions = userId ? (isPartner ? partnerActions : customerActions) : guestActions;
+  // Public partner marketing/onboarding pages where a customer may land
+  const publicPartnerPaths = ["/partners", "/partners/login", "/partners/register", "/partners/welcome", "/partners/verify-otp", "/partners/forgot-password"];
+  const inPartnerWorkspace = loc.pathname.startsWith("/partners") && !publicPartnerPaths.includes(loc.pathname);
+
+  const showPartnerActions = !!userId && (isPartner || inPartnerWorkspace);
+  const desktopActions = userId ? (showPartnerActions ? partnerActions : customerActions) : guestActions;
 
 
   return (
