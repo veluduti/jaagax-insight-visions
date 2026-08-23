@@ -124,8 +124,9 @@ export default function PartnerNav() {
         )}
 
         <div className="hidden items-center gap-2 md:flex">
-          {userId ? authedActions : guestActions}
+          {desktopActions}
         </div>
+
 
         <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
