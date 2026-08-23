@@ -279,7 +279,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     clearLocationModeFromStorage();
     setSavedLocation(null);
     setLocationModeState(null);
-    try { sessionStorage.removeItem("jaagax_gps_auto_prompted"); } catch { /* ignore */ }
+    try { sessionStorage.removeItem("jaagax_gps_auto_prompted"); localStorage.removeItem(GPS_PROMPT_COUNT_KEY); } catch { /* ignore */ }
     void logPermissionState("dev-reset");
     setPendingGpsPrompt(true);
   }, [logPermissionState]);
