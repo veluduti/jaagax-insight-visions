@@ -14,6 +14,10 @@ import {
 } from "@/lib/savedLocation";
 import { canonicalizeCity, getCityAliases } from "@/lib/cityNormalizer";
 
+/** How many times we may auto-ask for location, ever (per browser). */
+const MAX_AUTO_GPS_PROMPTS = 2;
+const GPS_PROMPT_COUNT_KEY = "jaagax_gps_auto_prompt_count";
+
 interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
@@ -128,12 +132,25 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       // inside that dialog (a real user gesture), which is what triggers the
       // browser's native permission popup reliably.
       if (event === "SIGNED_IN") {
-        setTimeout(() => {
+        setTimeout(async () => {
           if (cancelled) return;
-          // Skip only if user already granted GPS in a prior session
-          // (so we don't nag users who've already shared location).
+          // Never nag: at most 2 auto-prompts ever, and never once the user
+          // already granted, denied or turned location off.
           const currentMode = readLocationModeFromStorage();
           if (currentMode === "gps" && readSavedLocationFromStorage()) return;
+          if (currentMode === "disabled") return;
+          if (readSavedLocationFromStorage()) return;
+
+          let attempts = 0;
+          try { attempts = Number(localStorage.getItem(GPS_PROMPT_COUNT_KEY) || "0"); } catch { /* ignore */ }
+          if (attempts >= MAX_AUTO_GPS_PROMPTS) return;
+
+          try {
+            const perm = await (navigator as any).permissions?.query?.({ name: "geolocation" });
+            if (perm && (perm.state === "denied" || perm.state === "granted")) return;
+          } catch { /* permissions API unavailable — continue */ }
+
+          try { localStorage.setItem(GPS_PROMPT_COUNT_KEY, String(attempts + 1)); } catch { /* ignore */ }
           void logPermissionState("post-signin");
           setPendingGpsPrompt(true);
         }, 600);
@@ -262,7 +279,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     clearLocationModeFromStorage();
     setSavedLocation(null);
     setLocationModeState(null);
-    try { sessionStorage.removeItem("jaagax_gps_auto_prompted"); } catch { /* ignore */ }
+    try { sessionStorage.removeItem("jaagax_gps_auto_prompted"); localStorage.removeItem(GPS_PROMPT_COUNT_KEY); } catch { /* ignore */ }
     void logPermissionState("dev-reset");
     setPendingGpsPrompt(true);
   }, [logPermissionState]);

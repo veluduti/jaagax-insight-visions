@@ -9,6 +9,7 @@ export type CapturedLocation = {
 };
 
 const SESSION_KEY = "jaagax.dashboardLocationCaptured";
+const DENIED_KEY = "jaagax.dashboardLocationDenied";
 
 /**
  * Non-blocking geolocation capture for dashboard entry.
@@ -22,6 +23,8 @@ export function useDashboardLocationCapture(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
+    // Permanently stop asking once the user said no.
+    if (localStorage.getItem(DENIED_KEY)) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setStatus("unavailable");
       return;
@@ -57,6 +60,9 @@ export function useDashboardLocationCapture(enabled = true) {
         },
         (err) => {
           setStatus(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable");
+          if (err.code === err.PERMISSION_DENIED) {
+            try { localStorage.setItem(DENIED_KEY, "1"); } catch { /* ignore */ }
+          }
           toast.info(
             err.code === err.PERMISSION_DENIED
               ? "Location is off — you can enable it any time for nearby results."
