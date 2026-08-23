@@ -141,7 +141,7 @@ export default function PartnerNav() {
                 {n.label}
               </a>
             ))}
-            {userId ? (
+            {userId && isPartner ? (
               <>
                 <Link to="/partners/dashboard" onClick={() => setOpen(false)}>
                   <Button variant="outline" className="w-full">
@@ -155,6 +155,17 @@ export default function PartnerNav() {
                   <LogOut className="mr-1.5 h-4 w-4" /> Sign out
                 </Button>
               </>
+            ) : userId ? (
+              <>
+                <Link to="/dashboard/customer" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    <Home className="mr-1.5 h-4 w-4" /> My dashboard
+                  </Button>
+                </Link>
+                <Link to="/partners/register" onClick={() => setOpen(false)}>
+                  <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/partners/login" onClick={() => setOpen(false)}>
@@ -165,6 +176,7 @@ export default function PartnerNav() {
                 </Link>
               </>
             )}
+
           </div>
         </div>
       )}
