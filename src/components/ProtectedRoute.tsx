@@ -59,7 +59,7 @@ const SignInRequiredScreen = ({ message }: { message?: string }) => {
 };
 
 export default function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
-  const { user, role, loading, approvalStatus } = useAuth();
+  const { user, role, roles, loading, approvalStatus } = useAuth();
 
   if (loading) {
     return (
@@ -80,7 +80,13 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
     return <SignInRequiredScreen message="Your account needs to be set up. Please sign in to continue." />;
   }
 
-  if (!isAuthorizedForRole(role, allowedRole)) {
+  // Dual-role users (e.g. agent upgraded to district admin) keep access to every
+  // flow their assigned roles allow, not just the currently active workspace.
+  const authorized =
+    isAuthorizedForRole(role, allowedRole) ||
+    (roles ?? []).some((r) => isAuthorizedForRole(r as AppRole, allowedRole));
+
+  if (!authorized) {
     return <Navigate to="/dashboard" replace />;
   }
 

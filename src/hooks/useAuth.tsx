@@ -7,10 +7,26 @@ import * as authService from "@/services/authService";
 
 export type UserRole = AppUserRole;
 
+export const ADMIN_ROLES = ["admin", "country_admin", "state_admin", "district_admin"] as const;
+export const WORKSPACE_KEY = "jaagax.workspace";
+export type Workspace = "agent" | "admin";
+
+export const getWorkspacePreference = (): Workspace | null => {
+  if (typeof window === "undefined") return null;
+  const v = localStorage.getItem(WORKSPACE_KEY);
+  return v === "agent" || v === "admin" ? v : null;
+};
+
+export const setWorkspacePreference = (w: Workspace) => {
+  localStorage.setItem(WORKSPACE_KEY, w);
+  window.dispatchEvent(new CustomEvent("jaagax:workspace-changed"));
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -42,7 +58,17 @@ export const useAuth = () => {
       handleSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    const onWorkspaceChange = () => {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s?.user) void fetchUserRole(s.user.id, s.user.email);
+      });
+    };
+    window.addEventListener("jaagax:workspace-changed", onWorkspaceChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("jaagax:workspace-changed", onWorkspaceChange);
+    };
   }, []);
 
   const fetchUserRole = async (userId: string, email?: string | null) => {
@@ -50,6 +76,7 @@ export const useAuth = () => {
       const access = await resolveUserAccess(userId, email);
 
       setApprovalStatus(access.approvalStatus);
+      setRoles(access.assignedRoles);
 
       if (access.approvalStatus === "approved" && !access.hasAssignedRole && access.requestedRole) {
         await ensureApprovedRoleForUser(userId, access.requestedRole);
@@ -58,8 +85,18 @@ export const useAuth = () => {
       // Multi-profile bridge: if user has profiles, prefer the active profile's type for legacy `role`.
       // Exception: admin role always wins — never override with a profile row.
       let resolvedRole: UserRole | null = access.resolvedRole;
+
+      // Dual identity: an approved agent who was upgraded to an admin level keeps
+      // BOTH flows. The saved workspace preference decides which dashboard is active.
+      const dualAgentAdmin =
+        access.assignedRoles.includes("agent") &&
+        access.assignedRoles.some((r) => (ADMIN_ROLES as readonly string[]).includes(r));
+      if (dualAgentAdmin && getWorkspacePreference() !== "admin") {
+        resolvedRole = "agent";
+      }
+
       const isAdminRole = resolvedRole === "admin" || resolvedRole === "country_admin" || resolvedRole === "state_admin" || resolvedRole === "district_admin";
-      if (!isAdminRole) {
+      if (!isAdminRole && !dualAgentAdmin) {
         try {
           const { data: profileRows } = await supabase
             .from("profiles" as any)
@@ -193,5 +230,9 @@ export const useAuth = () => {
     }
   }, [navigate, role]);
 
-  return { user, session, role, loading, approvalStatus, signIn, signUp, signOut, redirectToDashboard };
+  const isAgentAdmin =
+    roles.includes("agent") && roles.some((r) => (ADMIN_ROLES as readonly string[]).includes(r));
+  const adminRole = roles.find((r) => (ADMIN_ROLES as readonly string[]).includes(r)) ?? null;
+
+  return { user, session, role, roles, isAgentAdmin, adminRole, loading, approvalStatus, signIn, signUp, signOut, redirectToDashboard };
 };

@@ -68,6 +68,7 @@ import AgentVerificationAssignments from "@/components/agent/AgentVerificationAs
 import AgentSubscriptionManager from "@/components/agent/AgentSubscriptionManager";
 import AgentTrialStatusCard from "@/components/agent/AgentTrialStatusCard";
 import AgentUpgradeRequestCard from "@/components/agent/AgentUpgradeRequestCard";
+import WorkspaceSwitcher from "@/components/agent/WorkspaceSwitcher";
 import AgentBadgeLevel from "@/components/agent/AgentBadgeLevel";
 import AgentSuccessScore from "@/components/agent/AgentSuccessScore";
 import AgentReferralProgram from "@/components/agent/AgentReferralProgram";
@@ -816,6 +817,7 @@ export default function AgentDashboard() {
       <Navigation />
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-12 space-y-6">
+        <WorkspaceSwitcher />
         {/* ===== Profile Header ===== */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/40">

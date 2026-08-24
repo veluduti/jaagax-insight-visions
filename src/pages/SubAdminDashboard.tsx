@@ -9,6 +9,7 @@ import AllListingsPanel from "@/components/admin/AllListingsPanel";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
+import WorkspaceSwitcher from "@/components/agent/WorkspaceSwitcher";
 import { Shield, Home, CheckCircle, FileText, TrendingDown, AlertCircle, List, Users } from "lucide-react";
 
 interface Props {
@@ -29,6 +30,7 @@ function DashboardShell({ title, subtitle, children }: Props) {
             {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
         </div>
+        <WorkspaceSwitcher />
         {children}
       </div>
     </div>
