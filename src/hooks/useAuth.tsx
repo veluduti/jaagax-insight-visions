@@ -58,7 +58,17 @@ export const useAuth = () => {
       handleSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    const onWorkspaceChange = () => {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s?.user) void fetchUserRole(s.user.id, s.user.email);
+      });
+    };
+    window.addEventListener("jaagax:workspace-changed", onWorkspaceChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("jaagax:workspace-changed", onWorkspaceChange);
+    };
   }, []);
 
   const fetchUserRole = async (userId: string, email?: string | null) => {
@@ -86,7 +96,7 @@ export const useAuth = () => {
       }
 
       const isAdminRole = resolvedRole === "admin" || resolvedRole === "country_admin" || resolvedRole === "state_admin" || resolvedRole === "district_admin";
-      if (!isAdminRole) {
+      if (!isAdminRole && !dualAgentAdmin) {
         try {
           const { data: profileRows } = await supabase
             .from("profiles" as any)
@@ -220,5 +230,9 @@ export const useAuth = () => {
     }
   }, [navigate, role]);
 
-  return { user, session, role, loading, approvalStatus, signIn, signUp, signOut, redirectToDashboard };
+  const isAgentAdmin =
+    roles.includes("agent") && roles.some((r) => (ADMIN_ROLES as readonly string[]).includes(r));
+  const adminRole = roles.find((r) => (ADMIN_ROLES as readonly string[]).includes(r)) ?? null;
+
+  return { user, session, role, roles, isAgentAdmin, adminRole, loading, approvalStatus, signIn, signUp, signOut, redirectToDashboard };
 };
