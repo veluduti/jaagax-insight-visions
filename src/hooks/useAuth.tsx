@@ -75,6 +75,16 @@ export const useAuth = () => {
       // Multi-profile bridge: if user has profiles, prefer the active profile's type for legacy `role`.
       // Exception: admin role always wins — never override with a profile row.
       let resolvedRole: UserRole | null = access.resolvedRole;
+
+      // Dual identity: an approved agent who was upgraded to an admin level keeps
+      // BOTH flows. The saved workspace preference decides which dashboard is active.
+      const dualAgentAdmin =
+        access.assignedRoles.includes("agent") &&
+        access.assignedRoles.some((r) => (ADMIN_ROLES as readonly string[]).includes(r));
+      if (dualAgentAdmin && getWorkspacePreference() !== "admin") {
+        resolvedRole = "agent";
+      }
+
       const isAdminRole = resolvedRole === "admin" || resolvedRole === "country_admin" || resolvedRole === "state_admin" || resolvedRole === "district_admin";
       if (!isAdminRole) {
         try {
