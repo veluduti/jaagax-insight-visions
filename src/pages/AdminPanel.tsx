@@ -50,6 +50,7 @@ import {
   Timer, Settings2,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import WorkspaceSwitcher from "@/components/agent/WorkspaceSwitcher";
 import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
 import BookingsPanel from "@/components/admin/BookingsPanel";
 import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
@@ -503,6 +504,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
             <p className="text-sm text-muted-foreground">{subtitle || "Manage users, properties, agents & platform"}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <WorkspaceSwitcher className="border-0 bg-transparent px-0 py-0" />
             <Button size="sm" variant="outline" onClick={() => setRemindOpen(true)}>
               <BellRing className="h-4 w-4 mr-1" /> Remind Admin
             </Button>
