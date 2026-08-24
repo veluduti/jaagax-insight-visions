@@ -7,10 +7,26 @@ import * as authService from "@/services/authService";
 
 export type UserRole = AppUserRole;
 
+export const ADMIN_ROLES = ["admin", "country_admin", "state_admin", "district_admin"] as const;
+export const WORKSPACE_KEY = "jaagax.workspace";
+export type Workspace = "agent" | "admin";
+
+export const getWorkspacePreference = (): Workspace | null => {
+  if (typeof window === "undefined") return null;
+  const v = localStorage.getItem(WORKSPACE_KEY);
+  return v === "agent" || v === "admin" ? v : null;
+};
+
+export const setWorkspacePreference = (w: Workspace) => {
+  localStorage.setItem(WORKSPACE_KEY, w);
+  window.dispatchEvent(new CustomEvent("jaagax:workspace-changed"));
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
   const navigate = useNavigate();
