@@ -66,6 +66,7 @@ export const useAuth = () => {
       const access = await resolveUserAccess(userId, email);
 
       setApprovalStatus(access.approvalStatus);
+      setRoles(access.assignedRoles);
 
       if (access.approvalStatus === "approved" && !access.hasAssignedRole && access.requestedRole) {
         await ensureApprovedRoleForUser(userId, access.requestedRole);
