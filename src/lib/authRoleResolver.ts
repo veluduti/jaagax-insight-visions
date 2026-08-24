@@ -13,6 +13,8 @@ export type AccessResolution = {
   resolvedDbRole: string | null;
   resolvedRole: AppUserRole | null;
   hasAssignedRole: boolean;
+  /** Every role assigned in `user_roles` (normalized) — used for dual agent+admin users. */
+  assignedRoles: string[];
 };
 
 const ROLE_PRIORITY = ["admin", "country_admin", "state_admin", "district_admin", "hotel_manager", "agent", "financial", "customer", "driver"] as const;
