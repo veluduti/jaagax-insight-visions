@@ -10,6 +10,7 @@ import { Loader2, ShieldPlus, Clock, CheckCircle2, XCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast";
 import LocationMasterSelector from "@/components/location/LocationMasterSelector";
 import { emptyMasterLocation, type MasterLocationSelection } from "@/hooks/useLocationMaster";
+import WorkspaceSwitcher from "@/components/agent/WorkspaceSwitcher";
 
 type Level = "district_admin" | "state_admin" | "country_admin";
 
@@ -119,8 +120,10 @@ export default function AgentUpgradeRequestCard({ agentId }: Props) {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Your agent tools stay active — switch to the admin dashboard from your profile menu.
+              Your agent tools stay active — use the workspace switcher at the top to move between
+              your Agent dashboard and your Admin dashboard any time.
             </p>
+            <WorkspaceSwitcher className="bg-background/60" />
           </div>
         )}
 
