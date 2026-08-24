@@ -96,6 +96,9 @@ export const resolveUserAccess = async (userId: string, email?: string | null): 
     resolvedDbRole,
     resolvedRole: resolvedDbRole ? mapDbRoleToAppRole(resolvedDbRole, requestedRole) : null,
     hasAssignedRole: Boolean(assignedDbRole),
+    assignedRoles: assignedRoles
+      .map((r) => normalizeDbRole(r))
+      .filter((r): r is string => Boolean(r)),
   };
 };
 
