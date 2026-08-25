@@ -156,22 +156,27 @@ export default function PartnerKYC() {
     if (!/^\d{10}$/.test(contact.phone)) return toast.error("Enter a valid 10-digit contact phone number");
     if (!contact.owner_name.trim()) return toast.error("Enter the owner name");
     if (!contact.hotel_name.trim()) return toast.error("Enter the hotel name");
+    if (!contact.city.trim()) return toast.error("Enter the city");
 
     setSaving(true);
     try {
       const s = snapshot || {};
+      const authEmail = (await supabase.auth.getUser()).data.user?.email || "";
+      const email = (contact.email || s.email || authEmail).trim();
+      if (!email) { setSaving(false); return toast.error("Enter a contact email"); }
+      const city = contact.city.trim() || s.city || "";
       const payload: any = {
         user_id: userId,
         hotel_name: contact.hotel_name.trim(),
         owner_name: contact.owner_name.trim(),
-        email: contact.email || (await supabase.auth.getUser()).data.user?.email || null,
+        email,
         phone: contact.phone,
         business_type: s.business_type || "Independent Hotel",
         company_name: s.company_name || null,
         country: s.country || "India",
-        state: s.state || null,
-        city: s.city || null,
-        locality: s.city || null,
+        state: contact.state.trim() || s.state || null,
+        city,
+        locality: contact.locality.trim() || city,
         pincode: null,
         gst_number: s.gst_number || null,
         pan_number: s.pan_number || null,
