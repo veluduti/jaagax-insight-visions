@@ -62,6 +62,7 @@ export default function CustomerDashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isHotelManager } = useHotelManagerAccess();
 
   // Legacy links used ?view=selling etc. — jump to the matching section.
   const viewParam = searchParams.get("view");
