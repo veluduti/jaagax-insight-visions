@@ -158,6 +158,11 @@ export default function PartnerNav() {
                     <LayoutDashboard className="mr-1.5 h-4 w-4" /> Dashboard
                   </Button>
                 </Link>
+                <Link to="/dashboard/customer" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    <Home className="mr-1.5 h-4 w-4" /> Customer Dashboard
+                  </Button>
+                </Link>
                 <Button
                   className="w-full bg-emerald-500 text-white hover:bg-emerald-600"
                   onClick={() => { setOpen(false); handleSignOut(); }}
