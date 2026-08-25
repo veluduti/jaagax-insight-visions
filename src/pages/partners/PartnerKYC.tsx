@@ -47,6 +47,7 @@ export default function PartnerKYC() {
     bank_name: "",
   });
   const [snapshot, setSnapshot] = useState<any>(null);
+  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "" });
 
   useEffect(() => {
     (async () => {
@@ -55,19 +56,28 @@ export default function PartnerKYC() {
       setUserId(user.id);
 
       const snap = sessionStorage.getItem("partner_signup_snapshot");
-      if (snap) setSnapshot(JSON.parse(snap));
+      const s = snap ? JSON.parse(snap) : null;
+      if (s) setSnapshot(s);
 
-      const { data: existing } = await (supabase as any)
-        .from("hotel_partner_applications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
+      const [{ data: existing }, { data: profile }] = await Promise.all([
+        (supabase as any)
+          .from("hotel_partner_applications")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1),
+        (supabase as any)
+          .from("profiles")
+          .select("full_name, phone, email")
+          .eq("user_id", user.id)
+          .limit(1)
+          .maybeSingle(),
+      ]);
       const app = existing?.[0];
       if (app) {
         setExistingId(app.id);
         const d: Record<string, string> = {};
-        DOC_SLOTS.forEach((s) => { if (app[s.key]) d[s.key] = app[s.key]; });
+        DOC_SLOTS.forEach((sl) => { if (app[sl.key]) d[sl.key] = app[sl.key]; });
         if (app.business_registration_url && !d.trade_license_url) d.trade_license_url = app.business_registration_url;
         setDocs(d);
         setPhotos(app.photos || []);
@@ -78,6 +88,13 @@ export default function PartnerKYC() {
           bank_name: app.bank_name || "",
         });
       }
+
+      setContact({
+        hotel_name: app?.hotel_name || s?.hotel_name || "",
+        owner_name: app?.owner_name || s?.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
+        email: app?.email || s?.email || profile?.email || user.email || "",
+        phone: (app?.phone || s?.phone || profile?.phone || user.phone || "").toString().replace(/\D/g, "").slice(-10),
+      });
     })();
   }, [nav]);
 
