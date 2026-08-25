@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2, Banknote } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2, Banknote, Hotel } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
 import CustomerOverview from "@/features/customer/CustomerOverview";
+import { useHotelManagerAccess } from "@/hooks/useHotelManagerAccess";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
@@ -61,6 +62,7 @@ export default function CustomerDashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isHotelManager } = useHotelManagerAccess();
 
   // Legacy links used ?view=selling etc. — jump to the matching section.
   const viewParam = searchParams.get("view");
@@ -106,6 +108,16 @@ export default function CustomerDashboard() {
                 {s.label}
               </Button>
             ))}
+            {isHotelManager && (
+              <Button
+                size="sm"
+                className="gap-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600"
+                onClick={() => navigate("/partners/dashboard")}
+              >
+                <Hotel className="h-4 w-4" />
+                Hotel Dashboard
+              </Button>
+            )}
             <Button onClick={handleSignOut} variant="ghost" size="sm" className="gap-2">
               <LogOut className="h-4 w-4" />
               Sign Out
