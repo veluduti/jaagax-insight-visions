@@ -16,8 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { getExistingAccount, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
 
-
-
 const steps = [
   { key: "account", label: "Account", icon: User2 },
   { key: "business", label: "Business", icon: Building2 },
@@ -25,12 +23,23 @@ const steps = [
   { key: "verify", label: "Verify", icon: ShieldCheck },
 ];
 
-const businessTypes = ["Independent Hotel", "Boutique Hotel", "Resort", "Homestay / B&B", "Serviced Apartments", "Hostel", "Chain / Group"];
+const businessTypes = [
+  "Independent Hotel",
+  "Boutique Hotel",
+  "Resort",
+  "Homestay / B&B",
+  "Serviced Apartments",
+  "Hostel",
+  "Chain / Group",
+];
 const countries = ["India", "United Arab Emirates", "Sri Lanka", "Nepal", "Bhutan", "Singapore", "Thailand"];
 
 const step1Schema = z.object({
   owner_name: z.string().trim().min(2, "Owner name is required").max(100),
-  phone: z.string().trim().regex(/^\+?[0-9]{10,14}$/, "Enter a valid phone number"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9]{10,14}$/, "Enter a valid phone number"),
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(8, "At least 8 characters"),
 });
@@ -52,17 +61,37 @@ const step3Schema = z.object({
 });
 
 type FormData = {
-  owner_name: string; phone: string; email: string; password: string;
-  hotel_name: string; company_name: string; business_type: string;
-  country: string; state: string; city: string;
-  gst_number: string; pan_number: string; num_hotels: number; num_rooms_total: number;
+  owner_name: string;
+  phone: string;
+  email: string;
+  password: string;
+  hotel_name: string;
+  company_name: string;
+  business_type: string;
+  country: string;
+  state: string;
+  city: string;
+  gst_number: string;
+  pan_number: string;
+  num_hotels: number;
+  num_rooms_total: number;
 };
 
 const initialForm: FormData = {
-  owner_name: "", phone: "+91", email: "", password: "",
-  hotel_name: "", company_name: "", business_type: "",
-  country: "India", state: "", city: "",
-  gst_number: "", pan_number: "", num_hotels: 1, num_rooms_total: 10,
+  owner_name: "",
+  phone: "+91",
+  email: "",
+  password: "",
+  hotel_name: "",
+  company_name: "",
+  business_type: "",
+  country: "India",
+  state: "",
+  city: "",
+  gst_number: "",
+  pan_number: "",
+  num_hotels: 1,
+  num_rooms_total: 10,
 };
 
 const GOOGLE_FLOW_KEY = "partner_register_google";
@@ -70,10 +99,19 @@ const GOOGLE_FLOW_KEY = "partner_register_google";
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
-      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.3 17.6 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.2 5.4-4.7 7l7.6 5.9c4.4-4.1 6.8-10.1 6.8-17.4z" />
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.3 17.6 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.2 5.4-4.7 7l7.6 5.9c4.4-4.1 6.8-10.1 6.8-17.4z"
+      />
       <path fill="#FBBC05" d="M10.4 28.7a14.5 14.5 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z" />
-      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.4 0-11.7-3.8-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
+      <path
+        fill="#34A853"
+        d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.4 0-11.7-3.8-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"
+      />
     </svg>
   );
 }
@@ -87,14 +125,18 @@ export default function PartnerRegister() {
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
-
   // Start with a blank account step. We only adopt the signed-in account when
   // the user explicitly chooses Google (fresh click or OAuth redirect back).
   useEffect(() => {
     (async () => {
       if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { sessionStorage.removeItem(GOOGLE_FLOW_KEY); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        return;
+      }
       const existing = await getExistingAccount(user.id);
       if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
@@ -112,13 +154,12 @@ export default function PartnerRegister() {
         ...f,
         owner_name: f.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
         email: user.email || profile?.email || f.email,
-        phone: f.phone && f.phone !== "+91" ? f.phone : (profile?.phone || (user.user_metadata as any)?.phone || "+91"),
+        phone: f.phone && f.phone !== "+91" ? f.phone : profile?.phone || (user.user_metadata as any)?.phone || "+91",
         city: f.city || profile?.city || "",
       }));
       setStep(1);
     })();
   }, []);
-
 
   const registerWithGoogle = async () => {
     setGoogleBusy(true);
@@ -134,7 +175,9 @@ export default function PartnerRegister() {
       }
       if (result?.redirected) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
         const existing = await getExistingAccount(user.id);
@@ -163,7 +206,6 @@ export default function PartnerRegister() {
   const usingAccount = !!account && form.email.trim().toLowerCase() === account.email.toLowerCase();
 
   const set = (k: keyof FormData) => (v: any) => setForm((f) => ({ ...f, [k]: v }));
-
 
   const next = () => {
     try {
@@ -244,7 +286,6 @@ export default function PartnerRegister() {
     }
   };
 
-
   const progress = ((step + 1) / steps.length) * 100;
 
   return (
@@ -261,12 +302,15 @@ export default function PartnerRegister() {
           </button>
 
           <p className="text-sm text-muted-foreground">
-            Already have an account? <Link to="/partners/login" className="text-emerald-400 hover:underline">Log in</Link>
+            Already have an account?{" "}
+            <Link to="/partners/login" className="text-emerald-400 hover:underline">
+              Log in
+            </Link>
           </p>
         </div>
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">List your property on JAAGA X</h1>
+          <h1 className="text-3xl font-bold tracking-tight">List your Hotel on JAAGA X</h1>
           <p className="mt-1 text-muted-foreground">Takes 2 minutes. Live within 24 hours.</p>
         </div>
 
@@ -286,22 +330,39 @@ export default function PartnerRegister() {
         <Card className="border border-emerald-500/20 bg-background/70 backdrop-blur">
           <CardContent className="p-6 sm:p-8">
             <AnimatePresence mode="wait">
-              <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.25 }}
+              >
                 {step === 0 && (
                   <div className="grid gap-4 sm:grid-cols-2">
                     {duplicateEmail && (
                       <div className="sm:col-span-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-4">
                         <p className="text-sm font-medium text-foreground">{GOOGLE_ALREADY_REGISTERED_MESSAGE}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{duplicateEmail} already has a JAAGA X Partner account.</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {duplicateEmail} already has a JAAGA X Partner account.
+                        </p>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          <Button type="button" size="sm" className="bg-emerald-500 text-white hover:bg-emerald-600" onClick={() => navigate("/partners/login")}>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="bg-emerald-500 text-white hover:bg-emerald-600"
+                            onClick={() => navigate("/partners/login")}
+                          >
                             Sign In
                           </Button>
                           <Button
                             type="button"
                             size="sm"
                             variant="outline"
-                            onClick={async () => { await supabase.auth.signOut(); setDuplicateEmail(null); setAccount(null); }}
+                            onClick={async () => {
+                              await supabase.auth.signOut();
+                              setDuplicateEmail(null);
+                              setAccount(null);
+                            }}
                           >
                             Use a different account
                           </Button>
@@ -311,9 +372,17 @@ export default function PartnerRegister() {
                     {account && (
                       <div className="sm:col-span-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
                         {usingAccount ? (
-                          <>Continuing with your JAAGA account <span className="font-medium text-emerald-400">{account.email}</span> — no new password needed. Edit any detail below, or use a different email to register a separate hotel account.</>
+                          <>
+                            Continuing with your JAAGA account{" "}
+                            <span className="font-medium text-emerald-400">{account.email}</span> — no new password
+                            needed. Edit any detail below, or use a different email to register a separate hotel
+                            account.
+                          </>
                         ) : (
-                          <>You're signed in as <span className="font-medium text-emerald-400">{account.email}</span>. You entered a different email, so a separate hotel account will be created.</>
+                          <>
+                            You're signed in as <span className="font-medium text-emerald-400">{account.email}</span>.
+                            You entered a different email, so a separate hotel account will be created.
+                          </>
                         )}
                       </div>
                     )}
@@ -321,11 +390,19 @@ export default function PartnerRegister() {
                     <Field label="Mobile" type="tel" value={form.phone} onChange={set("phone")} />
                     <Field label="Email" type="email" value={form.email} onChange={set("email")} />
                     {!usingAccount && (
-                      <Field label="Password" type="password" value={form.password} onChange={set("password")} hint="Minimum 8 characters" />
+                      <Field
+                        label="Password"
+                        type="password"
+                        value={form.password}
+                        onChange={set("password")}
+                        hint="Minimum 8 characters"
+                      />
                     )}
                     <div className="sm:col-span-2 space-y-3 pt-2">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="h-px flex-1 bg-border" /> or {account ? "use another Google account" : "continue with Google"} <span className="h-px flex-1 bg-border" />
+                        <span className="h-px flex-1 bg-border" /> or{" "}
+                        {account ? "use another Google account" : "continue with Google"}{" "}
+                        <span className="h-px flex-1 bg-border" />
                       </div>
                       <Button
                         type="button"
@@ -341,9 +418,6 @@ export default function PartnerRegister() {
                   </div>
                 )}
 
-
-
-
                 {step === 1 && (
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Hotel name" value={form.hotel_name} onChange={set("hotel_name")} />
@@ -351,18 +425,30 @@ export default function PartnerRegister() {
                     <div className="space-y-1.5">
                       <Label>Business type</Label>
                       <Select value={form.business_type} onValueChange={set("business_type")}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
                         <SelectContent>
-                          {businessTypes.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                          {businessTypes.map((b) => (
+                            <SelectItem key={b} value={b}>
+                              {b}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Country</Label>
                       <Select value={form.country} onValueChange={set("country")}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
-                          {countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          {countries.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -375,10 +461,21 @@ export default function PartnerRegister() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="GST number (optional)" value={form.gst_number} onChange={set("gst_number")} />
                     <Field label="PAN number (optional)" value={form.pan_number} onChange={set("pan_number")} />
-                    <Field label="Number of hotels" type="number" value={form.num_hotels as any} onChange={(v) => set("num_hotels")(Number(v))} />
-                    <Field label="Total number of rooms" type="number" value={form.num_rooms_total as any} onChange={(v) => set("num_rooms_total")(Number(v))} />
+                    <Field
+                      label="Number of hotels"
+                      type="number"
+                      value={form.num_hotels as any}
+                      onChange={(v) => set("num_hotels")(Number(v))}
+                    />
+                    <Field
+                      label="Total number of rooms"
+                      type="number"
+                      value={form.num_rooms_total as any}
+                      onChange={(v) => set("num_rooms_total")(Number(v))}
+                    />
                     <p className="sm:col-span-2 rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                      Documents (GST, PAN, trade license, cancelled cheque, etc.) will be requested after email verification.
+                      Documents (GST, PAN, trade license, cancelled cheque, etc.) will be requested after email
+                      verification.
                     </p>
                   </div>
                 )}
@@ -394,7 +491,9 @@ export default function PartnerRegister() {
                       <>
                         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-400" />
                         <p className="mt-3 font-semibold">Almost there!</p>
-                        <p className="mt-1 text-sm text-muted-foreground">Check your email for the verification code.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Check your email for the verification code.
+                        </p>
                       </>
                     )}
                   </div>
@@ -428,7 +527,11 @@ export default function PartnerRegister() {
   );
 }
 
-function Field({ label, hint, ...props }: { label: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement> & { onChange: (v: any) => void }) {
+function Field({
+  label,
+  hint,
+  ...props
+}: { label: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement> & { onChange: (v: any) => void }) {
   const { onChange, value, ...rest } = props as any;
   return (
     <div className="space-y-1.5">
