@@ -63,6 +63,11 @@ export default function PartnerNav() {
           <LayoutDashboard className="mr-1.5 h-4 w-4" /> Dashboard
         </Button>
       </Link>
+      <Link to="/dashboard/customer">
+        <Button variant="outline" size="sm">
+          <Home className="mr-1.5 h-4 w-4" /> Customer Dashboard
+        </Button>
+      </Link>
       <Button variant="outline" size="sm" onClick={handleSignOut}>
         <LogOut className="mr-1.5 h-4 w-4" /> Sign out
       </Button>
