@@ -14,6 +14,7 @@ import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { getExistingAccount, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
 
 
 
@@ -83,6 +84,7 @@ export default function PartnerRegister() {
   const [form, setForm] = useState<FormData>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
 
@@ -93,6 +95,12 @@ export default function PartnerRegister() {
       if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { sessionStorage.removeItem(GOOGLE_FLOW_KEY); return; }
+      const existing = await getExistingAccount(user.id);
+      if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        setDuplicateEmail(user.email ?? "");
+        return;
+      }
       const { data: profile } = await (supabase as any)
         .from("profiles")
         .select("full_name, email, phone, city")
@@ -129,6 +137,12 @@ export default function PartnerRegister() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        const existing = await getExistingAccount(user.id);
+        if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+          setDuplicateEmail(user.email ?? "");
+          toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
+          return;
+        }
         setAccount({ id: user.id, email: user.email ?? "" });
         setForm((f) => ({
           ...f,
