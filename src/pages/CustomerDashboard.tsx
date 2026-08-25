@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2, Banknote } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2, Banknote, Hotel } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
 import CustomerOverview from "@/features/customer/CustomerOverview";
+import { useHotelManagerAccess } from "@/hooks/useHotelManagerAccess";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
