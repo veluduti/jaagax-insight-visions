@@ -13,6 +13,8 @@ import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, Building2, ShieldCheck, U
 import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+
 
 
 const steps = [
