@@ -47,7 +47,7 @@ export default function PartnerKYC() {
     bank_name: "",
   });
   const [snapshot, setSnapshot] = useState<any>(null);
-  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "" });
+  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "", city: "", locality: "", state: "" });
 
   useEffect(() => {
     (async () => {
