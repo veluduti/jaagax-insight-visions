@@ -150,16 +150,19 @@ export default function PartnerKYC() {
     if (missing.length) return toast.error(`Missing: ${missing.map((m) => m.label).join(", ")}`);
     if (photos.length < 3) return toast.error("Upload at least 3 hotel photos");
     if (!bank.bank_account_number || !bank.bank_ifsc) return toast.error("Complete bank details");
+    if (!/^\d{10}$/.test(contact.phone)) return toast.error("Enter a valid 10-digit contact phone number");
+    if (!contact.owner_name.trim()) return toast.error("Enter the owner name");
+    if (!contact.hotel_name.trim()) return toast.error("Enter the hotel name");
 
     setSaving(true);
     try {
       const s = snapshot || {};
       const payload: any = {
         user_id: userId,
-        hotel_name: s.hotel_name || "My Hotel",
-        owner_name: s.owner_name || "Owner",
-        email: s.email || (await supabase.auth.getUser()).data.user?.email || null,
-        phone: s.phone || null,
+        hotel_name: contact.hotel_name.trim(),
+        owner_name: contact.owner_name.trim(),
+        email: contact.email || (await supabase.auth.getUser()).data.user?.email || null,
+        phone: contact.phone,
         business_type: s.business_type || "Independent Hotel",
         company_name: s.company_name || null,
         country: s.country || "India",
