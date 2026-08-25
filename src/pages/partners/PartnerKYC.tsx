@@ -47,6 +47,7 @@ export default function PartnerKYC() {
     bank_name: "",
   });
   const [snapshot, setSnapshot] = useState<any>(null);
+  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "" });
 
   useEffect(() => {
     (async () => {
@@ -55,19 +56,28 @@ export default function PartnerKYC() {
       setUserId(user.id);
 
       const snap = sessionStorage.getItem("partner_signup_snapshot");
-      if (snap) setSnapshot(JSON.parse(snap));
+      const s = snap ? JSON.parse(snap) : null;
+      if (s) setSnapshot(s);
 
-      const { data: existing } = await (supabase as any)
-        .from("hotel_partner_applications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
+      const [{ data: existing }, { data: profile }] = await Promise.all([
+        (supabase as any)
+          .from("hotel_partner_applications")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1),
+        (supabase as any)
+          .from("profiles")
+          .select("full_name, phone, email")
+          .eq("user_id", user.id)
+          .limit(1)
+          .maybeSingle(),
+      ]);
       const app = existing?.[0];
       if (app) {
         setExistingId(app.id);
         const d: Record<string, string> = {};
-        DOC_SLOTS.forEach((s) => { if (app[s.key]) d[s.key] = app[s.key]; });
+        DOC_SLOTS.forEach((sl) => { if (app[sl.key]) d[sl.key] = app[sl.key]; });
         if (app.business_registration_url && !d.trade_license_url) d.trade_license_url = app.business_registration_url;
         setDocs(d);
         setPhotos(app.photos || []);
@@ -78,6 +88,13 @@ export default function PartnerKYC() {
           bank_name: app.bank_name || "",
         });
       }
+
+      setContact({
+        hotel_name: app?.hotel_name || s?.hotel_name || "",
+        owner_name: app?.owner_name || s?.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
+        email: app?.email || s?.email || profile?.email || user.email || "",
+        phone: (app?.phone || s?.phone || profile?.phone || user.phone || "").toString().replace(/\D/g, "").slice(-10),
+      });
     })();
   }, [nav]);
 
@@ -133,16 +150,19 @@ export default function PartnerKYC() {
     if (missing.length) return toast.error(`Missing: ${missing.map((m) => m.label).join(", ")}`);
     if (photos.length < 3) return toast.error("Upload at least 3 hotel photos");
     if (!bank.bank_account_number || !bank.bank_ifsc) return toast.error("Complete bank details");
+    if (!/^\d{10}$/.test(contact.phone)) return toast.error("Enter a valid 10-digit contact phone number");
+    if (!contact.owner_name.trim()) return toast.error("Enter the owner name");
+    if (!contact.hotel_name.trim()) return toast.error("Enter the hotel name");
 
     setSaving(true);
     try {
       const s = snapshot || {};
       const payload: any = {
         user_id: userId,
-        hotel_name: s.hotel_name || "My Hotel",
-        owner_name: s.owner_name || "Owner",
-        email: s.email || (await supabase.auth.getUser()).data.user?.email || null,
-        phone: s.phone || null,
+        hotel_name: contact.hotel_name.trim(),
+        owner_name: contact.owner_name.trim(),
+        email: contact.email || (await supabase.auth.getUser()).data.user?.email || null,
+        phone: contact.phone,
         business_type: s.business_type || "Independent Hotel",
         company_name: s.company_name || null,
         country: s.country || "India",
@@ -201,6 +221,17 @@ export default function PartnerKYC() {
             <Progress value={progress} className="h-2" />
           </CardContent>
         </Card>
+
+        <Card className="mb-4 border border-border/60 bg-background/60 backdrop-blur">
+          <CardHeader><CardTitle className="text-base">Contact details</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div><Label>Hotel name *</Label><Input value={contact.hotel_name} onChange={(e) => setContact({ ...contact, hotel_name: e.target.value })} placeholder="Grand Palace Hotel" /></div>
+            <div><Label>Owner name *</Label><Input value={contact.owner_name} onChange={(e) => setContact({ ...contact, owner_name: e.target.value })} placeholder="Full name" /></div>
+            <div><Label>Phone *</Label><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="9876543210" inputMode="numeric" /></div>
+            <div><Label>Email</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+          </CardContent>
+        </Card>
+
 
         <Card className="mb-4 border border-border/60 bg-background/60 backdrop-blur">
           <CardHeader><CardTitle className="text-base">Compliance documents</CardTitle></CardHeader>
