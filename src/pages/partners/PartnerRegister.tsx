@@ -86,31 +86,31 @@ export default function PartnerRegister() {
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
 
-  // Prefill from the signed-in customer account so they can continue with
-  // their existing details (fully editable).
+  // Start with a blank account step. We only adopt the signed-in account when
+  // the user explicitly chooses Google (fresh click or OAuth redirect back).
   useEffect(() => {
     (async () => {
+      if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) { sessionStorage.removeItem(GOOGLE_FLOW_KEY); return; }
       const { data: profile } = await (supabase as any)
         .from("profiles")
         .select("full_name, email, phone, city")
         .eq("user_id", user.id)
         .maybeSingle();
+      sessionStorage.removeItem(GOOGLE_FLOW_KEY);
       setAccount({ id: user.id, email: user.email ?? "" });
       setForm((f) => ({
         ...f,
         owner_name: f.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
-        email: f.email || profile?.email || user.email || "",
+        email: user.email || profile?.email || f.email,
         phone: f.phone && f.phone !== "+91" ? f.phone : (profile?.phone || (user.user_metadata as any)?.phone || "+91"),
         city: f.city || profile?.city || "",
       }));
-      if (sessionStorage.getItem(GOOGLE_FLOW_KEY) === "1") {
-        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        setStep(1);
-      }
+      setStep(1);
     })();
   }, []);
+
 
   const registerWithGoogle = async () => {
     setGoogleBusy(true);
