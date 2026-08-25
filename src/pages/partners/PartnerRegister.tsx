@@ -229,6 +229,23 @@ export default function PartnerRegister() {
                         )}
                       </div>
                     )}
+                    {!account && (
+                      <div className="sm:col-span-2 space-y-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full h-11 gap-2"
+                          disabled={googleBusy}
+                          onClick={registerWithGoogle}
+                        >
+                          {googleBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                          Register with Google
+                        </Button>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="h-px flex-1 bg-border" /> or continue with email <span className="h-px flex-1 bg-border" />
+                        </div>
+                      </div>
+                    )}
                     <Field label="Owner name" value={form.owner_name} onChange={set("owner_name")} />
                     <Field label="Mobile" type="tel" value={form.phone} onChange={set("phone")} />
                     <Field label="Email" type="email" value={form.email} onChange={set("email")} />
@@ -237,6 +254,7 @@ export default function PartnerRegister() {
                     )}
                   </div>
                 )}
+
 
 
                 {step === 1 && (
