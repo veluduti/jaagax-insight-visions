@@ -236,7 +236,10 @@ export default function PartnerKYC() {
             <div><Label>Hotel name *</Label><Input value={contact.hotel_name} onChange={(e) => setContact({ ...contact, hotel_name: e.target.value })} placeholder="Grand Palace Hotel" /></div>
             <div><Label>Owner name *</Label><Input value={contact.owner_name} onChange={(e) => setContact({ ...contact, owner_name: e.target.value })} placeholder="Full name" /></div>
             <div><Label>Phone *</Label><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="9876543210" inputMode="numeric" /></div>
-            <div><Label>Email</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+            <div><Label>Email *</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+            <div><Label>City *</Label><Input value={contact.city} onChange={(e) => setContact({ ...contact, city: e.target.value })} placeholder="Hyderabad" /></div>
+            <div><Label>Locality</Label><Input value={contact.locality} onChange={(e) => setContact({ ...contact, locality: e.target.value })} placeholder="Banjara Hills" /></div>
+            <div><Label>State</Label><Input value={contact.state} onChange={(e) => setContact({ ...contact, state: e.target.value })} placeholder="Telangana" /></div>
           </CardContent>
         </Card>
 
