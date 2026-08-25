@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { getExistingAccount, isGoogleIdentity, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const COUNTRIES = [
@@ -35,7 +36,7 @@ const COUNTRIES = [
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type Step = "choose" | "email-form" | "google-details" | "otp" | "success";
+type Step = "choose" | "email-form" | "google-details" | "otp" | "success" | "already-registered";
 
 type Errors = Partial<Record<"fullName" | "country" | "phone" | "password" | "email", string>>;
 
@@ -59,6 +60,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [existingEmail, setExistingEmail] = useState("");
 
   const dial = useMemo(() => COUNTRIES.find((c) => c.name === country)?.dial ?? "+91", [country]);
 
@@ -73,19 +75,20 @@ export default function Register() {
         const user = session?.user;
         if (!user) return;
 
-        const { data: profiles } = await supabase
-          .from("profiles" as any)
-          .select("id")
-          .eq("user_id", user.id);
+        const isGoogle = isGoogleIdentity(user);
+        const existing = await getExistingAccount(user.id);
 
-        if ((profiles ?? []).length > 0) {
+        // Already-registered identity: never create a second account.
+        if (existing.exists) {
+          if (isGoogle) {
+            setExistingEmail(user.email || "");
+            setStep("already-registered");
+            return;
+          }
           navigate("/dashboard/buyer", { replace: true });
           return;
         }
 
-        const isGoogle =
-          user.app_metadata?.provider === "google" ||
-          (user.identities ?? []).some((i: any) => i.provider === "google");
         if (!isGoogle) return;
 
         setProvider("google");
@@ -188,7 +191,24 @@ export default function Register() {
         return;
       }
       if ((result as any)?.redirected) return;
-      // Session set in-place (popup flow): reload state.
+
+      // Popup flow: the session is already set — check for an existing account
+      // before letting the signup wizard continue.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const existing = await getExistingAccount(user.id);
+        if (existing.exists) {
+          setExistingEmail(user.email || "");
+          setStep("already-registered");
+          toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
+          return;
+        }
+        setProvider("google");
+        setFullName(user.user_metadata?.full_name || user.user_metadata?.name || "");
+        setEmail(user.email || "");
+        setStep("google-details");
+        return;
+      }
       window.location.href = "/register";
     } catch {
       toast.error("Google sign-in was cancelled or failed. Please try again.");
@@ -249,6 +269,35 @@ export default function Register() {
             {checkingSession && step === "choose" ? (
               <motion.div key="loading" className="py-16 flex justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </motion.div>
+            ) : step === "already-registered" ? (
+              <motion.div key="already" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center py-4">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <ShieldCheck className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-2xl font-bold text-foreground">Account already exists</h1>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {GOOGLE_ALREADY_REGISTERED_MESSAGE}
+                </p>
+                {existingEmail && (
+                  <p className="text-sm font-medium text-foreground mt-2">{existingEmail}</p>
+                )}
+                <div className="mt-6 space-y-3">
+                  <Button className="w-full h-12" onClick={() => navigate("/auth")}>
+                    Sign In
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12"
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      setExistingEmail("");
+                      setStep("choose");
+                    }}
+                  >
+                    Use a different account
+                  </Button>
+                </div>
               </motion.div>
             ) : step === "choose" ? (
               <motion.div key="choose" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>

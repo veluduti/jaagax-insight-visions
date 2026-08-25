@@ -14,6 +14,7 @@ import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { getExistingAccount, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
 
 
 
@@ -83,6 +84,7 @@ export default function PartnerRegister() {
   const [form, setForm] = useState<FormData>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
 
@@ -93,6 +95,12 @@ export default function PartnerRegister() {
       if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { sessionStorage.removeItem(GOOGLE_FLOW_KEY); return; }
+      const existing = await getExistingAccount(user.id);
+      if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        setDuplicateEmail(user.email ?? "");
+        return;
+      }
       const { data: profile } = await (supabase as any)
         .from("profiles")
         .select("full_name, email, phone, city")
@@ -129,6 +137,12 @@ export default function PartnerRegister() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        const existing = await getExistingAccount(user.id);
+        if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+          setDuplicateEmail(user.email ?? "");
+          toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
+          return;
+        }
         setAccount({ id: user.id, email: user.email ?? "" });
         setForm((f) => ({
           ...f,
@@ -275,6 +289,25 @@ export default function PartnerRegister() {
               <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
                 {step === 0 && (
                   <div className="grid gap-4 sm:grid-cols-2">
+                    {duplicateEmail && (
+                      <div className="sm:col-span-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-4">
+                        <p className="text-sm font-medium text-foreground">{GOOGLE_ALREADY_REGISTERED_MESSAGE}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{duplicateEmail} already has a JAAGA X Partner account.</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button type="button" size="sm" className="bg-emerald-500 text-white hover:bg-emerald-600" onClick={() => navigate("/partners/login")}>
+                            Sign In
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => { await supabase.auth.signOut(); setDuplicateEmail(null); setAccount(null); }}
+                          >
+                            Use a different account
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     {account && (
                       <div className="sm:col-span-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
                         {usingAccount ? (
