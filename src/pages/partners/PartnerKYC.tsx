@@ -94,6 +94,9 @@ export default function PartnerKYC() {
         owner_name: app?.owner_name || s?.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
         email: app?.email || s?.email || profile?.email || user.email || "",
         phone: (app?.phone || s?.phone || profile?.phone || user.phone || "").toString().replace(/\D/g, "").slice(-10),
+        city: app?.city || s?.city || "",
+        locality: app?.locality || s?.locality || s?.city || "",
+        state: app?.state || s?.state || "",
       });
     })();
   }, [nav]);
