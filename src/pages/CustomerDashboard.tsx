@@ -87,8 +87,7 @@ export default function CustomerDashboard() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
-              Welcome back,{" "}
-              <span className="text-primary">{user?.email?.split("@")[0] || "Customer"}!</span>
+              Welcome back, <span className="text-primary">{user?.email?.split("@")[0] || "Customer"}!</span>
             </h1>
             <p className="text-muted-foreground mt-1">
               One customer space — buy, sell, build and finance in a single view
@@ -96,10 +95,10 @@ export default function CustomerDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {SECTIONS.map((s, i) => (
+            {SECTIONS.map((s) => (
               <Button
                 key={s.id}
-                variant={i === SECTIONS.length - 1 ? "default" : "outline"}
+                variant="outline"
                 size="sm"
                 className="gap-2 rounded-full"
                 onClick={() => scrollToSection(s.id)}
@@ -111,7 +110,8 @@ export default function CustomerDashboard() {
             {isHotelManager && (
               <Button
                 size="sm"
-                className="gap-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600"
+                variant="outline"
+                className="gap-2 rounded-full"
                 onClick={() => navigate("/partners/dashboard")}
               >
                 <Hotel className="h-4 w-4" />
@@ -125,7 +125,6 @@ export default function CustomerDashboard() {
           </div>
         </div>
       </div>
-
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
         <CustomerOverview onNavigateTab={scrollToSection} />
