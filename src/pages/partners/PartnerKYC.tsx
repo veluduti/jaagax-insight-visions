@@ -47,7 +47,7 @@ export default function PartnerKYC() {
     bank_name: "",
   });
   const [snapshot, setSnapshot] = useState<any>(null);
-  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "" });
+  const [contact, setContact] = useState({ hotel_name: "", owner_name: "", email: "", phone: "", city: "", locality: "", state: "" });
 
   useEffect(() => {
     (async () => {
@@ -94,6 +94,9 @@ export default function PartnerKYC() {
         owner_name: app?.owner_name || s?.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
         email: app?.email || s?.email || profile?.email || user.email || "",
         phone: (app?.phone || s?.phone || profile?.phone || user.phone || "").toString().replace(/\D/g, "").slice(-10),
+        city: app?.city || s?.city || "",
+        locality: app?.locality || s?.locality || s?.city || "",
+        state: app?.state || s?.state || "",
       });
     })();
   }, [nav]);
@@ -153,22 +156,27 @@ export default function PartnerKYC() {
     if (!/^\d{10}$/.test(contact.phone)) return toast.error("Enter a valid 10-digit contact phone number");
     if (!contact.owner_name.trim()) return toast.error("Enter the owner name");
     if (!contact.hotel_name.trim()) return toast.error("Enter the hotel name");
+    if (!contact.city.trim()) return toast.error("Enter the city");
 
     setSaving(true);
     try {
       const s = snapshot || {};
+      const authEmail = (await supabase.auth.getUser()).data.user?.email || "";
+      const email = (contact.email || s.email || authEmail).trim();
+      if (!email) { setSaving(false); return toast.error("Enter a contact email"); }
+      const city = contact.city.trim() || s.city || "";
       const payload: any = {
         user_id: userId,
         hotel_name: contact.hotel_name.trim(),
         owner_name: contact.owner_name.trim(),
-        email: contact.email || (await supabase.auth.getUser()).data.user?.email || null,
+        email,
         phone: contact.phone,
         business_type: s.business_type || "Independent Hotel",
         company_name: s.company_name || null,
         country: s.country || "India",
-        state: s.state || null,
-        city: s.city || null,
-        locality: s.city || null,
+        state: contact.state.trim() || s.state || null,
+        city,
+        locality: contact.locality.trim() || city,
         pincode: null,
         gst_number: s.gst_number || null,
         pan_number: s.pan_number || null,
@@ -228,7 +236,10 @@ export default function PartnerKYC() {
             <div><Label>Hotel name *</Label><Input value={contact.hotel_name} onChange={(e) => setContact({ ...contact, hotel_name: e.target.value })} placeholder="Grand Palace Hotel" /></div>
             <div><Label>Owner name *</Label><Input value={contact.owner_name} onChange={(e) => setContact({ ...contact, owner_name: e.target.value })} placeholder="Full name" /></div>
             <div><Label>Phone *</Label><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="9876543210" inputMode="numeric" /></div>
-            <div><Label>Email</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+            <div><Label>Email *</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+            <div><Label>City *</Label><Input value={contact.city} onChange={(e) => setContact({ ...contact, city: e.target.value })} placeholder="Hyderabad" /></div>
+            <div><Label>Locality</Label><Input value={contact.locality} onChange={(e) => setContact({ ...contact, locality: e.target.value })} placeholder="Banjara Hills" /></div>
+            <div><Label>State</Label><Input value={contact.state} onChange={(e) => setContact({ ...contact, state: e.target.value })} placeholder="Telangana" /></div>
           </CardContent>
         </Card>
 
