@@ -223,6 +223,17 @@ export default function PartnerKYC() {
         </Card>
 
         <Card className="mb-4 border border-border/60 bg-background/60 backdrop-blur">
+          <CardHeader><CardTitle className="text-base">Contact details</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div><Label>Hotel name *</Label><Input value={contact.hotel_name} onChange={(e) => setContact({ ...contact, hotel_name: e.target.value })} placeholder="Grand Palace Hotel" /></div>
+            <div><Label>Owner name *</Label><Input value={contact.owner_name} onChange={(e) => setContact({ ...contact, owner_name: e.target.value })} placeholder="Full name" /></div>
+            <div><Label>Phone *</Label><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="9876543210" inputMode="numeric" /></div>
+            <div><Label>Email</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@hotel.com" /></div>
+          </CardContent>
+        </Card>
+
+
+        <Card className="mb-4 border border-border/60 bg-background/60 backdrop-blur">
           <CardHeader><CardTitle className="text-base">Compliance documents</CardTitle></CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             {DOC_SLOTS.map((slot) => (
