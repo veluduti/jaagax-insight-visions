@@ -108,6 +108,16 @@ export default function CustomerDashboard() {
                 {s.label}
               </Button>
             ))}
+            {isHotelManager && (
+              <Button
+                size="sm"
+                className="gap-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600"
+                onClick={() => navigate("/partners/dashboard")}
+              >
+                <Hotel className="h-4 w-4" />
+                Hotel Dashboard
+              </Button>
+            )}
             <Button onClick={handleSignOut} variant="ghost" size="sm" className="gap-2">
               <LogOut className="h-4 w-4" />
               Sign Out
