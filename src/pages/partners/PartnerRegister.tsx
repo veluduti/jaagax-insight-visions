@@ -103,13 +103,51 @@ export default function PartnerRegister() {
         phone: f.phone && f.phone !== "+91" ? f.phone : (profile?.phone || (user.user_metadata as any)?.phone || "+91"),
         city: f.city || profile?.city || "",
       }));
+      if (sessionStorage.getItem(GOOGLE_FLOW_KEY) === "1") {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        setStep(1);
+      }
     })();
   }, []);
+
+  const registerWithGoogle = async () => {
+    setGoogleBusy(true);
+    try {
+      sessionStorage.setItem(GOOGLE_FLOW_KEY, "1");
+      const result: any = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/partners/register`,
+      });
+      if (result?.error) {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        toast.error(result.error.message || "Google sign-in failed");
+        return;
+      }
+      if (result?.redirected) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+        setAccount({ id: user.id, email: user.email ?? "" });
+        setForm((f) => ({
+          ...f,
+          owner_name: f.owner_name || (user.user_metadata as any)?.full_name || "",
+          email: user.email || f.email,
+        }));
+        setStep(1);
+      }
+    } catch (e: any) {
+      sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+      toast.error(e?.message || "Google sign-in failed");
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
 
   // Reusing the signed-in account: no new signup, no "already registered" error.
   const usingAccount = !!account && form.email.trim().toLowerCase() === account.email.toLowerCase();
 
   const set = (k: keyof FormData) => (v: any) => setForm((f) => ({ ...f, [k]: v }));
+
 
   const next = () => {
     try {
