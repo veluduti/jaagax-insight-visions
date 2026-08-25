@@ -35,7 +35,7 @@ const COUNTRIES = [
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type Step = "choose" | "email-form" | "google-details" | "otp" | "success";
+type Step = "choose" | "email-form" | "google-details" | "otp" | "success" | "already-registered";
 
 type Errors = Partial<Record<"fullName" | "country" | "phone" | "password" | "email", string>>;
 
