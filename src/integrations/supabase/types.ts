@@ -694,6 +694,7 @@ export type Database = {
       agents: {
         Row: {
           agency_name: string | null
+          agent_code: string | null
           avg_rating: number | null
           bio: string | null
           cities_served: string | null
@@ -710,6 +711,7 @@ export type Database = {
           gender: string | null
           id: string
           languages: string | null
+          languages_spoken: string[]
           localities_served: string | null
           locality: string | null
           locality_id: string | null
@@ -730,6 +732,7 @@ export type Database = {
         }
         Insert: {
           agency_name?: string | null
+          agent_code?: string | null
           avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
@@ -746,6 +749,7 @@ export type Database = {
           gender?: string | null
           id?: string
           languages?: string | null
+          languages_spoken?: string[]
           localities_served?: string | null
           locality?: string | null
           locality_id?: string | null
@@ -766,6 +770,7 @@ export type Database = {
         }
         Update: {
           agency_name?: string | null
+          agent_code?: string | null
           avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
@@ -782,6 +787,7 @@ export type Database = {
           gender?: string | null
           id?: string
           languages?: string | null
+          languages_spoken?: string[]
           localities_served?: string | null
           locality?: string | null
           locality_id?: string | null
@@ -9098,6 +9104,7 @@ export type Database = {
           is_banned: boolean
           locality_id: string | null
           location_data: Json | null
+          preferred_language: string | null
           state: string | null
           state_id: string | null
           status: string
@@ -9119,6 +9126,7 @@ export type Database = {
           is_banned?: boolean
           locality_id?: string | null
           location_data?: Json | null
+          preferred_language?: string | null
           state?: string | null
           state_id?: string | null
           status?: string
@@ -9140,6 +9148,7 @@ export type Database = {
           is_banned?: boolean
           locality_id?: string | null
           location_data?: Json | null
+          preferred_language?: string | null
           state?: string | null
           state_id?: string | null
           status?: string
@@ -12669,6 +12678,7 @@ export type Database = {
       }
       expire_featured_boosts: { Args: never; Returns: number }
       find_user_id_by_email: { Args: { _email: string }; Returns: string }
+      generate_agent_code: { Args: never; Returns: string }
       generate_unique_builder_slug: {
         Args: { _id: string; _name: string }
         Returns: string
@@ -12713,12 +12723,15 @@ export type Database = {
         Returns: {
           active_tasks: number
           agent_city: string
+          agent_code: string
           agent_id: string
           agent_name: string
           agent_phone: string
           avg_rating: number
           completed_verifications: number
           distance_km: number
+          language_match: boolean
+          languages_spoken: string[]
           pending_tasks: number
         }[]
       }
