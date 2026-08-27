@@ -4,6 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { agentPublicLabel, agentAvatarInitials, agentLanguages } from "@/lib/agentPrivacy";
 import {
   CheckCircle2,
   Languages,
@@ -16,7 +17,8 @@ import {
 interface AgentCardProps {
   agent: {
     id: string;
-    name: string | null;
+    name?: string | null;
+    agent_code?: string | null;
     agency_name: string | null;
     languages: string | string[] | null;
     cities_served: string | string[] | null;
@@ -58,12 +60,12 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Agent Info */}
         <div className="flex items-start gap-4 mb-4">
           <Avatar className="h-16 w-16 ring-2 ring-primary/50">
-            <AvatarImage src={agent.photo_url || ""} alt={agent.name || ""} />
-            <AvatarFallback>{(agent.name || "A").charAt(0)}</AvatarFallback>
+            <AvatarImage src={agent.photo_url || ""} alt={agentPublicLabel(agent)} />
+            <AvatarFallback>{agentAvatarInitials(agent)}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1">
-            <h3 className="font-bold text-lg mb-1">{agent.name}</h3>
+            <h3 className="font-bold text-lg mb-1 font-mono tracking-wide">{agentPublicLabel(agent)}</h3>
             <p className="text-sm text-muted-foreground">{agent.agency_name}</p>
           </div>
         </div>
@@ -97,7 +99,7 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Languages */}
         <div className="flex items-center gap-2 mb-2 text-sm">
           <Languages className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{Array.isArray(agent.languages) ? agent.languages.join(", ") : (agent.languages || "N/A")}</span>
+          <span className="text-muted-foreground">{agentLanguages(agent).join(", ") || "N/A"}</span>
         </div>
 
         {/* Cities */}

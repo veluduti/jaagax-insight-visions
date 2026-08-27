@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare, Star, MapPin, Phone, Users } from "lucide-react";
 import AgentContactModal from "@/components/home/AgentContactModal";
+import { agentPublicLabel, agentAvatarInitials } from "@/lib/agentPrivacy";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LiveAgent {
   id: string;
-  name: string | null;
+  name?: string | null;
+  agent_code?: string | null;
   photo_url: string | null;
   avg_rating: number | null;
   total_ratings: number | null;
@@ -44,7 +46,7 @@ const FindMyAgent = () => {
       const { data } = await (supabase as any)
         .from("agents")
         .select(
-          "id, name, photo_url, avg_rating, total_ratings, trust_score, specializations, cities_served, city, district, state, created_at",
+          "id, agent_code, photo_url, avg_rating, total_ratings, trust_score, specializations, cities_served, city, district, state, created_at",
         )
         .order("trust_score", { ascending: false, nullsFirst: false })
         .limit(4);
@@ -114,7 +116,7 @@ const FindMyAgent = () => {
                     {agent.photo_url ? (
                       <img
                         src={agent.photo_url}
-                        alt={agent.name || "Agent"}
+                        alt={agentPublicLabel(agent)}
                         className="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
@@ -123,7 +125,7 @@ const FindMyAgent = () => {
                       <Avatar className="h-24 w-24 ring-4 ring-primary/20">
                         <AvatarImage src={undefined} />
                         <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
-                          {(agent.name || "A").charAt(0).toUpperCase()}
+                          {agentAvatarInitials(agent)}
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -134,7 +136,7 @@ const FindMyAgent = () => {
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
-                    <h3 className="font-bold text-lg mb-2 truncate">{agent.name || "Agent"}</h3>
+                    <h3 className="font-bold text-lg mb-2 truncate">{agentPublicLabel(agent)}</h3>
 
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center gap-1">
@@ -209,7 +211,7 @@ const FindMyAgent = () => {
       <AgentContactModal
         open={contactModalOpen}
         onOpenChange={setContactModalOpen}
-        agentName={selectedAgent?.name || undefined}
+        agentName={selectedAgent ? agentPublicLabel(selectedAgent) : undefined}
         onConfirm={handleConfirmContact}
       />
     </section>
