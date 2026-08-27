@@ -46,7 +46,7 @@ const FindMyAgent = () => {
       const { data } = await (supabase as any)
         .from("agents")
         .select(
-          "id, agent_code, name, photo_url, avg_rating, total_ratings, trust_score, specializations, cities_served, city, district, state, created_at",
+          "id, agent_code, photo_url, avg_rating, total_ratings, trust_score, specializations, cities_served, city, district, state, created_at",
         )
         .order("trust_score", { ascending: false, nullsFirst: false })
         .limit(4);
