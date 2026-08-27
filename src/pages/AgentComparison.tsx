@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   X
 } from "lucide-react";
+import { agentPublicLabel, agentAvatarInitials } from "@/lib/agentPrivacy";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -33,7 +34,8 @@ import { toast } from "sonner";
 
 interface Agent {
   id: string;
-  name: string | null;
+  name?: string | null;
+  agent_code?: string | null;
   photo_url: string | null;
   agency_name: string | null;
   cities_served: string[] | null;
@@ -158,11 +160,11 @@ const AgentComparison = () => {
                       <Avatar className="w-10 h-10">
                         <AvatarImage src={selectedAgents[index].photo_url} />
                         <AvatarFallback>
-                          {selectedAgents[index].name.charAt(0)}
+                          {agentAvatarInitials(selectedAgents[index])}
                         </AvatarFallback>
                       </Avatar>
                       <span className="flex-1 font-medium text-sm">
-                        {selectedAgents[index].name}
+                        {agentPublicLabel(selectedAgents[index])}
                       </span>
                       <Button
                         variant="ghost"
@@ -182,7 +184,7 @@ const AgentComparison = () => {
                           .filter(a => !selectedAgents.find(sa => sa.id === a.id))
                           .map((agent) => (
                             <SelectItem key={agent.id} value={agent.id.toString()}>
-                              {agent.name} - {agent.agency_name}
+                              {agentPublicLabel(agent)}{agent.agency_name ? ` - ${agent.agency_name}` : ""}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -210,11 +212,11 @@ const AgentComparison = () => {
                       <Avatar className="w-24 h-24 mx-auto border-4 border-primary/20">
                         <AvatarImage src={agent.photo_url} />
                         <AvatarFallback className="text-2xl">
-                          {agent.name.charAt(0)}
+                          {agentAvatarInitials(agent)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-bold text-lg">{agent.name}</h3>
+                        <h3 className="font-bold text-lg font-mono">{agentPublicLabel(agent)}</h3>
                         <p className="text-sm text-muted-foreground">{agent.agency_name}</p>
                       </div>
                       {agent.verified && (

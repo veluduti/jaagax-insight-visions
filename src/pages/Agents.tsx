@@ -85,7 +85,7 @@ const Agents = () => {
     try {
       const { data, error } = await supabase
         .from("agents")
-        .select("*")
+        .select("id, agent_code, agency_name, languages, languages_spoken, cities_served, localities_served, sales_count, rent_count, photo_url, trust_score, verified, avg_rating, total_ratings, city, district, state, specializations")
         .order("sales_count", { ascending: false });
 
       if (error) throw error;
@@ -96,7 +96,7 @@ const Agents = () => {
         await seedAgents();
         const { data: newData } = await supabase
           .from("agents")
-          .select("*")
+          .select("id, agent_code, agency_name, languages, languages_spoken, cities_served, localities_served, sales_count, rent_count, photo_url, trust_score, verified, avg_rating, total_ratings, city, district, state, specializations")
           .order("sales_count", { ascending: false });
         setAgents(newData || []);
         setFilteredAgents(newData || []);
