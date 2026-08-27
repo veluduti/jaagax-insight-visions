@@ -17,12 +17,14 @@ import { Search } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AgentCard from "@/components/agents/AgentCard";
+import { agentPublicLabel } from "@/lib/agentPrivacy";
 import FeaturedAgents, { getFeaturedAgents } from "@/components/agents/FeaturedAgents";
 import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
   id: string;
-  name: string | null;
+  name?: string | null;
+  agent_code?: string | null;
   agency_name: string | null;
   languages: string | string[] | null;
   cities_served: string | string[] | null;
@@ -120,7 +122,7 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
     if (searchQuery) {
       filtered = filtered.filter(
         (agent) =>
-          (agent.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agentPublicLabel(agent).toLowerCase().includes(searchQuery.toLowerCase()) ||
           toArray(agent.cities_served).some(city => city.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
@@ -207,7 +209,7 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search agents by name or area..."
+                    placeholder="Search agents by code or area..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
