@@ -55,6 +55,7 @@ import {
   type AgentProjectExperience,
   type ProjectDraft,
 } from "@/components/agents/projectExperience";
+import { agentPublicLabel, agentAvatarInitials, agentLanguages, LANGUAGE_OPTIONS } from "@/lib/agentPrivacy";
 
 interface Agent {
   id: string;
@@ -74,6 +75,8 @@ interface Agent {
   district?: string | null;
   state?: string | null;
   languages: string | null;
+  languages_spoken?: string[] | null;
+  agent_code?: string | null;
   specializations?: string[] | null;
   experience_years: number | null;
   trust_score?: number | null;
@@ -295,7 +298,8 @@ const AgentDetail = () => {
         gender: form.gender?.trim() || null,
         date_of_birth: form.date_of_birth || null,
         bio: (form.bio ?? "").slice(0, BIO_MAX).trim() || null,
-        languages: form.languages?.trim() || null,
+        languages: (form.languages_spoken || []).join(', ') || form.languages?.trim() || null,
+        languages_spoken: form.languages_spoken || [],
         experience_years: exp != null && Number.isFinite(exp) ? exp : null,
         agency_name: form.agency_name?.trim() || null,
         office_address: form.office_address?.trim() || null,
@@ -444,8 +448,8 @@ const AgentDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`${agent.name || "Agent"} — Agent Profile | JAAGA X`}
-        description={`Profile, performance and verified listings for ${agent.name || "this agent"} on JAAGA X.`}
+        title={`${displayName} — Agent Profile | JAAGA X`}
+        description={`Profile, performance and verified listings for ${displayName} on JAAGA X.`}
       />
       <Navigation />
 
@@ -461,14 +465,14 @@ const AgentDetail = () => {
             <CardContent className="-mt-12 flex flex-col gap-6 pb-6 md:flex-row md:items-end md:justify-between">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end">
                 <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
-                  <AvatarImage src={agent.photo_url || undefined} alt={agent.name || "Agent"} />
+                  <AvatarImage src={agent.photo_url || undefined} alt={displayName} />
                   <AvatarFallback className="text-2xl">
-                    {(agent.name || "A").charAt(0).toUpperCase()}
+                    {canEdit ? (agent.name || "A").charAt(0).toUpperCase() : agentAvatarInitials(agent)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-bold">{agent.name || "Unnamed Agent"}</h1>
+                    <h1 className={`text-2xl font-bold ${canEdit ? "" : "font-mono tracking-wide"}`}>{displayName}</h1>
                     {kycVerified && (
                       <Badge className="gap-1 bg-emerald-600 hover:bg-emerald-600">
                         <BadgeCheck className="h-3.5 w-3.5" /> Verified Agent
@@ -592,16 +596,18 @@ const AgentDetail = () => {
               label="Experience"
               value={agent.experience_years ? `${agent.experience_years} years` : null}
             />
-            <Row label="Languages" value={agent.languages} />
+            <Row label="Languages" value={agentLanguages(agent).join(", ") || agent.languages} />
             <Row label="Office Address" value={agent.office_address} />
-            <Row label="Phone Number" value={agent.phone} />
-            <Row label="Email Address" value={agent.email} />
-            <Row label="WhatsApp Number" value={agent.whatsapp_number} />
-            <Row label="Gender" value={agent.gender} />
-            <Row
-              label="Date of Birth"
-              value={agent.date_of_birth ? new Date(agent.date_of_birth).toLocaleDateString() : null}
-            />
+            {canEdit && <Row label="Phone Number" value={agent.phone} />}
+            {canEdit && <Row label="Email Address" value={agent.email} />}
+            {canEdit && <Row label="WhatsApp Number" value={agent.whatsapp_number} />}
+            {canEdit && <Row label="Gender" value={agent.gender} />}
+            {canEdit && (
+              <Row
+                label="Date of Birth"
+                value={agent.date_of_birth ? new Date(agent.date_of_birth).toLocaleDateString() : null}
+              />
+            )}
             <Row label="Operating City" value={agent.cities_served || agent.city} />
           </CardContent>
         </Card>
@@ -790,7 +796,6 @@ const AgentDetail = () => {
                 ["email", "Email Address"],
                 ["whatsapp_number", "WhatsApp Number"],
                 ["gender", "Gender"],
-                ["languages", "Languages"],
                 ["experience_years", "Experience (years)"],
                 ["agency_name", "Agency Name"],
                 ["office_address", "Office Address"],
@@ -807,6 +812,42 @@ const AgentDetail = () => {
                 />
               </div>
             ))}
+
+            <div className="space-y-2">
+              <Label>Languages I speak</Label>
+              <p className="text-xs text-muted-foreground">
+                Customers are matched to agents who speak their preferred language.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGE_OPTIONS.map((lang) => {
+                  const selected = (form.languages_spoken || []).includes(lang);
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => {
+                          const cur = f.languages_spoken || [];
+                          return {
+                            ...f,
+                            languages_spoken: cur.includes(lang)
+                              ? cur.filter((l) => l !== lang)
+                              : [...cur, lang],
+                          };
+                        })
+                      }
+                      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                        selected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:bg-muted"
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <ProjectExperienceEditor value={projectDrafts} onChange={setProjectDrafts} />
 
