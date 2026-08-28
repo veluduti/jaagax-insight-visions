@@ -15,10 +15,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import RateAgentDialog from "@/components/seller/RateAgentDialog";
+import { agentPublicLabel, agentAvatarInitials } from "@/lib/agentPrivacy";
 
 interface Agent {
   id: string;
   name?: string | null;
+  agent_code?: string | null;
   phone?: string | null;
   email?: string | null;
   photo_url?: string | null;
@@ -104,7 +106,7 @@ export function OwnerPropertyStatusPanel() {
       const agentsMap: Record<string, Agent> = {};
       if (agentIds.length) {
         const { data: ag } = await (supabase.from as any)("agents")
-          .select("id, name, phone, email, photo_url, avg_rating, total_ratings, sales_count, verified")
+          .select("id, agent_code, phone, email, photo_url, avg_rating, total_ratings, sales_count, verified")
           .in("id", agentIds);
         (ag || []).forEach((a: Agent) => { agentsMap[a.id!] = a; });
       }
@@ -257,14 +259,14 @@ export function OwnerPropertyStatusPanel() {
                 </div>
                 <div className="flex items-start gap-3">
                   {r.agent.photo_url ? (
-                    <img src={r.agent.photo_url} alt={r.agent.name || "Agent"} className="h-12 w-12 rounded-full object-cover border" />
+                    <img src={r.agent.photo_url} alt={agentPublicLabel(r.agent)} className="h-12 w-12 rounded-full object-cover border" />
                   ) : (
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                      {(r.agent.name || "A").charAt(0).toUpperCase()}
+                      {agentAvatarInitials(r.agent)}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm">{r.agent.name || "Agent"}</div>
+                    <div className="font-semibold text-sm font-mono tracking-wide">{agentPublicLabel(r.agent)}</div>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1">
                       {r.agent.phone && (
                         <a href={`tel:${r.agent.phone}`} className="flex items-center gap-1 hover:text-foreground"><Phone className="h-3 w-3" />{r.agent.phone}</a>
@@ -279,7 +281,7 @@ export function OwnerPropertyStatusPanel() {
                       <div className="mt-2">
                         <RateAgentDialog
                           agentId={r.agent.id}
-                          agentName={r.agent.name}
+                          agentName={agentPublicLabel(r.agent)}
                           propertyId={r.id}
                           buyerId={userId}
                           variant="inline"
