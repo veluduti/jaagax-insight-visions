@@ -1462,8 +1462,7 @@ export default function SellProperty() {
   }, []);
 
   /* ----- Handle category selection — initialize engine dynamically ----- */
-  const selectCategory = (cat: PropertyCategory) => {
-    if (category) return;
+  const startCategory = (cat: PropertyCategory) => {
     const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
     engineRef.current = createConversationEngine(cat);
     setCategory(cat);
@@ -1479,6 +1478,28 @@ export default function SellProperty() {
       },
     ]);
   };
+
+  const selectCategory = (cat: PropertyCategory) => {
+    if (category) return;
+    startCategory(cat);
+  };
+
+  /* ----- Switch to a different category mid-flow (resets answers) ----- */
+  const switchCategory = (cat: PropertyCategory) => {
+    if (cat === category) return;
+    engineRef.current = null;
+    setIntakeDone(false);
+    setDone(false);
+    setField(null);
+    setState({});
+    setHistory([]);
+    setMessages([
+      { id: uid(), role: "ai", kind: "text", text: "👋 Hi! I'll help you list your property." },
+      { id: uid(), role: "ai", kind: "text", text: "What type of property are you listing?" },
+    ]);
+    startCategory(cat);
+  };
+
 
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
   const fileToDataUrl = (file: File) =>
