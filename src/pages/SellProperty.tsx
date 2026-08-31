@@ -3755,9 +3755,72 @@ export default function SellProperty() {
             </div>
           )}
         </div>
+
+        {/* Mobile category switcher chips */}
+        {category && !showCategoryPicker && (
+          <div className="lg:hidden border-t border-border/40 bg-background/60">
+            <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {CATEGORY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => switchCategory(opt.id)}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                    opt.id === category
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                  )}
+                >
+                  <span>{opt.emoji}</span>
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Desktop left category rail */}
+      {category && !showCategoryPicker && (
+        <aside className="hidden lg:flex flex-col gap-1.5 fixed left-4 xl:left-8 top-40 z-20 w-56 rounded-2xl border border-border/60 bg-card/80 backdrop-blur p-3 shadow-sm">
+          <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Property category
+          </div>
+          {CATEGORY_OPTIONS.map((opt) => {
+            const active = opt.id === category;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => switchCategory(opt.id)}
+                aria-current={active ? "true" : undefined}
+                className={cn(
+                  "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all",
+                  active
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-transparent hover:border-border hover:bg-muted/60 text-foreground",
+                )}
+              >
+                <span className="text-lg leading-none">{opt.emoji}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-medium truncate">{opt.label}</span>
+                  <span className="block text-[10px] text-muted-foreground">
+                    {active ? "Active flow" : "Switch flow"}
+                  </span>
+                </span>
+                {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+              </button>
+            );
+          })}
+          <p className="px-1 pt-1 text-[10px] leading-snug text-muted-foreground">
+            Switching a category restarts the questions for that property type.
+          </p>
+        </aside>
+      )}
+
       {/* Chat scroll area */}
+
 
       {!showCategoryPicker && (
         <div
