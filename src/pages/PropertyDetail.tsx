@@ -650,6 +650,7 @@ const PropertyDetail = () => {
                 city={property.city}
                 locality={property.locality}
                 propertyId={property.id}
+                lifecycleStatus={(property as any).lifecycle_status}
                 exclusiveAssignedAgent={!!agent}
               />
             </AuthGate>
