@@ -11,17 +11,20 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { agentPublicLabel, agentAvatarInitials, agentLanguages, canRevealAgentContact } from "@/lib/agentPrivacy";
 
 interface NearbyAgentsProps {
   primaryAgent?: any;
   city: string;
   locality: string;
   propertyId: string;
+  /** Property lifecycle status — controls whether assigned agent contact is revealed */
+  lifecycleStatus?: string | null;
   /** When true, hide all other agents — only the primaryAgent (assigned agent) is shown */
   exclusiveAssignedAgent?: boolean;
 }
 
-export default function NearbyAgents({ primaryAgent, city, locality, propertyId, exclusiveAssignedAgent = false }: NearbyAgentsProps) {
+export default function NearbyAgents({ primaryAgent, city, locality, propertyId, lifecycleStatus, exclusiveAssignedAgent = false }: NearbyAgentsProps) {
   const navigate = useNavigate();
   const [nearbyAgents, setNearbyAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +46,7 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId,
       // Query agents serving this city/locality
       const { data, error } = await supabase
         .from("agents")
-        .select("*")
+        .select("id, agent_code, photo_url, trust_score, sales_count, languages_spoken, languages, verified, cities_served")
         .or(`cities_served.ilike.%${city}%,cities_served.ilike.%${locality}%`)
         .neq("id", primaryAgent?.id || "00000000-0000-0000-0000-000000000000")
         .eq("verified", true)
@@ -62,17 +65,25 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId,
 
   const handleContact = async (agent: any, method: "call" | "whatsapp" | "message") => {
     const { data: { user } } = await supabase.auth.getUser();
+    const revealed = canRevealAgentContact(lifecycleStatus);
+
+    if (!revealed) {
+      toast.info("Agent contact details unlock once the agent accepts your property assignment.");
+      return;
+    }
 
     switch (method) {
       case "call":
-        window.location.href = `tel:+919876543210`;
+        if (!agent.phone) { toast.info("Contact number not available yet"); return; }
+        window.location.href = `tel:${agent.phone}`;
         toast.success("Opening dialer...");
         break;
       case "whatsapp":
+        if (!agent.phone) { toast.info("WhatsApp number not available yet"); return; }
         const message = encodeURIComponent(
-          `Hi ${agent.name}, I'm interested in property ID: ${propertyId}`
+          `Hi ${agentPublicLabel(agent)}, I'm interested in property ID: ${propertyId}`
         );
-        window.open(`https://wa.me/919876543210?text=${message}`, "_blank");
+        window.open(`https://wa.me/${String(agent.phone).replace(/\D/g, "")}?text=${message}`, "_blank");
         break;
       case "message":
         if (!user) {
@@ -98,17 +109,17 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId,
       
       <div className="flex items-start gap-3 mb-3">
         <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-          <AvatarImage src={agent.photo_url} alt={agent.name} />
-          <AvatarFallback>{agent.name?.charAt(0) || 'A'}</AvatarFallback>
+          <AvatarImage src={agent.photo_url} alt={agentPublicLabel(agent)} />
+          <AvatarFallback>{agentAvatarInitials(agent)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold truncate">{agent.name}</h4>
+            <h4 className="font-semibold truncate font-mono tracking-wide">{agentPublicLabel(agent)}</h4>
             {agent.verified && (
               <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
             )}
           </div>
-          <p className="text-xs text-muted-foreground truncate">{agent.agency_name}</p>
+          
           <div className="flex items-center gap-3 mt-1">
             <span className="flex items-center gap-1 text-xs text-primary">
               <Award className="h-3 w-3" />
@@ -124,7 +135,7 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId,
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
         <Languages className="h-3 w-3 flex-shrink-0" />
-        <span className="truncate">{agent.languages || "English, Hindi"}</span>
+        <span className="truncate">{agentLanguages(agent).join(", ") || "English, Hindi"}</span>
       </div>
 
       <div className="flex gap-2">

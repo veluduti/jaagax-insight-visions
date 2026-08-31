@@ -246,6 +246,7 @@ const AgentDetail = () => {
   }, [id]);
 
   const canEdit = !!user && !!agent?.user_id && user.id === agent.user_id;
+  const displayName = canEdit ? (agent?.name || "Unnamed Agent") : agentPublicLabel(agent);
   const kycVerified = (kyc?.verification_status || "") === "verified";
 
   const soldProperties = useMemo(() => properties.filter((p) => p.is_sold), [properties]);
