@@ -12,6 +12,7 @@ import { Loader2, ShieldCheck, Upload, CheckCircle2, XCircle, Clock, ArrowLeft, 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { LANGUAGE_OPTIONS } from "@/lib/agentPrivacy";
 
 type Form = Record<string, any>;
 
@@ -286,9 +287,43 @@ export default function AgentRegistration() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {field("experience_years", "Years of Experience", "number")}
                   {field("operating_locations", "Operating Locations (comma separated)")}
-                  {field("languages", "Languages Known (comma separated)")}
+                  
                   {field("rera_number", "RERA Number (optional)")}
                   {field("agency_name", "Agency Name (optional)")}
+                </div>
+                <div className="space-y-2">
+                  <Label>Languages You Speak</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Customers are matched to agents who speak their preferred language.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {LANGUAGE_OPTIONS.map((lang) => {
+                      const selected = String(form.languages || "")
+                        .split(",")
+                        .map((l) => l.trim())
+                        .filter(Boolean);
+                      const active = selected.includes(lang);
+                      return (
+                        <Button
+                          key={lang}
+                          type="button"
+                          size="sm"
+                          variant={active ? "default" : "outline"}
+                          onClick={() =>
+                            setForm((f: any) => ({
+                              ...f,
+                              languages: (active
+                                ? selected.filter((l) => l !== lang)
+                                : [...selected, lang]
+                              ).join(", "),
+                            }))
+                          }
+                        >
+                          {lang}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
