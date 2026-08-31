@@ -46,7 +46,7 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId,
       // Query agents serving this city/locality
       const { data, error } = await supabase
         .from("agents")
-        .select("*")
+        .select("id, agent_code, photo_url, trust_score, sales_count, languages_spoken, languages, verified, cities_served")
         .or(`cities_served.ilike.%${city}%,cities_served.ilike.%${locality}%`)
         .neq("id", primaryAgent?.id || "00000000-0000-0000-0000-000000000000")
         .eq("verified", true)
