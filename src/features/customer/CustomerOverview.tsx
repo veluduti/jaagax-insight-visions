@@ -19,6 +19,7 @@ import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanc
 import BuyExploreCard from "./BuyExploreCard";
 import MarketInsightsCard from "./MarketInsightsCard";
 import SellTrackPanel from "./SellTrackPanel";
+import PreferredLanguageCard from "./PreferredLanguageCard";
 
 interface Counters {
   favorites: number;
@@ -161,6 +162,7 @@ export default function CustomerOverview({ onNavigateTab }: { onNavigateTab: (vi
 
         <div className="space-y-6">
           <MarketInsightsCard />
+          <PreferredLanguageCard />
           <SellTrackPanel onNavigateTab={onNavigateTab} />
         </div>
       </div>
