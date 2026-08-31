@@ -50,6 +50,10 @@ export interface AdvancedFilters {
   verifiedOnly: boolean;
   postedWithin: string;
   projectName: string;
+  propertyAge: string;
+  reraOnly: boolean;
+  handoverBy: string;
+  paymentPlan: string;
 }
 
 export const DEFAULT_FILTERS: AdvancedFilters = {
