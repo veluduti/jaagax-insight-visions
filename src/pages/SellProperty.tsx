@@ -3783,8 +3783,8 @@ export default function SellProperty() {
 
       {/* Desktop left category rail */}
       {category && !showCategoryPicker && (
-        <aside className="hidden lg:flex flex-col gap-1.5 fixed left-4 xl:left-8 top-40 z-20 w-56 rounded-2xl border border-border/60 bg-card/80 backdrop-blur p-3 shadow-sm">
-          <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <aside className="hidden lg:flex flex-col gap-1.5 fixed left-4 xl:left-8 top-28 z-20 w-56 max-h-[calc(100vh-9rem)] overflow-y-auto rounded-2xl border border-border/60 bg-card/80 backdrop-blur p-3 shadow-sm [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+          <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
           </div>
           {CATEGORY_OPTIONS.map((opt) => {
@@ -3796,7 +3796,7 @@ export default function SellProperty() {
                 onClick={() => switchCategory(opt.id)}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all",
+                  "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all shrink-0",
                   active
                     ? "border-primary bg-primary/10 text-primary shadow-sm"
                     : "border-transparent hover:border-border hover:bg-muted/60 text-foreground",
@@ -3813,7 +3813,7 @@ export default function SellProperty() {
               </button>
             );
           })}
-          <p className="px-1 pt-1 text-[10px] leading-snug text-muted-foreground">
+          <p className="px-1 pt-1 text-[10px] leading-snug text-muted-foreground shrink-0">
             Switching a category restarts the questions for that property type.
           </p>
         </aside>
