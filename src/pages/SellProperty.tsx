@@ -3783,39 +3783,41 @@ export default function SellProperty() {
 
       {/* Desktop left category rail */}
       {category && !showCategoryPicker && (
-        <aside className="hidden lg:flex flex-col gap-1.5 fixed left-4 xl:left-8 top-28 z-20 w-56 max-h-[calc(100vh-9rem)] overflow-y-auto rounded-2xl border border-border/60 bg-card/80 backdrop-blur p-3 shadow-sm [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
-          <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
+        <aside className="hidden lg:flex flex-col gap-1.5 fixed left-4 xl:left-8 top-28 bottom-44 z-20 w-56 overflow-y-auto rounded-2xl border border-border/60 bg-card/80 backdrop-blur shadow-sm [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+          <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
           </div>
-          {CATEGORY_OPTIONS.map((opt) => {
-            const active = opt.id === category;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => switchCategory(opt.id)}
-                aria-current={active ? "true" : undefined}
-                className={cn(
-                  "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all shrink-0",
-                  active
-                    ? "border-primary bg-primary/10 text-primary shadow-sm"
-                    : "border-transparent hover:border-border hover:bg-muted/60 text-foreground",
-                )}
-              >
-                <span className="text-lg leading-none">{opt.emoji}</span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-medium truncate">{opt.label}</span>
-                  <span className="block text-[10px] text-muted-foreground">
-                    {active ? "Active flow" : "Switch flow"}
+          <div className="flex flex-col gap-1.5 px-3 pb-2 overflow-y-auto">
+            {CATEGORY_OPTIONS.map((opt) => {
+              const active = opt.id === category;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => switchCategory(opt.id)}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all shrink-0",
+                    active
+                      ? "border-primary bg-primary/10 text-primary shadow-sm"
+                      : "border-transparent hover:border-border hover:bg-muted/60 text-foreground",
+                  )}
+                >
+                  <span className="text-lg leading-none">{opt.emoji}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium truncate">{opt.label}</span>
+                    <span className="block text-[10px] text-muted-foreground">
+                      {active ? "Active flow" : "Switch flow"}
+                    </span>
                   </span>
-                </span>
-                {active && <span className="h-2 w-2 rounded-full bg-primary" />}
-              </button>
-            );
-          })}
-          <p className="px-1 pt-1 text-[10px] leading-snug text-muted-foreground shrink-0">
+                  {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-auto px-3 pb-4 pt-1 text-[10px] leading-snug text-muted-foreground shrink-0">
             Switching a category restarts the questions for that property type.
-          </p>
+          </div>
         </aside>
       )}
 
