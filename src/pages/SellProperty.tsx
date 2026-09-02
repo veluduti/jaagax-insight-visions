@@ -3823,6 +3823,13 @@ export default function SellProperty() {
         </aside>
       )}
 
+      {/* Desktop right rail — nearby verified agents */}
+      <NearbyAgentsRail
+        city={savedLocation?.city || null}
+        className="hidden xl:flex fixed right-4 2xl:right-8 top-28 bottom-44 z-20 w-60"
+      />
+
+
       {/* Chat scroll area */}
 
 
