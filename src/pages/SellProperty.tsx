@@ -56,6 +56,8 @@ import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/en
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
 import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
+import NearbyAgentsRail from "@/components/agents/NearbyAgentsRail";
+import { useSavedLocation } from "@/hooks/useSavedLocation";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
@@ -1032,6 +1034,7 @@ function normalizeToArray(value: any): string[] {
 }
 
 export default function SellProperty() {
+  const { savedLocation } = useSavedLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isAgentMode = searchParams.get("as") === "agent";
