@@ -3784,9 +3784,9 @@ export default function SellProperty() {
         )}
       </div>
 
-      {/* Desktop left category rail */}
-      {category && !showCategoryPicker && (
-        <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-28 bottom-44 z-20 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card/80 backdrop-blur shadow-sm">
+      {/* Desktop left rail — categories in chat mode, nearby agents on the picker */}
+      {category && !showCategoryPicker ? (
+        <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-36 bottom-44 z-30 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
           <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
           </div>
@@ -3824,12 +3824,20 @@ export default function SellProperty() {
             Switching a category restarts the questions for that property type.
           </div>
         </aside>
+      ) : (
+        <NearbyAgentsRail
+          city={savedLocation?.city || null}
+          className="hidden lg:flex fixed left-4 xl:left-8 top-36 bottom-8 z-30 w-60"
+        />
       )}
 
       {/* Desktop right rail — nearby verified agents */}
       <NearbyAgentsRail
         city={savedLocation?.city || null}
-        className="hidden xl:flex fixed right-4 2xl:right-8 top-28 bottom-44 z-20 w-60"
+        className={cn(
+          "hidden xl:flex fixed right-4 2xl:right-8 top-36 z-30 w-60",
+          showCategoryPicker ? "bottom-8" : "bottom-44",
+        )}
       />
 
 

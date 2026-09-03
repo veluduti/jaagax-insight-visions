@@ -73,7 +73,7 @@ export default function NearbyAgentsRail({ city, className }: NearbyAgentsRailPr
   return (
     <aside
       className={cn(
-        "flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80 backdrop-blur shadow-sm",
+        "flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm",
         className,
       )}
     >
