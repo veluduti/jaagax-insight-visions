@@ -3827,7 +3827,7 @@ export default function SellProperty() {
       ) : (
         <NearbyAgentsRail
           city={savedLocation?.city || null}
-          className="hidden lg:flex fixed left-4 xl:left-8 top-36 bottom-8 z-30 w-60"
+          className="hidden lg:flex fixed left-4 xl:left-8 top-36 bottom-8 z-[45] w-60"
         />
       )}
 
@@ -3835,7 +3835,7 @@ export default function SellProperty() {
       <NearbyAgentsRail
         city={savedLocation?.city || null}
         className={cn(
-          "hidden xl:flex fixed right-4 2xl:right-8 top-36 z-30 w-60",
+          "hidden xl:flex fixed right-4 2xl:right-8 top-36 z-[45] w-60",
           showCategoryPicker ? "bottom-8" : "bottom-44",
         )}
       />
