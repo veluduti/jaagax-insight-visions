@@ -3784,9 +3784,9 @@ export default function SellProperty() {
         )}
       </div>
 
-      {/* Desktop left category rail */}
-      {category && !showCategoryPicker && (
-        <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-28 bottom-44 z-20 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card/80 backdrop-blur shadow-sm">
+      {/* Desktop left rail — categories in chat mode, nearby agents on the picker */}
+      {category && !showCategoryPicker ? (
+        <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-36 bottom-44 z-30 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
           <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
           </div>
