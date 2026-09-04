@@ -33,10 +33,8 @@ const Index = () => {
     return <div className="min-h-screen bg-background" />;
   }
 
-  // Hotel managers have their own dedicated Partner portal — send them straight to their dashboard.
-  if (role === "hotel_manager") {
-    return <Navigate to="/partners/dashboard" replace />;
-  }
+  // Hotel managers can also browse the main home page; the Partner portal is reachable via Dashboard.
+
 
   const showBuyRent = canSee(role, "buyRent");
   const showNewProjects = canSee(role, "newProjects");
