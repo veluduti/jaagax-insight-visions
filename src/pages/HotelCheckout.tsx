@@ -16,6 +16,7 @@ import { resolveHotelImages } from "@/lib/hotelImage";
 import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
 import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
 import type { MealType } from "@/lib/hotelPricing";
+import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
 
 
 declare global {
@@ -93,6 +94,20 @@ const HotelCheckout = () => {
   const [step, setStep] = useState<Step>("guest");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const { isAuthenticated, openAuthPopup } = useRequireAuth();
+
+  // Only signed-in users may reach checkout: bounce guests with a sign-in prompt.
+  useEffect(() => {
+    if (isAuthenticated) return;
+    toast.error("Please sign in to continue booking");
+    openAuthPopup({
+      title: "Sign in to book",
+      message: "You need to sign in to complete your hotel booking.",
+    });
+    navigate(hotelId ? `/hotels/${hotelId}` : "/hotels", { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
