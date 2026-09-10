@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
+import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
 import { inr } from "@/components/hotels/BookingPricingControls";
 import { RoomGroupExtras, type GroupSelection } from "@/components/hotels/RoomGroupExtras";
 import { AddonSelector, useAddonTotals, type AddonSelectionMap } from "@/components/hotels/HotelAddons";
@@ -87,6 +88,7 @@ const HotelBookingModal = ({
   initialRooms,
 }: HotelBookingModalProps) => {
   const navigate = useNavigate();
+  const { isAuthenticated, openAuthPopup } = useRequireAuth();
   const [step, setStep] = useState<Step>("dates");
   const [checkIn, setCheckIn] = useState<Date | undefined>(initialCheckIn ?? addDays(new Date(), 1));
   const [checkOut, setCheckOut] = useState<Date | undefined>(initialCheckOut ?? addDays(new Date(), 2));
@@ -124,9 +126,23 @@ const HotelBookingModal = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Reset the flow and sync incoming search filters each time the modal opens.
+  // Only signed-in users may book: bounce guests to the sign-in popup.
   useEffect(() => {
     if (!open) return;
+    if (!isAuthenticated) {
+      onClose();
+      toast.error("Please sign in to book this hotel");
+      openAuthPopup({
+        title: "Sign in to book",
+        message: `You need to sign in to book a stay at ${hotel.name}.`,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isAuthenticated]);
+
+  // Reset the flow and sync incoming search filters each time the modal opens.
+  useEffect(() => {
+    if (!open || !isAuthenticated) return;
     setStep("dates");
     setGroups([]);
     setAddonSelection({});
@@ -472,6 +488,8 @@ const HotelBookingModal = ({
       </div>
     );
   };
+
+  if (!isAuthenticated) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
