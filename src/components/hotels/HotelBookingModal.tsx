@@ -88,6 +88,7 @@ const HotelBookingModal = ({
   initialRooms,
 }: HotelBookingModalProps) => {
   const navigate = useNavigate();
+  const { isAuthenticated, openAuthPopup } = useRequireAuth();
   const [step, setStep] = useState<Step>("dates");
   const [checkIn, setCheckIn] = useState<Date | undefined>(initialCheckIn ?? addDays(new Date(), 1));
   const [checkOut, setCheckOut] = useState<Date | undefined>(initialCheckOut ?? addDays(new Date(), 2));
