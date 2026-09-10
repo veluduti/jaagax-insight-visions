@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
+import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
 import { inr } from "@/components/hotels/BookingPricingControls";
 import { RoomGroupExtras, type GroupSelection } from "@/components/hotels/RoomGroupExtras";
 import { AddonSelector, useAddonTotals, type AddonSelectionMap } from "@/components/hotels/HotelAddons";
