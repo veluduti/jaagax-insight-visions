@@ -45,7 +45,7 @@ import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 import AgentKycPanel, { AgentKyc } from "@/components/agents/AgentKycPanel";
 import ProjectExperienceEditor from "@/components/agents/ProjectExperienceEditor";
-import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
+import AgentTemplateUpload from "@/components/agents/AgentTemplateUpload";
 import ProjectExperienceCards from "@/components/agents/ProjectExperienceCards";
 import {
   emptyDraft,
@@ -260,10 +260,10 @@ const AgentDetail = () => {
     [agent],
   );
 
-  // Personal photo uploads are disabled — agents pick an official JAAGAX template.
-  const handleTemplateSelect = (url: string) => {
+  // Personal photos are not allowed — agents upload the JAAGAX-provided template.
+  const handleTemplateUpload = (url: string) => {
     setForm((f) => ({ ...f, photo_url: url }));
-    toast.success("Template selected — save to apply");
+    toast.success("Template uploaded — save to apply");
   };
 
   const handleSave = async () => {
@@ -749,14 +749,8 @@ const AgentDetail = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={form.photo_url || undefined} />
-                  <AvatarFallback>{(form.name || "A").charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <Label className="font-medium">Profile Photo (JAAGAX template)</Label>
-              </div>
-              <AgentAvatarPicker value={form.photo_url} onChange={handleTemplateSelect} />
+              <Label className="font-medium">Profile Photo (JAAGAX template)</Label>
+              <AgentTemplateUpload value={form.photo_url} onChange={handleTemplateUpload} name={form.name} />
             </div>
 
             {(
