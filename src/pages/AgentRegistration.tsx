@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { LANGUAGE_OPTIONS } from "@/lib/agentPrivacy";
-import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
+import AgentTemplateUpload from "@/components/agents/AgentTemplateUpload";
 
 type Form = Record<string, any>;
 
@@ -283,9 +283,11 @@ export default function AgentRegistration() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>Profile Photo (JAAGAX template)</Label>
-                  <AgentAvatarPicker
+                  <AgentTemplateUpload
                     value={form.profile_photo_url}
-                    onChange={(url) => !locked && set({ profile_photo_url: url })}
+                    onChange={(url) => set({ profile_photo_url: url })}
+                    disabled={locked}
+                    name={form.full_name}
                   />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
