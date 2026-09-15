@@ -24,7 +24,6 @@ import {
   Share2,
   Pencil,
   Copy,
-  Camera,
   Home,
   IndianRupee,
   Briefcase,

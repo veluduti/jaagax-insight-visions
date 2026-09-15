@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { LANGUAGE_OPTIONS } from "@/lib/agentPrivacy";
+import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
 
 type Form = Record<string, any>;
 
