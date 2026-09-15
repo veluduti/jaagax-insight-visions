@@ -46,6 +46,7 @@ import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 import AgentKycPanel, { AgentKyc } from "@/components/agents/AgentKycPanel";
 import ProjectExperienceEditor from "@/components/agents/ProjectExperienceEditor";
+import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
 import ProjectExperienceCards from "@/components/agents/ProjectExperienceCards";
 import {
   emptyDraft,
@@ -173,8 +174,6 @@ const AgentDetail = () => {
   const [form, setForm] = useState<Partial<Agent>>({});
   const [projects, setProjects] = useState<AgentProjectExperience[]>([]);
   const [projectDrafts, setProjectDrafts] = useState<ProjectDraft[]>([emptyDraft()]);
-  const photoInput = useRef<HTMLInputElement | null>(null);
-  const [photoBusy, setPhotoBusy] = useState(false);
 
   const [properties, setProperties] = useState<PropertyRow[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
