@@ -1301,13 +1301,14 @@ export default function SellProperty() {
   const engineRef = useRef<ConversationEngine | null>(null);
   const [category, setCategory] = useState<PropertyCategory | null>(null);
 
-  const CATEGORY_OPTIONS: { id: PropertyCategory; label: string; emoji: string }[] = [
+  const CATEGORY_OPTIONS: { id: PropertyCategory | "land"; label: string; emoji: string }[] = [
     { id: "residential", label: "Residential", emoji: "🏠" },
     { id: "commercial", label: "Commercial", emoji: "🏢" },
     { id: "plots", label: "Plots / Land", emoji: "📐" },
     { id: "agriculture", label: "Agricultural", emoji: "🌾" },
     { id: "coworking", label: "Co-working", emoji: "💼" },
     { id: "financial", label: "Financial", emoji: "💰" },
+    { id: "land", label: "List Your Land", emoji: "🌿" },
   ];
 
   /* ----- Auto-scroll on new messages ----- */
