@@ -1483,13 +1483,21 @@ export default function SellProperty() {
     ]);
   };
 
-  const selectCategory = (cat: PropertyCategory) => {
+  const selectCategory = (cat: PropertyCategory | "land") => {
+    if (cat === "land") {
+      navigate("/natural-living/list-land");
+      return;
+    }
     if (category) return;
     startCategory(cat);
   };
 
   /* ----- Switch to a different category mid-flow (resets answers) ----- */
-  const switchCategory = (cat: PropertyCategory) => {
+  const switchCategory = (cat: PropertyCategory | "land") => {
+    if (cat === "land") {
+      navigate("/natural-living/list-land");
+      return;
+    }
     if (cat === category) return;
     engineRef.current = null;
     setIntakeDone(false);
