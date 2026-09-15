@@ -45,7 +45,7 @@ import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 import AgentKycPanel, { AgentKyc } from "@/components/agents/AgentKycPanel";
 import ProjectExperienceEditor from "@/components/agents/ProjectExperienceEditor";
-import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
+import AgentTemplateUpload from "@/components/agents/AgentTemplateUpload";
 import ProjectExperienceCards from "@/components/agents/ProjectExperienceCards";
 import {
   emptyDraft,
