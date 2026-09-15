@@ -115,23 +115,39 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
   return val.split(',').map(s => s.trim()).filter(Boolean);
 };
 
+  const agentAreas = (agent: any): string[] =>
+    [
+      ...toArray(agent.cities_served),
+      ...toArray(agent.localities_served),
+      agent.city,
+      agent.district,
+      agent.state,
+    ]
+      .filter(Boolean)
+      .map((s: string) => String(s).toLowerCase());
+
   const applyFilters = () => {
     let filtered = [...agents];
 
     // Search filter
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (agent) =>
-          agentPublicLabel(agent).toLowerCase().includes(searchQuery.toLowerCase()) ||
-          toArray(agent.cities_served).some(city => city.toLowerCase().includes(searchQuery.toLowerCase()))
+          agentPublicLabel(agent).toLowerCase().includes(q) ||
+          (agent.agency_name || "").toLowerCase().includes(q) ||
+          agentAreas(agent).some((area) => area.includes(q))
       );
     }
 
-    // City filter
+    // City filter — agents with no area set are still shown
     if (cityFilter !== "all") {
-      filtered = filtered.filter((agent) =>
-        toArray(agent.cities_served).some(city => city.toLowerCase().includes(cityFilter.toLowerCase()))
-      );
+      const c = cityFilter.toLowerCase();
+      filtered = filtered.filter((agent) => {
+        const areas = agentAreas(agent);
+        if (areas.length === 0) return true;
+        return areas.some((area) => area.includes(c) || c.includes(area));
+      });
     }
 
     // Verified only filter
@@ -161,11 +177,16 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
   };
 
   const cities = Array.from(
-    new Set(
+    new Map(
       agents
-        .flatMap((agent) => toArray(agent.cities_served))
+        .flatMap((agent: any) => [...toArray(agent.cities_served), agent.city])
         .filter(Boolean)
-    )
+        .map((c: string) => {
+          const label = String(c).trim();
+          const pretty = label.charAt(0).toUpperCase() + label.slice(1);
+          return [label.toLowerCase(), pretty] as [string, string];
+        })
+    ).values()
   );
 
   // City -> stable slug for unique selectors/xpaths per city

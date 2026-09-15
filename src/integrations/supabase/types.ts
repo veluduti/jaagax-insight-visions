@@ -719,6 +719,7 @@ export type Database = {
           office_address: string | null
           phone: string
           photo_url: string | null
+          rent_count: number
           sales_count: number | null
           specializations: string[] | null
           state: string | null
@@ -757,6 +758,7 @@ export type Database = {
           office_address?: string | null
           phone: string
           photo_url?: string | null
+          rent_count?: number
           sales_count?: number | null
           specializations?: string[] | null
           state?: string | null
@@ -795,6 +797,7 @@ export type Database = {
           office_address?: string | null
           phone?: string
           photo_url?: string | null
+          rent_count?: number
           sales_count?: number | null
           specializations?: string[] | null
           state?: string | null
