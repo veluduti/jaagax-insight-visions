@@ -177,11 +177,16 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
   };
 
   const cities = Array.from(
-    new Set(
+    new Map(
       agents
-        .flatMap((agent) => toArray(agent.cities_served))
+        .flatMap((agent: any) => [...toArray(agent.cities_served), agent.city])
         .filter(Boolean)
-    )
+        .map((c: string) => {
+          const label = String(c).trim();
+          const pretty = label.charAt(0).toUpperCase() + label.slice(1);
+          return [label.toLowerCase(), pretty] as [string, string];
+        })
+    ).values()
   );
 
   // City -> stable slug for unique selectors/xpaths per city
