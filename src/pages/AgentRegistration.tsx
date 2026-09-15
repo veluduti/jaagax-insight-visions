@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { LANGUAGE_OPTIONS } from "@/lib/agentPrivacy";
+import AgentAvatarPicker from "@/components/agents/AgentAvatarPicker";
 
 type Form = Record<string, any>;
 
@@ -22,7 +23,6 @@ const UPLOAD_FIELDS = [
   { key: "aadhaar_front_url", label: "Aadhaar Front" },
   { key: "aadhaar_back_url", label: "Aadhaar Back" },
   { key: "pan_card_url", label: "PAN Card" },
-  { key: "profile_photo_url", label: "Profile Photo" },
   { key: "selfie_url", label: "Selfie Verification" },
 ];
 
@@ -281,6 +281,13 @@ export default function AgentRegistration() {
 
             {step === 2 && (
               <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Profile Photo (JAAGAX template)</Label>
+                  <AgentAvatarPicker
+                    value={form.profile_photo_url}
+                    onChange={(url) => !locked && set({ profile_photo_url: url })}
+                  />
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {UPLOAD_FIELDS.slice(3).map((u) => uploader(u.key, u.label))}
                 </div>
