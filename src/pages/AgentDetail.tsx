@@ -262,23 +262,10 @@ const AgentDetail = () => {
     [agent],
   );
 
-  const handlePhoto = async (file: File) => {
-    if (!user) return;
-    setPhotoBusy(true);
-    try {
-      const path = `${user.id}/avatar-${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
-      const { error } = await supabase.storage.from("property-media").upload(path, file, {
-        upsert: true,
-      });
-      if (error) throw error;
-      const { data } = supabase.storage.from("property-media").getPublicUrl(path);
-      setForm((f) => ({ ...f, photo_url: data.publicUrl }));
-      toast.success("Photo ready — save to apply");
-    } catch (e: any) {
-      toast.error(e.message || "Upload failed");
-    } finally {
-      setPhotoBusy(false);
-    }
+  // Personal photo uploads are disabled — agents pick an official JAAGAX template.
+  const handleTemplateSelect = (url: string) => {
+    setForm((f) => ({ ...f, photo_url: url }));
+    toast.success("Template selected — save to apply");
   };
 
   const handleSave = async () => {
@@ -763,31 +750,15 @@ const AgentDetail = () => {
             <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={form.photo_url || undefined} />
-                <AvatarFallback>{(form.name || "A").charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <input
-                ref={photoInput}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && handlePhoto(e.target.files[0])}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={photoBusy}
-                onClick={() => photoInput.current?.click()}
-              >
-                {photoBusy ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Camera className="mr-2 h-4 w-4" />
-                )}
-                Change Photo
-              </Button>
+            <div className="space-y-2">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={form.photo_url || undefined} />
+                  <AvatarFallback>{(form.name || "A").charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <Label className="font-medium">Profile Photo (JAAGAX template)</Label>
+              </div>
+              <AgentAvatarPicker value={form.photo_url} onChange={handleTemplateSelect} />
             </div>
 
             {(
