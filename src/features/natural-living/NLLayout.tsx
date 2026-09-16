@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import "./theme.css";
 
 const NL_NAV_ITEMS: Array<{ label: string; path: string; icon: any; highlight?: boolean }> = [
-  { label: "List Your Land", path: "/sell", icon: FileEdit, highlight: true },
   { label: "Lands", path: "/natural-living/lands", icon: Eye },
   { label: "Vision", path: "/natural-living/vision", icon: Leaf },
   { label: "Digital Farm", path: "/natural-living/digital-farm", icon: Sprout },
@@ -59,8 +58,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(path + "/");
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   return (
     <div className="nl-scope min-h-screen flex flex-col bg-background">
@@ -129,16 +127,14 @@ export default function NLLayout({ children }: PropsWithChildren) {
                   Return to the land. Slowly, deliberately, together.
                 </p>
                 <p className="text-sm mt-4 text-muted-foreground leading-relaxed">
-                  A community-owned ecosystem for organic farming, village tourism, farm stays,
-                  and mindful living — rooted in India.
+                  A community-owned ecosystem for organic farming, village tourism, farm stays, and mindful living —
+                  rooted in India.
                 </p>
               </div>
 
               {FOOTER_COLS.map((col) => (
                 <div key={col.heading}>
-                  <h4 className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">
-                    {col.heading}
-                  </h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">{col.heading}</h4>
                   <ul className="space-y-2.5">
                     {col.items.map((it) => (
                       <li key={it.to}>
@@ -159,9 +155,15 @@ export default function NLLayout({ children }: PropsWithChildren) {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-muted-foreground">
               <div>© {new Date().getFullYear()} JAGAA Natural Living · A JAAGA X initiative</div>
               <div className="flex gap-6">
-                <Link to="/natural-living/faq" className="hover:text-foreground">FAQ</Link>
-                <Link to="/natural-living/contact" className="hover:text-foreground">Contact</Link>
-                <Link to="/" className="hover:text-foreground">Back to JAAGA X</Link>
+                <Link to="/natural-living/faq" className="hover:text-foreground">
+                  FAQ
+                </Link>
+                <Link to="/natural-living/contact" className="hover:text-foreground">
+                  Contact
+                </Link>
+                <Link to="/" className="hover:text-foreground">
+                  Back to JAAGA X
+                </Link>
               </div>
             </div>
           </div>
