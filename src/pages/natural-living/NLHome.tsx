@@ -9,7 +9,7 @@ import stay from "@/assets/nl-stay.jpg";
 
 export default function NLHome() {
   return (
-    <NLLayout>
+    <NLLayout hideHeader>
       {/* HERO */}
       <section className="relative">
         <div className="relative h-[92vh] min-h-[620px] max-h-[900px] overflow-hidden">
@@ -36,9 +36,9 @@ export default function NLHome() {
                   eat, and belong.
                 </h1>
                 <p className="mt-8 max-w-xl text-base md:text-lg leading-relaxed text-[hsl(var(--nl-cream)/0.85)]">
-                  JAGAA Natural Living is a community-owned ecosystem of organic farms, villages,
-                  wellness retreats and farm stays across India — built with farmers, land owners
-                  and families who believe in slower, rooted living.
+                  JAGAA Natural Living is a community-owned ecosystem of organic farms, villages, wellness retreats and
+                  farm stays across India — built with farmers, land owners and families who believe in slower, rooted
+                  living.
                 </p>
               </div>
             </div>
@@ -55,16 +55,14 @@ export default function NLHome() {
           </div>
           <div className="md:col-span-8">
             <p className="nl-serif text-2xl md:text-4xl leading-[1.25]">
-              We are not a marketplace. We are a return.
-              A return to soil that remembers our names, to food with a story,
-              to villages that welcome strangers as guests, and to a slower pulse
-              the body was always waiting for.
+              We are not a marketplace. We are a return. A return to soil that remembers our names, to food with a
+              story, to villages that welcome strangers as guests, and to a slower pulse the body was always waiting
+              for.
             </p>
             <p className="mt-8 text-[hsl(var(--nl-ink)/0.7)] max-w-xl leading-relaxed">
-              Everything on JAGAA is grown, cooked, hosted, taught or shipped by real people —
-              farmers, land owners, artisans, cooks, guides and village coordinators — who share
-              in the value they create. No middlemen. No greenwashing. Just the land, and the
-              hands that tend it.
+              Everything on JAGAA is grown, cooked, hosted, taught or shipped by real people — farmers, land owners,
+              artisans, cooks, guides and village coordinators — who share in the value they create. No middlemen. No
+              greenwashing. Just the land, and the hands that tend it.
             </p>
           </div>
         </div>
@@ -116,20 +114,24 @@ export default function NLHome() {
         <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-center">
           <div className="md:col-span-6">
             <div className="overflow-hidden aspect-[4/5]">
-              <img src={hands} alt="Farmer holding paddy seedlings" className="w-full h-full object-cover" loading="lazy" />
+              <img
+                src={hands}
+                alt="Farmer holding paddy seedlings"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
             </div>
           </div>
           <div className="md:col-span-6">
             <Eyebrow>Our people · Farmers</Eyebrow>
             <H2 className="mt-4">The farmer is the first citizen of this republic.</H2>
             <p className="mt-6 text-[hsl(var(--nl-ink)/0.75)] leading-relaxed">
-              Every JAGAA farm is stewarded by a named farmer with a real story — decades of
-              knowledge, a piece of land, and skin in the game. We give them tools to manage
-              crops, direct access to customers, and a fair share of every rupee.
+              Every JAGAA farm is stewarded by a named farmer with a real story — decades of knowledge, a piece of land,
+              and skin in the game. We give them tools to manage crops, direct access to customers, and a fair share of
+              every rupee.
             </p>
             <p className="mt-4 text-[hsl(var(--nl-ink)/0.75)] leading-relaxed">
-              No commission games. No opaque grading. Just a farmer, a customer, and a season
-              of trust between them.
+              No commission games. No opaque grading. Just a farmer, a customer, and a season of trust between them.
             </p>
             <Link to="/natural-living/farmers" className="nl-btn nl-btn-outline mt-8">
               Meet the farmers
@@ -175,7 +177,10 @@ export default function NLHome() {
             <Eyebrow>Field Notes · Journal</Eyebrow>
             <H2 className="mt-3">Dispatches from the fields.</H2>
           </div>
-          <Link to="/natural-living/stories" className="hidden md:inline-flex items-center gap-1 text-sm text-[hsl(var(--nl-forest))]">
+          <Link
+            to="/natural-living/stories"
+            className="hidden md:inline-flex items-center gap-1 text-sm text-[hsl(var(--nl-forest))]"
+          >
             All stories <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
@@ -209,14 +214,11 @@ export default function NLHome() {
         <div className="grid md:grid-cols-12 gap-10 items-center">
           <div className="md:col-span-7">
             <Eyebrow>For Corporates & Schools</Eyebrow>
-            <H2 className="mt-4 max-w-xl">
-              Adopt a village. Plant a forest. Feed a company on food with a face.
-            </H2>
+            <H2 className="mt-4 max-w-xl">Adopt a village. Plant a forest. Feed a company on food with a face.</H2>
             <p className="mt-6 text-[hsl(var(--nl-ink)/0.75)] leading-relaxed max-w-xl">
-              JAGAA works with corporates on CSR-grade farm adoption, employee retreats,
-              carbon-offset plantations, and organic office pantries — with real, auditable
-              impact reports. Schools bring children onto the land through curriculum-linked
-              village visits.
+              JAGAA works with corporates on CSR-grade farm adoption, employee retreats, carbon-offset plantations, and
+              organic office pantries — with real, auditable impact reports. Schools bring children onto the land
+              through curriculum-linked village visits.
             </p>
           </div>
           <div className="md:col-span-5 flex flex-col gap-4">
