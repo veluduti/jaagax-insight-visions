@@ -78,7 +78,7 @@ export default function MyLandProfiles({ userId }: { userId: string }) {
             Shareable public profiles created from your land registrations.
           </p>
         </div>
-        <Link to="/natural-living/list-land" className="nl-btn nl-btn-outline">
+        <Link to="/sell" className="nl-btn nl-btn-outline">
           + List new land
         </Link>
       </div>
@@ -133,7 +133,7 @@ export default function MyLandProfiles({ userId }: { userId: string }) {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => navigate("/natural-living/list-land")}
+                    onClick={() => navigate("/sell")}
                     className="text-xs px-3 py-1.5 rounded-full border inline-flex items-center gap-1.5"
                     style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))" }}
                   >

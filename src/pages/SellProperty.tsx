@@ -1301,7 +1301,7 @@ export default function SellProperty() {
   const engineRef = useRef<ConversationEngine | null>(null);
   const [category, setCategory] = useState<PropertyCategory | null>(null);
 
-  const CATEGORY_OPTIONS: { id: PropertyCategory | "land"; label: string; emoji: string }[] = [
+  const CATEGORY_OPTIONS: { id: PropertyCategory; label: string; emoji: string }[] = [
     { id: "residential", label: "Residential", emoji: "🏠" },
     { id: "commercial", label: "Commercial", emoji: "🏢" },
     { id: "plots", label: "Plots / Land", emoji: "📐" },
@@ -1483,21 +1483,13 @@ export default function SellProperty() {
     ]);
   };
 
-  const selectCategory = (cat: PropertyCategory | "land") => {
-    if (cat === "land") {
-      navigate("/natural-living/list-land");
-      return;
-    }
+  const selectCategory = (cat: PropertyCategory) => {
     if (category) return;
     startCategory(cat);
   };
 
   /* ----- Switch to a different category mid-flow (resets answers) ----- */
-  const switchCategory = (cat: PropertyCategory | "land") => {
-    if (cat === "land") {
-      navigate("/natural-living/list-land");
-      return;
-    }
+  const switchCategory = (cat: PropertyCategory) => {
     if (cat === category) return;
     engineRef.current = null;
     setIntakeDone(false);

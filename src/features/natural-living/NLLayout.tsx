@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import "./theme.css";
 
 const NL_NAV_ITEMS: Array<{ label: string; path: string; icon: any; highlight?: boolean }> = [
-  { label: "List Your Land", path: "/natural-living/list-land", icon: FileEdit, highlight: true },
+  { label: "List Your Land", path: "/sell", icon: FileEdit, highlight: true },
   { label: "Lands", path: "/natural-living/lands", icon: Eye },
   { label: "Vision", path: "/natural-living/vision", icon: Leaf },
   { label: "Digital Farm", path: "/natural-living/digital-farm", icon: Sprout },
