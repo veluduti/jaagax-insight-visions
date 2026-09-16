@@ -9,6 +9,7 @@ import { plotsFlow } from "./plots";
 import { agriculturalFlow as agricultureFlow } from "./agriculture";
 import { coworkingFlow } from "./coworking";
 import { financialRequirementFlow } from "./financial";
+import { landFlow } from "./land";
 
 export const propertyFlows: Record<PropertyCategory, PropertyFlowConfig> = {
   residential: residentialFlow as unknown as PropertyFlowConfig,
@@ -17,6 +18,7 @@ export const propertyFlows: Record<PropertyCategory, PropertyFlowConfig> = {
   agriculture: agricultureFlow,
   coworking: coworkingFlow,
   financial: financialRequirementFlow as unknown as PropertyFlowConfig,
+  land: landFlow,
 };
 
 export function getPropertyFlow(category: PropertyCategory): PropertyFlowConfig {
