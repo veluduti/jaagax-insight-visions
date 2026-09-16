@@ -66,7 +66,7 @@ export default function MyLandSubmissions({ userId }: { userId: string }) {
             Track approval status of every land you've listed with JAAGA.
           </p>
         </div>
-        <Link to="/natural-living/list-land" className="nl-btn nl-btn-outline">
+        <Link to="/sell" className="nl-btn nl-btn-outline">
           <Plus className="h-3.5 w-3.5 mr-2" /> List new land
         </Link>
       </div>
@@ -138,7 +138,7 @@ export default function MyLandSubmissions({ userId }: { userId: string }) {
                     </Link>
                   ) : r.status === "draft" || r.status === "changes_requested" ? (
                     <Link
-                      to="/natural-living/list-land"
+                      to="/sell"
                       className="text-xs inline-flex items-center gap-1 text-[hsl(var(--nl-forest))] hover:underline shrink-0"
                     >
                       Resume / edit <ArrowUpRight className="h-3 w-3" />
