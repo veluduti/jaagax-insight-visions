@@ -9,7 +9,7 @@ import stay from "@/assets/nl-stay.jpg";
 
 export default function NLHome() {
   return (
-    <NLLayout hideHeader>
+    <NLLayout>
       {/* HERO */}
       <section className="relative">
         <div className="relative h-[92vh] min-h-[620px] max-h-[900px] overflow-hidden">
