@@ -871,7 +871,7 @@ export default function Auth() {
                   Continue with Google
                 </Button>
               </div>
-            )}
+
 
 
             <div className="mt-6 text-center space-y-2">
