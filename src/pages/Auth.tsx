@@ -841,8 +841,7 @@ export default function Auth() {
               )}
             </form>
 
-            {isLogin && (
-              <div className="mt-6">
+            <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-border" />
@@ -872,7 +871,7 @@ export default function Auth() {
                   Continue with Google
                 </Button>
               </div>
-            )}
+
 
 
             <div className="mt-6 text-center space-y-2">
