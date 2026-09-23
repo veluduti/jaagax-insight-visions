@@ -844,16 +844,6 @@ const Map = () => {
         )}
       </AnimatePresence>
 
-      {/* AI Area Lens - toggleable */}
-      {showAILens && (
-        <AIAreaLens
-          map={map.current}
-          properties={properties}
-          currentCity={currentCity}
-          onClose={() => setShowAILens(false)}
-        />
-      )}
-
       {/* Property Drawer */}
       <AnimatePresence>
         {selectedProperty && <PropertyDrawer property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
