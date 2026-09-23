@@ -721,9 +721,10 @@ const Map = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background">
+    <div className="relative h-screen w-full overflow-hidden bg-background pt-16">
+      <Navigation />
       {/* Map Container */}
-      <div ref={mapContainer} className={`absolute inset-0 ${useRasterFallback ? "hidden" : ""}`} />
+      <div ref={mapContainer} className={`absolute inset-0 top-16 ${useRasterFallback ? "hidden" : ""}`} />
       {useRasterFallback && (
         <RasterPropertyMap
           properties={properties}
