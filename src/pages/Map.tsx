@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Layers,
   Navigation as Nav3D,
-  Bookmark,
   Share2,
   Info,
   ChevronDown,
@@ -201,7 +200,6 @@ const Map = () => {
   const [currentCity, setCurrentCity] = useState<"Hyderabad" | "Vijayawada">("Hyderabad");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showLegend, setShowLegend] = useState(false);
   const [useRasterFallback, setUseRasterFallback] = useState(false);
   const navigate = useNavigate();
 
