@@ -78,16 +78,10 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
 
   const renderTransactionTabs = () => {
     if (activeTab === "agents" || activeTab === "new-projects") return null;
-    const tabs =
-      activeTab === "transactions"
-        ? [
-            { value: "sold", label: "Sold" },
-            { value: "rented", label: "Rented" },
-          ]
-        : [
-            { value: "buy", label: "Buy" },
-            { value: "rent", label: "Rent" },
-          ];
+    const tabs = [
+      { value: "buy", label: "Buy" },
+      { value: "rent", label: "Rent" },
+    ];
     return (
       <>
         {tabs.map((tab) => (
@@ -111,7 +105,6 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
     const all = [
       { key: "buyRent", label: "Properties", value: "properties" },
       { key: "newProjects", label: "New Projects", value: "new-projects" },
-      { key: "transactions", label: "Transactions", value: "transactions" },
       { key: "agents", label: "Agents", value: "agents" },
     ];
     return all.filter((i) => canSee(role, i.key as any));
