@@ -7,9 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
-import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
-import AIAreaLens from "@/components/map/AIAreaLens";
+import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +19,6 @@ import {
   Share2,
   Info,
   ChevronDown,
-  ArrowLeft,
-  SlidersHorizontal,
-  Sparkles,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
