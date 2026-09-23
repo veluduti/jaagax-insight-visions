@@ -2,10 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
@@ -125,25 +124,6 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
     }
   }, [navItems, activeTab, onTabChange]);
 
-  const showFilters = canSee(role, "searchFilters");
-
-  // Active filter badge count
-  const activeCount = [
-    advancedFilters.propertyType !== "any",
-    advancedFilters.beds !== "any",
-    advancedFilters.bathrooms !== "any",
-    advancedFilters.priceMin > 0 || advancedFilters.priceMax > 0,
-    advancedFilters.areaMin > 0 || advancedFilters.areaMax > 0,
-    advancedFilters.furnishing !== "any",
-    advancedFilters.amenities.length > 0,
-    advancedFilters.floorLevel !== "any",
-    advancedFilters.parkingSpaces !== "any",
-    advancedFilters.facing !== "any",
-    advancedFilters.possessionStatus !== "any",
-    advancedFilters.verifiedOnly,
-    advancedFilters.reraOnly,
-    advancedFilters.listedBy !== "any",
-  ].filter(Boolean).length;
 
   return (
     <AnimatePresence mode="wait">
