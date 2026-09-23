@@ -202,8 +202,6 @@ const Map = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAILens, setShowAILens] = useState(false);
   const [useRasterFallback, setUseRasterFallback] = useState(false);
   const navigate = useNavigate();
 
