@@ -651,17 +651,6 @@ const Map = () => {
     setIs3DMode(!is3DMode);
   };
 
-  // Change city
-  const changeCity = (city: "Hyderabad" | "Vijayawada") => {
-    const coords = cityCoordinates[city];
-    map.current?.flyTo({
-      center: [coords.lng, coords.lat],
-      zoom: coords.zoom,
-      duration: 2000,
-    });
-    setCurrentCity(city);
-  };
-
   // Save current search to user's saved searches
   const handleSaveSearch = async () => {
     const {
