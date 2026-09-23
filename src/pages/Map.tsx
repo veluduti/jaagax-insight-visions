@@ -12,13 +12,7 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  Layers,
-  Navigation as Nav3D,
-  Share2,
-  Info,
-  ChevronDown,
-} from "lucide-react";
+import { Layers, Navigation as Nav3D, Share2, Info } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
@@ -138,7 +132,13 @@ const RasterPropertyMap = ({
           };
         })
         .filter((item): item is { property: Property; left: number; top: number } =>
-          Boolean(item && item.left > -80 && item.left < viewport.width + 80 && item.top > -80 && item.top < viewport.height + 80),
+          Boolean(
+            item &&
+            item.left > -80 &&
+            item.left < viewport.width + 80 &&
+            item.top > -80 &&
+            item.top < viewport.height + 80,
+          ),
         ),
     [properties, projection.topLeft.x, projection.topLeft.y, viewport.height, viewport.width, zoom],
   );
@@ -159,7 +159,13 @@ const RasterPropertyMap = ({
       {positionedProperties.map(({ property, left, top }) => {
         const isVerified = Boolean(property.verified);
         const type = property.type?.toLowerCase() || "";
-        const icon = type.includes("villa") ? "🏡" : type.includes("plot") ? "📍" : type.includes("penthouse") ? "🏢" : "🏠";
+        const icon = type.includes("villa")
+          ? "🏡"
+          : type.includes("plot")
+            ? "📍"
+            : type.includes("penthouse")
+              ? "🏢"
+              : "🏠";
         return (
           <button
             key={property.id}
@@ -169,12 +175,16 @@ const RasterPropertyMap = ({
             style={{
               left,
               top,
-              background: isVerified ? "linear-gradient(135deg, hsl(152 70% 38%), hsl(152 76% 28%))" : "hsl(var(--primary))",
+              background: isVerified
+                ? "linear-gradient(135deg, hsl(152 70% 38%), hsl(152 76% 28%))"
+                : "hsl(var(--primary))",
             }}
             title={`${property.title} - open property`}
             aria-label={`Open ${property.title}`}
           >
-            <span className="mr-1" aria-hidden="true">{icon}</span>
+            <span className="mr-1" aria-hidden="true">
+              {icon}
+            </span>
             ₹{((property.price || 0) / 100000).toFixed(1)}L
           </button>
         );
@@ -234,7 +244,6 @@ const Map = () => {
     const newFilters = getInitialFilters();
     setFilters(newFilters);
 
-    // Update city from URL if provided
     const cityParam = searchParams.get("city");
     if (cityParam && (cityParam === "Hyderabad" || cityParam === "Vijayawada")) {
       setCurrentCity(cityParam);
@@ -246,7 +255,6 @@ const Map = () => {
     fetchProperties();
   }, [filters, currentCity]);
 
-  // City coordinates
   const cityCoordinates = {
     Hyderabad: { lng: 78.4867, lat: 17.385, zoom: 11 },
     Vijayawada: { lng: 80.648, lat: 16.5062, zoom: 12 },
@@ -288,7 +296,6 @@ const Map = () => {
       }
     }, 1800);
 
-    // Add navigation controls
     map.current.addControl(
       new mapboxgl.NavigationControl({
         visualizePitch: true,
@@ -296,7 +303,6 @@ const Map = () => {
       "top-right",
     );
 
-    // Add scale control
     map.current.addControl(
       new mapboxgl.ScaleControl({
         maxWidth: 100,
@@ -305,11 +311,9 @@ const Map = () => {
       "bottom-right",
     );
 
-    // Enable 3D buildings
     map.current.on("load", () => {
       if (!map.current) return;
 
-      // Add 3D building layer
       const layers = map.current.getStyle().layers;
       const labelLayerId = layers?.find(
         (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"],
@@ -347,10 +351,8 @@ const Map = () => {
       setError(null);
 
       try {
-        // Check if database is empty
         const { count } = await supabase.from("properties").select("*", { count: "exact", head: true });
 
-        // If empty, show a message instead of auto-seeding
         if (count === 0) {
           setError("No properties found. Please contact admin to add properties.");
           setIsLoading(false);
@@ -366,7 +368,6 @@ const Map = () => {
 
     initializeData();
 
-    // Set up real-time subscription
     const channel = supabase
       .channel("properties-changes")
       .on(
@@ -412,7 +413,6 @@ const Map = () => {
     try {
       let query = supabase.from("properties").select("*");
 
-      // Filter by city (case-insensitive)
       query = query.ilike("city", currentCity);
 
       if (filters.verifiedOnly) {
@@ -432,12 +432,10 @@ const Map = () => {
         }
       }
 
-      // Locality filter from search
       if (filters.locality) {
         query = query.ilike("locality", `%${filters.locality}%`);
       }
 
-      // Price range filter
       query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
 
       const { data, error } = await query;
@@ -452,22 +450,24 @@ const Map = () => {
         (data || []).flatMap((row: PropertyRow): Property[] => {
           const v = getPublicPropertyView(row);
           if (!v) return [];
-          return [{
-            id: v.id,
-            slug: asNullableString(row.slug),
-            latitude: toFiniteNumber(v.latitude ?? row.latitude),
-            longitude: toFiniteNumber(v.longitude ?? row.longitude),
-            title: v.title,
-            city: asNullableString(v.city ?? row.city),
-            locality: asNullableString(v.locality ?? row.locality),
-            price: toFiniteNumber(v.price ?? row.price) ?? 0,
-            area_sqft: toFiniteNumber(v.area_sqft ?? row.area_sqft),
-            bhk: toFiniteNumber(v.bhk ?? row.bhk),
-            type: asNullableString(v.type ?? row.type),
-            verified: Boolean(v.verified ?? row.verified),
-            images: v.images?.length ? v.images : row.images,
-            trust_score: toFiniteNumber(v.trust_score ?? row.trust_score),
-          }];
+          return [
+            {
+              id: v.id,
+              slug: asNullableString(row.slug),
+              latitude: toFiniteNumber(v.latitude ?? row.latitude),
+              longitude: toFiniteNumber(v.longitude ?? row.longitude),
+              title: v.title,
+              city: asNullableString(v.city ?? row.city),
+              locality: asNullableString(v.locality ?? row.locality),
+              price: toFiniteNumber(v.price ?? row.price) ?? 0,
+              area_sqft: toFiniteNumber(v.area_sqft ?? row.area_sqft),
+              bhk: toFiniteNumber(v.bhk ?? row.bhk),
+              type: asNullableString(v.type ?? row.type),
+              verified: Boolean(v.verified ?? row.verified),
+              images: v.images?.length ? v.images : row.images,
+              trust_score: toFiniteNumber(v.trust_score ?? row.trust_score),
+            },
+          ];
         }),
       );
     } catch (err) {
@@ -484,11 +484,9 @@ const Map = () => {
 
     const renderMarkers = () => {
       if (!map.current) return;
-      // Clear existing markers
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
 
-      // Group properties for clustering
       const clusterGroups: { [key: string]: Property[] } = {};
 
       properties.forEach((property) => {
@@ -500,26 +498,22 @@ const Map = () => {
         clusterGroups[key].push(property);
       });
 
-      // Add markers for each cluster
       Object.values(clusterGroups).forEach((clusterProps) => {
         if (!map.current) return;
 
         const property = clusterProps[0];
         const isCluster = clusterProps.length > 1;
 
-        // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
         const el = document.createElement("div");
         el.className = "property-marker";
         el.style.cursor = "pointer";
 
-        // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
         const inner = document.createElement("div");
         inner.style.transition = "transform 0.2s ease";
         inner.style.transformOrigin = "center center";
         el.appendChild(inner);
 
         if (isCluster) {
-          // Cluster marker - use safe DOM manipulation
           const clusterDiv = document.createElement("div");
           clusterDiv.style.cssText = `
           background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
@@ -536,7 +530,6 @@ const Map = () => {
           clusterDiv.textContent = String(clusterProps.length);
           inner.appendChild(clusterDiv);
         } else {
-          // Single property marker with type icon - use safe DOM manipulation
           const typeEmoji = property.type?.toLowerCase().includes("villa")
             ? "🏡"
             : property.type?.toLowerCase().includes("plot")
@@ -576,7 +569,6 @@ const Map = () => {
           inner.appendChild(markerDiv);
         }
 
-        // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
         el.addEventListener("mouseenter", () => {
           inner.style.transform = "scale(1.1) translateY(-2px)";
           el.style.zIndex = "1000";
@@ -586,28 +578,23 @@ const Map = () => {
           el.style.zIndex = "auto";
         });
 
-        // Create marker
         if (!property.longitude || !property.latitude) return;
 
         const marker = new mapboxgl.Marker(el).setLngLat([property.longitude, property.latitude]).addTo(map.current);
 
-        // Add click event
         el.addEventListener("click", (ev) => {
           ev.stopPropagation();
           if (isCluster) {
-            // Zoom into cluster
             map.current?.flyTo({
               center: [property.longitude!, property.latitude!],
               zoom: map.current.getZoom() + 2,
               duration: 1000,
             });
           } else {
-            // Open the exact property detail route in a new tab.
             openInNewTab(propertyPath(property));
           }
         });
 
-        // Add popup on hover for single properties
         if (!isCluster) {
           const popup = new mapboxgl.Popup({
             offset: 25,
@@ -637,7 +624,6 @@ const Map = () => {
     }
   }, [properties]);
 
-  // Toggle 3D mode
   const toggle3DMode = () => {
     if (!map.current) return;
 
@@ -649,7 +635,6 @@ const Map = () => {
     setIs3DMode(!is3DMode);
   };
 
-  // Save current search to user's saved searches
   const handleSaveSearch = async () => {
     const {
       data: { user },
@@ -688,7 +673,6 @@ const Map = () => {
     sonnerToast.success("Search saved! View it in your dashboard.");
   };
 
-  // Share current view
   const handleShare = async () => {
     const shareData = {
       title: `Properties in ${currentCity} - JaagaX`,
@@ -708,108 +692,117 @@ const Map = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background pt-16">
+    <div className="relative h-screen w-full overflow-hidden bg-background">
       <Navigation />
-      {/* Map Container */}
-      <div ref={mapContainer} className={`absolute inset-0 top-16 ${useRasterFallback ? "hidden" : ""}`} />
-      {useRasterFallback && (
-        <RasterPropertyMap
-          properties={properties}
-          currentCity={currentCity}
-          center={cityCoordinates[currentCity]}
-          zoom={cityCoordinates[currentCity].zoom}
-          token={MAPBOX_TOKEN}
-          onPropertyOpen={(property) => openInNewTab(propertyPath(property))}
-        />
-      )}
 
-      {/* Loading Skeleton */}
-      {isLoading && (
-        <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="glass-panel p-8 rounded-2xl space-y-4 max-w-md mx-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-8 w-1/2" />
-            <p className="text-sm text-muted-foreground text-center">Loading properties...</p>
-          </div>
-        </div>
-      )}
+      {/* Map fills entire area below the fixed navigation (h-16 = 64px) */}
+      <div className="absolute inset-x-0 bottom-0 top-16">
+        {/* Mapbox canvas container */}
+        <div ref={mapContainer} className={`absolute inset-0 ${useRasterFallback ? "hidden" : ""}`} />
 
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center">
-          <div className="glass-panel p-8 rounded-2xl max-w-md mx-4 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
-              <Info className="h-8 w-8 text-destructive" />
-            </div>
-            <h3 className="text-xl font-bold">Oops! Something went wrong</h3>
-            <p className="text-muted-foreground">{error}</p>
-            <Button onClick={() => window.location.reload()} className="w-full">
-              Reload Page
-            </Button>
-          </div>
-        </div>
-      )}
+        {/* Raster fallback */}
+        {useRasterFallback && (
+          <RasterPropertyMap
+            properties={properties}
+            currentCity={currentCity}
+            center={cityCoordinates[currentCity]}
+            zoom={cityCoordinates[currentCity].zoom}
+            token={MAPBOX_TOKEN}
+            onPropertyOpen={(property) => openInNewTab(propertyPath(property))}
+          />
+        )}
 
-      {/* Control Buttons - Top Right */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="absolute top-20 right-6 z-10 flex flex-col gap-3"
-      >
-        <Button
-          onClick={toggle3DMode}
-          variant={is3DMode ? "default" : "outline"}
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Toggle 3D View (Ctrl+3)"
+        {/* Control Buttons — overlaid on the map itself, top-right */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="absolute right-4 top-4 z-10 flex flex-col gap-2"
         >
-          {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
-          <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
-        </Button>
+          <Button
+            onClick={toggle3DMode}
+            variant={is3DMode ? "default" : "secondary"}
+            size="lg"
+            className="shadow-lg backdrop-blur-md"
+            title="Toggle 3D View (Ctrl+3)"
+          >
+            {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
+            <span>{is3DMode ? "3D" : "2D"}</span>
+          </Button>
 
-        <Button onClick={handleShare} variant="outline" size="lg" className="glass-panel shadow-lg" title="Share Map">
-          <Share2 className="h-5 w-5" />
-        </Button>
+          <Button
+            onClick={handleShare}
+            variant="secondary"
+            size="lg"
+            className="shadow-lg backdrop-blur-md"
+            title="Share Map"
+          >
+            <Share2 className="h-5 w-5" />
+          </Button>
+        </motion.div>
 
-      </motion.div>
-
-
-      {/* Property Drawer */}
-
-      <AnimatePresence>
-        {selectedProperty && <PropertyDrawer property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
-      </AnimatePresence>
-
-      {/* Property Count Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
-      >
-        <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
-          <div className="text-sm font-semibold flex items-center gap-2">
-            <Badge variant="secondary" className="rounded-full">
-              <span className="text-primary font-bold">{properties.length}</span>
-            </Badge>
-            <span className="hidden sm:inline">properties in {currentCity}</span>
-            <span className="sm:hidden">found</span>
+        {/* Loading Skeleton */}
+        {isLoading && (
+          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="glass-panel p-8 rounded-2xl space-y-4 max-w-md mx-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-8 w-1/2" />
+              <p className="text-sm text-muted-foreground text-center">Loading properties...</p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        )}
 
-      {/* Keyboard Shortcuts Hint */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute bottom-6 left-6 z-10 glass-panel px-4 py-2 rounded-lg text-xs text-muted-foreground hidden lg:block"
-      >
-        <p>
-          Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close •{" "}
-          <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D
-        </p>
-      </motion.div>
+        {/* Error State */}
+        {error && !isLoading && (
+          <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center">
+            <div className="glass-panel p-8 rounded-2xl max-w-md mx-4 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
+                <Info className="h-8 w-8 text-destructive" />
+              </div>
+              <h3 className="text-xl font-bold">Oops! Something went wrong</h3>
+              <p className="text-muted-foreground">{error}</p>
+              <Button onClick={() => window.location.reload()} className="w-full">
+                Reload Page
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Property Drawer */}
+        <AnimatePresence>
+          {selectedProperty && <PropertyDrawer property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
+        </AnimatePresence>
+
+        {/* Property Count Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
+        >
+          <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
+            <div className="text-sm font-semibold flex items-center gap-2">
+              <Badge variant="secondary" className="rounded-full">
+                <span className="text-primary font-bold">{properties.length}</span>
+              </Badge>
+              <span className="hidden sm:inline">properties in {currentCity}</span>
+              <span className="sm:hidden">found</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Keyboard Shortcuts Hint */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          className="absolute bottom-6 left-6 z-10 glass-panel px-4 py-2 rounded-lg text-xs text-muted-foreground hidden lg:block"
+        >
+          <p>
+            Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close •{" "}
+            <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 };
