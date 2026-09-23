@@ -770,47 +770,15 @@ const Map = () => {
           <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
         </Button>
 
+        <Button onClick={handleShare} variant="outline" size="lg" className="glass-panel shadow-lg" title="Share Map">
+          <Share2 className="h-5 w-5" />
+        </Button>
+
       </motion.div>
 
-      {/* Legend */}
-      <AnimatePresence>
-        {showLegend && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="absolute top-80 right-6 z-10 glass-panel p-4 rounded-xl shadow-lg max-w-xs"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-sm">Map Legend</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowLegend(false)}>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 border-2 border-white" />
-                <span>JaagaX Verified</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/80 border-2 border-white" />
-                <span>Standard Listing</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/90 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                  5+
-                </div>
-                <span>Cluster (Multiple)</span>
-              </div>
-              <div className="pt-2 mt-2 border-t border-border/50">
-                <p className="text-xs text-muted-foreground">🏠 Apartment • 🏡 Villa • 📍 Plot • 🏢 Penthouse</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Property Drawer */}
+
       <AnimatePresence>
         {selectedProperty && <PropertyDrawer property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
       </AnimatePresence>
