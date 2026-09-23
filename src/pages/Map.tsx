@@ -770,29 +770,6 @@ const Map = () => {
           <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
         </Button>
 
-        <Button
-          onClick={handleSaveSearch}
-          variant="outline"
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Save Search"
-        >
-          <Bookmark className="h-5 w-5" />
-        </Button>
-
-        <Button onClick={handleShare} variant="outline" size="lg" className="glass-panel shadow-lg" title="Share Map">
-          <Share2 className="h-5 w-5" />
-        </Button>
-
-        <Button
-          onClick={() => setShowLegend(!showLegend)}
-          variant="outline"
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Toggle Legend"
-        >
-          <Info className="h-5 w-5" />
-        </Button>
       </motion.div>
 
       {/* Legend */}
