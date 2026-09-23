@@ -764,58 +764,6 @@ const Map = () => {
         </div>
       )}
 
-      {/* Top Filters - toggleable */}
-      <MapFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        currentCity={currentCity}
-        onCityChange={changeCity}
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-      />
-
-      {/* Top Left - Back + Filter Toggle */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="absolute top-6 left-6 z-20 flex gap-2"
-      >
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Back to Dashboard"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="ml-2 hidden sm:inline">Back</span>
-        </Button>
-        {!showFilters && (
-          <Button
-            onClick={() => setShowFilters(true)}
-            variant="outline"
-            size="lg"
-            className="glass-panel shadow-lg"
-            title="Show Filters"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span className="ml-2 hidden sm:inline">Filters</span>
-          </Button>
-        )}
-        {!showAILens && (
-          <Button
-            onClick={() => setShowAILens(true)}
-            variant="outline"
-            size="lg"
-            className="glass-panel shadow-lg glow-effect"
-            title="AI Area Lens"
-          >
-            <Sparkles className="h-5 w-5" />
-            <span className="ml-2 hidden sm:inline">AI Lens</span>
-          </Button>
-        )}
-      </motion.div>
-
       {/* Control Buttons - Top Right */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
