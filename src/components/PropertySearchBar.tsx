@@ -218,24 +218,7 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
               </Button>
             </div>
 
-            {/* Filters row - HIDE in compact mode */}
-            {!compact &&
-              showFilters &&
-              (activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
-                <div className="flex gap-2 items-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowMoreFilters(true)}
-                    className="h-9 text-sm bg-background/80 border-border/50 hover:bg-primary/5 hover:border-primary/30 gap-2"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    <span>More Filters</span>
-                    {activeCount > 0 && (
-                      <Badge className="ml-1 bg-primary/10 text-primary border-primary/30">{activeCount}</Badge>
-                    )}
-                  </Button>
-                </div>
-              )}
+            {/* More Filters hidden on homepage — filters are available on the search results page */}
           </div>
         </div>
 
