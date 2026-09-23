@@ -7,9 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
-import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
-import AIAreaLens from "@/components/map/AIAreaLens";
+import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +19,6 @@ import {
   Share2,
   Info,
   ChevronDown,
-  ArrowLeft,
-  SlidersHorizontal,
-  Sparkles,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
@@ -206,8 +202,6 @@ const Map = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAILens, setShowAILens] = useState(false);
   const [useRasterFallback, setUseRasterFallback] = useState(false);
   const navigate = useNavigate();
 
@@ -657,17 +651,6 @@ const Map = () => {
     setIs3DMode(!is3DMode);
   };
 
-  // Change city
-  const changeCity = (city: "Hyderabad" | "Vijayawada") => {
-    const coords = cityCoordinates[city];
-    map.current?.flyTo({
-      center: [coords.lng, coords.lat],
-      zoom: coords.zoom,
-      duration: 2000,
-    });
-    setCurrentCity(city);
-  };
-
   // Save current search to user's saved searches
   const handleSaveSearch = async () => {
     const {
@@ -727,9 +710,10 @@ const Map = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background">
+    <div className="relative h-screen w-full overflow-hidden bg-background pt-16">
+      <Navigation />
       {/* Map Container */}
-      <div ref={mapContainer} className={`absolute inset-0 ${useRasterFallback ? "hidden" : ""}`} />
+      <div ref={mapContainer} className={`absolute inset-0 top-16 ${useRasterFallback ? "hidden" : ""}`} />
       {useRasterFallback && (
         <RasterPropertyMap
           properties={properties}
@@ -769,63 +753,11 @@ const Map = () => {
         </div>
       )}
 
-      {/* Top Filters - toggleable */}
-      <MapFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        currentCity={currentCity}
-        onCityChange={changeCity}
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-      />
-
-      {/* Top Left - Back + Filter Toggle */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="absolute top-6 left-6 z-20 flex gap-2"
-      >
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Back to Dashboard"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="ml-2 hidden sm:inline">Back</span>
-        </Button>
-        {!showFilters && (
-          <Button
-            onClick={() => setShowFilters(true)}
-            variant="outline"
-            size="lg"
-            className="glass-panel shadow-lg"
-            title="Show Filters"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span className="ml-2 hidden sm:inline">Filters</span>
-          </Button>
-        )}
-        {!showAILens && (
-          <Button
-            onClick={() => setShowAILens(true)}
-            variant="outline"
-            size="lg"
-            className="glass-panel shadow-lg glow-effect"
-            title="AI Area Lens"
-          >
-            <Sparkles className="h-5 w-5" />
-            <span className="ml-2 hidden sm:inline">AI Lens</span>
-          </Button>
-        )}
-      </motion.div>
-
       {/* Control Buttons - Top Right */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="absolute top-6 right-6 z-10 flex flex-col gap-3"
+        className="absolute top-20 right-6 z-10 flex flex-col gap-3"
       >
         <Button
           onClick={toggle3DMode}
@@ -900,16 +832,6 @@ const Map = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* AI Area Lens - toggleable */}
-      {showAILens && (
-        <AIAreaLens
-          map={map.current}
-          properties={properties}
-          currentCity={currentCity}
-          onClose={() => setShowAILens(false)}
-        />
-      )}
 
       {/* Property Drawer */}
       <AnimatePresence>
