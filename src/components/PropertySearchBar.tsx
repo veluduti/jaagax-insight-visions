@@ -67,7 +67,6 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
     const params = buildParams();
     let path = "/search";
     if (activeTab === "new-projects") path = "/projects";
-    else if (activeTab === "transactions") path = "/transactions";
     else if (activeTab === "agents") path = "/agents";
     navigate(`${path}?${params.toString()}`);
   };
