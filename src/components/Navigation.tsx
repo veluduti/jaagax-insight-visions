@@ -156,7 +156,7 @@ const Navigation = () => {
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-10 w-auto max-h-10 object-contain shrink-0"
+                className="h-14 w-auto max-h-14 object-contain shrink-0"
                 loading="lazy"
                 decoding="async"
               />
@@ -309,7 +309,7 @@ const Navigation = () => {
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-9 w-auto max-h-9 object-contain shrink-0"
+                className="h-11 w-auto max-h-11 object-contain shrink-0"
                 loading="lazy"
                 decoding="async"
               />
