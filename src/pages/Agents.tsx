@@ -55,8 +55,9 @@ const Agents = () => {
 
   useEffect(() => {
     fetchAgents();
-    
-    // Setup realtime subscription
+
+    // Setup realtime subscription (debounced so bursts of changes cause one refetch)
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const channel = supabase
       .channel('agents-changes')
       .on(
@@ -67,12 +68,14 @@ const Agents = () => {
           table: 'agents'
         },
         () => {
-          fetchAgents();
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => fetchAgents(), 1500);
         }
       )
       .subscribe();
 
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, []);
