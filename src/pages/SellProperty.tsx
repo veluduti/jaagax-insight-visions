@@ -5465,7 +5465,7 @@ export default function SellProperty() {
                           }
                         }}
                         rows={2}
-                        placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
+                        placeholder={getCategoryExample(category)}
                         className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
                         disabled={extracting}
                       />
