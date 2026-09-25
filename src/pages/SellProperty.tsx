@@ -3115,6 +3115,8 @@ export default function SellProperty() {
           return;
         }
 
+        if (rejectWrongCategoryUpload(relevance.listingCategory, bubbleId)) return;
+
         // ============================================
         // LOW CONFIDENCE WARNING
         // ============================================
@@ -3157,6 +3159,15 @@ export default function SellProperty() {
           const pageImages = await renderPdfPagesToImages(file);
 
           if (pageImages.length > 0) {
+            const pv = await validatePropertyImage(pageImages[0]);
+            if (!pv.valid) {
+              setMessages((m) => [
+                ...m.filter((x) => x.id !== bubbleId),
+                { id: uid(), role: "ai", kind: "text", text: "This document doesn't appear related to a property listing. Please upload a property brochure, layout or floor plan." },
+              ]);
+              return;
+            }
+            if (rejectWrongCategoryUpload(pv.listingCategory, bubbleId)) return;
             await runAiExtraction({
               text: intakeText || "Extract property details from brochure",
 
