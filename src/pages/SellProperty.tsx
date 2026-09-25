@@ -2212,6 +2212,10 @@ export default function SellProperty() {
         setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
         return false;
       }
+      if (data.intent === "wrong_category") {
+        const t = detectMentionedCategory(String(data.reply).toLowerCase()) || detectMentionedCategory(lower);
+        if (t && !isCompatibleCategory(category, t)) setCategoryBlock(t);
+      }
       const prefix = data.intent === "question" ? "💡 " : data.intent === "reluctant" ? "🙂 " : "⚠️ ";
       setMessages((m) =>
         m.map((x: any) => (x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x)),
@@ -4038,8 +4042,25 @@ export default function SellProperty() {
               </motion.div>
             )}
 
+            {/* Category mismatch — flow blocked, options hidden, ask to switch */}
+            {categoryBlock && !done && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap items-center gap-2 pt-1 pl-1"
+              >
+                <Button size="sm" onClick={() => switchCategory(categoryBlock)}>
+                  Switch to {CATEGORY_LABELS[categoryBlock]}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setCategoryBlock(null)}>
+                  Stay in {CATEGORY_LABELS[category || ""] || "current flow"}
+                </Button>
+              </motion.div>
+            )}
+
             {/* Quick-reply chips for the current field (single / multi / yesno) */}
             {field &&
+              !categoryBlock &&
               !loadingNext &&
               !done &&
               (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
