@@ -64,17 +64,19 @@ export const successScoreService = {
     }
   },
 
-  // ---- Get score history ----
-  async getScoreHistory(builderProfileId: string): Promise<SuccessScore[]> {
+  // ---- Get score history (bounded: most recent N points) ----
+  async getScoreHistory(builderProfileId: string, limit = 30): Promise<SuccessScore[]> {
     try {
       const { data, error } = await supabase
         .from("agent_success_scores")
-        .select("*")
+        .select("id, builder_profile_id, response_time, conversion_rate, verified_listings, customer_rating, visit_success_rate, overall_score, last_calculated, created_at, updated_at")
         .eq("builder_profile_id", builderProfileId)
-        .order("last_calculated", { ascending: true });
+        .order("last_calculated", { ascending: false })
+        .limit(limit);
 
       if (error) throw error;
-      return (data || []) as SuccessScore[];
+      // Chart expects oldest -> newest
+      return ((data || []) as SuccessScore[]).slice().reverse();
     } catch (error) {
       console.error("Error fetching score history:", error);
       return [];
