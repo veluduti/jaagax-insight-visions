@@ -2188,6 +2188,30 @@ export default function SellProperty() {
         const s = String(typeof o === "object" ? o?.label ?? o?.value ?? "" : o).toLowerCase();
         return s && (s.includes(lower) || lower.includes(s));
       });
+    // Option-based question: typed text must match one of the choices.
+    // Keep cautioning (and keep the same question active) until a valid answer is given.
+    if (opts.length > 0 && !matchesOption && !isQuestion && !isReluctant) {
+      const labels = opts
+        .map((o) => String(typeof o === "object" ? o?.label ?? o?.value ?? "" : o))
+        .filter(Boolean);
+      const tokenHit = labels.some((l) =>
+        l.toLowerCase().split(/[\s/,()-]+/).some((w) => w.length >= 3 && words.some((u) => u.length >= 3 && (w.startsWith(u) || u.startsWith(w)))),
+      );
+      if (!tokenHit) {
+        setMessages((m) => [
+          ...m,
+          { id: uid(), role: "user", kind: "text", text },
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: `⚠️ "${text}" isn't a valid answer for "${fAny.question || fAny.label || "this question"}". Please choose one of: ${labels.join(", ")}.`,
+          },
+        ]);
+        setValue("");
+        return true;
+      }
+    }
     const suspicious =
       isReluctant ||
       isQuestion ||
