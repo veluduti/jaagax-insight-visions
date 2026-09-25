@@ -1301,6 +1301,28 @@ export default function SellProperty() {
   const engineRef = useRef<ConversationEngine | null>(null);
   const [category, setCategory] = useState<PropertyCategory | null>(null);
 
+  /* Per-category example text for the intake input */
+  const getCategoryExample = (cat: PropertyCategory | null): string => {
+    switch (cat) {
+      case "residential":
+        return 'Example: "3 BHK flat in Kondapur 1200 sqft for sale"';
+      case "commercial":
+        return 'Example: "Office space 2000 sqft in Hitech City for sale, ground floor"';
+      case "plots":
+        return 'Example: "200 sqyds residential plot in Shadnagar, clear title, for sale"';
+      case "agriculture":
+        return 'Example: "2 acres agricultural land near Vikarabad with bore and fencing"';
+      case "coworking":
+        return 'Example: "50-seat co-working space in Madhapur, fully furnished, for lease"';
+      case "financial":
+        return 'Example: "Looking for ₹75 Lakhs home loan for a ready-to-move flat in Hyderabad"';
+      case "land":
+        return 'Example: "5 acres farmland near Srisailam highway, water facility available"';
+      default:
+        return 'Example: "3 BHK flat in Kondapur 1200 sqft for sale"';
+    }
+  };
+
   const CATEGORY_OPTIONS: { id: PropertyCategory; label: string; emoji: string }[] = [
     { id: "residential", label: "Residential", emoji: "🏠" },
     { id: "commercial", label: "Commercial", emoji: "🏢" },
