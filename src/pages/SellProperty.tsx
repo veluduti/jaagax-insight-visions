@@ -4052,7 +4052,14 @@ export default function SellProperty() {
                 <Button size="sm" onClick={() => switchCategory(categoryBlock)}>
                   Switch to {CATEGORY_LABELS[categoryBlock]}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setCategoryBlock(null)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setCategoryBlock(null);
+                    if (field?.question) setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: field.question }]);
+                  }}
+                >
                   Stay in {CATEGORY_LABELS[category || ""] || "current flow"}
                 </Button>
               </motion.div>
