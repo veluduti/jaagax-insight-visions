@@ -225,11 +225,17 @@ export const successScoreService = {
   },
 
   // ---- Get score breakdown ----
-  async getScoreBreakdown(builderProfileId: string) {
+  async getScoreBreakdown(builderProfileId: string, preloaded?: SuccessScore | null) {
     try {
-      let score = await this.getSuccessScore(builderProfileId);
-      if (!score) {
-        score = await this.calculateScore(builderProfileId);
+      // Reuse an already-fetched score when the caller has one (avoids a duplicate query).
+      let score = preloaded !== undefined ? preloaded : await this.getSuccessScore(builderProfileId);
+
+      // Only recalculate (a write) when there is no score yet, or the last one
+      // is older than 24 hours. Prevents a new row on every dashboard open.
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const isStale = !!score && Date.now() - new Date(score.last_calculated).getTime() > DAY_MS;
+      if (!score || isStale) {
+        score = (await this.calculateScore(builderProfileId)) ?? score;
       }
       if (!score) {
         throw new Error("Failed to get or calculate score");
