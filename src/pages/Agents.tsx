@@ -86,7 +86,8 @@ const Agents = () => {
       const { data, error } = await supabase
         .from("agents")
         .select("id, agent_code, agency_name, languages, languages_spoken, cities_served, localities_served, sales_count, rent_count, photo_url, trust_score, verified, avg_rating, total_ratings, city, district, state, specializations")
-        .order("sales_count", { ascending: false });
+        .order("sales_count", { ascending: false })
+        .limit(200);
 
       if (error) throw error;
 
