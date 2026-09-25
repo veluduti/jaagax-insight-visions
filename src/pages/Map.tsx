@@ -411,7 +411,13 @@ const Map = () => {
     setError(null);
 
     try {
-      let query = supabase.from("properties").select("*");
+      // Only the fields the map markers + cards need, and bounded to keep the query light.
+      let query = supabase
+        .from("properties")
+        .select(
+          "id, slug, title, city, locality, latitude, longitude, price, area_sqft, bhk, type, verified, images, trust_score, is_draft, is_live, listing_status, verification_status, description, amenities, bedrooms, bathrooms",
+        )
+        .limit(300);
 
       query = query.ilike("city", currentCity);
 
