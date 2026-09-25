@@ -1493,6 +1493,9 @@ export default function SellProperty() {
     engineRef.current = createConversationEngine(cat);
     setCategory(cat);
     setState((s) => ({ ...s, property_category: cat }));
+    // Go straight to the structured questions — the user can still upload
+    // an image / brochure from the chat input and it will auto-fill answers.
+    setIntakeDone(true);
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", kind: "text", text: opt?.label || cat },
@@ -1500,9 +1503,10 @@ export default function SellProperty() {
         id: uid(),
         role: "ai",
         kind: "text",
-        text: `Great — let's list your ${opt?.label || cat} property. Tell me about it — type, speak, or upload an image, PDF or brochure. Or skip to go step by step.`,
+        text: `Great — let's list your ${opt?.label || cat} property. Answer the quick questions below, or upload an image / brochure anytime and I'll auto-fill the details for you.`,
       },
     ]);
+    void fetchNext({ property_category: cat }, true);
   };
 
   const selectCategory = (cat: PropertyCategory) => {
