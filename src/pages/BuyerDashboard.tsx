@@ -133,7 +133,12 @@ const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
   };
 
   const fetchAvailableCities = async () => {
-    const { data } = await supabase.from("properties").select("city").not("city", "is", null);
+    const { data } = await supabase
+      .from("properties")
+      .select("city")
+      .not("city", "is", null)
+      .eq("is_live", true)
+      .limit(1000);
     if (data) {
       const unique = Array.from(new Set(data.map((d: any) => d.city).filter(Boolean))).sort();
       setAvailableCities(unique as string[]);
