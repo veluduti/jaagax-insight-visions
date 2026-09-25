@@ -236,6 +236,7 @@ export interface PropertyRelevanceResult {
   confidence: number;
   reason?: string;
   documentType?: string;
+  listingCategory?: string;
 }
 
 const PROPERTY_KEYWORDS = [
