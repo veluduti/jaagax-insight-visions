@@ -8,6 +8,27 @@
       "when": 1790073377484,
       "tag": "0000_security_hardening_rls_search_path_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790318883068,
+      "tag": "0001_tighten_selected_rls_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790318975572,
+      "tag": "0002_remove_selected_permissive_read_and_storage_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790319003595,
+      "tag": "0003_restrict_selected_localities_read",
+      "breakpoints": true
     }
   ]
 }
