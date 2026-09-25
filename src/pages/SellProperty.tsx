@@ -1216,6 +1216,8 @@ export default function SellProperty() {
 
   /* Intake (first free-form description) */
   const [intakeDone, setIntakeDone] = useState(false);
+  // When set, the flow is BLOCKED: current options are hidden and the user is asked to switch category.
+  const [categoryBlock, setCategoryBlock] = useState<PropertyCategory | null>(null);
   const [intakeText, setIntakeText] = useState("");
   const [extracting, setExtracting] = useState(false);
 
@@ -1492,6 +1494,7 @@ export default function SellProperty() {
     const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
     engineRef.current = createConversationEngine(cat);
     setCategory(cat);
+    setCategoryBlock(null);
     setState((s) => ({ ...s, property_category: cat }));
     // Go straight to the structured questions — the user can still upload
     // an image / brochure from the chat input and it will auto-fill answers.
@@ -2148,11 +2151,12 @@ export default function SellProperty() {
     const lower = text.toLowerCase();
     const words = lower.split(/\s+/).filter(Boolean);
 
-    // Category mismatch check (e.g. "agriculture land" inside Residential flow)
+    // 1) Detect category → 2) compare with current → 3) block flow on mismatch
     const mentioned = detectMentionedCategory(lower);
     if (mentioned && !isCompatibleCategory(category, mentioned)) {
       const cur = CATEGORY_LABELS[category || ""] || "this";
       const target = CATEGORY_LABELS[mentioned];
+      setCategoryBlock(mentioned);
       setMessages((m) => [
         ...m,
         { id: uid(), role: "user", kind: "text", text },
@@ -2160,12 +2164,14 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: `⚠️ This looks like a ${target} property, but you're in the ${cur} listing flow. Please select the "${target}" category from the list to post it. Here I can only accept ${cur} details — ${(f as any).question || "please answer the current question"}`,
+          text: `⚠️ Category mismatch: this looks like a ${target} property, but you're in the ${cur} listing flow. I can't continue ${cur} questions with these details. Please switch to "${target}" to post it.`,
         },
       ]);
       setValue("");
       return true;
     }
+    // Same category → continue the flow and show options again
+    if (categoryBlock) setCategoryBlock(null);
 
     const isReluctant =
       /\b(don'?t|dont|do not|won'?t|not)\s+(want|wanna|like|know|sure|share|tell|answer)|\bno idea\b|\blater\b|\bwhy (do|should)\b|\bprivate\b|\bskip\b/.test(lower);
@@ -2205,6 +2211,10 @@ export default function SellProperty() {
         // Treat as a real answer: drop the echo + typing and continue normally
         setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
         return false;
+      }
+      if (data.intent === "wrong_category") {
+        const t = detectMentionedCategory(String(data.reply).toLowerCase()) || detectMentionedCategory(lower);
+        if (t && !isCompatibleCategory(category, t)) setCategoryBlock(t);
       }
       const prefix = data.intent === "question" ? "💡 " : data.intent === "reluctant" ? "🙂 " : "⚠️ ";
       setMessages((m) =>
@@ -4032,8 +4042,32 @@ export default function SellProperty() {
               </motion.div>
             )}
 
+            {/* Category mismatch — flow blocked, options hidden, ask to switch */}
+            {categoryBlock && !done && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap items-center gap-2 pt-1 pl-1"
+              >
+                <Button size="sm" onClick={() => switchCategory(categoryBlock)}>
+                  Switch to {CATEGORY_LABELS[categoryBlock]}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setCategoryBlock(null);
+                    if (field?.question) setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: field.question }]);
+                  }}
+                >
+                  Stay in {CATEGORY_LABELS[category || ""] || "current flow"}
+                </Button>
+              </motion.div>
+            )}
+
             {/* Quick-reply chips for the current field (single / multi / yesno) */}
             {field &&
+              !categoryBlock &&
               !loadingNext &&
               !done &&
               (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
@@ -4094,7 +4128,7 @@ export default function SellProperty() {
             )}
 
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
-            {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -4126,7 +4160,7 @@ export default function SellProperty() {
             )}
 
             {/* Unit/price/measurement chips for NUMBER fields — attached to the question bubble */}
-            {field && !loadingNext && !done && field.input === "number" && value && (() => {
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
               const isCountField =
                 /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
                   field.id,
@@ -4202,7 +4236,7 @@ export default function SellProperty() {
     DYNAMIC INPUT SUGGESTIONS
 ============================================ */}
 
-            {Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
+            {!categoryBlock && Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
