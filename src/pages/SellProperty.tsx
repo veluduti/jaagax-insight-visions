@@ -4031,7 +4031,7 @@ export default function SellProperty() {
                   transition={{ duration: 0.18 }}
                   className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className={cn("flex items-center gap-2 w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
                     <Bubble msg={msg} />
 
                     {msg.role === "user" && msg.kind === "text" && (msg as any).fieldId && (
@@ -6024,7 +6024,8 @@ function Bubble({ msg }: { msg: ChatMsg }) {
 
   const isUser = msg.role === "user";
   const base = cn(
-    "max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 shadow-sm text-sm break-words",
+    "w-fit max-w-[85%] sm:max-w-[70%] px-3.5 py-2.5 shadow-sm text-sm",
+    "whitespace-pre-wrap [overflow-wrap:break-word] [word-break:normal]",
     isUser
       ? "bg-gradient-to-br from-primary to-emerald-500 text-white rounded-2xl rounded-br-sm"
       : "bg-card border border-border rounded-2xl rounded-bl-sm",
