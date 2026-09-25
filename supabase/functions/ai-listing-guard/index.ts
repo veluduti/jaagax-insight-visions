@@ -26,7 +26,7 @@ Classify the user's latest message relative to the current question and reply wi
 - "question": the user asks something related to property, real estate, listing, pricing, documents, legal, loans, locality, or this form. reply = a short helpful answer (max 3 sentences), then end with a gentle nudge to answer the current question.
 - "off_topic": unrelated to property/real estate (jokes, weather, coding, personal chat, gibberish). reply = a polite one-line caution that you can only help with property listing, then repeat the current question.
 - "reluctant": the user refuses, hesitates, is confused, or doesn't want/know how to answer (e.g. "I don't want to answer", "not sure", "why do you need this", "later", "no idea"). reply = a warm, empathetic 1-2 sentence response in the user's tone: acknowledge their feeling, briefly explain why this detail helps buyers/verification. If the question is optional (Required: no) say you'll skip it for now. If required, reassure privacy and gently ask again, offering a simple example answer.
-Reply in the same language the user writes in. Never change the flow; keep replies short.`;
+Reply in English unless the user clearly writes in another language (Hindi/Telugu script etc.), then use that language. Never change the flow; keep replies short.`;
 
     const user = `Category: ${category || "unknown"}
 Current question: ${question || "(none)"}
