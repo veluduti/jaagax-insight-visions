@@ -2117,6 +2117,59 @@ export default function SellProperty() {
    COMMIT ANSWER
 =========================================================== */
 
+  // Returns true when the message was a question / off-topic and has been
+  // answered in chat (the current question stays active — flow unchanged).
+  const guardTypedMessage = async (f: FieldDef, text: string): Promise<boolean> => {
+    const lower = text.toLowerCase();
+    const words = lower.split(/\s+/).filter(Boolean);
+    const isQuestion =
+      text.includes("?") ||
+      /^(what|why|how|when|where|who|which|can|could|should|would|is|are|do|does|will|tell|explain|help)\b/.test(lower);
+    const fAny = f as any;
+    const kind = String(fAny.type || fAny.input || "").toLowerCase();
+    const isNumeric = /number|numeric|price|area|currency|integer/.test(kind);
+    const opts: any[] = Array.isArray(fAny.options) ? fAny.options : [];
+    const matchesOption =
+      opts.length === 0 ||
+      opts.some((o) => {
+        const s = String(typeof o === "object" ? o?.label ?? o?.value ?? "" : o).toLowerCase();
+        return s && (s.includes(lower) || lower.includes(s));
+      });
+    const suspicious =
+      isQuestion ||
+      (isNumeric && !/\d/.test(text)) ||
+      (!matchesOption && words.length >= 2) ||
+      (!isNumeric && opts.length === 0 && words.length >= 3);
+    if (!suspicious) return false;
+
+    const typingId = uid();
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text },
+      { id: typingId, role: "ai", kind: "typing" },
+    ]);
+    try {
+      const { data, error } = await supabase.functions.invoke<{ intent: string; reply: string }>(
+        "ai-listing-guard",
+        { body: { message: text, question: fAny.question || fAny.label || f.id, category, answers: state } },
+      );
+      if (error || !data || data.intent === "answer") {
+        // Treat as a real answer: drop the echo + typing and continue normally
+        setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
+        return false;
+      }
+      const prefix = data.intent === "off_topic" ? "⚠️ " : "💡 ";
+      setMessages((m) =>
+        m.map((x: any) => (x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x)),
+      );
+      setValue("");
+      return true;
+    } catch {
+      setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
+      return false;
+    }
+  };
+
   const commitAnswer = async (val: any, displayText?: string, targetField?: FieldDef) => {
     const f = targetField || field;
 
@@ -2160,6 +2213,14 @@ export default function SellProperty() {
         await onSkip();
 
         return;
+      }
+
+      // -------------------------------------------------------
+      // Guard: mid-chat questions / off-topic text (typed only)
+      // -------------------------------------------------------
+      if (!displayText && !isEditing) {
+        const handled = await guardTypedMessage(f, normalized);
+        if (handled) return;
       }
     }
 
