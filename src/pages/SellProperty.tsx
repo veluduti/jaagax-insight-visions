@@ -3825,12 +3825,7 @@ export default function SellProperty() {
             Switching a category restarts the questions for that property type.
           </div>
         </aside>
-      ) : (
-        <NearbyAgentsRail
-          city={savedLocation?.city || null}
-          className="hidden lg:flex fixed left-4 xl:left-8 top-36 bottom-8 z-[45] w-60"
-        />
-      )}
+      ) : null}
 
       {/* Desktop right rail — nearby verified agents */}
       <NearbyAgentsRail
