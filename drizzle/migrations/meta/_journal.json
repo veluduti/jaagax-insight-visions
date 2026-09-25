@@ -15,6 +15,13 @@
       "when": 1790318883068,
       "tag": "0001_tighten_selected_rls_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790318975572,
+      "tag": "0002_remove_selected_permissive_read_and_storage_rules",
+      "breakpoints": true
     }
   ]
 }
