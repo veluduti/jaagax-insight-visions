@@ -2167,6 +2167,8 @@ export default function SellProperty() {
       return true;
     }
 
+    const isReluctant =
+      /\b(don'?t|dont|do not|won'?t|not)\s+(want|wanna|like|know|sure|share|tell|answer)|\bno idea\b|\blater\b|\bwhy (do|should)\b|\bprivate\b|\bskip\b/.test(lower);
     const isQuestion =
       text.includes("?") ||
       /^(what|why|how|when|where|who|which|can|could|should|would|is|are|do|does|will|tell|explain|help)\b/.test(lower);
@@ -2181,6 +2183,7 @@ export default function SellProperty() {
         return s && (s.includes(lower) || lower.includes(s));
       });
     const suspicious =
+      isReluctant ||
       isQuestion ||
       (isNumeric && !/\d/.test(text)) ||
       (!matchesOption && words.length >= 2) ||
@@ -2196,18 +2199,21 @@ export default function SellProperty() {
     try {
       const { data, error } = await supabase.functions.invoke<{ intent: string; reply: string }>(
         "ai-listing-guard",
-        { body: { message: text, question: fAny.question || fAny.label || f.id, category, answers: state } },
+        { body: { message: text, question: fAny.question || fAny.label || f.id, category, answers: state, required: !!fAny.required } },
       );
       if (error || !data || data.intent === "answer") {
         // Treat as a real answer: drop the echo + typing and continue normally
         setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
         return false;
       }
-      const prefix = data.intent === "question" ? "💡 " : "⚠️ ";
+      const prefix = data.intent === "question" ? "💡 " : data.intent === "reluctant" ? "🙂 " : "⚠️ ";
       setMessages((m) =>
         m.map((x: any) => (x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x)),
       );
       setValue("");
+      if (data.intent === "reluctant" && !fAny.required) {
+        await onSkip();
+      }
       return true;
     } catch {
       setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));

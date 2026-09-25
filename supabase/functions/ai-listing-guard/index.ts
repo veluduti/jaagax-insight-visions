@@ -13,77 +13,48 @@ const json = (b: unknown, status = 200) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const { message, question, category, answers } = await req.json();
+    const { message, question, category, answers, required } = await req.json();
     if (!message || typeof message !== "string") return json({ error: "message required" }, 400);
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "AI not configured" }, 500);
 
     const system = `You are JAAGA X's property listing assistant (India). A user is filling a property listing chat.
 Classify the user's latest message relative to the current question and reply with ONLY compact JSON:
-{"intent":"answer"|"question"|"off_topic"|"wrong_category","reply":"..."}
+{"intent":"answer"|"question"|"off_topic"|"wrong_category"|"reluctant","reply":"..."}
 - "wrong_category": the message describes a property of a DIFFERENT category than the current Category (categories: residential, commercial, plots, agriculture, coworking, financial, land). E.g. agricultural land in a residential flow. reply = a one-line caution naming the correct category and asking the user to select that category from the list, then repeat the current question.
-- "answer": the message is an attempt to answer the current question (even partial/informal). reply = "".
+- "answer": (NOT for refusals, hesitation or "don't want/know" messages — those are "reluctant") the message is a genuine attempt to answer the current question (even partial/informal). reply = "".
 - "question": the user asks something related to property, real estate, listing, pricing, documents, legal, loans, locality, or this form. reply = a short helpful answer (max 3 sentences), then end with a gentle nudge to answer the current question.
 - "off_topic": unrelated to property/real estate (jokes, weather, coding, personal chat, gibberish). reply = a polite one-line caution that you can only help with property listing, then repeat the current question.
-Never change the flow; keep replies short.`;
+- "reluctant": the user refuses, hesitates, is confused, or doesn't want/know how to answer (e.g. "I don't want to answer", "not sure", "why do you need this", "later", "no idea"). reply = a warm, empathetic 1-2 sentence response in the user's tone: acknowledge their feeling, briefly explain why this detail helps buyers/verification. If the question is optional (Required: no) say you'll skip it for now. If required, reassure privacy and gently ask again, offering a simple example answer.
+Reply in English unless the user clearly writes in another language (Hindi/Telugu script etc.), then use that language. Never change the flow; keep replies short.`;
 
     const user = `Category: ${category || "unknown"}
 Current question: ${question || "(none)"}
 Answers so far: ${JSON.stringify(answers || {}).slice(0, 1500)}
+Required: ${required ? "yes" : "no"}
 User message: ${message}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Lovable-API-Key": apiKey,
-        "Content-Type": "application/json",
-        "X-Lovable-AIG-SDK": "fetch",
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
-        model: "openai/gpt-6-astra",
-        stream: true,
-        store: false,
-        reasoning: { effort: "low" },
-        instructions: system,
-        input: [{ role: "user", content: user }],
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "system", content: system }, { role: "user", content: user }],
       }),
     });
-    if (!res.ok || !res.body) {
+    if (!res.ok) {
       const t = await res.text().catch(() => "");
       console.error("gateway error", res.status, t);
       return json({ error: t || "AI error" }, res.status);
     }
-
-    // Collect streamed text
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let buf = "";
-    let text = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let i;
-      while ((i = buf.indexOf("\n")) !== -1) {
-        const line = buf.slice(0, i).trim();
-        buf = buf.slice(i + 1);
-        if (!line.startsWith("data:")) continue;
-        const data = line.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
-        try {
-          const ev = JSON.parse(data);
-          if (ev.type === "response.output_text.delta" && typeof ev.delta === "string") text += ev.delta;
-        } catch { /* partial */ }
-      }
-    }
-
+    const j = await res.json();
+    const text: string = j?.choices?.[0]?.message?.content || "";
     const m = text.match(/\{[\s\S]*\}/);
     let out = { intent: "answer", reply: "" };
     if (m) {
       try {
         const p = JSON.parse(m[0]);
-        if (["answer", "question", "off_topic"].includes(p.intent)) out = { intent: p.intent, reply: String(p.reply || "") };
+        if (["answer", "question", "off_topic", "wrong_category", "reluctant"].includes(p.intent)) out = { intent: p.intent, reply: String(p.reply || "") };
       } catch { /* fallback to answer */ }
     }
     return json(out);
