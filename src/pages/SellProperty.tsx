@@ -1216,6 +1216,8 @@ export default function SellProperty() {
 
   /* Intake (first free-form description) */
   const [intakeDone, setIntakeDone] = useState(false);
+  // When set, the flow is BLOCKED: current options are hidden and the user is asked to switch category.
+  const [categoryBlock, setCategoryBlock] = useState<PropertyCategory | null>(null);
   const [intakeText, setIntakeText] = useState("");
   const [extracting, setExtracting] = useState(false);
 
@@ -1492,6 +1494,7 @@ export default function SellProperty() {
     const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
     engineRef.current = createConversationEngine(cat);
     setCategory(cat);
+    setCategoryBlock(null);
     setState((s) => ({ ...s, property_category: cat }));
     // Go straight to the structured questions — the user can still upload
     // an image / brochure from the chat input and it will auto-fill answers.
@@ -2148,11 +2151,12 @@ export default function SellProperty() {
     const lower = text.toLowerCase();
     const words = lower.split(/\s+/).filter(Boolean);
 
-    // Category mismatch check (e.g. "agriculture land" inside Residential flow)
+    // 1) Detect category → 2) compare with current → 3) block flow on mismatch
     const mentioned = detectMentionedCategory(lower);
     if (mentioned && !isCompatibleCategory(category, mentioned)) {
       const cur = CATEGORY_LABELS[category || ""] || "this";
       const target = CATEGORY_LABELS[mentioned];
+      setCategoryBlock(mentioned);
       setMessages((m) => [
         ...m,
         { id: uid(), role: "user", kind: "text", text },
@@ -2160,12 +2164,14 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: `⚠️ This looks like a ${target} property, but you're in the ${cur} listing flow. Please select the "${target}" category from the list to post it. Here I can only accept ${cur} details — ${(f as any).question || "please answer the current question"}`,
+          text: `⚠️ Category mismatch: this looks like a ${target} property, but you're in the ${cur} listing flow. I can't continue ${cur} questions with these details. Please switch to "${target}" to post it.`,
         },
       ]);
       setValue("");
       return true;
     }
+    // Same category → continue the flow and show options again
+    if (categoryBlock) setCategoryBlock(null);
 
     const isReluctant =
       /\b(don'?t|dont|do not|won'?t|not)\s+(want|wanna|like|know|sure|share|tell|answer)|\bno idea\b|\blater\b|\bwhy (do|should)\b|\bprivate\b|\bskip\b/.test(lower);
