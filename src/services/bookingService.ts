@@ -7,32 +7,38 @@ import { supabase } from "@/integrations/supabase/client";
  * called via aiService / dedicated services as they are migrated.
  */
 
-export async function listBuyerVisits(userId: string) {
+/** Default page size for list queries — keeps payload + DB work bounded. */
+export const BOOKING_PAGE_SIZE = 50;
+
+export async function listBuyerVisits(userId: string, limit = BOOKING_PAGE_SIZE) {
   const { data, error } = await (supabase as any)
     .from("visits")
     .select("*")
     .eq("buyer_id", userId)
-    .order("scheduled_at", { ascending: false });
+    .order("scheduled_at", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return data ?? [];
 }
 
-export async function listAgentVisits(agentId: string) {
+export async function listAgentVisits(agentId: string, limit = BOOKING_PAGE_SIZE) {
   const { data, error } = await (supabase as any)
     .from("visits")
     .select("*")
     .eq("agent_id", agentId)
-    .order("scheduled_at", { ascending: false });
+    .order("scheduled_at", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return data ?? [];
 }
 
-export async function listHotelBookings(userId: string) {
+export async function listHotelBookings(userId: string, limit = BOOKING_PAGE_SIZE) {
   const { data, error } = await (supabase as any)
     .from("hotel_bookings")
     .select("*")
     .eq("user_id", userId)
-    .order("check_in", { ascending: false });
+    .order("check_in", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return data ?? [];
 }
