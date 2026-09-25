@@ -2990,6 +2990,25 @@ export default function SellProperty() {
   };
 
   /* ----- Quick-attach: image, PDF, DOC, DOCX (AI extracts silently) ----- */
+  // Returns true (and blocks) when an upload belongs to a different category.
+  const rejectWrongCategoryUpload = (detected: string | undefined, bubbleId: string): boolean => {
+    if (!category || !detected || detected === "unknown") return false;
+    if (isCompatibleCategory(category, detected)) return false;
+    const cur = CATEGORY_LABELS[category] || category;
+    const det = CATEGORY_LABELS[detected] || detected;
+    setMessages((m) => [
+      ...m.filter((x) => x.id !== bubbleId),
+      {
+        id: uid(),
+        role: "ai",
+        kind: "text",
+        text: `⚠️ This upload looks like a ${det} property, not ${cur}. Please upload a ${cur}-related image, PDF or brochure — or switch to the ${det} category to list it.`,
+      },
+    ]);
+    setCategoryBlock(detected as PropertyCategory);
+    return true;
+  };
+
   const handleQuickImage = async (files: FileList) => {
     if (!files || files.length === 0) return;
     const file = files[0];
@@ -3032,34 +3051,18 @@ export default function SellProperty() {
 
           return;
         }
-        // Show user's image bubble immediately so chat is not "blocked"
+        if (rejectWrongCategoryUpload(imageValidation.listingCategory, bubbleId)) return;
+
+        // Show user's image bubble (chat-only). The poster is NOT saved as a
+        // property photo — it may contain contact details. Users add real
+        // property photos separately in the photos step.
         const previewUrl = URL.createObjectURL(file);
         setMessages((m) => {
-          // insert image bubble BEFORE the typing bubble
           const idx = m.findIndex((x) => x.id === bubbleId);
           const imgMsg: ChatMsg = { id: uid(), role: "user", kind: "image", url: previewUrl };
           if (idx === -1) return [...m, imgMsg];
           return [...m.slice(0, idx), imgMsg, ...m.slice(idx)];
         });
-
-        // Fire-and-forget: redact + upload happens in background and silently
-        // appends to media_urls when ready. It does NOT block the chat.
-        (async () => {
-          try {
-            const redacted = await redactPosterFile(file);
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
-            if (!user) return;
-            const path = `${user.id}/${Date.now()}-${redacted.name}`;
-            const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
-            if (upErr) return;
-            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
-            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), pub.publicUrl] }));
-          } catch {
-            /* silent */
-          }
-        })();
 
         // Run extraction reusing the SAME typing bubble (no flicker, no duplicate loaders)
         await runAiExtraction({
@@ -3112,6 +3115,8 @@ export default function SellProperty() {
           return;
         }
 
+        if (rejectWrongCategoryUpload(relevance.listingCategory, bubbleId)) return;
+
         // ============================================
         // LOW CONFIDENCE WARNING
         // ============================================
@@ -3154,6 +3159,15 @@ export default function SellProperty() {
           const pageImages = await renderPdfPagesToImages(file);
 
           if (pageImages.length > 0) {
+            const pv = await validatePropertyImage(pageImages[0]);
+            if (!pv.valid) {
+              setMessages((m) => [
+                ...m.filter((x) => x.id !== bubbleId),
+                { id: uid(), role: "ai", kind: "text", text: "This document doesn't appear related to a property listing. Please upload a property brochure, layout or floor plan." },
+              ]);
+              return;
+            }
+            if (rejectWrongCategoryUpload(pv.listingCategory, bubbleId)) return;
             await runAiExtraction({
               text: intakeText || "Extract property details from brochure",
 

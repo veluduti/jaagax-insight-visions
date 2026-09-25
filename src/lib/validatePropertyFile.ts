@@ -236,6 +236,7 @@ export interface PropertyRelevanceResult {
   confidence: number;
   reason?: string;
   documentType?: string;
+  listingCategory?: string;
 }
 
 const PROPERTY_KEYWORDS = [
@@ -287,7 +288,8 @@ async function aiValidate(payload: {
       confidence: typeof (data as any).confidence === "number" ? (data as any).confidence : 0,
       reason: (data as any).reason,
       documentType: (data as any).documentType,
-    };
+      listingCategory: (data as any).listingCategory,
+    } as PropertyRelevanceResult & { listingCategory?: string };
   } catch (e) {
     console.warn("[validate] ai validator failed", e);
     return null;

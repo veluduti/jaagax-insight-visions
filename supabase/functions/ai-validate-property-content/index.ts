@@ -1,6 +1,7 @@
-// AI-powered validation: is this content a real-estate / property listing?
+// AI-powered validation: is this content a real-estate / property listing,
+// and which listing category does it belong to?
 // Accepts either an image (URL or data URL) or extracted text.
-// Returns { valid, confidence (0-1), reason?, documentType? }
+// Returns { valid, confidence (0-1), reason?, documentType?, listingCategory? }
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,15 +11,25 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-const SYSTEM_PROMPT = `You are a strict classifier for a real-estate listing app.
-Decide if the provided content is related to a PROPERTY LISTING (residential, commercial, plot, rental, sale, brochure, floor plan, layout, elevation, project poster, interior/exterior photo of a building, room, apartment, villa, shop, office, land/plot).
+const CATEGORIES = ["residential", "commercial", "plots", "agriculture", "coworking", "financial", "unknown"];
 
-VALID examples: apartment/villa/house photos (interior or exterior), floor plans, site/master plans, brochures, project posters, commercial spaces, shops, offices, plots/land photos, construction sites, rental/sale documents.
+const SYSTEM_PROMPT = `You are a strict classifier for a real-estate listing app (India).
+Decide if the provided content is related to a PROPERTY LISTING (residential, commercial, plot, agricultural land, co-working, rental, sale, brochure, floor plan, layout, project poster, interior/exterior photo of a building, land photo).
 
-INVALID examples: nature/landscape/mountains, wallpapers, memes, selfies/people portraits, pets, food, Aadhaar/PAN/ID cards, certificates, invoices, random screenshots unrelated to real estate.
+VALID examples: apartment/villa/house photos, floor plans, site/master plans, brochures, project posters, commercial spaces, shops, offices, plots/land photos, farm land posters, construction sites, rental/sale documents.
+INVALID examples: nature wallpapers, memes, selfies/portraits, pets, food, Aadhaar/PAN/ID cards, certificates, invoices, random screenshots unrelated to real estate.
+
+Also decide which LISTING CATEGORY the content belongs to:
+- residential: flats, apartments, villas, independent houses, penthouses, row houses
+- commercial: offices, shops, showrooms, warehouses, factories, commercial buildings, restaurants, hotels
+- plots: residential/commercial open plots, layouts, ventures measured in sq yards / sq ft
+- agriculture: agricultural land, farm land, acres/guntas, orchards, farm houses on farm land
+- coworking: co-working / shared office seats
+- financial: home loan / finance documents
+- unknown: cannot tell
 
 Reply ONLY with strict JSON:
-{"valid": boolean, "confidence": number between 0 and 1, "reason": short string, "documentType": one of ["property_photo","floor_plan","brochure","layout","interior","exterior","commercial","plot","document","unknown"]}`;
+{"valid": boolean, "confidence": number 0-1, "reason": short string, "documentType": one of ["property_photo","floor_plan","brochure","layout","interior","exterior","commercial","plot","document","unknown"], "listingCategory": one of ${JSON.stringify(CATEGORIES)}}`;
 
 async function callGateway(messages: any[]) {
   const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -26,9 +37,10 @@ async function callGateway(messages: any[]) {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "X-Lovable-AIG-SDK": "fetch",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-3-flash-preview",
       messages,
       response_format: { type: "json_object" },
     }),
@@ -39,13 +51,8 @@ async function callGateway(messages: any[]) {
   }
   const j = await r.json();
   const content = j?.choices?.[0]?.message?.content || "{}";
-  try {
-    return JSON.parse(content);
-  } catch {
-    // strip code fences if any
-    const cleaned = String(content).replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
-  }
+  const m = String(content).match(/\{[\s\S]*\}/);
+  return JSON.parse(m ? m[0] : "{}");
 }
 
 Deno.serve(async (req) => {
@@ -54,7 +61,7 @@ Deno.serve(async (req) => {
   try {
     if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ valid: true, confidence: 0, reason: "validator unavailable", documentType: "unknown" }),
+        JSON.stringify({ valid: true, confidence: 0, reason: "validator unavailable", documentType: "unknown", listingCategory: "unknown" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -77,14 +84,11 @@ Deno.serve(async (req) => {
     } else if (text && String(text).trim().length > 0) {
       messages = [
         { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Classify the following extracted document text. Return only JSON.\n\n---\n${String(text).slice(0, 8000)}`,
-        },
+        { role: "user", content: `Classify the following extracted document text. Return only JSON.\n\n---\n${String(text).slice(0, 8000)}` },
       ];
     } else {
       return new Response(
-        JSON.stringify({ valid: false, confidence: 0, reason: "no content provided", documentType: "unknown" }),
+        JSON.stringify({ valid: false, confidence: 0, reason: "no content provided", documentType: "unknown", listingCategory: "unknown" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -95,15 +99,15 @@ Deno.serve(async (req) => {
       confidence: typeof result.confidence === "number" ? result.confidence : (result.valid ? 0.8 : 0.1),
       reason: result.reason || (result.valid ? "property-related" : "not property-related"),
       documentType: result.documentType || "unknown",
+      listingCategory: CATEGORIES.includes(result.listingCategory) ? result.listingCategory : "unknown",
     };
     return new Response(JSON.stringify(out), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("ai-validate-property-content error", e);
-    // Fail-open: don't block uploads if the validator itself errors out.
     return new Response(
-      JSON.stringify({ valid: true, confidence: 0, reason: "validator error", documentType: "unknown" }),
+      JSON.stringify({ valid: true, confidence: 0, reason: "validator error", documentType: "unknown", listingCategory: "unknown" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
