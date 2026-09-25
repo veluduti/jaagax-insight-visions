@@ -4121,7 +4121,7 @@ export default function SellProperty() {
             )}
 
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
-            {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -4153,7 +4153,7 @@ export default function SellProperty() {
             )}
 
             {/* Unit/price/measurement chips for NUMBER fields — attached to the question bubble */}
-            {field && !loadingNext && !done && field.input === "number" && value && (() => {
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
               const isCountField =
                 /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
                   field.id,
@@ -4229,7 +4229,7 @@ export default function SellProperty() {
     DYNAMIC INPUT SUGGESTIONS
 ============================================ */}
 
-            {Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
+            {!categoryBlock && Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
