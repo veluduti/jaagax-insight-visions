@@ -64,17 +64,19 @@ export const successScoreService = {
     }
   },
 
-  // ---- Get score history ----
-  async getScoreHistory(builderProfileId: string): Promise<SuccessScore[]> {
+  // ---- Get score history (bounded: most recent N points) ----
+  async getScoreHistory(builderProfileId: string, limit = 30): Promise<SuccessScore[]> {
     try {
       const { data, error } = await supabase
         .from("agent_success_scores")
-        .select("*")
+        .select("id, builder_profile_id, response_time, conversion_rate, verified_listings, customer_rating, visit_success_rate, overall_score, last_calculated, created_at, updated_at")
         .eq("builder_profile_id", builderProfileId)
-        .order("last_calculated", { ascending: true });
+        .order("last_calculated", { ascending: false })
+        .limit(limit);
 
       if (error) throw error;
-      return (data || []) as SuccessScore[];
+      // Chart expects oldest -> newest
+      return ((data || []) as SuccessScore[]).slice().reverse();
     } catch (error) {
       console.error("Error fetching score history:", error);
       return [];
@@ -223,11 +225,17 @@ export const successScoreService = {
   },
 
   // ---- Get score breakdown ----
-  async getScoreBreakdown(builderProfileId: string) {
+  async getScoreBreakdown(builderProfileId: string, preloaded?: SuccessScore | null) {
     try {
-      let score = await this.getSuccessScore(builderProfileId);
-      if (!score) {
-        score = await this.calculateScore(builderProfileId);
+      // Reuse an already-fetched score when the caller has one (avoids a duplicate query).
+      let score = preloaded !== undefined ? preloaded : await this.getSuccessScore(builderProfileId);
+
+      // Only recalculate (a write) when there is no score yet, or the last one
+      // is older than 24 hours. Prevents a new row on every dashboard open.
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const isStale = !!score && Date.now() - new Date(score.last_calculated).getTime() > DAY_MS;
+      if (!score || isStale) {
+        score = (await this.calculateScore(builderProfileId)) ?? score;
       }
       if (!score) {
         throw new Error("Failed to get or calculate score");

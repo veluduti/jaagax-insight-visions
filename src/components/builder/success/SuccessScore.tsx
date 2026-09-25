@@ -41,7 +41,11 @@ export default function SuccessScore() {
   const load = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const [s, b, h] = await Promise.all([successScoreService.getSuccessScore(id), successScoreService.getScoreBreakdown(id), successScoreService.getScoreHistory(id)]);
+      const s = await successScoreService.getSuccessScore(id);
+      const [b, h] = await Promise.all([
+        successScoreService.getScoreBreakdown(id, s),
+        successScoreService.getScoreHistory(id),
+      ]);
       setScore(s);
       setBreakdown(b);
       setHistory(h);
