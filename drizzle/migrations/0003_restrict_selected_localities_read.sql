@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "loc_localities_public_read" ON public.loc_localities;
+CREATE POLICY "active localities are public" ON public.loc_localities FOR SELECT TO anon, authenticated USING (is_active = true);
