@@ -1459,7 +1459,7 @@ export default function SellProperty() {
         id: uid(),
         role: "ai",
         kind: "text",
-        text: "What type of property are you listing?",
+        text: "Pick a property category to get started.",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1499,7 +1499,7 @@ export default function SellProperty() {
     setHistory([]);
     setMessages([
       { id: uid(), role: "ai", kind: "text", text: "👋 Hi! I'll help you list your property." },
-      { id: uid(), role: "ai", kind: "text", text: "What type of property are you listing?" },
+      { id: uid(), role: "ai", kind: "text", text: "Pick a property category to get started." },
     ]);
     startCategory(cat);
   };
@@ -2602,7 +2602,7 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: "What type of property are you listing?",
+          text: "Pick a property category to get started.",
         },
       ]);
       engineRef.current = null;
@@ -2628,7 +2628,7 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: "What type of property are you listing?",
+          text: "Pick a property category to get started.",
         },
       ]);
       engineRef.current = null;
@@ -3614,10 +3614,9 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showCategoryPicker = !category && !done;
   const showIntakeBar = !!category && !intakeDone && !done;
   const showInputBar =
-    showCategoryPicker || showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
+    showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
@@ -3701,7 +3700,7 @@ export default function SellProperty() {
       <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* BACK BUTTON - only show when NOT on category selector */}
-          {!showCategoryPicker && (
+          {category && (
             <button
               type="button"
               onClick={() => {
@@ -3723,7 +3722,7 @@ export default function SellProperty() {
                     id: uid(),
                     role: "ai",
                     kind: "text",
-                    text: "What type of property are you listing?",
+                    text: "Pick a property category to get started.",
                   },
                 ]);
                 engineRef.current = null;
@@ -3750,7 +3749,7 @@ export default function SellProperty() {
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
           {/* Selected Category Badge - shows what user selected */}
-          {category && !showCategoryPicker && (
+          {category && (
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-medium">
                 <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.emoji}</span>
@@ -3761,14 +3760,14 @@ export default function SellProperty() {
         </div>
 
         {/* Mobile category switcher chips */}
-        {category && !showCategoryPicker && (
+        {(
           <div className="lg:hidden border-t border-border/40 bg-background/60">
             <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {CATEGORY_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => switchCategory(opt.id)}
+                  onClick={() => (category ? switchCategory(opt.id) : selectCategory(opt.id))}
                   className={cn(
                     "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                     opt.id === category
@@ -3786,7 +3785,7 @@ export default function SellProperty() {
       </div>
 
       {/* Desktop left rail — categories in chat mode, nearby agents on the picker */}
-      {category && !showCategoryPicker ? (
+      {(
         <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-36 bottom-44 z-30 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
           <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
@@ -3799,7 +3798,7 @@ export default function SellProperty() {
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => switchCategory(opt.id)}
+                    onClick={() => (category ? switchCategory(opt.id) : selectCategory(opt.id))}
                     aria-current={active ? "true" : undefined}
                     className={cn(
                       "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all shrink-0",
@@ -3812,7 +3811,7 @@ export default function SellProperty() {
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-medium truncate">{opt.label}</span>
                       <span className="block text-[10px] text-muted-foreground">
-                        {active ? "Active flow" : "Switch flow"}
+                        {active ? "Active flow" : category ? "Switch flow" : "Start flow"}
                       </span>
                     </span>
                     {active && <span className="h-2 w-2 rounded-full bg-primary" />}
@@ -3825,14 +3824,14 @@ export default function SellProperty() {
             Switching a category restarts the questions for that property type.
           </div>
         </aside>
-      ) : null}
+      )}
 
       {/* Desktop right rail — nearby verified agents */}
       <NearbyAgentsRail
         city={savedLocation?.city || null}
         className={cn(
           "hidden xl:flex fixed right-4 2xl:right-8 top-36 z-[45] w-60",
-          showCategoryPicker ? "bottom-8" : "bottom-44",
+          "bottom-44",
         )}
       />
 
@@ -3840,7 +3839,7 @@ export default function SellProperty() {
       {/* Chat scroll area */}
 
 
-      {!showCategoryPicker && (
+      {(
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto overscroll-contain"
@@ -5419,34 +5418,7 @@ export default function SellProperty() {
           CATEGORY SELECTOR
       ======================================================= */}
 
-            {showCategoryPicker ? (
-              <div className="flex flex-col items-center justify-center py-6 sm:py-10">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl sm:text-2xl font-semibold">What type of property are you listing?</h2>
-
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Choose a category to begin your AI-assisted listing
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => selectCategory(opt.id)}
-                      className="group rounded-2xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all p-4 text-left shadow-sm hover:shadow-md"
-                    >
-                      <div className="text-2xl mb-2">{opt.emoji}</div>
-
-                      <div className="font-medium text-sm">{opt.label}</div>
-
-                      <div className="text-[11px] text-muted-foreground mt-1">AI guided flow</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : showIntakeBar ? (
+            {showIntakeBar ? (
               <>
                 <input
                   ref={imageRef}
