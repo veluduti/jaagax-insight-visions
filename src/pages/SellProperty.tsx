@@ -2117,11 +2117,56 @@ export default function SellProperty() {
    COMMIT ANSWER
 =========================================================== */
 
-  // Returns true when the message was a question / off-topic and has been
-  // answered in chat (the current question stays active — flow unchanged).
+  const CATEGORY_LABELS: Record<string, string> = {
+    residential: "Residential",
+    commercial: "Commercial",
+    plots: "Plots / Land",
+    agriculture: "Agricultural",
+    coworking: "Co-working",
+    financial: "Financial",
+    land: "List Your Land",
+  };
+  const detectMentionedCategory = (lower: string): PropertyCategory | null => {
+    if (/\b(agri|agriculture|agricultural|farm ?land|farming|acres?|mango garden|orchard|paddy|cultivat)/.test(lower)) return "agriculture";
+    if (/\b(co-?working|coworking|shared office|hot ?desk|seats?)\b/.test(lower)) return "coworking";
+    if (/\b(loan|mortgage|emi|finance|financing)\b/.test(lower)) return "financial";
+    if (/\b(shop|showroom|office space|office|warehouse|godown|retail|commercial|restaurant|mall|factory|industrial)\b/.test(lower)) return "commercial";
+    if (/\b(plot|plots|open land|sq ?yds?|sqyds?|layout|venture)\b/.test(lower)) return "plots";
+    if (/\b(flat|apartment|villa|bhk|independent house|duplex|penthouse|row house|residential)\b/.test(lower)) return "residential";
+    return null;
+  };
+  const isCompatibleCategory = (current: string | null, mentioned: string) => {
+    if (!current || current === mentioned) return true;
+    const landish = ["agriculture", "land"];
+    if (landish.includes(current) && landish.includes(mentioned)) return true;
+    return false;
+  };
+
+  // Returns true when the message was a question / off-topic / wrong category
+  // and has been answered in chat (the current question stays active — flow unchanged).
   const guardTypedMessage = async (f: FieldDef, text: string): Promise<boolean> => {
     const lower = text.toLowerCase();
     const words = lower.split(/\s+/).filter(Boolean);
+
+    // Category mismatch check (e.g. "agriculture land" inside Residential flow)
+    const mentioned = detectMentionedCategory(lower);
+    if (mentioned && !isCompatibleCategory(category, mentioned)) {
+      const cur = CATEGORY_LABELS[category || ""] || "this";
+      const target = CATEGORY_LABELS[mentioned];
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "user", kind: "text", text },
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: `⚠️ This looks like a ${target} property, but you're in the ${cur} listing flow. Please select the "${target}" category from the list to post it. Here I can only accept ${cur} details — ${(f as any).question || "please answer the current question"}`,
+        },
+      ]);
+      setValue("");
+      return true;
+    }
+
     const isQuestion =
       text.includes("?") ||
       /^(what|why|how|when|where|who|which|can|could|should|would|is|are|do|does|will|tell|explain|help)\b/.test(lower);
@@ -2158,7 +2203,7 @@ export default function SellProperty() {
         setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
         return false;
       }
-      const prefix = data.intent === "off_topic" ? "⚠️ " : "💡 ";
+      const prefix = data.intent === "question" ? "💡 " : "⚠️ ";
       setMessages((m) =>
         m.map((x: any) => (x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x)),
       );

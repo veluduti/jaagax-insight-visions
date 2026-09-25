@@ -20,7 +20,8 @@ Deno.serve(async (req) => {
 
     const system = `You are JAAGA X's property listing assistant (India). A user is filling a property listing chat.
 Classify the user's latest message relative to the current question and reply with ONLY compact JSON:
-{"intent":"answer"|"question"|"off_topic","reply":"..."}
+{"intent":"answer"|"question"|"off_topic"|"wrong_category","reply":"..."}
+- "wrong_category": the message describes a property of a DIFFERENT category than the current Category (categories: residential, commercial, plots, agriculture, coworking, financial, land). E.g. agricultural land in a residential flow. reply = a one-line caution naming the correct category and asking the user to select that category from the list, then repeat the current question.
 - "answer": the message is an attempt to answer the current question (even partial/informal). reply = "".
 - "question": the user asks something related to property, real estate, listing, pricing, documents, legal, loans, locality, or this form. reply = a short helpful answer (max 3 sentences), then end with a gentle nudge to answer the current question.
 - "off_topic": unrelated to property/real estate (jokes, weather, coding, personal chat, gibberish). reply = a polite one-line caution that you can only help with property listing, then repeat the current question.
