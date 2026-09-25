@@ -1459,7 +1459,7 @@ export default function SellProperty() {
         id: uid(),
         role: "ai",
         kind: "text",
-        text: "What type of property are you listing?",
+        text: "Pick a property category to get started.",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1499,7 +1499,7 @@ export default function SellProperty() {
     setHistory([]);
     setMessages([
       { id: uid(), role: "ai", kind: "text", text: "👋 Hi! I'll help you list your property." },
-      { id: uid(), role: "ai", kind: "text", text: "What type of property are you listing?" },
+      { id: uid(), role: "ai", kind: "text", text: "Pick a property category to get started." },
     ]);
     startCategory(cat);
   };
@@ -2602,7 +2602,7 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: "What type of property are you listing?",
+          text: "Pick a property category to get started.",
         },
       ]);
       engineRef.current = null;
@@ -2628,7 +2628,7 @@ export default function SellProperty() {
           id: uid(),
           role: "ai",
           kind: "text",
-          text: "What type of property are you listing?",
+          text: "Pick a property category to get started.",
         },
       ]);
       engineRef.current = null;
@@ -3614,10 +3614,9 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showCategoryPicker = !category && !done;
   const showIntakeBar = !!category && !intakeDone && !done;
   const showInputBar =
-    showCategoryPicker || showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
+    showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
@@ -3723,7 +3722,7 @@ export default function SellProperty() {
                     id: uid(),
                     role: "ai",
                     kind: "text",
-                    text: "What type of property are you listing?",
+                    text: "Pick a property category to get started.",
                   },
                 ]);
                 engineRef.current = null;
