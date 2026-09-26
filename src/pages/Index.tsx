@@ -75,6 +75,9 @@ const Index = () => {
         </LazyMount>
       )}
 
+      {/* Mobile-only: Hotel Services / Property Selling / More Services */}
+      <MobileServiceSections />
+
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && showBuyRent && (
         <>
@@ -128,9 +131,6 @@ const Index = () => {
           <TruValue />
         </>
       )}
-
-      {/* Mobile-only: Hotel Services / Property Selling / More Services below featured content */}
-      <MobileServiceSections />
 
       {/* Trust Statements above Footer */}
       <TrustStatements />
