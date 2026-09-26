@@ -79,8 +79,9 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
-          {/* Mobile-only: builder profiles first, quick service grid right below it */}
           <FeaturedBuilderProfiles />
+          {/* Mobile-only: Hotel Services / Property Selling first, quick service cards right below it */}
+          <MobileServiceSections />
           <MobileQuickAccess />
           <SneakPeekListings />
           <VisitStayTeaser />
@@ -131,8 +132,8 @@ const Index = () => {
         </>
       )}
 
-      {/* Mobile-only: Hotel Services / Property Selling / More Services below featured content */}
-      <MobileServiceSections />
+      {/* Mobile-only: Hotel Services / Property Selling / More Services below featured content (non-properties tabs) */}
+      {!(activeTab === "properties" && showBuyRent) && <MobileServiceSections />}
 
       {/* Trust Statements above Footer */}
       <TrustStatements />
