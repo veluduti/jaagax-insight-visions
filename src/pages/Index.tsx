@@ -79,6 +79,7 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <FeaturedBuilderProfiles />
           {/* Mobile-only: Hotel Services / Property Selling first, quick service cards right below it */}
           <MobileServiceSections />
           <MobileQuickAccess />
