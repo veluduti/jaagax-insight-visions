@@ -23,7 +23,6 @@ const MobileNav = () => {
 
   return (
     <>
-      <div aria-hidden className="h-20 xl:hidden" />
       <motion.nav
         initial={{ y: 100 }}
         animate={{ y: 0 }}

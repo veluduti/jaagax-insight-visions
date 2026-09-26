@@ -231,6 +231,13 @@ All colors MUST be HSL.
     padding-right: env(safe-area-inset-right);
   }
 
+  /* Reserve space below page content instead of pushing the first mobile section down. */
+  @media (max-width: 1279px) {
+    body:has(nav[aria-label="Main"]) {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+  }
+
   /* Media should always be fluid */
   img, video, iframe, canvas, svg {
     max-width: 100%;
