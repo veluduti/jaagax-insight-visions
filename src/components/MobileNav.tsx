@@ -35,12 +35,12 @@ const MobileNav = () => {
 
   return (
     <>
-      <div aria-hidden className="h-20 lg:hidden" />
+      <div aria-hidden className="h-20 xl:hidden" />
       <motion.nav
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 pb-[env(safe-area-inset-bottom)]"
+        className="fixed bottom-0 left-0 right-0 z-50 xl:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 pb-[env(safe-area-inset-bottom)]"
         aria-label="Main"
       >
         <div className="grid grid-cols-7 px-1 pt-1.5 pb-1.5">

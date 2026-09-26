@@ -17,6 +17,7 @@ import {
   TrendingUp,
   DollarSign,
   Zap,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -305,6 +306,16 @@ const Navigation = () => {
       >
         <div className="container-padding py-3">
           <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-1 shrink-0">
+            {location.pathname !== "/" && (
+              <button
+                onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+                aria-label="Go back"
+                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-accent active:scale-90 transition-transform"
+              >
+                <ArrowLeft className="h-5 w-5 text-foreground" />
+              </button>
+            )}
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="JAAGA X - Home">
               <img
                 src={jaagaxLogo}
@@ -314,6 +325,7 @@ const Navigation = () => {
                 decoding="async"
               />
             </Link>
+            </div>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
               <LocationPill />
