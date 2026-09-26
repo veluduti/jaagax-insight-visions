@@ -132,9 +132,6 @@ const Index = () => {
         </>
       )}
 
-      {/* Mobile-only: Hotel Services / Property Selling / More Services below featured content */}
-      <MobileServiceSections />
-
       {/* Trust Statements above Footer */}
       <TrustStatements />
       <Footer />
