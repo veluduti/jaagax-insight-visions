@@ -329,22 +329,22 @@ const Navigation = () => {
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
               <LocationPill />
-              <ThemeToggle />
+              <div className="hidden sm:block"><ThemeToggle /></div>
               {session && <NotificationBell />}
               <SidebarMenu />
 
               {session ? (
                 <>
-                  <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm">
+                  <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm" className="hidden sm:inline-flex">
                     Dashboard
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
+                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="hidden sm:inline-flex">
                     Sign In
                   </Button>
-                  <Button onClick={() => navigate("/register")} variant="default" size="sm">
+                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="hidden sm:inline-flex">
                     Register
                   </Button>
                 </>
