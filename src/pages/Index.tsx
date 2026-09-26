@@ -22,7 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
 import { LazyMount, AISectionSkeleton } from "@/components/shared";
 import SEO from "@/components/SEO";
-import MobileHomeServices, {
+import {
   MobileQuickAccess,
   MobileServiceSections,
 } from "@/components/home/MobileHomeServices";
@@ -57,9 +57,10 @@ const Index = () => {
         type="website"
       />
       <Navigation />
-      {/* Mobile-only: quick service grid directly under the header */}
-      <MobileQuickAccess />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
+
+      {/* Mobile-only: quick service grid directly below the hero */}
+      <MobileQuickAccess />
 
       {/* Promoted Listings Carousel */}
       <PromotedListings />
