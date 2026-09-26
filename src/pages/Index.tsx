@@ -62,8 +62,8 @@ const Index = () => {
       <MobileServicePills />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
-      {/* Mobile-only: quick service grid directly below the hero */}
-      <MobileQuickAccess />
+      {/* Mobile-only: quick service grid. On the properties tab it renders below Featured Properties instead. */}
+      {!(activeTab === "properties" && showBuyRent) && <MobileQuickAccess />}
 
       {/* Promoted Listings Carousel */}
       <PromotedListings />
@@ -79,6 +79,8 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          {/* Mobile-only: quick service grid right below Featured Properties */}
+          <MobileQuickAccess />
           <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
