@@ -35,7 +35,25 @@ const Feature = ({ to, icon: Icon, title, desc, cta }: any) => (
   </Link>
 );
 
-/** Mobile-only quick access grid shown directly under the header. Hidden on desktop (xl+). */
+/** Mobile-only horizontally scrollable service pills shown directly under the header. Hidden on desktop (xl+). */
+export const MobileServicePills = () => (
+  <section className="xl:hidden border-b border-border/40 bg-background/95 py-2.5">
+    <div className="flex gap-2.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {more.map((m) => (
+        <Link
+          key={m.path}
+          to={m.path}
+          className="flex shrink-0 items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-sm active:scale-95 transition-transform"
+        >
+          <m.icon className="h-4 w-4 text-primary" />
+          {m.label}
+        </Link>
+      ))}
+    </div>
+  </section>
+);
+
+/** Mobile-only quick access grid shown directly below the hero. Hidden on desktop (xl+). */
 export const MobileQuickAccess = () => (
   <section className="xl:hidden px-4 pt-3 pb-1">
     <div className="grid grid-cols-4 gap-2">
