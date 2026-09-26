@@ -24,6 +24,7 @@ import { LazyMount, AISectionSkeleton } from "@/components/shared";
 import SEO from "@/components/SEO";
 import {
   MobileQuickAccess,
+  MobileServicePills,
   MobileServiceSections,
 } from "@/components/home/MobileHomeServices";
 
@@ -57,6 +58,8 @@ const Index = () => {
         type="website"
       />
       <Navigation />
+      {/* Mobile-only: horizontally scrollable service pills directly under the header */}
+      <MobileServicePills />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
       {/* Mobile-only: quick service grid directly below the hero */}
