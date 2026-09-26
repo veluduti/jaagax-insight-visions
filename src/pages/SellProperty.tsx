@@ -5924,8 +5924,9 @@ export default function SellProperty() {
                     <button
                       type="button"
                       onClick={toggleVoice}
+                      disabled={isChoiceOnly}
                       className={cn(
-                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed",
 
                         isListening
                           ? "bg-destructive text-destructive-foreground animate-pulse"
