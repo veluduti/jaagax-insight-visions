@@ -3804,6 +3804,8 @@ export default function SellProperty() {
   const showInputBar =
     showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
+  const isChoiceOnly =
+    !!field && (field.input === "single" || field.input === "yesno" || field.input === "multi");
 
   const tierBadgeClasses: Record<string, string> = {
     Draft: "bg-muted text-muted-foreground border-border",
@@ -5910,8 +5912,10 @@ export default function SellProperty() {
                               }
                             }}
                             type={field?.input === "number" ? "number" : "text"}
-                            placeholder="Type your answer..."
-                            className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
+                            placeholder={isChoiceOnly ? "Please select from the options above" : "Type your answer..."}
+                            disabled={isChoiceOnly}
+                            readOnly={isChoiceOnly}
+                            className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11 disabled:cursor-not-allowed"
                           />
                         )
                       )}
@@ -5920,8 +5924,9 @@ export default function SellProperty() {
                     <button
                       type="button"
                       onClick={toggleVoice}
+                      disabled={isChoiceOnly}
                       className={cn(
-                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed",
 
                         isListening
                           ? "bg-destructive text-destructive-foreground animate-pulse"
