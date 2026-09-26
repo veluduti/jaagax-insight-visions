@@ -320,7 +320,7 @@ const Navigation = () => {
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-11 w-auto max-h-11 object-contain shrink-0"
+                className="h-9 sm:h-11 w-auto max-h-11 object-contain shrink-0"
                 loading="lazy"
                 decoding="async"
               />
@@ -328,7 +328,7 @@ const Navigation = () => {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
-              <LocationPill />
+              <div className="max-w-[120px] sm:max-w-none overflow-hidden"><LocationPill /></div>
               <div className="hidden sm:block"><ThemeToggle /></div>
               {session && <NotificationBell />}
               <SidebarMenu />
