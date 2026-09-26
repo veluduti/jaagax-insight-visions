@@ -161,6 +161,7 @@ const PartnerInbox = lazy(() => import("./pages/partners/PartnerInbox"));
 const PartnerRatePlans = lazy(() => import("./pages/partners/PartnerRatePlans"));
 const PartnerExtraServices = lazy(() => import("./pages/partners/PartnerExtraServices"));
 const Promotions = lazy(() => import("./pages/Promotions"));
+const ServicesHub = lazy(() => import("./pages/ServicesHub"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
@@ -558,6 +559,7 @@ const App = () => (
                   <Route path="/stay/:token" element={<GuestPortal />} />
 
                   <Route path="/promotions" element={<Promotions />} />
+                  <Route path="/services" element={<ServicesHub />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />
                   <Route path="/compare" element={<CompareProperties />} />
