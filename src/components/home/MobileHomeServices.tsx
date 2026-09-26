@@ -20,6 +20,7 @@ const more = [
   { label: "Events", path: "/events", icon: Calendar },
   { label: "Offers", path: "/promotions", icon: Megaphone },
   { label: "Communities", path: "/communities", icon: Users },
+  { label: "All Services", path: "/services", icon: LayoutGrid },
 ];
 
 const Feature = ({ to, icon: Icon, title, desc, cta }: any) => (
@@ -87,19 +88,6 @@ export const MobileServiceSections = () => (
       <Feature to="/hotels/partner" icon={Briefcase} title="List Your Hotel" desc="Become a JAAGA X partner" cta="Join" />
     </div>
 
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">More Services</h2>
-        <Link to="/services" className="text-xs font-medium text-primary">See all</Link>
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 snap-x">
-        {more.map((m) => (
-          <Link key={m.path} to={m.path} className="snap-start shrink-0 flex items-center gap-2 rounded-full border border-border/50 bg-card/70 px-4 py-2.5 text-sm font-medium text-foreground">
-            <m.icon className="h-4 w-4 text-primary" />{m.label}
-          </Link>
-        ))}
-      </div>
-    </div>
   </section>
 );
 
