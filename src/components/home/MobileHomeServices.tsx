@@ -35,9 +35,9 @@ const Feature = ({ to, icon: Icon, title, desc, cta }: any) => (
   </Link>
 );
 
-/** Mobile-only service hub shown on the home screen. Hidden on desktop (xl+). */
-const MobileHomeServices = () => (
-  <section className="xl:hidden px-4 pt-4 pb-2 space-y-5">
+/** Mobile-only quick access grid shown directly under the header. Hidden on desktop (xl+). */
+export const MobileQuickAccess = () => (
+  <section className="xl:hidden px-4 pt-3 pb-1">
     <div className="grid grid-cols-4 gap-2">
       {quick.map((q) => (
         <Link key={q.path} to={q.path} className="flex flex-col items-center gap-1.5 rounded-2xl p-2 active:scale-90 transition-transform">
@@ -48,7 +48,15 @@ const MobileHomeServices = () => (
         </Link>
       ))}
     </div>
+  </section>
+);
 
+/**
+ * Mobile-only detailed service sections (Hotel Services, Property Selling, More).
+ * Rendered AFTER the hero and featured properties on mobile. Hidden on desktop (xl+).
+ */
+export const MobileServiceSections = () => (
+  <section className="xl:hidden px-4 pt-6 pb-2 space-y-5">
     <div className="space-y-2">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Hotel Services</h2>
       <Feature to="/hotels" icon={Hotel} title="Book a Hotel" desc="Verified stays with best prices" cta="Book" />
@@ -75,6 +83,13 @@ const MobileHomeServices = () => (
       </div>
     </div>
   </section>
+);
+
+const MobileHomeServices = () => (
+  <>
+    <MobileQuickAccess />
+    <MobileServiceSections />
+  </>
 );
 
 export default MobileHomeServices;
