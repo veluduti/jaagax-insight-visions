@@ -22,7 +22,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
 import { LazyMount, AISectionSkeleton } from "@/components/shared";
 import SEO from "@/components/SEO";
-import MobileHomeServices from "@/components/home/MobileHomeServices";
+import MobileHomeServices, {
+  MobileQuickAccess,
+  MobileServiceSections,
+} from "@/components/home/MobileHomeServices";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
