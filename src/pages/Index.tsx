@@ -75,6 +75,9 @@ const Index = () => {
         </LazyMount>
       )}
 
+      {/* Mobile-only: Hotel Services / Property Selling / More Services */}
+      <MobileServiceSections />
+
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && showBuyRent && (
         <>
