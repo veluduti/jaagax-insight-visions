@@ -79,9 +79,9 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
-          {/* Mobile-only: quick service grid right below Featured Properties */}
-          <MobileQuickAccess />
+          {/* Mobile-only: builder profiles first, quick service grid right below it */}
           <FeaturedBuilderProfiles />
+          <MobileQuickAccess />
           <SneakPeekListings />
           <VisitStayTeaser />
           <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
