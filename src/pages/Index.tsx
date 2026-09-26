@@ -57,7 +57,8 @@ const Index = () => {
         type="website"
       />
       <Navigation />
-      <MobileHomeServices />
+      {/* Mobile-only: quick service grid directly under the header */}
+      <MobileQuickAccess />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
       {/* Promoted Listings Carousel */}
