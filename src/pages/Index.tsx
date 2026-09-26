@@ -57,10 +57,11 @@ const Index = () => {
         type="website"
       />
       <Navigation />
-      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
-      {/* Mobile-only: quick service grid directly below the hero */}
+      {/* Mobile-only: quick service grid at the very top, above the hero */}
       <MobileQuickAccess />
+
+      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
       {/* Promoted Listings Carousel */}
       <PromotedListings />
