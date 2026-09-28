@@ -1540,7 +1540,7 @@ export default function SellProperty() {
         const raw = localStorage.getItem(key);
         if (raw) {
           const draft = JSON.parse(raw);
-          if (draft.version !== DRAFT_VERSION || !draftCategories.includes(draft.category) || !draft.state || typeof draft.state !== "object") {
+          if (draft.version !== DRAFT_VERSION || !draftCategories.includes(draft.category) || !draft.state || typeof draft.state !== "object" || !draft.engineState?.answers) {
             localStorage.removeItem(key);
           } else {
             const engine = createConversationEngine(draft.category, draft.engineState);
