@@ -103,7 +103,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
       setLng(data.longitude);
       setAddress(data.address || item.text);
       setPlaceId(data.placeId || item.placeId);
-      setSearch(data.address || item.text);
+      setSearch("");
       searchSession.current = crypto.randomUUID();
     } catch {
       toast.error("Couldn't pinpoint that place. Please try another result.");
@@ -177,14 +177,14 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
         <div className="space-y-3">
           <div className="relative">
             <label htmlFor="property-map-search" className="text-xs font-medium text-muted-foreground">Search a location</label>
-            <div className="flex items-center gap-2 border border-border bg-background px-3 mt-1">
+            <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 mt-1">
               <Search className="h-4 w-4 text-muted-foreground shrink-0" />
               <input id="property-map-search" type="search" autoComplete="off" value={search}
                 onChange={(event) => setSearch(event.target.value)} placeholder="Search address, area or landmark"
                 className="w-full h-11 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               {(searching || selecting) && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
             </div>
-            {matches.length > 0 && <div role="listbox" aria-label="Location results" className="absolute z-20 top-full w-full max-h-52 overflow-y-auto border border-border bg-popover shadow-lg">
+            {matches.length > 0 && <div role="listbox" aria-label="Location results" className="absolute z-20 top-full w-full max-h-52 overflow-y-auto rounded-md border border-border bg-popover shadow-lg">
               {matches.map((item) => <Button key={item.placeId} type="button" variant="ghost" role="option" aria-selected={false}
                 className="h-auto min-h-10 w-full justify-start text-left whitespace-normal" onClick={() => void selectResult(item)}>
                 <MapPin className="h-4 w-4 shrink-0 mr-2" />{item.text}
@@ -207,7 +207,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={confirming}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={confirming || selecting}>
             Cancel
           </Button>
           <Button onClick={handleConfirm} disabled={confirming || selecting || lat === null || lng === null}>
