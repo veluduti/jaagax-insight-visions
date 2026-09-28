@@ -1,1 +1,2 @@
 - Keep Sell Your Property location collection in `SmartLocationWidget` and use `MapLocationModal` for exact pin selection; this keeps saved navbar coordinates, reverse-geocoded addresses, and submission validation consistent across property categories.
+- Format Sell Your Property per-area price labels through `formatUnitPrice` while retaining numeric rupee amounts in answer values; this makes lakh/crore choices readable without altering listing prices.

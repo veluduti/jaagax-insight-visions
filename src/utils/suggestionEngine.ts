@@ -119,6 +119,11 @@ export function formatIndianNumber(value: number): string {
   return new Intl.NumberFormat("en-IN").format(value);
 }
 
+/** Human-readable rupees without changing the underlying numeric amount. */
+export function formatUnitPrice(value: number, unit: string): string {
+  return `₹${formatIndianNumber(value)} / ${unit}`;
+}
+
 // ============================================================
 // PRICE SUGGESTIONS
 // ============================================================
