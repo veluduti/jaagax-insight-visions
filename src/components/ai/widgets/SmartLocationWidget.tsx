@@ -61,25 +61,27 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   // preference is not an exact property address, so the user must pick a pin.
   useEffect(() => {
     if (initialized.current) return;
-    if (initial?.latitude != null && initial?.longitude != null) {
+    if (initial?.latitude != null && initial?.longitude != null && initial?.address) {
       initialized.current = true;
       return;
     }
-    if (savedLocation?.latitude == null || savedLocation?.longitude == null) return;
+    const latitude = initial?.latitude ?? savedLocation?.latitude;
+    const longitude = initial?.longitude ?? savedLocation?.longitude;
+    if (latitude == null || longitude == null) return;
     initialized.current = true;
     const id = ++requestId.current;
     setResolving(true);
     void supabase.functions.invoke("reverse-geocode", {
-      body: { latitude: savedLocation.latitude, longitude: savedLocation.longitude },
+      body: { latitude, longitude },
     }).then(async ({ data, error: geoError }) => {
       if (id !== requestId.current) return;
       if (geoError || !data || data.error) throw geoError || new Error("Location unavailable");
       const resolved = await resolveHierarchy({
         country: text(data.country), state_name: text(data.state), district: text(data.district),
-        city: text(data.city) || savedLocation.city, locality: text(data.locality) || savedLocation.area,
+        city: text(data.city) || savedLocation?.city || "", locality: text(data.locality) || savedLocation?.area || "",
         sub_locality: text(data.sub_locality), landmark: text(data.landmark),
         address: text(data.formattedAddress), pincode: text(data.pincode),
-        latitude: savedLocation.latitude, longitude: savedLocation.longitude,
+        latitude, longitude,
         place_id: text(data.place_id),
       });
       if (id === requestId.current) {

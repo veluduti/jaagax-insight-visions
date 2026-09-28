@@ -67,7 +67,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
     }
     const d: any = data;
     return {
-      country: d.country || "India",
+      country: d.country || "",
       state_name: d.state || "",
       district: d.district || "",
       city: d.city || "",
@@ -85,7 +85,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
 
   const handleConfirm = async () => {
     if (lat === null || lng === null) {
-      toast.error("Please search or tap on the map to drop a pin");
+      toast.error(mapOnly ? "Please tap on the map to drop a pin" : "Please search or tap on the map to drop a pin");
       return;
     }
     setConfirming(true);
