@@ -61,7 +61,7 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   // preference is not an exact property address, so the user must pick a pin.
   useEffect(() => {
     if (initialized.current) return;
-    if (initial?.latitude != null && initial?.longitude != null && initial?.address) {
+    if (initial?.latitude != null && initial?.longitude != null && initial?.address && initial?.district) {
       initialized.current = true;
       return;
     }
@@ -114,7 +114,7 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   const hasCoordinates = Number.isFinite(form.latitude) && Number.isFinite(form.longitude);
   const missing = ["country", "state_name", "district", "city", "address"]
     .filter((key) => !text(form[key as keyof LocationForm]));
-  const canContinue = hasCoordinates && missing.length === 0 && !resolving;
+  const canContinue = hasCoordinates && missing.length === 0 && !resolving && !error;
 
   return (
     <div className="w-full border border-border bg-card p-4 sm:p-5 space-y-4">

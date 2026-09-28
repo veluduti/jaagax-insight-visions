@@ -4220,9 +4220,8 @@ export default function SellProperty() {
                     place_id: state.place_id || undefined,
                   }}
                   onSubmit={async (data) => {
-                    // Save only fields that have a real value; never overwrite
-                    // existing state with empty strings/nulls. Missing optional
-                    // fields must not fail submission.
+                    // Store the selected pin as one coherent address; optional
+                    // geocoding fields are blank rather than stale prior values.
                     const locationFieldId = field?.id || "location";
 
                     const hasVal = (v: any) =>
@@ -4248,7 +4247,7 @@ export default function SellProperty() {
                       "city_id",
                       "locality_id",
                     ].forEach((k) => {
-                      if (hasVal((data as any)[k])) partial[k] = (data as any)[k];
+                      partial[k] = (data as any)[k] ?? (k.endsWith("_id") ? null : k === "latitude" || k === "longitude" ? null : "");
                     });
 
                     const merged = {
