@@ -5551,7 +5551,7 @@ export default function SellProperty() {
       )}
 
       {/* Final review controls live outside the scrolling preview so mobile browsers cannot clip them. */}
-      {done && (
+      {done && !payOpen && !showEditSheet && (
         <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] xl:bottom-0 inset-x-0 z-[60] xl:z-40 border-t border-border/60 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
           <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-2 xl:py-3 xl:pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
             {!isReviewFinancial && !reviewTitleReady && (

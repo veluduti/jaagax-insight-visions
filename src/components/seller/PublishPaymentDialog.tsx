@@ -137,7 +137,10 @@ export default function PublishPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => (busy ? null : onOpenChange(v))}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        overlayClassName="z-[70]"
+        className="z-[70] w-[calc(100%-24px)] max-w-2xl max-h-[calc(100dvh-24px)] overflow-y-auto overscroll-contain rounded-lg px-4 py-5 sm:p-6"
+      >
         <DialogHeader>
           <DialogTitle>Choose how to publish this listing</DialogTitle>
           <DialogDescription>
