@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute, { SignedInRoute } from "./components/ProtectedRoute";
 import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import { LocationProvider } from "./contexts/LocationContext";
 import LocationPermissionDialog from "./components/location/LocationPermissionDialog";
@@ -486,7 +486,7 @@ const App = () => (
                   <Route path="/events/create" element={<EventCreate />} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />
-                  <Route path="/sell-property" element={<SellProperty />} />
+                  <Route path="/sell-property" element={<SignedInRoute message="Please login to access Sell Your Property."><SellProperty /></SignedInRoute>} />
                   <Route path="/natural-living" element={<NaturalLiving />} />
                   <Route path="/natural-living/vision" element={<NLVision />} />
                   <Route path="/natural-living/why" element={<NLWhy />} />
