@@ -5167,7 +5167,7 @@ export default function SellProperty() {
                                 variant={verificationRequested ? "default" : "outline"}
                                 onClick={() => {
                                   setVerificationRequested(true);
-                                  if (isMobileView) setAgentCardMinimized(true);
+                                  setAgentCardMinimized(true);
                                 }}
                                 className="flex-1"
                               >
@@ -5179,7 +5179,7 @@ export default function SellProperty() {
                                 variant={!verificationRequested ? "default" : "outline"}
                                 onClick={() => {
                                   setVerificationRequested(false);
-                                  if (isMobileView) setAgentCardMinimized(true);
+                                  setAgentCardMinimized(true);
                                 }}
                                 className="flex-1"
                               >
