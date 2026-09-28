@@ -3812,7 +3812,7 @@ export default function SellProperty() {
   const isChoiceOnly =
     !!field && (field.input === "single" || field.input === "yesno" || field.input === "multi");
   const isReviewFinancial = category === "financial";
-  const reviewTitleReady = isReviewFinancial || !!editForm.title.trim();
+  const reviewTitleReady = isReviewFinancial || !!editForm.title?.trim();
   const canPublishReview = reviewTitleReady && !submitting && !titlesLoading;
 
   const tierBadgeClasses: Record<string, string> = {
