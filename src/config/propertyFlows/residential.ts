@@ -246,7 +246,7 @@ export const residentialFlow = {
 
       visibleIf: {
         field: "listing_type",
-        equals: "Buy",
+        equals: "Sell",
       },
 
       question: "Is this property New or Resale?",
@@ -267,7 +267,7 @@ export const residentialFlow = {
         and: [
           {
             field: "listing_type",
-            equals: "Buy",
+            equals: "Sell",
           },
           {
             field: "property_condition",
@@ -486,7 +486,7 @@ export const residentialFlow = {
 
       visibleIf: {
         field: "listing_type",
-        equals: "Buy",
+        equals: "Sell",
       },
 
       question: "What is the price per sqft / sqyd?",
@@ -511,7 +511,7 @@ export const residentialFlow = {
 
       visibleIf: {
         field: "listing_type",
-        equals: "Buy",
+        equals: "Sell",
       },
 
       question: "What is the total property price?",
