@@ -1,3 +1,4 @@
 - [x] Prefill Property Location from the saved navbar pin and allow changing it on a map.
 - [x] Remove manual location fields from the property chat and require a resolved address before continuing.
 - [x] Verify address lookup and location hierarchy availability against the live preview.
+- [x] Show fixed answer choices beside the question and typing suggestions beside the message bar.
