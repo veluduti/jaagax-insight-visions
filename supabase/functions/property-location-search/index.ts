@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     let upstream: Response;
     if (action === "suggest") {
       if (typeof input !== "string" || input.trim().length < 2 || input.length > 120) return respond({ suggestions: [] });
-      const body: Record<string, unknown> = { input: input.trim(), sessionToken: token, includedRegionCodes: ["in"] };
+      const body: Record<string, unknown> = { input: input.trim(), sessionToken: token };
       if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
         body.locationBias = { circle: { center: { latitude, longitude }, radius: 40000 } };
       }
