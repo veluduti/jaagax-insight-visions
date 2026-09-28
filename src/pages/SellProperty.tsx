@@ -5035,6 +5035,21 @@ export default function SellProperty() {
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
                             <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
                           </div>
+                        ) : titlesCardMinimized && selectedTitleIdx !== null && aiTitles[selectedTitleIdx] ? (
+                          /* Minimized after selection — one-line summary, tap to change */
+                          <button
+                            type="button"
+                            onClick={() => setTitlesCardMinimized(false)}
+                            className="w-full flex items-center justify-between gap-2 text-left p-2.5 rounded-xl border border-primary/40 bg-primary/5"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                                {aiTitles[selectedTitleIdx].label} · Selected
+                              </div>
+                              <div className="text-sm truncate">{aiTitles[selectedTitleIdx].title}</div>
+                            </div>
+                            <span className="text-xs text-primary shrink-0 font-medium">Change</span>
+                          </button>
                         ) : (
                           <div className="space-y-2">
                             {aiTitles.slice(0, 3).map((t, i) => {
@@ -5046,6 +5061,7 @@ export default function SellProperty() {
                                   onClick={() => {
                                     setSelectedTitleIdx(i);
                                     setEditForm((p) => ({ ...p, title: t.title }));
+                                    if (isMobileView) setTitlesCardMinimized(true);
                                   }}
                                   className={cn(
                                     "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
