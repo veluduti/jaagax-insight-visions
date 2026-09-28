@@ -5107,7 +5107,9 @@ export default function SellProperty() {
                         )}
                         {!isFinancial && entitlement && (
                           <div
-                            className={`rounded-xl border p-2.5 mb-1 text-xs ${
+                            className={`rounded-xl border mb-1 ${
+                              isMobileView ? "px-2.5 py-1.5 text-[11px]" : "p-2.5 text-xs"
+                            } ${
                               entitlement.has_agent_subscription
                                 ? "border-yellow-500/30 bg-yellow-500/5"
                                 : entitlement.requires_payment
@@ -5119,20 +5121,35 @@ export default function SellProperty() {
                               <span>Agent subscription active — unlimited property postings.</span>
                             ) : entitlement.requires_payment ? (
                               <span>
-                                Free posts used ({entitlement.free_used}/{entitlement.free_limit}). This listing costs{" "}
+                                This listing costs{" "}
                                 <strong>₹{Number(entitlement.total).toLocaleString("en-IN")}</strong> (₹
-                                {Number(entitlement.fee).toLocaleString("en-IN")} + {entitlement.gst_percent}% GST),
-                                debited from your wallet on publish.
+                                {Number(entitlement.fee).toLocaleString("en-IN")} + {entitlement.gst_percent}% GST)
+                                {isMobileView
+                                  ? " — debited on publish."
+                                  : `, free posts used (${entitlement.free_used}/${entitlement.free_limit}), debited from your wallet on publish.`}
                               </span>
                             ) : (
                               <span>
                                 <strong>{entitlement.free_remaining}</strong> of {entitlement.free_limit} free posts
-                                remaining — this listing is free.
+                                remaining{isMobileView ? " — free listing." : " — this listing is free."}
                               </span>
                             )}
                           </div>
                         )}
                         {!isFinancial && (
+                          agentCardMinimized ? (
+                            /* Minimized after choosing — one-line summary, tap to change */
+                            <button
+                              type="button"
+                              onClick={() => setAgentCardMinimized(false)}
+                              className="rounded-xl border border-border bg-card px-3 py-2 mb-1 flex items-center justify-between gap-2 w-full text-left"
+                            >
+                              <span className="text-xs truncate">
+                                Agent: <strong>{verificationRequested ? "Yes — assign an agent" : "No — I'll handle it"}</strong>
+                              </span>
+                              <span className="text-[11px] text-primary shrink-0 font-medium">Change</span>
+                            </button>
+                          ) : (
                           <div className="rounded-xl border border-border bg-card p-3 mb-1">
                             <div className="text-sm font-semibold mb-1">
                               Do you need a JAAGAX Agent?
@@ -5148,7 +5165,10 @@ export default function SellProperty() {
                                 type="button"
                                 size="sm"
                                 variant={verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(true)}
+                                onClick={() => {
+                                  setVerificationRequested(true);
+                                  if (isMobileView) setAgentCardMinimized(true);
+                                }}
                                 className="flex-1"
                               >
                                 Yes, assign an agent
@@ -5157,7 +5177,10 @@ export default function SellProperty() {
                                 type="button"
                                 size="sm"
                                 variant={!verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(false)}
+                                onClick={() => {
+                                  setVerificationRequested(false);
+                                  if (isMobileView) setAgentCardMinimized(true);
+                                }}
                                 className="flex-1"
                               >
                                 No, I'll handle it
