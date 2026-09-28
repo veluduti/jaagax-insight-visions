@@ -4168,6 +4168,27 @@ export default function SellProperty() {
               </motion.div>
             )}
 
+            {/* Document upload widget — financial flow */}
+            {field?.id === "upload_documents" && !loadingNext && !done && Array.isArray(value) && value.length > 0 && (
+              <DocumentUploadWidget
+                docTypes={value as string[]}
+                onSubmit={async (uploaded) => {
+                  const types = value as string[];
+                  setEditForm((f: any) => ({
+                    ...f,
+                    upload_documents: types,
+                    documents: uploaded,
+                  }));
+                  // Commit the original multi-select array so engine validation passes;
+                  // file URLs are kept alongside in editForm + state.
+                  await commitAnswer(
+                    types,
+                    `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
+                  );
+                }}
+              />
+            )}
+
             {/* SMART WIDGETS */}
 
             {field?.renderMode === "widget" && field.widgetType === "SmartLocationWidget" && (
@@ -5639,27 +5660,6 @@ export default function SellProperty() {
                 </motion.div>
               )}
 
-            {/* Document upload widget — financial flow */}
-            {field?.id === "upload_documents" && !loadingNext && !done && Array.isArray(value) && value.length > 0 && (
-              <DocumentUploadWidget
-                docTypes={value as string[]}
-                onSubmit={async (uploaded) => {
-                  const types = value as string[];
-                  setEditForm((f: any) => ({
-                    ...f,
-                    upload_documents: types,
-                    documents: uploaded,
-                  }));
-                  // Commit the original multi-select array so engine validation passes;
-                  // file URLs are kept alongside in editForm + state.
-                  await commitAnswer(
-                    types,
-                    `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
-                  );
-                }}
-              />
-            )}
-
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
             {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
               <motion.div
@@ -5692,7 +5692,7 @@ export default function SellProperty() {
               </motion.div>
             )}
 
-            {/* Unit/price/measurement chips for NUMBER fields — attached to the question bubble */}
+            {/* Unit/price/measurement chips for NUMBER fields — beside the composer */}
             {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
               const isCountField =
                 /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
