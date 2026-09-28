@@ -28,6 +28,8 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   initial?: Partial<MapPickedLocation>;
   onConfirm: (loc: MapPickedLocation) => void;
+  /** Property listing uses only the map pin, not typed address search. */
+  mapOnly?: boolean;
 }
 
 function pick(components: any[], type: string): string {
@@ -39,7 +41,7 @@ function pick(components: any[], type: string): string {
  * Modal that lets the user search & pin a location on Google Maps, then
  * reverse-geocodes the final coordinates into a fully-populated address.
  */
-const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => {
+const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = false }: Props) => {
   const [lat, setLat] = useState<number | null>(initial?.latitude ?? null);
   const [lng, setLng] = useState<number | null>(initial?.longitude ?? null);
   const [placeId, setPlaceId] = useState<string | undefined>(initial?.place_id);
@@ -114,7 +116,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
         </DialogHeader>
 
         <div className="space-y-3">
-          <div>
+          {!mapOnly && <div>
             <label className="text-xs font-medium text-muted-foreground">Search a place</label>
             <InlineLocationSearch
               variant="box"
@@ -129,7 +131,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
                 setAddress(loc.formattedAddress || address);
               }}
             />
-          </div>
+          </div>}
 
           <GoogleMapPicker
             lat={lat}
@@ -141,6 +143,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
             }}
             label="Tap on the map or drag the pin to fine-tune"
             height="360px"
+            allowManualCoordinates={!mapOnly}
           />
         </div>
 

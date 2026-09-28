@@ -10,6 +10,7 @@ interface GoogleMapPickerProps {
   height?: string;
   /** Optional fallback center when lat/lng not yet set. Defaults to Hyderabad. */
   defaultCenter?: { lat: number; lng: number };
+  allowManualCoordinates?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ const GoogleMapPicker = ({
   label = "Pin the exact location",
   height = "320px",
   defaultCenter = { lat: 17.385, lng: 78.4867 },
+  allowManualCoordinates = true,
 }: GoogleMapPickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -144,7 +146,7 @@ const GoogleMapPicker = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center bg-muted">
             <AlertTriangle className="h-6 w-6 text-destructive" />
             <p className="text-sm font-medium">{loadError}</p>
-            <p className="text-xs text-muted-foreground max-w-sm">
+            {allowManualCoordinates && <><p className="text-xs text-muted-foreground max-w-sm">
               You can still continue — search the place above to set the exact coordinates,
               or type them manually below.
             </p>
@@ -171,7 +173,7 @@ const GoogleMapPicker = ({
                 }}
                 className="h-8 w-28 rounded-md border border-border bg-background px-2 text-xs"
               />
-            </div>
+            </div></>}
           </div>
         )}
       </div>
