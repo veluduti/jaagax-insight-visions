@@ -4035,7 +4035,7 @@ export default function SellProperty() {
       {(
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain xl:pb-[180px]"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-[200px] xl:pb-[180px]"
           style={{
             backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
