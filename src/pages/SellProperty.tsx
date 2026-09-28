@@ -51,6 +51,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { financialRequirementFlow } from "@/config/propertyFlows/financial";
+import { getPropertyFlow } from "@/config/propertyFlows";
 import DocumentUploadWidget from "@/components/financial/DocumentUploadWidget";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
@@ -1343,12 +1344,26 @@ export default function SellProperty() {
     { id: "land", label: "List Your Land", emoji: "🌿" },
   ];
 
+  const TYPE_FIELD_BY_CATEGORY: Record<PropertyCategory, string> = {
+    residential: "property_type",
+    commercial: "property_type",
+    plots: "plot_type",
+    agriculture: "agricultural_land_type",
+    coworking: "shared_space_type",
+    financial: "requirement_type",
+    land: "agricultural_land_type",
+  };
+
   /* ----- Auto-scroll on new messages ----- */
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    if (!category) {
+      el.scrollTop = 0;
+      return;
+    }
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, loadingNext]);
+  }, [messages, loadingNext, category]);
 
   /* ----- Smart locality-aware hint per current field ----- */
   useEffect(() => {
@@ -1498,18 +1513,21 @@ export default function SellProperty() {
   }, []);
 
   /* ----- Handle category selection — initialize engine dynamically ----- */
-  const startCategory = (cat: PropertyCategory) => {
+  const startCategory = (cat: PropertyCategory, selectedType?: string) => {
     const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
     engineRef.current = createConversationEngine(cat);
+    const typeField = TYPE_FIELD_BY_CATEGORY[cat];
+    const initialAnswers = { property_category: cat, ...(selectedType ? { [typeField]: selectedType } : {}) };
     setCategory(cat);
     setCategoryBlock(null);
-    setState((s) => ({ ...s, property_category: cat }));
+    setState((s) => ({ ...s, ...initialAnswers }));
+    lastAskedFieldIdRef.current = null;
     // Go straight to the structured questions — the user can still upload
     // an image / brochure from the chat input and it will auto-fill answers.
     setIntakeDone(true);
     setMessages((m) => [
       ...m,
-      { id: uid(), role: "user", kind: "text", text: opt?.label || cat },
+      { id: uid(), role: "user", kind: "text", text: selectedType || opt?.label || cat },
       {
         id: uid(),
         role: "ai",
@@ -1517,7 +1535,7 @@ export default function SellProperty() {
         text: `Great — let's list your ${opt?.label || cat} property. Answer the quick questions below, or upload an image / brochure anytime and I'll auto-fill the details for you.`,
       },
     ]);
-    void fetchNext({ property_category: cat }, true);
+    void fetchNext(initialAnswers, true);
   };
 
   const selectCategory = (cat: PropertyCategory) => {
@@ -4074,6 +4092,40 @@ export default function SellProperty() {
                 </motion.div>
               ))}
             </AnimatePresence>
+
+            {!category && (
+              <div className="pt-4 pb-8 space-y-5" aria-label="Choose a property type">
+                <h2 className="text-lg font-semibold text-foreground">What would you like to list?</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-7 gap-y-6">
+                  {CATEGORY_OPTIONS.map((opt) => {
+                    const typeField = TYPE_FIELD_BY_CATEGORY[opt.id];
+                    const types = getPropertyFlow(opt.id).fields[typeField]?.options || [];
+                    return (
+                      <section key={opt.id} className="min-w-0 border-t border-border pt-3">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span aria-hidden="true" className="text-lg">{opt.emoji}</span>
+                          <h3 className="text-sm font-semibold text-foreground">{opt.label}</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {types.map((type) => (
+                            <Button
+                              key={type}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-auto min-h-9 max-w-full whitespace-normal text-left justify-start px-3 py-1.5 font-normal hover:border-primary hover:text-primary"
+                              onClick={() => startCategory(opt.id, type)}
+                            >
+                              {type}
+                            </Button>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Edit mode banner — shows the edited field's question so the displayed
                 question, suggestions, and input value always refer to the same field.
