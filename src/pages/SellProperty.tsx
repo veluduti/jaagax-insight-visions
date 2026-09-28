@@ -55,7 +55,7 @@ import { getPropertyFlow } from "@/config/propertyFlows";
 import DocumentUploadWidget from "@/components/financial/DocumentUploadWidget";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
-import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+import { formatUnitPrice, getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
 import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
 import NearbyAgentsRail from "@/components/agents/NearbyAgentsRail";
@@ -767,7 +767,7 @@ const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
 const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK)$/i;
 
-const PRICE_UNIT_PATTERN = /^(₹?\s?\d+(,\d+)?)(\s)?(per|\/)(\s)?(sqft|sq ft|sqyd|sq yd)$/i;
+const PRICE_UNIT_PATTERN = /^₹?\s?\d+(?:,\d{3})*(?:\.\d+)?\s*(?:per|\/)\s*(?:sqft|sq ft|sqyd|sq yd|sq yard|acre|acres|gunta|gunta|cent|sq m|sqm|hectare|bigha|katha)$/i;
 const BATHROOM_PATTERN = /^\d+(\+)?\s?(bathroom|bathrooms)$/i;
 const FLOOR_PATTERN = /^(\d+)(st|nd|rd|th)?\s?floor$|^ground floor$|^\d+\s?floors$/i;
 const MEASUREMENT_PATTERN = /^(\d+(?:\.\d+)?)\s?(sq\s?ft|sqft|sq\s?yd|sqyd|sq\s?m|sqm|acre|acres|gunta|cent)$/i;
@@ -825,9 +825,13 @@ const getCountSuggestions = (input: unknown, fieldId: string): string[] => {
 };
 
 const getPriceUnitSuggestions = (input: string) => {
-  if (!/^\d+$/.test(input)) return [];
-
-  return [`₹${input} / sqft`, `₹${input} / sq yd`, `₹${input} / acre`, `₹${input} / gunta`, `₹${input} / cent`];
+  if (!/^\d+(?:\.\d+)?$/.test(input.trim())) return [];
+  const amount = Number(input);
+  if (!Number.isFinite(amount) || amount <= 0) return [];
+  return ["sqft", "sq yd", "acre", "gunta", "cent"].map((unit) => ({
+    label: formatUnitPrice(amount, unit),
+    value: `₹${amount} / ${unit}`,
+  }));
 };
 
 const getBathroomSuggestions = (input: string) => {
@@ -907,7 +911,7 @@ function validate(field: FieldDef, value: any): string | null {
 
   if (fid === "price_per_unit") {
     if (!PRICE_UNIT_PATTERN.test(String(value).trim())) {
-      return "Please enter format like ₹6000/sqft";
+      return "Please select a price and its area unit (e.g. ₹10 Lakh / acre)";
     }
   }
 
@@ -1017,7 +1021,7 @@ function formatAnswer(field: FieldDef, value: any): string {
     const v = value as { unit: string; area: string; pricePerUnit: string };
     const total = Number(v.area) * Number(v.pricePerUnit);
     const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
-    return `${v.area} ${v.unit} × ₹${fmt(Number(v.pricePerUnit))}/${v.unit}  ≈  ₹${fmt(total)}`;
+    return `${v.area} ${v.unit} × ${formatUnitPrice(Number(v.pricePerUnit), v.unit)}  ≈  ₹${fmt(total)}`;
   }
   if (
     (field.type === "plot_measurement_widget" || (field.input as string) === "plot_measurement_widget") &&
@@ -1703,7 +1707,7 @@ export default function SellProperty() {
     if (ext.city) tail.push(ext.city);
     if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sq ft"}`);
     if (ext.price_per_unit)
-      tail.push(`₹${new Intl.NumberFormat("en-IN").format(Number(ext.price_per_unit))}/${ext.area_unit || "unit"}`);
+      tail.push(formatUnitPrice(Number(ext.price_per_unit), ext.area_unit || "unit"));
     if (ext.furnishing) tail.push(ext.furnishing);
     if (ext.purpose) tail.push(`for ${ext.purpose}`);
 
@@ -4346,9 +4350,9 @@ export default function SellProperty() {
                     size="sm"
                     variant={String(value) === opt ? "default" : "outline"}
                     className="h-auto min-h-9"
-                    onClick={() => setValue(opt)}
+                    onClick={() => field.id === "price_per_unit" ? void commitAnswer(`₹${opt}`, formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1])) : setValue(opt)}
                   >
-                    {opt}
+                    {field.id === "price_per_unit" ? formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1]) : opt}
                   </Button>
                 ))}
               </div>
@@ -5856,21 +5860,23 @@ export default function SellProperty() {
     DYNAMIC INPUT SUGGESTIONS
 ============================================ */}
 
-            {field && !loadingNext && !done && !categoryBlock && typeof value === "string" && value.trim().length > 0 && Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
+            {field && !loadingNext && !done && !categoryBlock && typeof value === "string" && value.trim().length > 0 && Array.isArray(suggestions) && suggestions.length > 0 && (typeof suggestions[0] === "string" || canonId(field.id) === "price_per_unit") && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-wrap gap-2 pt-1 pl-1"
               >
                 {suggestions.map((sug) => {
-                  const active = value === sug;
+                  const label = typeof sug === "string" ? sug : sug.label;
+                  const answer = typeof sug === "string" ? sug : sug.value;
+                  const active = value === answer;
 
                   return (
                     <button
-                      key={sug}
+                      key={label}
                       type="button"
                       onClick={async () => {
-                        await commitAnswer(sug);
+                        await commitAnswer(answer, typeof sug === "string" ? undefined : label);
                       }}
                       className={cn(
                         "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
@@ -5879,7 +5885,7 @@ export default function SellProperty() {
                           : "bg-card hover:bg-primary/5 border-border",
                       )}
                     >
-                      {sug}
+                      {label}
                     </button>
                   );
                 })}
