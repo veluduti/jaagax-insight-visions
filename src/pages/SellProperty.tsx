@@ -4363,6 +4363,16 @@ export default function SellProperty() {
                   initialValue={{
                     country: state.country || "India",
 
+                    country_id: state.country_id || null,
+
+                    state_id: state.state_id || null,
+
+                    district_id: state.district_id || null,
+
+                    city_id: state.city_id || null,
+
+                    locality_id: state.locality_id || null,
+
                     state_name: state.state_name || state.state || "",
 
                     district: state.district || "",

@@ -150,8 +150,8 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
         toast.error("Couldn't resolve that location. Try another spot.");
         return;
       }
-      if (!result.country || !result.state_name || !result.district || !result.city || !result.address) {
-        toast.error("This pin doesn't have a complete address. Select a more precise location on the map.");
+      if (!result.address) {
+        toast.error("This pin doesn't have an address. Select a more precise location on the map.");
         return;
       }
       if (placeId && !result.place_id) result.place_id = placeId;
