@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, Menu, X, LayoutDashboard, LogOut, Home } from "lucide-react";
+import { Building2, Menu, X, LayoutDashboard, LogOut, Home, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,15 +113,18 @@ export default function PartnerNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/partners" className="flex items-center gap-2 font-bold tracking-tight">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4 max-[399px]:px-2">
+        <div className="flex min-w-0 items-center gap-1">
+        {!onLanding && <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 shrink-0" aria-label="Go back" onClick={() => window.history.length > 1 ? nav_(-1) : nav_("/partners")}><ArrowLeft className="h-5 w-5" /></Button>}
+        <Link to="/partners" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
             <Building2 className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg">
+          <span className="text-lg truncate">
             JAAGA X <span className="text-emerald-400">Partners</span>
           </span>
         </Link>
+        </div>
 
         {onLanding && (
           <nav className="hidden items-center gap-7 md:flex">
@@ -138,9 +141,9 @@ export default function PartnerNav() {
         </div>
 
 
-        <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
+        <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 shrink-0" onClick={() => setOpen((v) => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open}>
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        </Button>
       </div>
 
       {open && (
