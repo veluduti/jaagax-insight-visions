@@ -22,7 +22,7 @@ const isAuthorizedForRole = (role: AppRole | null, allowedRole: AppRole) => {
   return role === allowedRole;
 };
 
-const SignInRequiredScreen = ({ message }: { message?: string }) => {
+export const SignInRequiredScreen = ({ message }: { message?: string }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { openAuthPopup } = useRequireAuth();
@@ -90,5 +90,19 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
     return <Navigate to="/dashboard" replace />;
   }
 
+  return <>{children}</>;
+}
+
+/** Requires any signed-in user (no role check). */
+export function SignedInRoute({ children, message }: { children: React.ReactNode; message?: string }) {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!user) return <SignInRequiredScreen message={message} />;
   return <>{children}</>;
 }
