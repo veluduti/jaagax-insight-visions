@@ -114,7 +114,9 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   const hasCoordinates = Number.isFinite(form.latitude) && Number.isFinite(form.longitude);
   const missing = ["country", "state_name", "district", "city", "address"]
     .filter((key) => !text(form[key as keyof LocationForm]));
-  const canContinue = hasCoordinates && missing.length === 0 && !resolving && !error;
+  const hierarchyMissing = ["country_id", "state_id", "district_id", "city_id"]
+    .filter((key) => !text(form[key as keyof LocationForm]));
+  const canContinue = hasCoordinates && missing.length === 0 && hierarchyMissing.length === 0 && !resolving && !error;
 
   return (
     <div className="w-full border border-border bg-card p-4 sm:p-5 space-y-4">
@@ -148,6 +150,9 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
         <p role="alert" className="text-xs text-destructive">
           The map couldn't find {missing.map((key) => key === "state_name" ? "state" : key).join(", ")}. Choose another pin to complete the address.
         </p>
+      )}
+      {hasCoordinates && missing.length === 0 && hierarchyMissing.length > 0 && !resolving && (
+        <p role="alert" className="text-xs text-destructive">This pin isn't in a supported country, state, district and city. Choose a nearby precise pin to complete your property location.</p>
       )}
       <Button type="button" className="w-full" disabled={!canContinue} onClick={() => onSubmit?.(form)}>
         Continue
