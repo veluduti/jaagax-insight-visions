@@ -1585,7 +1585,7 @@ export default function SellProperty() {
     try {
       localStorage.setItem(key, JSON.stringify({
         version: DRAFT_VERSION, category, state: safeDraftData(state),
-        engineState: safeDraftData(engineRef.current?.getState()),
+        engineState: engineRef.current ? safeDraftData(engineRef.current.getState()) : undefined,
         field: safeDraftData(field), value: safeDraftData(value),
         history: safeDraftData(history), progress, intakeDone, intakeText,
         messages: messages.filter((m) => m.kind === "text").slice(-80),
