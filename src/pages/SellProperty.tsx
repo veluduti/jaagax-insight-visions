@@ -4034,9 +4034,9 @@ export default function SellProperty() {
       return true;
     }).join(", ") || data.address || data.pincode || "Location saved";
     setMessages((current) => {
-      const index = editing ? current.findLastIndex((msg) => msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId === "location" || msg.text.startsWith("📍 "))) : -1;
+      const index = editing ? current.map((msg) => msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId === "location" || msg.text.startsWith("📍 "))).lastIndexOf(true) : -1;
       if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" } as ChatMsg];
-      return current.map((msg, i) => i === index ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } as ChatMsg : msg);
+      return current.map((msg, i) => i === index && msg.kind === "text" ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } as ChatMsg : msg);
     });
     if (editing) {
       setEditingLocation(false);
