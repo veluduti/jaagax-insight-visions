@@ -146,6 +146,17 @@ function canonId(id?: string | null): string {
   return CANONICAL_ALIASES[id] || id;
 }
 
+function distinctLocationParts(parts: unknown[]): string[] {
+  const seen = new Set<string>();
+  return parts.filter((part): part is string => {
+    if (typeof part !== "string" || !part.trim()) return false;
+    const key = part.trim().toLocaleLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map((part) => part.trim());
+}
+
 /**
  * Numeric "count" fields that must be stored as integers across the entire
  * flow (AI answer -> canonical state -> editForm -> DB payload). The AI
@@ -4025,14 +4036,7 @@ export default function SellProperty() {
     try {
       engineRef.current?.applyExtractedFields({ ...partial, location: merged.location }, { overwrite: true });
     } catch {}
-    const seen = new Set<string>();
-    const summary = [data.locality, data.city, data.state_name].filter((part): part is string => {
-      if (typeof part !== "string" || !part.trim()) return false;
-      const key = part.trim().toLocaleLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).join(", ") || data.address || data.pincode || "Location saved";
+    const summary = distinctLocationParts([data.locality, data.city, data.state_name]).join(", ") || data.address || data.pincode || "Location saved";
     setMessages((current) => {
       const index = editing ? current.map((msg) => msg.role === "user" && msg.kind === "text" && (msg.fieldId === "location" || msg.text.startsWith("📍 "))).lastIndexOf(true) : -1;
       if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" }];
@@ -4229,12 +4233,12 @@ export default function SellProperty() {
                     {msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId || msg.text.startsWith("📍 ")) && (
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "outline" : "ghost"}
                         size="icon"
                         aria-label={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
                         title={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
                         onClick={() => ((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? setEditingLocation(true) : jumpToField((msg as any).fieldId)}
-                        className="shrink-0 text-muted-foreground hover:text-foreground"
+                        className="shrink-0 text-foreground"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -4568,8 +4572,7 @@ export default function SellProperty() {
                 const propTypeRaw = pick("property_type");
                 const sub = (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
                 const purpose = (pick("listing_type") || "sale").toString().toLowerCase();
-                const locParts = [editForm.locality || state.locality, editForm.city || state.city].filter(Boolean);
-                const locLine = locParts.filter((part, index) => locParts.findIndex((other) => String(other).trim().toLocaleLowerCase() === String(part).trim().toLocaleLowerCase()) === index).join(", ");
+                const locLine = distinctLocationParts([editForm.locality || state.locality, editForm.city || state.city]).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
@@ -6232,7 +6235,10 @@ function Bubble({ msg }: { msg: ChatMsg }) {
             }
           })();
 
-  return <div className={base}>{safeText}</div>;
+  const visibleText = isUser && safeText.startsWith("📍 ")
+    ? `📍 ${distinctLocationParts(safeText.slice(3).split(",")).join(", ")}`
+    : safeText;
+  return <div className={base}>{visibleText}</div>;
 }
 
 function Dot({ delay }: { delay: number }) {
