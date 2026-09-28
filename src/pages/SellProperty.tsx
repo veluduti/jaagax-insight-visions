@@ -3428,6 +3428,7 @@ export default function SellProperty() {
           description: "Our financial partners will reach out shortly.",
         });
         localStorage.removeItem(DRAFT_PREFIX + user.id);
+        draftReady.current = false;
         navigate("/dashboard/financial");
       } catch (e: any) {
         console.error(e);

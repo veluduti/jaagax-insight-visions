@@ -191,6 +191,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
               </Button>)}
             </div>}
           </div>
+          {address && <p className="text-xs text-muted-foreground break-words">Selected pin: {address}</p>}
 
           <GoogleMapPicker
             lat={lat}
@@ -199,6 +200,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm, mapOnly = fa
               setLat(la);
               setLng(ln);
               setPlaceId(undefined); // pin moved manually
+              setAddress("");
             }}
             label="Tap on the map or drag the pin to fine-tune"
             height="360px"
