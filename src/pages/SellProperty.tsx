@@ -3881,12 +3881,12 @@ export default function SellProperty() {
   };
 
   return (
-    <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
+    <div className="h-[100dvh] pb-[calc(64px+env(safe-area-inset-bottom))] xl:pb-0 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
 
       {/* Chat header - with Back button (hidden on category selector) */}
-      <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
-        <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div className="shrink-0 border-b border-border/40 bg-card/60 backdrop-blur z-10">
+        <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
           {/* BACK BUTTON - only show when NOT on category selector */}
           {category && (
             <button
@@ -3915,7 +3915,7 @@ export default function SellProperty() {
                 ]);
                 engineRef.current = null;
               }}
-              className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
+              className="hidden sm:flex h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted items-center justify-center text-muted-foreground transition"
               title="Back to categories"
               aria-label="Back to categories"
             >
@@ -3923,13 +3923,13 @@ export default function SellProperty() {
             </button>
           )}
 
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm flex items-center gap-2">
+            <div className="font-semibold text-sm flex items-center gap-2 whitespace-nowrap">
               JAAGA X Assistant
-              <span className="text-[10px] font-normal text-emerald-500 flex items-center gap-1">
+              <span className="hidden sm:flex text-[10px] font-normal text-emerald-500 items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 online
               </span>
@@ -3938,7 +3938,7 @@ export default function SellProperty() {
           </div>
           {/* Selected Category Badge - shows what user selected */}
           {category && (
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5 shrink-0">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-medium">
                 <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.emoji}</span>
                 <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.label}</span>
@@ -4030,14 +4030,13 @@ export default function SellProperty() {
       {(
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto overscroll-contain"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
           style={{
-            paddingBottom: "180px",
             backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
           }}
         >
-          <div className="container max-w-3xl mx-auto px-3 sm:px-4 pt-4 pb-6 space-y-2 flex flex-col">
+          <div className="container max-w-3xl mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-2 flex flex-col">
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
                 <motion.div
@@ -5624,8 +5623,8 @@ export default function SellProperty() {
 
       {/* Input dock */}
       {showInputBar && (
-        <div className="sticky bottom-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-          <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+        <div className="shrink-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+          <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-2 sm:pt-3 pb-2 sm:pb-[calc(env(safe-area-inset-bottom)+12px)]">
             {/* =======================================================
           CATEGORY SELECTOR
       ======================================================= */}
@@ -5665,7 +5664,7 @@ export default function SellProperty() {
                       <ImageIcon className="h-4 w-4" />
                     </button>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <Textarea
                         value={intakeText}
                         onChange={(e) => setIntakeText(e.target.value)}
@@ -5755,7 +5754,7 @@ export default function SellProperty() {
                       <ImageIcon className="h-4 w-4" />
                     </button>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       {/* DATE INPUT */}
 
                       {field?.input === "date" && (
