@@ -72,8 +72,8 @@ const GoogleMapPicker = ({
         const currentLat = latRef.current;
         const currentLng = lngRef.current;
         const hasNow = currentLat !== null && currentLng !== null;
-        const centerLat = hasNow ? currentLat! : defaultCenter.lat;
-        const centerLng = hasNow ? currentLng! : defaultCenter.lng;
+        const centerLat = currentLat ?? defaultCenter.lat;
+        const centerLng = currentLng ?? defaultCenter.lng;
 
         mapRef.current = new google.maps.Map(containerRef.current, {
           center: { lat: centerLat, lng: centerLng },
@@ -120,6 +120,7 @@ const GoogleMapPicker = ({
     let cancelled = false;
     const apply = () => {
       if (cancelled) return;
+      if (loadError) return;
       if (!mapRef.current || !readyRef.current) {
         // Map still initializing — retry shortly.
         setTimeout(apply, 60);
@@ -135,7 +136,7 @@ const GoogleMapPicker = ({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lng, hasCoords]);
+  }, [lat, lng, hasCoords, loadError]);
 
   return (
     <div>

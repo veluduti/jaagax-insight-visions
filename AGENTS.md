@@ -1,0 +1,1 @@
+- Keep Sell Your Property location collection in `SmartLocationWidget` and use `MapLocationModal` for exact pin selection; this keeps saved navbar coordinates, reverse-geocoded addresses, and submission validation consistent across property categories.
