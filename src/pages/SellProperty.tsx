@@ -4035,7 +4035,7 @@ export default function SellProperty() {
       {(
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain xl:pb-[180px]"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-[200px] xl:pb-[180px]"
           style={{
             backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
@@ -5098,8 +5098,8 @@ export default function SellProperty() {
                     )}
 
                     {/* 8. STICKY ACTION BAR */}
-                    <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-                      <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
+                    <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] xl:bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+                      <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-2 xl:py-3 xl:pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
                         {!isFinancial && !titleReady && (
                           <div className="text-[11px] text-muted-foreground text-center">
                             {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
