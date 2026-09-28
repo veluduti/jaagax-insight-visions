@@ -1254,6 +1254,7 @@ export default function SellProperty() {
   // When set, the flow is BLOCKED: current options are hidden and the user is asked to switch category.
   const [categoryBlock, setCategoryBlock] = useState<PropertyCategory | null>(null);
   const [intakeText, setIntakeText] = useState("");
+  const [intakeMode, setIntakeMode] = useState<"ask" | "paste">("ask");
   const [extracting, setExtracting] = useState(false);
 
   /* Smart hint per question (locality-aware AI tip) */
@@ -1649,9 +1650,11 @@ export default function SellProperty() {
     setCategoryBlock(null);
     setState((s) => ({ ...s, ...initialAnswers }));
     lastAskedFieldIdRef.current = null;
-    // Go straight to the structured questions — the user can still upload
-    // an image / brochure from the chat input and it will auto-fill answers.
-    setIntakeDone(true);
+    // Ask first whether the user has a ready description to auto-fill from,
+    // or wants to continue with the step-by-step questions.
+    setIntakeDone(false);
+    setIntakeMode("ask");
+    setField(null);
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", kind: "text", text: selectedType || opt?.label || cat },
@@ -1659,10 +1662,9 @@ export default function SellProperty() {
         id: uid(),
         role: "ai",
         kind: "text",
-        text: `Great — let's list your ${opt?.label || cat} property. Answer the quick questions below, or upload an image / brochure anytime and I'll auto-fill the details for you.`,
+        text: `Great — let's list your ${opt?.label || cat} property. Do you have a property description ready? Paste it and I'll auto-fill the details, or continue with the step-by-step questions.`,
       },
     ]);
-    void fetchNext(initialAnswers, true);
   };
 
   const selectCategory = (cat: PropertyCategory) => {
@@ -1898,9 +1900,24 @@ export default function SellProperty() {
     await runAiExtraction({ text: intakeText });
   };
 
+  const choosePasteDescription = () => {
+    setIntakeMode("paste");
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: "I have a description" },
+      {
+        id: uid(),
+        role: "ai",
+        kind: "text",
+        text: "Great — paste your property description below. I'll auto-fill the details and only ask what's still missing.",
+      },
+    ]);
+  };
+
   const skipIntake = async () => {
     setIntakeDone(true);
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: "Let's go step by step" }]);
+    setIntakeMode("ask");
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: "Continue with flow" }]);
     await fetchNext(state, true);
   };
 
@@ -3945,7 +3962,7 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showIntakeBar = !!category && !intakeDone && !done;
+  const showIntakeBar = !!category && !intakeDone && !done && intakeMode === "paste";
   const showInputBar =
     showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
@@ -4312,6 +4329,18 @@ export default function SellProperty() {
                   <div className="text-sm text-foreground">{field.question}</div>
                 </div>
               </motion.div>
+            )}
+
+            {/* Description-or-flow choice shown right after a type is picked. */}
+            {category && !intakeDone && !done && intakeMode === "ask" && (
+              <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="How would you like to continue">
+                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={choosePasteDescription} disabled={extracting}>
+                  I have a description
+                </Button>
+                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={skipIntake} disabled={extracting}>
+                  Continue with flow
+                </Button>
+              </div>
             )}
 
             {/* Fixed answers belong with the active question, not the message bar. */}
