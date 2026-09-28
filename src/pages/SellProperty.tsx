@@ -4168,47 +4168,6 @@ export default function SellProperty() {
               </motion.div>
             )}
 
-            {/* Quick-reply chips for the current field (single / multi / yesno) */}
-            {field &&
-              !categoryBlock &&
-              !loadingNext &&
-              !done &&
-              (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-wrap gap-2 pt-1 pl-1"
-                >
-                  {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
-                    const isMulti = field.input === "multi";
-                    const arr: string[] = Array.isArray(value) ? value : [];
-                    const active = isMulti ? arr.includes(opt) : value === opt;
-                    return (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={async () => {
-                          if (isMulti) {
-                            setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
-                            return;
-                          }
-
-                          await commitAnswer(opt);
-                        }}
-                        className={cn(
-                          "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                          active
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card hover:bg-primary/5 border-border",
-                        )}
-                      >
-                        {opt}
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              )}
-
             {/* Document upload widget — financial flow */}
             {field?.id === "upload_documents" && !loadingNext && !done && Array.isArray(value) && value.length > 0 && (
               <DocumentUploadWidget
@@ -4228,145 +4187,6 @@ export default function SellProperty() {
                   );
                 }}
               />
-            )}
-
-            {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
-            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-2 pt-1 pl-1"
-              >
-                {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
-                  const active = String(value) === opt;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => {
-                        // strip "+" or "Ground" → numeric where possible
-                        setValue(opt);
-                      }}
-                      className={cn(
-                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                        active
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card hover:bg-primary/5 border-border",
-                      )}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-                <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
-              </motion.div>
-            )}
-
-            {/* Unit/price/measurement chips for NUMBER fields — attached to the question bubble */}
-            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
-              const isCountField =
-                /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
-                  field.id,
-                );
-              const fidCanon = canonId(field.id);
-              const HANDLED_BY_CUSTOM = new Set([
-                "price_per_unit",
-                "bhk",
-                "bathrooms",
-                "floor_number",
-                "total_plots",
-                "total_towers",
-                "towers",
-                "floors_per_tower",
-                "total_units",
-                "units",
-                ...Object.keys(COUNT_FIELD_LABELS),
-              ]);
-              if (HANDLED_BY_CUSTOM.has(fidCanon)) return null;
-              const sType =
-                field.suggestionType ||
-                (/rent/i.test(field.id)
-                  ? "rental_duration"
-                  : /price|amount|cost|budget/i.test(field.id)
-                    ? "price"
-                    : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
-                      ? "measurement_units"
-                      : undefined);
-
-              let chips: any[] = [];
-              if (sType === "rental_duration") {
-                chips = getRentSuggestions(value, field.durations);
-              } else if (sType === "price" || sType === "price_per_unit") {
-                chips = getPriceSuggestions(value);
-              } else if (sType === "measurement_units") {
-                chips = getUnitSuggestions(
-                  value,
-                  (field.units && field.units.length
-                    ? field.units
-                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
-                );
-              }
-              if (!chips.length) return null;
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-wrap gap-2 pt-1 pl-1"
-                >
-                  {chips.map((c: any, i: number) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => commitAnswer(c.value || c, c.label || String(c))}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
-                    >
-                      {c.label || String(c)}
-                    </button>
-                  ))}
-                </motion.div>
-              );
-            })()}
-            {field && smartHint && !loadingNext && !done && (
-              <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
-                <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
-                  <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
-                  <span className="text-foreground/90">{smartHint}</span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ============================================
-    DYNAMIC INPUT SUGGESTIONS
-============================================ */}
-
-            {!categoryBlock && Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-2 pt-1 pl-1"
-              >
-                {suggestions.map((sug) => {
-                  const active = value === sug;
-
-                  return (
-                    <button
-                      key={sug}
-                      type="button"
-                      onClick={async () => {
-                        await commitAnswer(sug);
-                      }}
-                      className={cn(
-                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                        active
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card hover:bg-primary/5 border-border",
-                      )}
-                    >
-                      {sug}
-                    </button>
-                  );
-                })}
-              </motion.div>
             )}
 
             {/* SMART WIDGETS */}
@@ -5797,10 +5617,189 @@ export default function SellProperty() {
               </>
             ) : (
               <>
-                {/* Number-field unit/price/measurement chips are rendered
-                    inline with the question bubble above (single source of
-                    truth for suggestion chips). Do not duplicate here. */}
+                {/* Current-question choices and suggestions stay beside the input, not in the scrolling transcript. */}
+                <div className="max-h-[min(28dvh,220px)] overflow-y-auto overscroll-contain pb-2 space-y-2" aria-label="Suggestions for current question">
+            {/* Quick-reply chips for the current field (single / multi / yesno) */}
+            {field &&
+              !categoryBlock &&
+              !loadingNext &&
+              !done &&
+              (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap gap-2 pt-1 pl-1"
+                >
+                  {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
+                    const isMulti = field.input === "multi";
+                    const arr: string[] = Array.isArray(value) ? value : [];
+                    const active = isMulti ? arr.includes(opt) : value === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={async () => {
+                          if (isMulti) {
+                            setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
+                            return;
+                          }
 
+                          await commitAnswer(opt);
+                        }}
+                        className={cn(
+                          "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card hover:bg-primary/5 border-border",
+                        )}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+            {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-2 pt-1 pl-1"
+              >
+                {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
+                  const active = String(value) === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        // strip "+" or "Ground" → numeric where possible
+                        setValue(opt);
+                      }}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-card hover:bg-primary/5 border-border",
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+                <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
+              </motion.div>
+            )}
+
+            {/* Unit/price/measurement chips for NUMBER fields — beside the composer */}
+            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
+              const isCountField =
+                /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
+                  field.id,
+                );
+              const fidCanon = canonId(field.id);
+              const HANDLED_BY_CUSTOM = new Set([
+                "price_per_unit",
+                "bhk",
+                "bathrooms",
+                "floor_number",
+                "total_plots",
+                "total_towers",
+                "towers",
+                "floors_per_tower",
+                "total_units",
+                "units",
+                ...Object.keys(COUNT_FIELD_LABELS),
+              ]);
+              if (HANDLED_BY_CUSTOM.has(fidCanon)) return null;
+              const sType =
+                field.suggestionType ||
+                (/rent/i.test(field.id)
+                  ? "rental_duration"
+                  : /price|amount|cost|budget/i.test(field.id)
+                    ? "price"
+                    : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
+                      ? "measurement_units"
+                      : undefined);
+
+              let chips: any[] = [];
+              if (sType === "rental_duration") {
+                chips = getRentSuggestions(value, field.durations);
+              } else if (sType === "price" || sType === "price_per_unit") {
+                chips = getPriceSuggestions(value);
+              } else if (sType === "measurement_units") {
+                chips = getUnitSuggestions(
+                  value,
+                  (field.units && field.units.length
+                    ? field.units
+                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
+                );
+              }
+              if (!chips.length) return null;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap gap-2 pt-1 pl-1"
+                >
+                  {chips.map((c: any, i: number) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => commitAnswer(c.value || c, c.label || String(c))}
+                      className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
+                    >
+                      {c.label || String(c)}
+                    </button>
+                  ))}
+                </motion.div>
+              );
+            })()}
+            {field && smartHint && !loadingNext && !done && (
+              <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
+                <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
+                  <span className="text-foreground/90">{smartHint}</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+    DYNAMIC INPUT SUGGESTIONS
+============================================ */}
+
+            {field && !loadingNext && !done && !categoryBlock && Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-2 pt-1 pl-1"
+              >
+                {suggestions.map((sug) => {
+                  const active = value === sug;
+
+                  return (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={async () => {
+                        await commitAnswer(sug);
+                      }}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-card hover:bg-primary/5 border-border",
+                      )}
+                    >
+                      {sug}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+
+                </div>
 
                 {/* ===================================================
               MAIN INPUT
@@ -5981,7 +5980,7 @@ export default function SellProperty() {
                               }
                             }}
                             type={field?.input === "number" ? "number" : "text"}
-                            placeholder={isChoiceOnly ? "Please select from the options above" : "Type your answer..."}
+                            placeholder={isChoiceOnly ? "Please select from the choices above" : "Type your answer..."}
                             disabled={isChoiceOnly}
                             readOnly={isChoiceOnly}
                             className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11 disabled:cursor-not-allowed"
