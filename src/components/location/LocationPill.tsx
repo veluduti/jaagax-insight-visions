@@ -13,9 +13,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import LocationSelector from "./LocationSelector";
+import { Button } from "@/components/ui/button";
 
 interface LocationPillProps {
   className?: string;
+  mobileCompact?: boolean;
 }
 
 /**
@@ -30,7 +32,7 @@ interface LocationPillProps {
  *  - mode 'disabled'        → "📍 Location off"
  *  - none                   → "Select location"
  */
-const LocationPill = ({ className = "" }: LocationPillProps) => {
+const LocationPill = ({ className = "", mobileCompact = false }: LocationPillProps) => {
   const {
     savedLocation,
     locationMode,
@@ -78,19 +80,22 @@ const LocationPill = ({ className = "" }: LocationPillProps) => {
     <>
       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverTrigger asChild>
-          <button
+          <Button
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-border/60 bg-background/70 hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-colors max-w-[240px] ${className}`}
+            variant="outline"
+            size="sm"
+            className={`min-w-0 inline-flex items-center gap-1.5 px-3 rounded-full text-sm border-border/60 bg-background/70 hover:bg-primary/10 hover:border-primary/40 hover:text-primary max-w-[240px] ${mobileCompact ? "max-[399px]:h-10 max-[399px]:w-10 max-[399px]:shrink-0 max-[399px]:px-0" : ""} ${className}`}
             title={label}
+            aria-label={`Location: ${label}`}
           >
             {isResolvingGps ? (
               <Loader2 className="h-3.5 w-3.5 flex-shrink-0 text-primary animate-spin" />
             ) : (
               <LabelIcon className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
             )}
-            <span className="truncate">{label}</span>
-            <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 opacity-70" />
-          </button>
+            <span className={`min-w-0 truncate ${mobileCompact ? "max-[399px]:sr-only" : ""}`}>{label}</span>
+            <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 opacity-70 ${mobileCompact ? "max-[399px]:hidden" : ""}`} />
+          </Button>
         </PopoverTrigger>
         <PopoverContent
           align="end"

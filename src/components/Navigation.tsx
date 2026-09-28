@@ -304,31 +304,33 @@ const Navigation = () => {
         animate={{ y: 0, opacity: 1 }}
         className="xl:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
       >
-        <div className="container-padding py-3">
-          <div className="flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-1 shrink-0">
+        <div className="container-padding py-3 max-[399px]:px-2">
+          <div className="flex items-center justify-between gap-1 sm:gap-2 min-w-0 h-10">
+            <div className="flex items-center gap-0.5 sm:gap-1 min-w-0 shrink">
             {location.pathname !== "/" && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
                 aria-label="Go back"
-                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-accent active:scale-90 transition-transform"
+                className="h-10 w-10 shrink-0 rounded-full active:scale-90 transition-transform"
               >
                 <ArrowLeft className="h-5 w-5 text-foreground" />
-              </button>
+              </Button>
             )}
-            <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="JAAGA X - Home">
+            <Link to="/" className="flex items-center min-w-0 shrink" aria-label="JAAGA X - Home">
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-9 sm:h-11 w-auto max-h-11 object-contain shrink-0"
+                className="h-9 sm:h-11 w-auto max-w-full max-h-11 object-contain object-left"
                 loading="lazy"
                 decoding="async"
               />
             </Link>
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
-              <div className="max-w-[120px] sm:max-w-none overflow-hidden"><LocationPill /></div>
+            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 min-w-0">
+              <LocationPill mobileCompact className="max-w-[112px] sm:max-w-[180px]" />
               <div className="hidden sm:block"><ThemeToggle /></div>
               {session && <NotificationBell />}
               <SidebarMenu />
