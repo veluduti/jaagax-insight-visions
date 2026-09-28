@@ -9,8 +9,6 @@ import LocationMasterSelector from "@/components/location/LocationMasterSelector
 import type { MasterLocationSelection } from "@/hooks/useLocationMaster";
 import { MapPin } from "lucide-react";
 
-
-
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
   initialValue?: Record<string, any>;
@@ -20,16 +18,12 @@ interface SmartLocationWidgetProps {
 
 /**
  * Property-location capture used inside the Sell-Property AI chat.
- * City + Locality are powered by Google Places (Places API New) autocomplete
- * so typing a few letters surfaces real-world matches and auto-fills
- * state / country / lat-lng when a suggestion is picked.
+ * Single source of truth:
+ *   - Hierarchy (country → state → district → city → locality) via LocationMasterSelector
+ *   - Map pin via MapLocationModal
+ *   - Free-form street details (address, pincode, landmark, sub_locality) via inputs
  */
-const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
-  value: valueProp,
-  initialValue,
-  onChange,
-  onSubmit,
-}) => {
+const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({ value: valueProp, initialValue, onChange, onSubmit }) => {
   const value = valueProp ?? initialValue;
 
   const [form, setForm] = useState({
@@ -44,7 +38,6 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     latitude: value?.latitude ?? null,
     longitude: value?.longitude ?? null,
     place_id: value?.place_id || "",
-    // Master location IDs — single source of truth for routing
     country_id: value?.country_id ?? null,
     state_id: value?.state_id ?? null,
     district_id: value?.district_id ?? null,
@@ -53,7 +46,6 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
   });
 
   const [mapOpen, setMapOpen] = useState(false);
-
 
   useEffect(() => {
     if (!value) return;
@@ -75,7 +67,6 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       city_id: value?.city_id ?? null,
       locality_id: value?.locality_id ?? null,
     });
-
   }, [value]);
 
   const update = (patch: Partial<typeof form>) => {
@@ -84,7 +75,7 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     onChange?.(next);
   };
 
-  // Auto-fill from the user's nav-bar location once (user can still edit).
+  // Auto-fill from nav-bar location once
   const { savedLocation, locationMode } = useLocationContext();
   const autoFilledRef = useRef(false);
   useEffect(() => {
@@ -109,26 +100,27 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       <div>
         <h3 className="text-sm font-semibold">Property Location</h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Pick from the location hierarchy — this determines which District Admin
-          reviews your listing.
+          Pick the location hierarchy — this determines which District Admin reviews your listing.
         </p>
       </div>
 
-      {/* Master Location Hierarchy — single source of truth */}
+      {/* Single source of truth for country/state/district/city/locality */}
       <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
         <LocationMasterSelector
-          value={{
-            country_id: form.country_id,
-            state_id: form.state_id,
-            district_id: form.district_id,
-            city_id: form.city_id,
-            locality_id: form.locality_id,
-            country: form.country,
-            state: form.state_name,
-            district: null,
-            city: form.city,
-            locality: form.locality,
-          } as MasterLocationSelection}
+          value={
+            {
+              country_id: form.country_id,
+              state_id: form.state_id,
+              district_id: form.district_id,
+              city_id: form.city_id,
+              locality_id: form.locality_id,
+              country: form.country,
+              state: form.state_name,
+              district: null,
+              city: form.city,
+              locality: form.locality,
+            } as MasterLocationSelection
+          }
           onChange={(v) =>
             update({
               country_id: v.country_id,
@@ -145,10 +137,7 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
         />
       </div>
 
-      <p className="text-[11px] text-muted-foreground text-center">
-        — or refine with map / autocomplete —
-      </p>
-
+      <p className="text-[11px] text-muted-foreground text-center">— or drop a pin on the map —</p>
 
       <Button
         type="button"
@@ -160,43 +149,15 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
         Select Location from Map
       </Button>
 
-      <MapLocationModal
-        open={mapOpen}
-        onOpenChange={setMapOpen}
-        initial={form}
-        onConfirm={(loc) => update(loc)}
-      />
+      <MapLocationModal open={mapOpen} onOpenChange={setMapOpen} initial={form} onConfirm={(loc) => update(loc)} />
 
-
-
+      {/*
+        Optional free-text refinement of locality/area if the master
+        hierarchy doesn't have the exact match.
+      */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* CITY — Google Places */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">City</label>
-          <InlineLocationSearch
-            variant="box"
-            placeholder="Search city (e.g. Hy…)"
-            initialValue={form.city}
-            persistSavedLocation={false}
-            onTextChange={(t) => update({ city: t })}
-            onSelected={(loc) =>
-              update({
-                city: loc.city || loc.locality || form.city,
-                locality: loc.locality || form.locality,
-                state_name: loc.state || form.state_name,
-                country: loc.country || form.country,
-                pincode: loc.postalCode || form.pincode,
-                latitude: loc.latitude ?? form.latitude,
-                longitude: loc.longitude ?? form.longitude,
-                address: loc.formattedAddress || form.address,
-              })
-            }
-          />
-        </div>
-
-        {/* LOCALITY — Google Places */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Locality</label>
+          <label className="text-xs font-medium text-muted-foreground">Refine Locality / Area (optional)</label>
           <InlineLocationSearch
             variant="box"
             placeholder="Search locality / area"
@@ -206,9 +167,6 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
             onSelected={(loc) =>
               update({
                 locality: loc.locality || loc.city || form.locality,
-                city: form.city || loc.city || "",
-                state_name: form.state_name || loc.state || "",
-                country: form.country || loc.country || "India",
                 pincode: loc.postalCode || form.pincode,
                 latitude: loc.latitude ?? form.latitude,
                 longitude: loc.longitude ?? form.longitude,
@@ -218,52 +176,34 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
           />
         </div>
 
-        {/* STATE */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">State</label>
+          <label className="text-xs font-medium text-muted-foreground">Sub Locality (optional)</label>
           <Input
-            placeholder="State"
-            value={form.state_name}
-            onChange={(e) => update({ state_name: e.target.value })}
+            placeholder="Sub Locality"
+            value={form.sub_locality}
+            onChange={(e) => update({ sub_locality: e.target.value })}
           />
         </div>
 
-        {/* COUNTRY */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Country</label>
-          <Input
-            placeholder="Country"
-            value={form.country}
-            onChange={(e) => update({ country: e.target.value })}
-          />
+          <label className="text-xs font-medium text-muted-foreground">PIN Code</label>
+          <Input placeholder="PIN Code" value={form.pincode} onChange={(e) => update({ pincode: e.target.value })} />
         </div>
 
-        {/* SUB LOCALITY */}
-        <Input
-          placeholder="Sub Locality (optional)"
-          value={form.sub_locality}
-          onChange={(e) => update({ sub_locality: e.target.value })}
-        />
-
-        {/* PINCODE */}
-        <Input
-          placeholder="PIN Code"
-          value={form.pincode}
-          onChange={(e) => update({ pincode: e.target.value })}
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Landmark (optional)</label>
+          <Input placeholder="Landmark" value={form.landmark} onChange={(e) => update({ landmark: e.target.value })} />
+        </div>
       </div>
 
-      <Input
-        placeholder="Landmark (optional)"
-        value={form.landmark}
-        onChange={(e) => update({ landmark: e.target.value })}
-      />
-
-      <Input
-        placeholder="Full Address"
-        value={form.address}
-        onChange={(e) => update({ address: e.target.value })}
-      />
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground">Full Address</label>
+        <Input
+          placeholder="House / Street / Area"
+          value={form.address}
+          onChange={(e) => update({ address: e.target.value })}
+        />
+      </div>
 
       <Button type="button" className="w-full" onClick={() => onSubmit?.(form)}>
         Continue
