@@ -14,6 +14,7 @@ import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
 import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import { usePendingPayment } from "@/hooks/usePendingPayment";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { usePostingEntitlement, fetchPostingEntitlement } from "@/hooks/usePostingEntitlement";
 import {
   Sparkles,
@@ -1233,6 +1234,10 @@ export default function SellProperty() {
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
   const [verificationRequested, setVerificationRequested] = useState<boolean>(true);
+  /* Mobile: minimize review cards after a selection so the submit button stays visible */
+  const [titlesCardMinimized, setTitlesCardMinimized] = useState(false);
+  const [agentCardMinimized, setAgentCardMinimized] = useState(false);
+  const isMobileView = useIsMobile();
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
@@ -5030,6 +5035,21 @@ export default function SellProperty() {
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
                             <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
                           </div>
+                        ) : titlesCardMinimized && selectedTitleIdx !== null && aiTitles[selectedTitleIdx] ? (
+                          /* Minimized after selection — one-line summary, tap to change */
+                          <button
+                            type="button"
+                            onClick={() => setTitlesCardMinimized(false)}
+                            className="w-full flex items-center justify-between gap-2 text-left p-2.5 rounded-xl border border-primary/40 bg-primary/5"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                                {aiTitles[selectedTitleIdx].label} · Selected
+                              </div>
+                              <div className="text-sm truncate">{aiTitles[selectedTitleIdx].title}</div>
+                            </div>
+                            <span className="text-xs text-primary shrink-0 font-medium">Change</span>
+                          </button>
                         ) : (
                           <div className="space-y-2">
                             {aiTitles.slice(0, 3).map((t, i) => {
@@ -5041,6 +5061,7 @@ export default function SellProperty() {
                                   onClick={() => {
                                     setSelectedTitleIdx(i);
                                     setEditForm((p) => ({ ...p, title: t.title }));
+                                    if (isMobileView) setTitlesCardMinimized(true);
                                   }}
                                   className={cn(
                                     "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
@@ -5086,7 +5107,9 @@ export default function SellProperty() {
                         )}
                         {!isFinancial && entitlement && (
                           <div
-                            className={`rounded-xl border p-2.5 mb-1 text-xs ${
+                            className={`rounded-xl border mb-1 ${
+                              isMobileView ? "px-2.5 py-1.5 text-[11px]" : "p-2.5 text-xs"
+                            } ${
                               entitlement.has_agent_subscription
                                 ? "border-yellow-500/30 bg-yellow-500/5"
                                 : entitlement.requires_payment
@@ -5098,20 +5121,35 @@ export default function SellProperty() {
                               <span>Agent subscription active — unlimited property postings.</span>
                             ) : entitlement.requires_payment ? (
                               <span>
-                                Free posts used ({entitlement.free_used}/{entitlement.free_limit}). This listing costs{" "}
+                                This listing costs{" "}
                                 <strong>₹{Number(entitlement.total).toLocaleString("en-IN")}</strong> (₹
-                                {Number(entitlement.fee).toLocaleString("en-IN")} + {entitlement.gst_percent}% GST),
-                                debited from your wallet on publish.
+                                {Number(entitlement.fee).toLocaleString("en-IN")} + {entitlement.gst_percent}% GST)
+                                {isMobileView
+                                  ? " — debited on publish."
+                                  : `, free posts used (${entitlement.free_used}/${entitlement.free_limit}), debited from your wallet on publish.`}
                               </span>
                             ) : (
                               <span>
                                 <strong>{entitlement.free_remaining}</strong> of {entitlement.free_limit} free posts
-                                remaining — this listing is free.
+                                remaining{isMobileView ? " — free listing." : " — this listing is free."}
                               </span>
                             )}
                           </div>
                         )}
                         {!isFinancial && (
+                          agentCardMinimized ? (
+                            /* Minimized after choosing — one-line summary, tap to change */
+                            <button
+                              type="button"
+                              onClick={() => setAgentCardMinimized(false)}
+                              className="rounded-xl border border-border bg-card px-3 py-2 mb-1 flex items-center justify-between gap-2 w-full text-left"
+                            >
+                              <span className="text-xs truncate">
+                                Agent: <strong>{verificationRequested ? "Yes — assign an agent" : "No — I'll handle it"}</strong>
+                              </span>
+                              <span className="text-[11px] text-primary shrink-0 font-medium">Change</span>
+                            </button>
+                          ) : (
                           <div className="rounded-xl border border-border bg-card p-3 mb-1">
                             <div className="text-sm font-semibold mb-1">
                               Do you need a JAAGAX Agent?
@@ -5127,7 +5165,10 @@ export default function SellProperty() {
                                 type="button"
                                 size="sm"
                                 variant={verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(true)}
+                                onClick={() => {
+                                  setVerificationRequested(true);
+                                  if (isMobileView) setAgentCardMinimized(true);
+                                }}
                                 className="flex-1"
                               >
                                 Yes, assign an agent
@@ -5136,7 +5177,10 @@ export default function SellProperty() {
                                 type="button"
                                 size="sm"
                                 variant={!verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(false)}
+                                onClick={() => {
+                                  setVerificationRequested(false);
+                                  if (isMobileView) setAgentCardMinimized(true);
+                                }}
                                 className="flex-1"
                               >
                                 No, I'll handle it
@@ -5144,6 +5188,7 @@ export default function SellProperty() {
                             </div>
 
                           </div>
+                          )
                         )}
                         <div className="flex gap-2">
                           <Button
