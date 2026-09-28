@@ -1358,8 +1358,12 @@ export default function SellProperty() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    if (!category) {
+      el.scrollTop = 0;
+      return;
+    }
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, loadingNext]);
+  }, [messages, loadingNext, category]);
 
   /* ----- Smart locality-aware hint per current field ----- */
   useEffect(() => {
