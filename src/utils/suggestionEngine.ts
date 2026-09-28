@@ -205,7 +205,7 @@ export function getRentSuggestions(
     return [];
   }
 
-  const formatted = new Intl.NumberFormat("en-IN").format(raw);
+  const formatted = formatIndianNumber(raw);
 
   return durations.map((duration) => ({
     label: `₹${formatted} / ${duration}`,
@@ -232,7 +232,7 @@ export function getUnitSuggestions(
   }
 
   return units.map((unit) => ({
-    label: `${raw} ${unit}`,
+    label: `${formatIndianNumber(raw)} ${unit}`,
 
     value: raw,
 
