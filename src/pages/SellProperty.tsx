@@ -2050,22 +2050,9 @@ export default function SellProperty() {
       // REALTIME SMART SUGGESTIONS
       // =======================================================
 
-      const smartSuggestions = (result.question as any)?.smartSuggestions;
-
-      const units = (result.question as any)?.units || [];
-
-      // -------------------------------------------------------
-      // DO NOT CLEAR SUGGESTIONS
-      // -------------------------------------------------------
-      // ============================================
-      // SMART SUGGESTIONS
-      // ============================================
-
-      if (smartSuggestions?.examples?.length) {
-        setSuggestions(smartSuggestions.examples);
-      } else {
-        setSuggestions([]);
-      }
+      // The composer suggests completions only after the user starts typing.
+      // Fixed choices are rendered beside the question instead.
+      setSuggestions([]);
 
       // =======================================================
       // PROGRESS
