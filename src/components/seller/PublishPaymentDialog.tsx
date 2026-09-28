@@ -138,18 +138,18 @@ export default function PublishPaymentDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => (busy ? null : onOpenChange(v))}>
       <DialogContent
-        overlayClassName="z-[70]"
-        className="z-[70] w-[calc(100%-24px)] max-w-2xl max-h-[calc(100dvh-24px)] overflow-y-auto overscroll-contain rounded-lg px-4 py-5 sm:p-6"
+        overlayClassName="z-[100]"
+        className="z-[100] inset-0 left-0 top-0 h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto overscroll-contain border-0 rounded-none px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-5 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 sm:left-[50%] sm:top-[50%] sm:h-auto sm:max-h-[calc(100dvh-24px)] sm:w-[calc(100%-24px)] sm:max-w-2xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:border sm:p-6 sm:data-[state=closed]:slide-out-to-left-1/2 sm:data-[state=closed]:slide-out-to-top-[48%] sm:data-[state=open]:slide-in-from-left-1/2 sm:data-[state=open]:slide-in-from-top-[48%]"
       >
-        <DialogHeader>
-          <DialogTitle>Choose how to publish this listing</DialogTitle>
+        <DialogHeader className="pr-8 text-left">
+          <DialogTitle className="text-xl leading-tight">Choose how to publish this listing</DialogTitle>
           <DialogDescription>
             Wallet balance: <strong className="text-foreground">{inr(wallet)}</strong> — payments are processed
             securely via Razorpay.
           </DialogDescription>
         </DialogHeader>
 
-        <div className={`grid gap-3 ${isAgent ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+        <div className={`grid gap-3 pb-2 ${isAgent ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
           {/* 1. Free trial — agents see their admin-configured agent trial */}
           {isAgent ? (
             <div
