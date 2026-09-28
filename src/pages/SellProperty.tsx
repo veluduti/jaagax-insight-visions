@@ -735,7 +735,7 @@ type NextResp =
 type ChatMsg =
   | { id: string; role: "ai"; kind: "text"; text: string }
   | { id: string; role: "ai"; kind: "typing" }
-  | { id: string; role: "user"; kind: "text"; text: string }
+  | { id: string; role: "user"; kind: "text"; text: string; fieldId?: string }
   | { id: string; role: "user"; kind: "image"; url: string; caption?: string };
 
 const DRAFT_VERSION = 1;
@@ -4034,9 +4034,9 @@ export default function SellProperty() {
       return true;
     }).join(", ") || data.address || data.pincode || "Location saved";
     setMessages((current) => {
-      const index = editing ? current.map((msg) => msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId === "location" || msg.text.startsWith("📍 "))).lastIndexOf(true) : -1;
-      if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" } as ChatMsg];
-      return current.map((msg, i) => i === index && msg.kind === "text" ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } as ChatMsg : msg);
+      const index = editing ? current.map((msg) => msg.role === "user" && msg.kind === "text" && (msg.fieldId === "location" || msg.text.startsWith("📍 "))).lastIndexOf(true) : -1;
+      if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" }];
+      return current.map((msg, i) => i === index && msg.kind === "text" ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } : msg);
     });
     if (editing) {
       setEditingLocation(false);
