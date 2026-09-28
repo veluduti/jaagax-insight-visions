@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useLocCountries, useLocStates, useLocDistricts, useLocCities } from "@/hooks/useLocationMaster";
 import MapLocationModal, { type MapPickedLocation } from "@/components/location/MapLocationModal";
 import { Loader2, MapPin } from "lucide-react";
 
@@ -56,6 +58,10 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   const { savedLocation } = useLocationContext();
   const initialized = useRef(false);
   const requestId = useRef(0);
+  const countries = useLocCountries();
+  const states = useLocStates(form.country_id);
+  const districts = useLocDistricts(form.state_id);
+  const cities = useLocCities(form.district_id);
 
   // Use the navbar's exact saved pin when available. A city-only browsing
   // preference is not an exact property address, so the user must pick a pin.
@@ -63,6 +69,15 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
     if (initialized.current) return;
     if (initial?.latitude != null && initial?.longitude != null && initial?.address && initial?.district) {
       initialized.current = true;
+      if (!initial.country_id || !initial.state_id || !initial.district_id || !initial.city_id) {
+        const id = ++requestId.current;
+        setResolving(true);
+        void resolveHierarchy(initial).then((resolved) => {
+          if (id === requestId.current) { setForm(resolved); onChange?.(resolved); }
+        }).catch(() => {
+          if (id === requestId.current) setError("Couldn't check the saved location. Select the required area below.");
+        }).finally(() => { if (id === requestId.current) setResolving(false); });
+      }
       return;
     }
     const latitude = initial?.latitude ?? savedLocation?.latitude;
@@ -112,6 +127,21 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   };
 
   const hasCoordinates = Number.isFinite(form.latitude) && Number.isFinite(form.longitude);
+  const selectLevel = (level: "country" | "state" | "district" | "city", id: string) => {
+    requestId.current++;
+    const selected = (level === "country" ? countries.data : level === "state" ? states.data : level === "district" ? districts.data : cities.data)?.find((item) => item.id === id);
+    if (!selected) return;
+    const update: LocationForm = level === "country"
+      ? { ...form, country_id: id, country: selected.name, state_id: null, state_name: "", district_id: null, district: "", city_id: null, city: "", locality_id: null }
+      : level === "state"
+      ? { ...form, state_id: id, state_name: selected.name, district_id: null, district: "", city_id: null, city: "", locality_id: null }
+      : level === "district"
+      ? { ...form, district_id: id, district: selected.name, city_id: null, city: "", locality_id: null }
+      : { ...form, city_id: id, city: selected.name, locality_id: null };
+    setForm(update);
+    setError("");
+    onChange?.(update);
+  };
   const missing = ["country", "state_name", "district", "city", "address"]
     .filter((key) => !text(form[key as keyof LocationForm]));
   const hierarchyMissing = ["country_id", "state_id", "district_id", "city_id"]
@@ -148,11 +178,29 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       {hasCoordinates && missing.length > 0 && !resolving && (
         <p role="alert" className="text-xs text-destructive">
-          The map couldn't find {missing.map((key) => key === "state_name" ? "state" : key).join(", ")}. Choose another pin to complete the address.
+          The map couldn't find {missing.map((key) => key === "state_name" ? "state" : key).join(", ")}. Choose another pin or complete the required area below.
         </p>
       )}
-      {hasCoordinates && missing.length === 0 && hierarchyMissing.length > 0 && !resolving && (
-        <p role="alert" className="text-xs text-destructive">This pin isn't in a supported country, state, district and city. Choose a nearby precise pin to complete your property location.</p>
+      {hasCoordinates && hierarchyMissing.length > 0 && !resolving && (
+        <div className="space-y-3 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">Confirm the required area for this pin to continue.</p>
+          {([
+            { key: "country" as const, label: "Country", value: form.country_id, options: countries.data, query: countries, enabled: true },
+            { key: "state" as const, label: "State", value: form.state_id, options: states.data, query: states, enabled: !!form.country_id },
+            { key: "district" as const, label: "District", value: form.district_id, options: districts.data, query: districts, enabled: !!form.state_id },
+            { key: "city" as const, label: "City", value: form.city_id, options: cities.data, query: cities, enabled: !!form.district_id },
+          ]).map(({ key, label, value, options, query, enabled }) => (
+            <div key={key} className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor={`property-${key}`}>{label} <span className="text-destructive">*</span></label>
+              <Select value={value || undefined} onValueChange={(id) => selectLevel(key, id)} disabled={!enabled || query.isLoading}>
+                <SelectTrigger id={`property-${key}`} aria-label={label}><SelectValue placeholder={query.isLoading ? "Loading…" : `Select ${label.toLowerCase()}`} /></SelectTrigger>
+                <SelectContent>{(options ?? []).map((option) => <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>)}</SelectContent>
+              </Select>
+              {enabled && query.isError && <p role="alert" className="text-xs text-destructive">Could not load {label.toLowerCase()} choices. Please try again.</p>}
+              {enabled && !query.isLoading && !query.isError && options?.length === 0 && <p className="text-xs text-muted-foreground">No available {label.toLowerCase()} choices for this area. Choose another area or pin.</p>}
+            </div>
+          ))}
+        </div>
       )}
       <Button type="button" className="w-full" disabled={!canContinue} onClick={() => onSubmit?.(form)}>
         Continue
