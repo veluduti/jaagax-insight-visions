@@ -19,7 +19,7 @@ const AGRICULTURE_TYPES = [
   "Open Farm Land",
 ];
 
-const LAND_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"];
+const LAND_UNITS = ["/Sq Ft", "/Sq Yard", "/Cent", "/Gunta", "/Acre", "/Bigha"];
 
 export const agriculturalFlow: PropertyFlowConfig = {
   id: "agricultural_land",
