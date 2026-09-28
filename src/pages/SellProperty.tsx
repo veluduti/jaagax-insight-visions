@@ -14,6 +14,7 @@ import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
 import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import { usePendingPayment } from "@/hooks/usePendingPayment";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { usePostingEntitlement, fetchPostingEntitlement } from "@/hooks/usePostingEntitlement";
 import {
   Sparkles,
@@ -1233,6 +1234,10 @@ export default function SellProperty() {
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
   const [verificationRequested, setVerificationRequested] = useState<boolean>(true);
+  /* Mobile: minimize review cards after a selection so the submit button stays visible */
+  const [titlesCardMinimized, setTitlesCardMinimized] = useState(false);
+  const [agentCardMinimized, setAgentCardMinimized] = useState(false);
+  const isMobileView = useIsMobile();
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
