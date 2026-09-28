@@ -3885,7 +3885,7 @@ export default function SellProperty() {
       <Navigation />
 
       {/* Chat header - with Back button (hidden on category selector) */}
-      <div className="shrink-0 border-b border-border/40 bg-card/60 backdrop-blur z-10">
+      <div className="shrink-0 xl:sticky xl:top-16 border-b border-border/40 bg-card/60 backdrop-blur z-10">
         <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
           {/* BACK BUTTON - only show when NOT on category selector */}
           {category && (
@@ -4030,7 +4030,7 @@ export default function SellProperty() {
       {(
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain xl:pb-[180px]"
           style={{
             backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
@@ -5623,7 +5623,7 @@ export default function SellProperty() {
 
       {/* Input dock */}
       {showInputBar && (
-        <div className="shrink-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+        <div className="shrink-0 xl:sticky xl:bottom-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
           <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-2 sm:pt-3 pb-2 sm:pb-[calc(env(safe-area-inset-bottom)+12px)]">
             {/* =======================================================
           CATEGORY SELECTOR
