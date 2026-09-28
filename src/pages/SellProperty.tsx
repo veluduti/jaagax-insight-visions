@@ -4094,9 +4094,9 @@ export default function SellProperty() {
             </AnimatePresence>
 
             {!category && (
-              <div className="pt-4 pb-8 space-y-5" aria-label="Choose a property type">
+              <div className="pt-4 pb-8 space-y-6" aria-label="Choose a property type">
                 <h2 className="text-lg font-semibold text-foreground">What would you like to list?</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-7 gap-y-6">
+                <div className="flex flex-col gap-6">
                   {CATEGORY_OPTIONS.map((opt) => {
                     const typeField = TYPE_FIELD_BY_CATEGORY[opt.id];
                     const types = getPropertyFlow(opt.id).fields[typeField]?.options || [];
@@ -4106,14 +4106,14 @@ export default function SellProperty() {
                           <span aria-hidden="true" className="text-lg">{opt.emoji}</span>
                           <h3 className="text-sm font-semibold text-foreground">{opt.label}</h3>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
                           {types.map((type) => (
                             <Button
                               key={type}
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-auto min-h-9 max-w-full whitespace-normal text-left justify-start px-3 py-1.5 font-normal hover:border-primary hover:text-primary"
+                              className="shrink-0 h-auto min-h-9 whitespace-nowrap px-3 py-1.5 font-normal hover:border-primary hover:text-primary"
                               onClick={() => startCategory(opt.id, type)}
                             >
                               {type}
