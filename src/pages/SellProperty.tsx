@@ -5875,7 +5875,7 @@ export default function SellProperty() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => commitAnswer(c.value || c, c.label || String(c))}
+                      onClick={() => commitAnswer(sType === "measurement_units" ? `${c.value} ${c.unit}` : c.value, c.label)}
                       className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
                     >
                       {c.label || String(c)}
