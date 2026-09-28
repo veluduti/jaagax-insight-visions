@@ -3800,6 +3800,7 @@ export default function SellProperty() {
 
     } finally {
       setSubmitting(false);
+      setPaymentFlowActive(false);
     }
   };
 
