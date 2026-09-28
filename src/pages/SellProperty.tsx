@@ -738,6 +738,20 @@ type ChatMsg =
   | { id: string; role: "user"; kind: "text"; text: string }
   | { id: string; role: "user"; kind: "image"; url: string; caption?: string };
 
+const DRAFT_VERSION = 1;
+const DRAFT_PREFIX = "jaagax-property-draft-v1:";
+const draftCategories: PropertyCategory[] = ["residential", "commercial", "plots", "agriculture", "coworking", "financial", "land"];
+// Drafts stay on this device. Never store uploaded documents, image URLs or base64 data in browser storage.
+function safeDraftData(input: unknown): any {
+  if (typeof input === "string") return /^(blob:|data:)/i.test(input) ? "" : input;
+  if (Array.isArray(input)) return input.map(safeDraftData);
+  if (input && typeof input === "object") {
+    return Object.fromEntries(Object.entries(input).filter(([key]) => !/^(media_urls|images|documents|document_urls|image_url|file_url)$/i.test(key))
+      .map(([key, val]) => [key, safeDraftData(val)]));
+  }
+  return input;
+}
+
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
 const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK)$/i;
@@ -1311,6 +1325,9 @@ export default function SellProperty() {
   /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
   const [category, setCategory] = useState<PropertyCategory | null>(null);
+  const [draftUserId, setDraftUserId] = useState<string | null>(null);
+  const [draftResumed, setDraftResumed] = useState(false);
+  const draftReady = useRef(false);
 
   /* Per-category example text for the intake input */
   const getCategoryExample = (cat: PropertyCategory | null): string => {
@@ -1511,6 +1528,100 @@ export default function SellProperty() {
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Restore after the initial greeting. The user ID scopes drafts so shared devices
+  // never reveal another account's listing. No automatic question fetch on restore.
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active || !data.user) return;
+      const key = DRAFT_PREFIX + data.user.id;
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft.version !== DRAFT_VERSION || !draftCategories.includes(draft.category) || !draft.state || typeof draft.state !== "object") {
+            localStorage.removeItem(key);
+          } else {
+            const engine = createConversationEngine(draft.category, draft.engineState);
+            // Engine snapshots preserve skips and answered questions; saved field
+            // and transcript prevent re-asking the current question on return.
+            engineRef.current = engine;
+            setCategory(draft.category);
+            setState(draft.state);
+            setHistory(Array.isArray(draft.history) ? draft.history : []);
+            setMessages(Array.isArray(draft.messages) ? draft.messages.filter((m: ChatMsg) => m?.kind === "text") : []);
+            setField(draft.done ? null : draft.field || null);
+            lastAskedFieldIdRef.current = draft.field?.id || null;
+            setValue(draft.value ?? "");
+            setProgress(draft.progress || { filled: 0, total: 1 });
+            setIntakeDone(!!draft.intakeDone);
+            setIntakeText(draft.intakeText || "");
+            setDone(!!draft.done);
+            setEditForm(draft.editForm || {});
+            setAiTitles(Array.isArray(draft.aiTitles) ? draft.aiTitles : []);
+            setSelectedTitleIdx(draft.selectedTitleIdx ?? null);
+            setPosterTitle(draft.posterTitle || "");
+            setVerificationRequested(draft.verificationRequested !== false);
+            setDraftResumed(true);
+          }
+        }
+      } catch (error) {
+        console.warn("Could not restore property draft", error);
+      }
+      draftReady.current = true;
+      setDraftUserId(data.user.id);
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady.current || !draftUserId) return;
+    const key = DRAFT_PREFIX + draftUserId;
+    if (!category) {
+      localStorage.removeItem(key);
+      return;
+    }
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        version: DRAFT_VERSION, category, state: safeDraftData(state),
+        engineState: safeDraftData(engineRef.current?.getState()),
+        field: safeDraftData(field), value: safeDraftData(value),
+        history: safeDraftData(history), progress, intakeDone, intakeText,
+        messages: messages.filter((m) => m.kind === "text").slice(-80),
+        done, editForm: safeDraftData(editForm), aiTitles, selectedTitleIdx,
+        posterTitle, verificationRequested,
+      }));
+    } catch (error) {
+      console.warn("Could not save property draft", error);
+    }
+  }, [draftUserId, category, state, field, value, history, progress, intakeDone, intakeText, messages, done, editForm, aiTitles, selectedTitleIdx, posterTitle, verificationRequested]);
+
+  const deleteDraft = () => {
+    if (draftUserId) localStorage.removeItem(DRAFT_PREFIX + draftUserId);
+    engineRef.current = null;
+    lastAskedFieldIdRef.current = null;
+    setCategory(null);
+    setCategoryBlock(null);
+    setState({});
+    setField(null);
+    setValue("");
+    setHistory([]);
+    setProgress({ filled: 0, total: 1 });
+    setDone(false);
+    setIntakeDone(false);
+    setIntakeText("");
+    setEditForm({});
+    setAiTitles([]);
+    setSelectedTitleIdx(null);
+    setPosterTitle("");
+    setDraftResumed(false);
+    setMessages([
+      { id: uid(), role: "ai", kind: "text", text: "👋 Hi! I'll help you list your property." },
+      { id: uid(), role: "ai", kind: "text", text: "Pick a property category to get started." },
+    ]);
+    toast.success("Draft deleted. Start a new listing whenever you're ready.");
+  };
 
   /* ----- Handle category selection — initialize engine dynamically ----- */
   const startCategory = (cat: PropertyCategory, selectedType?: string) => {
@@ -3316,6 +3427,7 @@ export default function SellProperty() {
         toast.success("Financial request submitted ✅", {
           description: "Our financial partners will reach out shortly.",
         });
+        localStorage.removeItem(DRAFT_PREFIX + user.id);
         navigate("/dashboard/financial");
       } catch (e: any) {
         console.error(e);
@@ -3767,6 +3879,8 @@ export default function SellProperty() {
       }
 
       await refreshEntitlement();
+      localStorage.removeItem(DRAFT_PREFIX + user.id);
+      draftReady.current = false;
 
 
       if (isAgentMode && isTrustedAgent) {
@@ -3955,6 +4069,11 @@ export default function SellProperty() {
           </div>
           {/* Selected Category Badge - shows what user selected */}
           {category && (
+            <button type="button" onClick={deleteDraft}
+              className="shrink-0 text-[11px] sm:text-xs text-destructive hover:underline"
+              aria-label="Delete draft and start again">Delete draft</button>
+          )}
+          {category && (
             <div className="hidden sm:flex items-center gap-1.5 shrink-0">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-medium">
                 <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.emoji}</span>
@@ -3963,6 +4082,12 @@ export default function SellProperty() {
             </div>
           )}
         </div>
+        {draftResumed && category && (
+          <div className="px-4 py-1.5 text-xs text-primary bg-primary/5 border-t border-border/40 flex justify-between gap-2">
+            <span>Draft restored — continue where you left off.</span>
+            <button type="button" onClick={() => setDraftResumed(false)} aria-label="Dismiss draft notice"><X className="h-4 w-4" /></button>
+          </div>
+        )}
 
         {/* Mobile category switcher chips */}
         {(
