@@ -1057,6 +1057,9 @@ export default function SellProperty() {
   const { entitlement, refresh: refreshEntitlement } = usePostingEntitlement();
   // Pre-publish payment options (free trial / property posting / agent subscription)
   const [payOpen, setPayOpen] = useState(false);
+  // Keep the review dock hidden for the entire payment transition. This is
+  // intentionally separate from the dialog's animation state on mobile.
+  const [paymentFlowActive, setPaymentFlowActive] = useState(false);
   const [payUser, setPayUser] = useState<{ id: string; name?: string | null; email?: string | null; contact?: string | null } | null>(null);
   useEffect(() => {
     (async () => {
@@ -5102,11 +5105,17 @@ export default function SellProperty() {
 
                     <PublishPaymentDialog
                       open={payOpen}
-                      onOpenChange={setPayOpen}
+                      onOpenChange={(open) => {
+                        setPayOpen(open);
+                        setPaymentFlowActive(open);
+                      }}
                       entitlement={entitlement}
                       userId={payUser?.id ?? null}
                       userInfo={payUser ?? undefined}
-                      onProceed={() => onSubmit()}
+                      onProceed={() => {
+                        setPaymentFlowActive(true);
+                        onSubmit();
+                      }}
                       onEntitlementChanged={refreshEntitlement}
                     />
 
@@ -5551,7 +5560,7 @@ export default function SellProperty() {
       )}
 
       {/* Final review controls live outside the scrolling preview so mobile browsers cannot clip them. */}
-      {done && !payOpen && !showEditSheet && (
+      {done && !paymentFlowActive && !showEditSheet && (
         <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] xl:bottom-0 inset-x-0 z-[60] xl:z-40 border-t border-border/60 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
           <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-2 xl:py-3 xl:pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
             {!isReviewFinancial && !reviewTitleReady && (
@@ -5613,7 +5622,10 @@ export default function SellProperty() {
               <Button
                 onClick={() => {
                   if (isReviewFinancial || !entitlement || entitlement.has_agent_subscription) onSubmit();
-                  else setPayOpen(true);
+                  else {
+                    setPaymentFlowActive(true);
+                    setPayOpen(true);
+                  }
                 }}
                 disabled={!canPublishReview}
                 className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95 disabled:opacity-50"
