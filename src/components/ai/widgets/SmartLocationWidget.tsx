@@ -1,4 +1,5 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,26 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     setForm(next);
     onChange?.(next);
   };
+
+  // Auto-fill from the user's nav-bar location once (user can still edit).
+  const { savedLocation, locationMode } = useLocationContext();
+  const autoFilledRef = useRef(false);
+  useEffect(() => {
+    if (autoFilledRef.current) return;
+    if (!savedLocation || locationMode === "disabled") return;
+    if (form.city || form.locality || form.latitude != null) {
+      autoFilledRef.current = true;
+      return;
+    }
+    autoFilledRef.current = true;
+    update({
+      city: savedLocation.city || "",
+      locality: savedLocation.area || "",
+      latitude: savedLocation.latitude ?? null,
+      longitude: savedLocation.longitude ?? null,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedLocation, locationMode]);
 
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
