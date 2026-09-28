@@ -1061,6 +1061,7 @@ export default function SellProperty() {
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  const [editingLocation, setEditingLocation] = useState(false);
   // Guards against fetchNext() appending the same AI question twice for the
   // same resolved field (e.g. after editing a previously answered question).
   const lastAskedFieldIdRef = useRef<string | null>(null);
@@ -4012,6 +4013,39 @@ export default function SellProperty() {
     toast.success(`Editing ${target.field.question}`);
   };
 
+  const savePropertyLocation = async (data: Record<string, any>, editing = false) => {
+    const keys = ["country", "state_name", "district", "city", "locality", "sub_locality", "landmark", "address", "pincode", "latitude", "longitude", "place_id", "country_id", "state_id", "district_id", "city_id", "locality_id"];
+    const partial: Record<string, any> = {};
+    keys.forEach((key) => {
+      partial[key] = data[key] ?? (key.endsWith("_id") || key === "latitude" || key === "longitude" ? null : "");
+    });
+    const merged = { ...state, ...partial, location: { ...(state.location || {}), ...partial } };
+    setState(merged);
+    setEditForm((current) => ({ ...current, ...partial, location: merged.location }));
+    try {
+      engineRef.current?.applyExtractedFields({ ...partial, location: merged.location }, { overwrite: true });
+    } catch {}
+    const seen = new Set<string>();
+    const summary = [data.locality, data.city, data.state_name].filter((part): part is string => {
+      if (typeof part !== "string" || !part.trim()) return false;
+      const key = part.trim().toLocaleLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).join(", ") || data.address || data.pincode || "Location saved";
+    setMessages((current) => {
+      const index = editing ? current.findLastIndex((msg) => msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId === "location" || msg.text.startsWith("📍 "))) : -1;
+      if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" } as ChatMsg];
+      return current.map((msg, i) => i === index ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } as ChatMsg : msg);
+    });
+    if (editing) {
+      setEditingLocation(false);
+      toast.success("Property location updated");
+    } else {
+      await fetchNext(merged);
+    }
+  };
+
   return (
     <div className="h-[100dvh] pb-[calc(64px+env(safe-area-inset-bottom))] xl:pb-0 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
@@ -4192,19 +4226,33 @@ export default function SellProperty() {
                   <div className={cn("flex items-center gap-2 w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
                     <Bubble msg={msg} />
 
-                    {msg.role === "user" && msg.kind === "text" && (msg as any).fieldId && (
-                      <button
+                    {msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId || msg.text.startsWith("📍 ")) && (
+                      <Button
                         type="button"
-                        onClick={() => jumpToField((msg as any).fieldId)}
-                        className="opacity-60 hover:opacity-100 transition"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
+                        title={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
+                        onClick={() => ((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? setEditingLocation(true) : jumpToField((msg as any).fieldId)}
+                        className="shrink-0 text-muted-foreground hover:text-foreground"
                       >
                         <Pencil className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
+
+            {editingLocation && (
+              <div className="w-full max-w-xl self-end space-y-2 pt-3" aria-label="Edit property location">
+                <SmartLocationWidget
+                  initialValue={{ ...(state.location || {}), ...Object.fromEntries(["country", "country_id", "state_name", "state_id", "district", "district_id", "city", "city_id", "locality", "locality_id", "sub_locality", "landmark", "address", "pincode", "latitude", "longitude", "place_id"].map((key) => [key, state[key] ?? state.location?.[key]])) }}
+                  onSubmit={(data) => savePropertyLocation(data, true)}
+                />
+                <Button type="button" variant="ghost" onClick={() => setEditingLocation(false)}>Cancel</Button>
+              </div>
+            )}
 
             {!category && (
               <div className="pt-4 pb-8 space-y-6" aria-label="Choose a property type">
@@ -4395,77 +4443,7 @@ export default function SellProperty() {
 
                     place_id: state.place_id || undefined,
                   }}
-                  onSubmit={async (data) => {
-                    // Store the selected pin as one coherent address; optional
-                    // geocoding fields are blank rather than stale prior values.
-                    const locationFieldId = field?.id || "location";
-
-                    const hasVal = (v: any) =>
-                      v !== undefined && v !== null && !(typeof v === "string" && v.trim() === "");
-
-                    const partial: Record<string, any> = {};
-                    [
-                      "country",
-                      "state_name",
-                      "district",
-                      "city",
-                      "locality",
-                      "sub_locality",
-                      "landmark",
-                      "address",
-                      "pincode",
-                      "latitude",
-                      "longitude",
-                      "place_id",
-                      "country_id",
-                      "state_id",
-                      "district_id",
-                      "city_id",
-                      "locality_id",
-                    ].forEach((k) => {
-                      partial[k] = (data as any)[k] ?? (k.endsWith("_id") ? null : k === "latitude" || k === "longitude" ? null : "");
-                    });
-
-                    const merged = {
-                      ...state,
-                      ...partial,
-                      [locationFieldId]: {
-                        ...(state?.[locationFieldId] || {}),
-                        ...partial,
-                      },
-                    };
-
-                    setState(merged);
-
-                    try {
-                      engineRef.current?.applyExtractedFields(
-                        {
-                          ...partial,
-                          [locationFieldId]: merged[locationFieldId],
-                        },
-                        { overwrite: true },
-                      );
-                    } catch {}
-
-                    // Short summary from whatever's available.
-                    const summary =
-                      [data.locality, data.city, data.state_name].filter((s) => hasVal(s)).join(", ") ||
-                      data.address ||
-                      data.pincode ||
-                      "Location saved";
-
-                    setMessages((m) => [
-                      ...m,
-                      {
-                        id: uid(),
-                        role: "user",
-                        kind: "text",
-                        text: `📍 ${summary}`,
-                      },
-                    ]);
-
-                    await fetchNext(merged);
-                  }}
+                  onSubmit={(data) => savePropertyLocation(data)}
                 />
               </div>
             )}
@@ -4590,9 +4568,8 @@ export default function SellProperty() {
                 const propTypeRaw = pick("property_type");
                 const sub = (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
                 const purpose = (pick("listing_type") || "sale").toString().toLowerCase();
-                const locLine = [editForm.locality || state.locality, editForm.city || state.city]
-                  .filter(Boolean)
-                  .join(", ");
+                const locParts = [editForm.locality || state.locality, editForm.city || state.city].filter(Boolean);
+                const locLine = locParts.filter((part, index) => locParts.findIndex((other) => String(other).trim().toLocaleLowerCase() === String(part).trim().toLocaleLowerCase()) === index).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
