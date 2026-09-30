@@ -4292,14 +4292,14 @@ export default function SellProperty() {
                           <span aria-hidden="true" className="text-lg">{opt.emoji}</span>
                           <h3 className="text-sm font-semibold text-foreground">{opt.label}</h3>
                         </div>
-                        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+                        <div className="flex flex-wrap gap-2">
                           {types.map((type) => (
                             <Button
                               key={type}
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="shrink-0 h-auto min-h-9 whitespace-nowrap px-3 py-1.5 font-normal hover:border-primary hover:text-primary"
+                              className="h-auto min-h-9 px-3 py-1.5 text-left font-normal hover:border-primary hover:text-primary"
                               onClick={() => startCategory(opt.id, type)}
                             >
                               {type}
