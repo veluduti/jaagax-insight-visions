@@ -43,6 +43,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
