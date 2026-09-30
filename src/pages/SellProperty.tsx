@@ -43,6 +43,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
@@ -5938,9 +5939,10 @@ export default function SellProperty() {
                       type="button"
                       onClick={skipIntake}
                       disabled={extracting}
-                      className="text-[11px] text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                     >
                       Skip intake
+                      <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -6311,19 +6313,24 @@ export default function SellProperty() {
                 FOOTER ACTIONS
             =================================================== */}
 
-                <div className="flex items-center justify-between px-4 pb-3">
+                <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-1">
                   <button
                     type="button"
                     onClick={onBack}
-                    className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 active:scale-95"
                   >
-                    <ChevronLeft className="h-3 w-3" />
+                    <ChevronLeft className="h-4 w-4" />
                     Back
                   </button>
 
                   {isOptional(field) && (
-                    <button type="button" onClick={onSkip} className="text-[11px] text-primary hover:underline">
+                    <button
+                      type="button"
+                      onClick={onSkip}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 active:scale-95"
+                    >
                       Skip
+                      <ChevronRight className="h-4 w-4" />
                     </button>
                   )}
                 </div>
