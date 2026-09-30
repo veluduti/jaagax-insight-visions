@@ -1064,6 +1064,35 @@ function normalizeToArray(value: any): string[] {
   return [];
 }
 
+
+/* ----- Detect when a pasted description contradicts the picked property type ----- */
+const DESCRIBED_TYPE_FAMILIES: { re: RegExp; sel: RegExp; cat: PropertyCategory; type: string }[] = [
+  { re: /\b(agricultur\w*|farm\s*land|farmland|orchard|plantation|acres?\s+of\s+(agri|farm)\w*)\b/i, sel: /agri|farm|orchard|plantation|horticulture/i, cat: "agriculture", type: "Agricultural Land" },
+  { re: /\b(plots?|open\s+land|open\s+site|layout)\b/i, sel: /plot|open land|land/i, cat: "plots", type: "Residential Plot" },
+  { re: /\b(flat|apartment|penthouse|studio)\b/i, sel: /apartment|flat|penthouse|studio/i, cat: "residential", type: "Apartment / Flat" },
+  { re: /\bvillas?\b(?!\s*plot)/i, sel: /villa/i, cat: "residential", type: "Villa" },
+  { re: /\b(independent|individual)\s+house\b|\bduplex\b|\brow\s*house\b/i, sel: /house|duplex|villa|floor/i, cat: "residential", type: "Independent House" },
+  { re: /\b(shop|retail\s+store)\b/i, sel: /shop|retail|showroom|commercial/i, cat: "commercial", type: "Shop / Retail Store" },
+  { re: /\b(office\s+space|office)\b/i, sel: /office|cowork|cabin|business/i, cat: "commercial", type: "Office Space" },
+  { re: /\b(warehouse|godown)\b/i, sel: /warehouse|godown|shed/i, cat: "commercial", type: "Warehouse / Godown" },
+];
+
+function detectDescribedType(
+  text: string,
+  ext: Record<string, any>,
+  selectedType: string,
+): { cat: PropertyCategory; type: string } | null {
+  const matches = DESCRIBED_TYPE_FAMILIES.filter((f) => f.re.test(text));
+  if (!matches.length && String(ext?.type || "").toUpperCase() === "LAND") {
+    matches.push(DESCRIBED_TYPE_FAMILIES[1]);
+  }
+  if (!matches.length) return null;
+  // If any described family agrees with the selected type, trust the selection.
+  if (matches.some((f) => f.sel.test(selectedType))) return null;
+  const first = matches[0];
+  return { cat: first.cat, type: first.type };
+}
+
 export default function SellProperty() {
   const { savedLocation } = useSavedLocation();
   const navigate = useNavigate();
@@ -1255,6 +1284,14 @@ export default function SellProperty() {
   const [categoryBlock, setCategoryBlock] = useState<PropertyCategory | null>(null);
   const [intakeText, setIntakeText] = useState("");
   const [intakeMode, setIntakeMode] = useState<"ask" | "paste">("ask");
+  const [typeConflict, setTypeConflict] = useState<null | {
+    text: string;
+    imageUrl?: string;
+    selectedCategory: PropertyCategory;
+    selectedType: string;
+    detectedCategory: PropertyCategory;
+    detectedType: string;
+  }>(null);
   const [extracting, setExtracting] = useState(false);
 
   /* Smart hint per question (locality-aware AI tip) */
@@ -1740,10 +1777,18 @@ export default function SellProperty() {
     imageUrl,
     appendUserText = true,
     sharedTypingId,
+    categoryOverride,
+    baseState,
+    forceType,
+    skipTypeCheck = false,
   }: {
     text?: string;
     imageUrl?: string;
     appendUserText?: boolean;
+    categoryOverride?: PropertyCategory;
+    baseState?: Record<string, any>;
+    forceType?: string;
+    skipTypeCheck?: boolean;
     /** When provided, reuse this single typing bubble — don't create or remove our own. */
     sharedTypingId?: string;
   }) => {
@@ -1767,8 +1812,10 @@ export default function SellProperty() {
     }
 
     // Track which fields were newly detected (current_state is single source of truth — only count NEW ones)
-    const before = state;
-    let merged: Record<string, any> = { ...state };
+    const cat = (categoryOverride || category) as PropertyCategory;
+    const before = baseState || state;
+    let merged: Record<string, any> = { ...before };
+    let deferred = false;
     try {
       const { data, error } = await supabase.functions.invoke<{
         extracted: Record<string, any>;
@@ -1785,8 +1832,45 @@ export default function SellProperty() {
 
       // High-confidence auto-fill (>= 0.80). Low-confidence (0.5-0.79) collected
       // so the assistant can ask the user to confirm instead of silently filling.
-      const mappedHigh = mapExtractedToEngineFields(ext, category, confidences, 0.8);
-      const mappedLow = mapExtractedToEngineFields(ext, category, confidences, 0.5);
+      const mappedHigh = mapExtractedToEngineFields(ext, cat, confidences, 0.8);
+      const mappedLow = mapExtractedToEngineFields(ext, cat, confidences, 0.5);
+
+      // Type-mismatch guard: the user picked a type (e.g. Independent House) but the
+      // description says something else (e.g. a plot). Ask before auto-filling.
+      const typeField = TYPE_FIELD_BY_CATEGORY[cat];
+      const selectedType = String(before[typeField] || "");
+      if (!skipTypeCheck && selectedType) {
+        const detected = detectDescribedType(`${trimmedText} ${ext.sub_type || ""} ${ext.title || ""}`, ext, selectedType);
+        if (detected) {
+          deferred = true;
+          setTypeConflict({
+            text: trimmedText,
+            imageUrl,
+            selectedCategory: cat,
+            selectedType,
+            detectedCategory: detected.cat,
+            detectedType: detected.type,
+          });
+          setMessages((m) => [
+            ...m.filter((x) => x.id !== typingId),
+            {
+              id: uid(),
+              role: "ai",
+              kind: "text",
+              text: `Quick check — you selected **${selectedType}**, but your description sounds like a **${detected.type}**. Which one are you listing? I'll adjust the questions based on your answer.`,
+            },
+          ]);
+          return;
+        }
+      }
+      // The confirmed type always wins over whatever the AI guessed.
+      if (selectedType || forceType) {
+        const finalType = forceType || selectedType;
+        mappedHigh[typeField] = finalType;
+        if (typeField !== "property_type") delete (mappedHigh as any).property_type;
+        delete (mappedLow as any)[typeField];
+        delete (mappedLow as any).property_type;
+      }
       const lowOnly: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(mappedLow)) {
         if (!(k in mappedHigh)) lowOnly[k] = v;
@@ -1889,12 +1973,46 @@ export default function SellProperty() {
       ]);
     } finally {
       setExtracting(false);
+      if (deferred) return;
       setIntakeDone(true);
       // Re-use the same typing bubble for the next question fetch — no flicker
       await fetchNext(merged, true);
     }
   };
 
+
+  const resolveTypeConflict = async (useDetected: boolean) => {
+    const c = typeConflict;
+    if (!c) return;
+    setTypeConflict(null);
+    const chosenType = useDetected ? c.detectedType : c.selectedType;
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: chosenType }]);
+    let base: Record<string, any> = { ...state };
+    let targetCat = c.selectedCategory;
+    if (useDetected) {
+      targetCat = c.detectedCategory;
+      const typeField = TYPE_FIELD_BY_CATEGORY[targetCat];
+      if (targetCat !== c.selectedCategory) {
+        engineRef.current = createConversationEngine(targetCat);
+        setCategory(targetCat);
+        base = { property_category: targetCat, [typeField]: chosenType };
+        const label = CATEGORY_OPTIONS.find((o) => o.id === targetCat)?.label || targetCat;
+        setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: `Got it — switching to **${label}** listing as **${chosenType}**.` }]);
+      } else {
+        base = { ...base, [typeField]: chosenType };
+      }
+      setState(base);
+    }
+    await runAiExtraction({
+      text: c.text,
+      imageUrl: c.imageUrl,
+      appendUserText: false,
+      categoryOverride: targetCat,
+      baseState: base,
+      forceType: chosenType,
+      skipTypeCheck: true,
+    });
+  };
 
   const submitIntake = async () => {
     await runAiExtraction({ text: intakeText });
@@ -3962,7 +4080,7 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showIntakeBar = !!category && !intakeDone && !done && intakeMode === "paste";
+  const showIntakeBar = !!category && !intakeDone && !done && !typeConflict && intakeMode === "paste";
   const showInputBar =
     showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
@@ -4332,7 +4450,18 @@ export default function SellProperty() {
             )}
 
             {/* Description-or-flow choice shown right after a type is picked. */}
-            {category && !intakeDone && !done && intakeMode === "ask" && (
+            {typeConflict && (
+              <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="Confirm property type">
+                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={() => resolveTypeConflict(false)} disabled={extracting}>
+                  {typeConflict.selectedType}
+                </Button>
+                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={() => resolveTypeConflict(true)} disabled={extracting}>
+                  {typeConflict.detectedType}
+                </Button>
+              </div>
+            )}
+
+            {category && !intakeDone && !done && !typeConflict && intakeMode === "ask" && (
               <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="How would you like to continue">
                 <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={choosePasteDescription} disabled={extracting}>
                   I have a description
