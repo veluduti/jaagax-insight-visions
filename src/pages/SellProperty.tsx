@@ -5939,9 +5939,10 @@ export default function SellProperty() {
                       type="button"
                       onClick={skipIntake}
                       disabled={extracting}
-                      className="text-[11px] text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                     >
                       Skip intake
+                      <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
