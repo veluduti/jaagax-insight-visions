@@ -38,6 +38,11 @@ interface Room {
   extra_bed_price: number | null;
   cancellation_policy: string | null;
   min_nights: number;
+  accommodation_kind?: string | null;
+  stay_unit?: string | null;
+  attributes?: Record<string, any> | null;
+  weekly_price?: number | null;
+  monthly_price?: number | null;
 }
 
 interface Props {
@@ -386,7 +391,7 @@ export default function HotelRoomList({
                 <div className="p-4 md:p-5 space-y-3">
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-lg font-semibold">{room.room_type}</h3>
+                      <h3 className="text-lg font-semibold">{cv.kind.emoji} {cv.title}</h3>
                       {room.category && <Badge variant="outline" className="text-[10px]">{room.category}</Badge>}
                     </div>
                     {room.description && (
@@ -401,9 +406,16 @@ export default function HotelRoomList({
                     {room.bed_type && (
                       <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5" />{room.bed_type}</span>
                     )}
-                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />Max {room.max_occupancy}</span>
+                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{cv.kind.unit === "bed" ? "1 guest per bed" : `Sleeps ${room.max_occupancy}`}</span>
                     {room.view_type && <span>{room.view_type}</span>}
                   </div>
+                  {cv.highlights.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {cv.highlights.slice(0, 8).map((h) => (
+                        <Badge key={h} variant="outline" className="text-[10px] font-normal">{h}</Badge>
+                      ))}
+                    </div>
+                  )}
 
                   {amenityList.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
@@ -500,13 +512,13 @@ export default function HotelRoomList({
                     {hasDates && q && !q.loading ? (
                       <>
                         <div className="text-[11px] text-muted-foreground">
-                          {q.nights} night{q.nights > 1 ? "s" : ""} × {roomsWanted} room{roomsWanted > 1 ? "s" : ""}
+                          {q.nights} night{q.nights > 1 ? "s" : ""} × {roomsWanted} {cv.noun}{roomsWanted > 1 ? "s" : ""}
                         </div>
                         <div className="text-2xl font-bold text-foreground mt-1">
                           ₹{q.total.toLocaleString()}
                         </div>
                         <div className="text-[11px] text-muted-foreground">
-                          ₹{q.perNight.toLocaleString()}/night · +₹{q.taxes.toLocaleString()} taxes
+                          ₹{q.perNight.toLocaleString()} {cv.perNightLabel} · +₹{q.taxes.toLocaleString()} taxes
                         </div>
                       </>
                     ) : hasDates && q?.loading ? (
@@ -519,7 +531,9 @@ export default function HotelRoomList({
                         <div className="text-2xl font-bold text-foreground mt-1">
                           ₹{Number(room.base_price).toLocaleString()}
                         </div>
-                        <div className="text-[11px] text-muted-foreground">per night · taxes extra</div>
+                        <div className="text-[11px] text-muted-foreground">{cv.perNightLabel} · taxes extra</div>
+                        {cv.weekly && <div className="text-xs font-medium mt-1">₹{cv.weekly.toLocaleString()} / week</div>}
+                        {cv.monthly && <div className="text-xs font-medium">₹{cv.monthly.toLocaleString()} / month</div>}
                       </>
                     )}
                   </div>
