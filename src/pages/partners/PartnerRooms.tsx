@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
+import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
+import { CATEGORY_BY_KEY, INVENTORY_PRESETS } from "@/config/hospitalityCategories";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +175,7 @@ const CHANNELS = ["Booking.com", "MakeMyTrip", "Goibibo", "Agoda", "Expedia", "A
 
 export default function PartnerRooms() {
   const { loading: gate, hotelId } = usePartnerHotel();
+  const { types: bizTypes } = usePartnerBusinessTypes();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Room> | null>(null);
