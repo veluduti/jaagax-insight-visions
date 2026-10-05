@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerSubNav from "@/components/partners/PartnerSubNav";
+import BusinessTypePanels from "@/components/partners/BusinessTypePanels";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -497,6 +498,8 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
             </Popover>
           </div>
         </div>
+        <BusinessTypePanels />
+
 
         {/* Operational cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
