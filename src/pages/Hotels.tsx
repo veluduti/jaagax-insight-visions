@@ -53,6 +53,9 @@ import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { buildRoomCombinations, roomFitsAlone, toOccupancyRoom, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
+import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels/StayFinder";
+import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
+import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
 
 interface PartnerHotel {
   id: string;
@@ -69,6 +72,8 @@ interface PartnerHotel {
   contact_email: string | null;
   partner_since: string | null;
   is_active: boolean | null;
+  business_types?: string[] | null;
+  description?: string | null;
 }
 
 interface VisitPackage {
@@ -100,7 +105,26 @@ interface ChildAge {
 
 const Hotels = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const listParam = (k: string) => (searchParams.get(k) || "").split(",").filter(Boolean);
+  const stayFilters: StayFilters = {
+    types: listParam("types"),
+    prefs: listParam("prefs"),
+    amenities: listParam("amen"),
+    maxPrice: Number(searchParams.get("maxp")) || null,
+  };
+  const setStayFilters = (f: StayFilters) => {
+    const next = new URLSearchParams(searchParams);
+    const put = (k: string, v: string) => (v ? next.set(k, v) : next.delete(k));
+    put("types", f.types.join(","));
+    put("prefs", f.prefs.join(","));
+    put("amen", f.amenities.join(","));
+    put("maxp", f.maxPrice ? String(f.maxPrice) : "");
+    setSearchParams(next, { replace: true });
+  };
+  const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
+  const [profile, setProfile] = useState<StayProfile | null>(null);
+  useEffect(() => { loadStayProfile().then(setProfile).catch(() => null); }, []);
   const { detectedLocation } = useLocation();
   const { user, role } = useAuth();
 
@@ -243,14 +267,16 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
 
         const minByHotel = new Map<string, number>();
         const occByHotel: Record<string, OccupancyRoom[]> = {};
+        const units: Record<string, Set<string>> = {};
         (roomsRes.data || []).forEach((r: any) => {
+          (units[r.hotel_id] ||= new Set()).add(r.stay_unit || "room");
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
           (occByHotel[r.hotel_id] ||= []).push(
@@ -263,6 +289,7 @@ const Hotels = () => {
           if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
         });
         setRoomsByHotel(occByHotel);
+        setUnitsByHotel(units);
 
 
         const enriched = await Promise.all(
@@ -392,6 +419,70 @@ const Hotels = () => {
     return <Sparkles className="h-3.5 w-3.5 text-yellow-500" />;
   };
 
+  function amenityMatch(text: string, key: string) {
+    const words: Record<string, string[]> = {
+      wifi: ["wifi", "wi-fi", "internet"], breakfast: ["breakfast"], parking: ["parking"], pool: ["pool", "swimming"],
+      pet_friendly: ["pet"], ac: ["ac", "air condition"], gym: ["gym", "fitness"], restaurant: ["restaurant", "dining"],
+      kitchen: ["kitchen"], laundry: ["laundry"],
+    };
+    return (words[key] ?? [key]).some((w) => text.includes(w));
+  }
+  function personalScore(h: PartnerHotel) {
+    if (!profile) return 0;
+    const types = (h.business_types?.length ? h.business_types : ["hotel"]).map(normalizeCategory);
+    const am = (h.amenities || []).join(" ").toLowerCase();
+    let s = (profile.cities[h.city?.toLowerCase()] || 0) * 3;
+    types.forEach((t) => { s += (profile.types[t] || 0) * 2; });
+    Object.entries(profile.amenities).forEach(([k, w]) => { if (amenityMatch(am, k)) s += w; });
+    if (profile.avgMaxPrice && h.price_per_night <= profile.avgMaxPrice) s += 4;
+    if ((profile.prefs.budget || 0) > 0 && h.price_per_night < 3000) s += profile.prefs.budget;
+    if ((profile.prefs.luxury || 0) > 0 && (h.star_rating || 0) >= 4) s += profile.prefs.luxury;
+    s += profile.viewedHotels[h.id] || 0;
+    return s;
+  }
+  function relevance(h: PartnerHotel) {
+    const am = (h.amenities || []).join(" ").toLowerCase();
+    let s = personalScore(h) * 0.5;
+    if (stayFilters.prefs.includes("budget") && h.price_per_night < 3000) s += 10;
+    if (stayFilters.prefs.includes("luxury") && (h.star_rating || 0) >= 4) s += 10;
+    s += stayFilters.amenities.filter((a) => amenityMatch(am, a)).length * 5;
+    return s;
+  }
+
+  const applyAiIntent = (intent: AiIntent) => {
+    const merged: StayFilters = {
+      types: intent.business_types || [],
+      prefs: intent.preferences || [],
+      amenities: intent.amenities || [],
+      maxPrice: intent.max_price || null,
+    };
+    setStayFilters(merged);
+    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); }
+    if (intent.adults) { setAdults(intent.adults); setTempAdults(intent.adults); }
+    if (intent.children != null) { setChildren(intent.children); setTempChildren(intent.children); }
+    if (intent.rooms) { setRooms(intent.rooms); setTempRooms(intent.rooms); }
+    const start = intent.check_in ? new Date(intent.check_in) : checkIn;
+    if (intent.check_in && !isNaN(start.getTime())) setCheckIn(start);
+    if (intent.nights) {
+      const out = new Date(isNaN(start.getTime()) ? checkIn : start);
+      out.setDate(out.getDate() + intent.nights);
+      setCheckOut(out);
+    }
+    logHotelSignal("search", {
+      source: "ai", city: intent.location, business_types: merged.types, preferences: merged.prefs,
+      amenities: merged.amenities, max_price: merged.maxPrice, adults: intent.adults, nights: intent.nights,
+    });
+    toast.success("AI applied your preferences");
+  };
+
+  const onStayFiltersChange = (f: StayFilters) => {
+    setStayFilters(f);
+    logHotelSignal("search", {
+      source: "filters", city: selectedCity !== "all" ? selectedCity : null, business_types: f.types,
+      preferences: f.prefs, amenities: f.amenities, max_price: f.maxPrice,
+    });
+  };
+
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -428,13 +519,34 @@ const Hotels = () => {
               maxRooms: Math.max(rooms, 6), limit: 1,
             }).length > 0;
 
-      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
+      // Business-type / stay-unit / budget / amenity filters.
+      const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
+      const matchesType = !stayFilters.types.length || stayFilters.types.some((t) => hTypes.includes(t));
+      const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
+      const hUnits = unitsByHotel[hotel.id] || new Set(["room"]);
+      const matchesUnit = !wantUnits.length || wantUnits.some((u) => hUnits.has(u));
+      const matchesBudget = !stayFilters.maxPrice || hotel.price_per_night <= stayFilters.maxPrice;
+      const amText = (hotel.amenities || []).join(" ").toLowerCase();
+      const matchesAmen = stayFilters.amenities.every((a) => amenityMatch(amText, a));
+
+      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy && matchesType && matchesUnit && matchesBudget && matchesAmen;
     });
 
-    result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
+    result.sort((a, b) => relevance(b) - relevance(a) || (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms]);
+  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+
+  // Personal recommendations from the signed-in user's activity.
+  const recommended = useMemo(() => {
+    if (!profile) return [];
+    return [...hotels]
+      .map((h) => ({ h, s: personalScore(h) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 4)
+      .map((x) => x.h);
+  }, [hotels, profile]);
 
   // "Needs N rooms" hint per hotel when a single room cannot host the group.
   const roomsNeededByHotel = useMemo(() => {
@@ -524,11 +636,13 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
+    logHotelSignal("view", { city: hotel.city, business_types: hotel.business_types ?? [] }, hotel.id);
     window.open(`/hotels/${hotel.id}`, "_blank", "noopener,noreferrer");
   };
 
   const toggleFavorite = (hotelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!favorites.includes(hotelId)) logHotelSignal("shortlist", {}, hotelId);
     setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]));
   };
 
@@ -1042,6 +1156,33 @@ const Hotels = () => {
 
         <div className="container mx-auto max-w-7xl px-4 py-4">
           <MyHotelApplicationsBanner />
+
+          <StayFinder value={stayFilters} onChange={onStayFiltersChange} onAiIntent={applyAiIntent} />
+
+          {recommended.length > 0 && (
+            <div className="mb-5">
+              <h2 className="mb-2 flex items-center gap-2 text-base font-bold">
+                <Sparkles className="h-4 w-4 text-primary" /> Recommended for you
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {recommended.map((h) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    onClick={() => handleHotelClick(h)}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-2 text-left shadow-sm transition hover:shadow-md"
+                  >
+                    <img src={h.images?.[0]} alt={h.name} className="h-16 w-16 flex-shrink-0 rounded-lg object-cover" loading="lazy" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{h.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{h.locality}, {h.city}</p>
+                      <p className="text-xs font-semibold text-primary">from ₹{Number(h.price_per_night).toLocaleString("en-IN")}/night</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Stats */}
           {filteredAndSortedHotels.length > 0 && (
