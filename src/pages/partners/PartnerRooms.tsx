@@ -230,14 +230,19 @@ export default function PartnerRooms() {
     return Array.from(map.values()).filter((m) => m.is_available && m.is_active);
   };
 
-  const kinds = allowedKinds(bizTypes);
   const editKind = kindFor(editing?.accommodation_kind, editing?.stay_unit);
   const [choosingKind, setChoosingKind] = useState(false);
+  const [chooserTypes, setChooserTypes] = useState<string[] | null>(null);
+  const kinds = allowedKinds(chooserTypes ?? bizTypes);
   const startWithKind = (k: AccommodationKind) => {
     setChoosingKind(false);
     openEditor({ ...emptyRoom, accommodation_kind: k.key, stay_unit: k.unit, category: k.categories[0], attributes: {} });
   };
-  const startAdd = () => (kinds.length === 1 ? startWithKind(kinds[0]) : setChoosingKind(true));
+  const startAdd = () => {
+    setChooserTypes(null);
+    const all = allowedKinds(bizTypes);
+    return all.length === 1 ? startWithKind(all[0]) : setChoosingKind(true);
+  };
 
   const openEditor = (room: Partial<Room> | null) => {
     const next = defaultMeals();
@@ -550,14 +555,24 @@ export default function PartnerRooms() {
                   <div key={t} className="space-y-2">
                     <p className="text-sm font-medium">{cat?.emoji} {cat?.label ?? t} <Badge variant="secondary" className="ml-1">{count} added</Badge></p>
                     <div className="flex flex-wrap gap-2">
-                      {(INVENTORY_PRESETS[t] ?? INVENTORY_PRESETS.other).map((p) => (
+                      {allowedKinds([t]).length > 1 && (
+                        <Button size="sm" onClick={() => { setChooserTypes([t]); setChoosingKind(true); }}>
+                          <Plus className="mr-1 h-3.5 w-3.5" /> {addCtaFor([t])}
+                        </Button>
+                      )}
+                      {(INVENTORY_PRESETS[t] ?? INVENTORY_PRESETS.other).map((p) => {
+                        const tk = allowedKinds([t]);
+                        const k = tk.find((x) => x.unit === p.unit) ?? tk[0];
+                        return (
                         <Button key={p.name} size="sm" variant="outline" onClick={() => openEditor({
-                          ...emptyRoom, room_type: p.name, category: cat?.label ?? "Room", stay_unit: p.unit,
+                          ...emptyRoom, room_type: p.name, category: k?.categories[0] ?? cat?.label ?? "Room", stay_unit: k?.unit ?? p.unit,
+                          accommodation_kind: k?.key, attributes: {},
                           base_price: p.price, max_occupancy: p.occupancy,
                         })}>
                           <Plus className="mr-1 h-3.5 w-3.5" /> {p.name}
                         </Button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
