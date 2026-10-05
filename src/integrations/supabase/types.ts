@@ -3678,6 +3678,36 @@ export type Database = {
           },
         ]
       }
+      hospitality_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          details: Json
+          entity: string
+          entity_id: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity: string
+          entity_id?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity?: string
+          entity_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       hotel_addons: {
         Row: {
           availability_end: string | null
@@ -3757,6 +3787,77 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_availability_blocks: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          end_date: string
+          hotel_id: string
+          id: string
+          reason: string
+          room_id: string
+          start_date: string
+          unit_id: string | null
+          units: number
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          hotel_id: string
+          id?: string
+          reason?: string
+          room_id: string
+          start_date: string
+          unit_id?: string | null
+          units?: number
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          hotel_id?: string
+          id?: string
+          reason?: string
+          room_id?: string
+          start_date?: string
+          unit_id?: string | null
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_availability_blocks_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_availability_blocks_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_availability_blocks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_availability_blocks_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_inventory_units"
             referencedColumns: ["id"]
           },
         ]
@@ -4776,6 +4877,54 @@ export type Database = {
           },
         ]
       }
+      hotel_inventory_units: {
+        Row: {
+          created_at: string
+          floor: string | null
+          hotel_id: string
+          id: string
+          label: string
+          room_id: string
+          status: string
+          unit_kind: string
+        }
+        Insert: {
+          created_at?: string
+          floor?: string | null
+          hotel_id: string
+          id?: string
+          label: string
+          room_id: string
+          status?: string
+          unit_kind?: string
+        }
+        Update: {
+          created_at?: string
+          floor?: string | null
+          hotel_id?: string
+          id?: string
+          label?: string
+          room_id?: string
+          status?: string
+          unit_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_inventory_units_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_inventory_units_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_meals: {
         Row: {
           adult_price: number
@@ -5427,6 +5576,8 @@ export type Database = {
           is_private: boolean
           is_promotion: boolean
           is_refundable: boolean
+          min_stay_nights: number | null
+          monthly_price: number | null
           name: string
           original_rate_plan_code: string | null
           payment_charge: string | null
@@ -5438,6 +5589,7 @@ export type Database = {
           source_channel: string
           updated_at: string
           virtual: boolean
+          weekly_price: number | null
         }
         Insert: {
           adjustment_type?: string
@@ -5459,6 +5611,8 @@ export type Database = {
           is_private?: boolean
           is_promotion?: boolean
           is_refundable?: boolean
+          min_stay_nights?: number | null
+          monthly_price?: number | null
           name: string
           original_rate_plan_code?: string | null
           payment_charge?: string | null
@@ -5470,6 +5624,7 @@ export type Database = {
           source_channel?: string
           updated_at?: string
           virtual?: boolean
+          weekly_price?: number | null
         }
         Update: {
           adjustment_type?: string
@@ -5491,6 +5646,8 @@ export type Database = {
           is_private?: boolean
           is_promotion?: boolean
           is_refundable?: boolean
+          min_stay_nights?: number | null
+          monthly_price?: number | null
           name?: string
           original_rate_plan_code?: string | null
           payment_charge?: string | null
@@ -5502,6 +5659,7 @@ export type Database = {
           source_channel?: string
           updated_at?: string
           virtual?: boolean
+          weekly_price?: number | null
         }
         Relationships: [
           {
@@ -5752,6 +5910,7 @@ export type Database = {
           max_occupancy: number
           min_nights: number
           min_stay_nights: number | null
+          monthly_price: number | null
           number_of_available_rooms: number | null
           number_of_bedrooms: number | null
           number_of_beds: number | null
@@ -5763,6 +5922,7 @@ export type Database = {
           room_size: number | null
           room_size_unit: string | null
           room_type: string
+          sell_by: string
           size_sqft: number | null
           smoking_allowed: boolean
           source_channel: string
@@ -5770,6 +5930,7 @@ export type Database = {
           total_units: number
           updated_at: string
           view_type: string | null
+          weekly_price: number | null
         }
         Insert: {
           amenities?: Json | null
@@ -5796,6 +5957,7 @@ export type Database = {
           max_occupancy?: number
           min_nights?: number
           min_stay_nights?: number | null
+          monthly_price?: number | null
           number_of_available_rooms?: number | null
           number_of_bedrooms?: number | null
           number_of_beds?: number | null
@@ -5807,6 +5969,7 @@ export type Database = {
           room_size?: number | null
           room_size_unit?: string | null
           room_type: string
+          sell_by?: string
           size_sqft?: number | null
           smoking_allowed?: boolean
           source_channel?: string
@@ -5814,6 +5977,7 @@ export type Database = {
           total_units?: number
           updated_at?: string
           view_type?: string | null
+          weekly_price?: number | null
         }
         Update: {
           amenities?: Json | null
@@ -5840,6 +6004,7 @@ export type Database = {
           max_occupancy?: number
           min_nights?: number
           min_stay_nights?: number | null
+          monthly_price?: number | null
           number_of_available_rooms?: number | null
           number_of_bedrooms?: number | null
           number_of_beds?: number | null
@@ -5851,6 +6016,7 @@ export type Database = {
           room_size?: number | null
           room_size_unit?: string | null
           room_type?: string
+          sell_by?: string
           size_sqft?: number | null
           smoking_allowed?: boolean
           source_channel?: string
@@ -5858,6 +6024,7 @@ export type Database = {
           total_units?: number
           updated_at?: string
           view_type?: string | null
+          weekly_price?: number | null
         }
         Relationships: [
           {
@@ -6282,6 +6449,61 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      match_results: {
+        Row: {
+          created_at: string
+          hotel_id: string
+          id: string
+          price_quote: number | null
+          reasons: Json
+          room_id: string | null
+          score: number
+          stay_request_id: string
+        }
+        Insert: {
+          created_at?: string
+          hotel_id: string
+          id?: string
+          price_quote?: number | null
+          reasons?: Json
+          room_id?: string | null
+          score?: number
+          stay_request_id: string
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          price_quote?: number | null
+          reasons?: Json
+          room_id?: string | null
+          score?: number
+          stay_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_results_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_results_stay_request_id_fkey"
+            columns: ["stay_request_id"]
+            isOneToOne: false
+            referencedRelation: "stay_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       monthly_posting_limits: {
         Row: {
@@ -8601,10 +8823,85 @@ export type Database = {
           },
         ]
       }
+      partner_accounts: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string | null
+          id: string
+          owner_user_id: string
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          email?: string | null
+          id?: string
+          owner_user_id: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string | null
+          id?: string
+          owner_user_id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_businesses: {
+        Row: {
+          created_at: string
+          gstin: string | null
+          id: string
+          legal_name: string
+          pan: string | null
+          partner_id: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          gstin?: string | null
+          id?: string
+          legal_name: string
+          pan?: string | null
+          partner_id: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          gstin?: string | null
+          id?: string
+          legal_name?: string
+          pan?: string | null
+          partner_id?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_businesses_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_hotels: {
         Row: {
           address: string | null
           amenities: string[] | null
+          business_id: string | null
           business_types: string[]
           check_in_time: string | null
           check_out_time: string | null
@@ -8630,11 +8927,14 @@ export type Database = {
           longitude: number | null
           manager_id: string | null
           name: string
+          onboarding_status: string
           partner_since: string | null
           policies: Json | null
           price_per_night: number
           property_type: string | null
           property_type_name: string | null
+          published_at: string | null
+          quality_score: number
           region_name: string | null
           room_types: Json | null
           source_channel: string
@@ -8642,11 +8942,13 @@ export type Database = {
           state: string | null
           tags: string[]
           total_rooms: number | null
+          type_details: Json
           updated_at: string | null
         }
         Insert: {
           address?: string | null
           amenities?: string[] | null
+          business_id?: string | null
           business_types?: string[]
           check_in_time?: string | null
           check_out_time?: string | null
@@ -8672,11 +8974,14 @@ export type Database = {
           longitude?: number | null
           manager_id?: string | null
           name: string
+          onboarding_status?: string
           partner_since?: string | null
           policies?: Json | null
           price_per_night?: number
           property_type?: string | null
           property_type_name?: string | null
+          published_at?: string | null
+          quality_score?: number
           region_name?: string | null
           room_types?: Json | null
           source_channel?: string
@@ -8684,11 +8989,13 @@ export type Database = {
           state?: string | null
           tags?: string[]
           total_rooms?: number | null
+          type_details?: Json
           updated_at?: string | null
         }
         Update: {
           address?: string | null
           amenities?: string[] | null
+          business_id?: string | null
           business_types?: string[]
           check_in_time?: string | null
           check_out_time?: string | null
@@ -8714,11 +9021,14 @@ export type Database = {
           longitude?: number | null
           manager_id?: string | null
           name?: string
+          onboarding_status?: string
           partner_since?: string | null
           policies?: Json | null
           price_per_night?: number
           property_type?: string | null
           property_type_name?: string | null
+          published_at?: string | null
+          quality_score?: number
           region_name?: string | null
           room_types?: Json | null
           source_channel?: string
@@ -8726,9 +9036,18 @@ export type Database = {
           state?: string | null
           tags?: string[]
           total_rooms?: number | null
+          type_details?: Json
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partner_hotels_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "partner_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_transactions: {
         Row: {
@@ -11567,6 +11886,66 @@ export type Database = {
         }
         Relationships: []
       }
+      stay_requests: {
+        Row: {
+          adults: number
+          amenities: string[]
+          budget_max: number | null
+          business_types: string[]
+          check_in: string | null
+          check_out: string | null
+          children: number
+          city: string | null
+          created_at: string
+          free_text: string | null
+          id: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          preferences: string[]
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          adults?: number
+          amenities?: string[]
+          budget_max?: number | null
+          business_types?: string[]
+          check_in?: string | null
+          check_out?: string | null
+          children?: number
+          city?: string | null
+          created_at?: string
+          free_text?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          preferences?: string[]
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          adults?: number
+          amenities?: string[]
+          budget_max?: number | null
+          business_types?: string[]
+          check_in?: string | null
+          check_out?: string | null
+          children?: number
+          city?: string | null
+          created_at?: string
+          free_text?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          preferences?: string[]
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -12668,6 +13047,7 @@ export type Database = {
         Args: { _check_in: string; _check_out: string; _room_id: string }
         Returns: number
       }
+      compute_hotel_quality: { Args: { _hotel_id: string }; Returns: Json }
       create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
       credit_wallet_from_razorpay: {
         Args: {
@@ -12990,6 +13370,7 @@ export type Database = {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined
       }
+      release_inventory: { Args: { _booking_id: string }; Returns: Json }
       renew_property_listing: {
         Args: { _property_id: string }
         Returns: undefined
@@ -12998,6 +13379,7 @@ export type Database = {
         Args: { _property_id: string }
         Returns: Database["public"]["Enums"]["property_lifecycle_status"]
       }
+      reserve_inventory: { Args: { _booking_id: string }; Returns: Json }
       resolve_approver: {
         Args: { _country: string; _district: string; _state: string }
         Returns: {
@@ -13066,6 +13448,10 @@ export type Database = {
           _request_id: string
         }
         Returns: undefined
+      }
+      room_free_units: {
+        Args: { _check_in: string; _check_out: string; _room_id: string }
+        Returns: number
       }
       search_properties_in_bounds: {
         Args: {

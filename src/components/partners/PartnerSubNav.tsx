@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare,
-  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2,
+  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -13,6 +13,7 @@ const primary = [
   { to: "/partners/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/partners/hotel-profile", label: "Hotel Profile", icon: Building2 },
   { to: "/partners/rooms", label: "Rooms & Rates", icon: BedDouble },
+  { to: "/partners/inventory", label: "Calendar", icon: CalendarDays },
   { to: "/partners/reservations", label: "Reservations", icon: CalendarRange },
   { to: "/partners/guests", label: "Guests", icon: Users },
   { to: "/partners/pricing", label: "Pricing", icon: TrendingUp },
@@ -21,6 +22,8 @@ const primary = [
 ];
 
 const more = [
+  { to: "/partners/portfolio", label: "Businesses & Properties", icon: Briefcase },
+  { to: "/partners/demand", label: "Demand & Matches", icon: Target },
   { to: "/partners/rate-plans", label: "Rate Plans", icon: Tag },
   { to: "/partners/extra-services", label: "Extra Services", icon: PartyPopper },
   { to: "/partners/addons", label: "Add-ons", icon: Sparkles },

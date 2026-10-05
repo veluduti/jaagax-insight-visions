@@ -148,6 +148,8 @@ Deno.serve(async (req) => {
       });
     }
     await supabase.from("booking_rooms").update({ status: "cancelled" }).eq("booking_id", b.id);
+    // Release the held dates back to the shared availability calendar.
+    await supabase.from("hotel_availability_blocks").delete().eq("booking_id", b.id);
 
     return json({
       success: true,
