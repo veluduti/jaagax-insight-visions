@@ -186,6 +186,7 @@ const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
 const PartnerPortfolio = lazy(() => import("./pages/partners/PartnerPortfolio"));
+const PartnerProperties = lazy(() => import("./pages/partners/PartnerProperties"));
 const PartnerInventory = lazy(() => import("./pages/partners/PartnerInventory"));
 const PartnerDemand = lazy(() => import("./pages/partners/PartnerDemand"));
 const AdminHospitality = lazy(() => import("./pages/AdminHospitality"));
@@ -555,6 +556,8 @@ const App = () => (
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
                   <Route path="/partners/staff" element={<PartnerStaff />} />
                   <Route path="/partners/portfolio" element={<PartnerPortfolio />} />
+                  <Route path="/partners/properties" element={<PartnerProperties />} />
+                  <Route path="/partners/properties/:id" element={<PartnerProperties />} />
                   <Route path="/partners/inventory" element={<PartnerInventory />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />
                   <Route path="/admin/hospitality" element={<ProtectedRoute allowedRole="admin"><AdminHospitality /></ProtectedRoute>} />
