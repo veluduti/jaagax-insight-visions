@@ -5,6 +5,8 @@ import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
 import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
 import { CATEGORY_BY_KEY, INVENTORY_PRESETS } from "@/config/hospitalityCategories";
+import { addCtaFor, allowedKinds, kindFor, type AccommodationKind } from "@/config/accommodationTypes";
+import AccommodationFields from "@/components/partners/AccommodationFields";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,8 @@ type Room = {
   max_occupancy: number;
   total_units: number;
   stay_unit?: "room" | "bed" | "unit";
+  accommodation_kind?: string | null;
+  attributes?: Record<string, any>;
   amenities: any;
   photos: string[];
   is_active: boolean;
@@ -226,6 +230,15 @@ export default function PartnerRooms() {
     return Array.from(map.values()).filter((m) => m.is_available && m.is_active);
   };
 
+  const kinds = allowedKinds(bizTypes);
+  const editKind = kindFor(editing?.accommodation_kind, editing?.stay_unit);
+  const [choosingKind, setChoosingKind] = useState(false);
+  const startWithKind = (k: AccommodationKind) => {
+    setChoosingKind(false);
+    openEditor({ ...emptyRoom, accommodation_kind: k.key, stay_unit: k.unit, category: k.categories[0], attributes: {} });
+  };
+  const startAdd = () => (kinds.length === 1 ? startWithKind(kinds[0]) : setChoosingKind(true));
+
   const openEditor = (room: Partial<Room> | null) => {
     const next = defaultMeals();
     if (room?.id) {
@@ -374,7 +387,9 @@ export default function PartnerRooms() {
         base_price: Number(editing.base_price) || 0,
         max_occupancy: Number(editing.max_occupancy) || 1,
         total_units: Number(editing.total_units) || 1,
-        stay_unit: editing.stay_unit || "room",
+        stay_unit: editKind.unit,
+        accommodation_kind: editKind.key,
+        attributes: editing.attributes || {},
         amenities: editing.amenities || [],
         photos: editing.photos || [],
         is_active: editing.is_active ?? true,
@@ -516,8 +531,8 @@ export default function PartnerRooms() {
               Set attributes, upload photos, and map rooms to your PMS and OTA channels.
             </p>
           </div>
-          <Button onClick={() => openEditor(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
-            <Plus className="mr-1.5 h-4 w-4" /> Add room
+          <Button onClick={startAdd} className="bg-emerald-500 hover:bg-emerald-600">
+            <Plus className="mr-1.5 h-4 w-4" /> {addCtaFor(bizTypes)}
           </Button>
         </div>
 
@@ -650,7 +665,7 @@ export default function PartnerRooms() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>{editing?.id ? "Edit room" : "Add room"}</DialogTitle>
+            <DialogTitle>{editKind.emoji} {editing?.id ? `Edit ${editKind.label.toLowerCase()}` : `Add ${editKind.label.toLowerCase()}`}</DialogTitle>
           </DialogHeader>
           {editing && (
             <Tabs defaultValue="basics" className="flex-1 flex flex-col min-h-0">
@@ -665,32 +680,29 @@ export default function PartnerRooms() {
               <div className="flex-1 overflow-y-auto mt-4 pr-2">
                 <TabsContent value="basics" className="space-y-3 m-0">
                   <div>
-                    <Label>Room name *</Label>
+                    <Label>{editKind.label} name *</Label>
                     <Input
                       value={editing.room_type || ""}
                       onChange={(e) => setEditing({ ...editing, room_type: e.target.value })}
-                      placeholder="e.g. Deluxe King Room"
+                      placeholder={editKind.namePlaceholder}
                     />
                   </div>
                   <div>
-                    <Label>Stay type</Label>
-                    <div className="mt-1 grid grid-cols-3 gap-2">
-                      {([["room","Private room"],["bed","Shared / bed"],["unit","Entire unit"]] as const).map(([k,l]) => (
-                        <button key={k} type="button" onClick={() => setEditing({ ...editing, stay_unit: k })}
-                          className={`rounded-lg border px-2 py-2 text-xs font-medium ${ (editing.stay_unit || "room") === k ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>
-                          {l}
+                    <Label>{editKind.label} type</Label>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {editKind.categories.map((c) => (
+                        <button key={c} type="button" onClick={() => setEditing({ ...editing, category: c })}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium ${editing.category === c ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>
+                          {c}
                         </button>
                       ))}
                     </div>
                   </div>
+                  <AccommodationFields kind={editKind} value={editing.attributes || {}} onChange={(attributes) => setEditing({ ...editing, attributes })} />
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label>Category</Label>
-                      <Input
-                        value={editing.category || ""}
-                        onChange={(e) => setEditing({ ...editing, category: e.target.value })}
-                        placeholder="Standard / Deluxe / Suite"
-                      />
+                      <Label>Sold as</Label>
+                      <p className="mt-2 text-sm text-muted-foreground">Per {editKind.noun.toLowerCase()}</p>
                     </div>
                     <div>
                       <Label>Min nights</Label>
