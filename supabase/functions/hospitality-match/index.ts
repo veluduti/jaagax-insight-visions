@@ -22,6 +22,7 @@ const Body = z.object({
 
 const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+const TYPE_LABEL: Record<string, string> = { hotel: "Hotel", resort: "Resort", hostel: "Hostel", apartment: "Apartment", servicedapartment: "Serviced apartment", coliving: "Co-living", pg: "PG", homestay: "Homestay", farmstay: "Farm", villa: "Villa" };
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const km = (a: number, b: number, c: number, d: number) => {
   const R = 6371, dLat = (c - a) * Math.PI / 180, dLon = (d - b) * Math.PI / 180;
@@ -99,7 +100,8 @@ Deno.serve(async (req) => {
       const hTypes = (h.business_types ?? []).map(norm);
       const typeHits = wantTypes.filter((t) => hTypes.includes(t));
       if (wantTypes.length && !typeHits.length) continue;
-      if (typeHits.length) reasons.push({ label: `Is a ${q.business_types.find((t) => hTypes.includes(norm(t)))}`, points: 20 });
+      if (typeHits.length) const tl = q.business_types.find((t) => hTypes.includes(norm(t))) ?? "";
+        reasons.push({ label: `${TYPE_LABEL[norm(tl)] ?? tl.replace(/_/g, " ")} stay`, points: 20 });
 
       const hAmen = [...(h.amenities ?? []), ...(h.tags ?? [])].map((a: string) => norm(String(a)));
       const amenHits = q.amenities.filter((a) => hAmen.includes(norm(a)));
