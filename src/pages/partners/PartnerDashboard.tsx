@@ -172,6 +172,7 @@ export default function PartnerDashboard() {
       setHotelCity(app.city || "");
       setHotelStatus(app.status || "");
       setHotelIdForToday(app.approved_hotel_id || null);
+      setHotelIdForToday(app.approved_hotel_id || null);
 
       if (app.approved_hotel_id) {
         const { data: h } = await (supabase as any)
