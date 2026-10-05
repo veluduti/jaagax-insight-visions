@@ -19,8 +19,10 @@ function generateOtp(): string {
 }
 
 function json(body: unknown, status = 200) {
+  // User-correctable errors return 200 with { error } so the app can show the real message.
+  const finalStatus = status >= 400 && status < 500 ? 200 : status
   return new Response(JSON.stringify(body), {
-    status,
+    status: finalStatus,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
