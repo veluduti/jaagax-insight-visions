@@ -175,7 +175,8 @@ const CHANNELS = ["Booking.com", "MakeMyTrip", "Goibibo", "Agoda", "Expedia", "A
 
 export default function PartnerRooms() {
   const { loading: gate, hotelId } = usePartnerHotel();
-  const { types: bizTypes } = usePartnerBusinessTypes();
+  const { types: allBizTypes, activeType } = usePartnerBusinessTypes();
+  const bizTypes = activeType === "all" ? allBizTypes : [activeType];
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Room> | null>(null);
