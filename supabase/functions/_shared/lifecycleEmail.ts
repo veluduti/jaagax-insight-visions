@@ -3,6 +3,7 @@
 // row is the source-of-truth, email is best-effort.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from "./managedEmail.ts";
 
 const FROM_EMAIL = Deno.env.get("LIFECYCLE_FROM_EMAIL") || "notify@notify.jaagax.com";
 const SENDER_DOMAIN = Deno.env.get("LIFECYCLE_SENDER_DOMAIN") || "notify.jaagax.com";
@@ -110,25 +111,6 @@ function buildEmail(event: LifecycleEvent, ctx: Ctx): { subject: string; html: s
   }
 }
 
-async function ensureUnsubscribeToken(admin: Admin, email: string): Promise<string | null> {
-  try {
-    const { data: existing } = await admin
-      .from("email_unsubscribe_tokens")
-      .select("token")
-      .eq("email", email)
-      .maybeSingle();
-    if (existing?.token) return existing.token as string;
-    const token = crypto.randomUUID();
-    const { error } = await admin
-      .from("email_unsubscribe_tokens")
-      .insert({ email, token });
-    if (error) return null;
-    return token;
-  } catch {
-    return null;
-  }
-}
-
 async function emailForUser(admin: Admin, userId: string): Promise<string | null> {
   try {
     const { data } = await admin.auth.admin.getUserById(userId);
@@ -149,52 +131,11 @@ export async function sendLifecycleEmail(
     const to = await emailForUser(admin, recipientUserId);
     if (!to) return;
 
-    // Suppression check
-    const { data: suppressed } = await admin
-      .from("suppressed_emails")
-      .select("email")
-      .eq("email", to)
-      .maybeSingle();
-    if (suppressed) return;
-
     const { subject, html, text, label } = buildEmail(event, ctx);
-    const messageId = crypto.randomUUID();
-    const unsubscribeToken = await ensureUnsubscribeToken(admin, to);
-
-    await admin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: label,
-      recipient_email: to,
-      status: "pending",
+    await sendManagedEmail(admin as any, {
+      to, subject, html, text, label,
+      idempotencyKey: `${label}:${ctx.propertyId}:${recipientUserId}:${ctx.extra?.bucket_key ?? crypto.randomUUID()}`,
     });
-
-    const { error } = await admin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to,
-        from: FROM_EMAIL,
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text,
-        purpose: "transactional",
-        label,
-        idempotency_key: `${label}:${ctx.propertyId}:${recipientUserId}:${ctx.extra?.bucket_key ?? messageId}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-
-    if (error) {
-      await admin.from("email_send_log").insert({
-        message_id: messageId,
-        template_name: label,
-        recipient_email: to,
-        status: "failed",
-        error_message: error.message ?? "enqueue failed",
-      });
-    }
   } catch (e) {
     console.error("sendLifecycleEmail error", event, (e as Error).message);
   }

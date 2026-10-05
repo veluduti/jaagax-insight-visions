@@ -3,6 +3,7 @@
 // application row + caller role here for safety.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from '../_shared/managedEmail.ts'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,12 +53,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, skipped: "no recipient email" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Suppression check
-    const { data: suppressed } = await admin
-      .from("suppressed_emails").select("email").eq("email", app.email).maybeSingle();
-    if (suppressed) {
-      return new Response(JSON.stringify({ ok: true, skipped: "suppressed" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
 
     const isApproved = decision === "approved";
     const liveLink = app.approved_hotel_id ? `${APP_BASE}/hotels/${app.approved_hotel_id}` : `${APP_BASE}/hotels`;
@@ -84,53 +79,12 @@ Deno.serve(async (req) => {
       : `Your hotel application for "${app.hotel_name}" was not approved.${reason ? ` Reason: ${reason}` : ""}`;
 
     const label = isApproved ? "hotel-partner-approved" : "hotel-partner-rejected";
-    const messageId = crypto.randomUUID();
-
-    // Ensure unsubscribe token exists
-    let unsubscribeToken: string | null = null;
-    const { data: existing } = await admin
-      .from("email_unsubscribe_tokens").select("token").eq("email", app.email).maybeSingle();
-    if (existing?.token) unsubscribeToken = existing.token as string;
-    else {
-      const t = crypto.randomUUID();
-      const { error } = await admin.from("email_unsubscribe_tokens").insert({ email: app.email, token: t });
-      if (!error) unsubscribeToken = t;
-    }
-
-    await admin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: label,
-      recipient_email: app.email,
-      status: "pending",
+    const result = await sendManagedEmail(admin as any, {
+      to: app.email, subject, html, text, label,
+      idempotencyKey: `${label}:${applicationId}`,
     });
-
-    const { error: qErr } = await admin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to: app.email,
-        from: FROM_EMAIL,
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text,
-        purpose: "transactional",
-        label,
-        idempotency_key: `${label}:${applicationId}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-
-    if (qErr) {
-      await admin.from("email_send_log").insert({
-        message_id: messageId,
-        template_name: label,
-        recipient_email: app.email,
-        status: "failed",
-        error_message: qErr.message ?? "enqueue failed",
-      });
-      return new Response(JSON.stringify({ ok: false, error: qErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!result.sent) {
+      return new Response(JSON.stringify({ ok: true, skipped: "suppressed" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

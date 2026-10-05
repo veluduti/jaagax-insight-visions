@@ -1,6 +1,7 @@
 // Sends the guest a branded hotel booking confirmation email through the
 // Lovable email queue (same pipeline as lifecycle emails).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from "./managedEmail.ts";
 
 const FROM_EMAIL = Deno.env.get("LIFECYCLE_FROM_EMAIL") || "notify@notify.jaagax.com";
 const SENDER_DOMAIN = Deno.env.get("LIFECYCLE_SENDER_DOMAIN") || "notify.jaagax.com";
@@ -22,9 +23,6 @@ export async function sendBookingConfirmationEmail(admin: Admin, booking: any): 
   if (!to) return;
 
   try {
-    const { data: suppressed } = await admin
-      .from("suppressed_emails").select("email").eq("email", to).maybeSingle();
-    if (suppressed) return;
 
     const link = `${APP_BASE}/hotels/booking/${booking.id}/confirmed`;
     const subject = `Booking confirmed · ${booking.hotel_name || "Your stay"} (${booking.booking_reference || ""})`.trim();
@@ -61,54 +59,11 @@ Rooms: ${booking.num_rooms || 1} (${booking.room_type || "Room"})
 Amount paid: ${inr(booking.total_amount)}
 View: ${link}`;
 
-    const messageId = crypto.randomUUID();
-
-    let unsubscribeToken: string | null = null;
-    try {
-      const { data: existing } = await admin
-        .from("email_unsubscribe_tokens").select("token").eq("email", to).maybeSingle();
-      if (existing?.token) unsubscribeToken = existing.token as string;
-      else {
-        const t = crypto.randomUUID();
-        const { error } = await admin.from("email_unsubscribe_tokens").insert({ email: to, token: t });
-        if (!error) unsubscribeToken = t;
-      }
-    } catch { /* optional */ }
-
-    await admin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: "hotel-booking-confirmation",
-      recipient_email: to,
-      status: "pending",
+    await sendManagedEmail(admin as any, {
+      to, subject, html, text,
+      label: "hotel-booking-confirmation",
+      idempotencyKey: `hotel-booking-confirm:${booking.id}`,
     });
-
-    const { error } = await admin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to,
-        from: FROM_EMAIL,
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text,
-        purpose: "transactional",
-        label: "hotel-booking-confirmation",
-        idempotency_key: `hotel-booking-confirm:${booking.id}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-
-    if (error) {
-      await admin.from("email_send_log").insert({
-        message_id: messageId,
-        template_name: "hotel-booking-confirmation",
-        recipient_email: to,
-        status: "failed",
-        error_message: error.message ?? "enqueue failed",
-      });
-    }
   } catch (e) {
     console.error("sendBookingConfirmationEmail error", (e as Error).message);
   }
