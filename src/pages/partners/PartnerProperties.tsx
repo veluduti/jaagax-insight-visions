@@ -102,7 +102,7 @@ export default function PartnerProperties() {
                 </p>
                 {list.map((p) => (
                   <button key={p.id + tk} type="button"
-                    onClick={() => { setType(tk); nav(`/partners/properties/${p.id}`); }}
+                    onClick={() => { setType(tk); setActiveType(tk); localStorage.setItem("partner_active_property", p.id); nav(`/partners/properties/${p.id}`); }}
                     className={cn("flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm",
                       selected?.id === p.id && activeType === tk ? "bg-primary/10 text-primary" : "hover:bg-muted/50")}>
                     <span className="truncate">{p.name}</span><ChevronRight className="h-3.5 w-3.5" />
