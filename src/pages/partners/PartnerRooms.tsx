@@ -230,14 +230,19 @@ export default function PartnerRooms() {
     return Array.from(map.values()).filter((m) => m.is_available && m.is_active);
   };
 
-  const kinds = allowedKinds(bizTypes);
   const editKind = kindFor(editing?.accommodation_kind, editing?.stay_unit);
   const [choosingKind, setChoosingKind] = useState(false);
+  const [chooserTypes, setChooserTypes] = useState<string[] | null>(null);
+  const kinds = allowedKinds(chooserTypes ?? bizTypes);
   const startWithKind = (k: AccommodationKind) => {
     setChoosingKind(false);
     openEditor({ ...emptyRoom, accommodation_kind: k.key, stay_unit: k.unit, category: k.categories[0], attributes: {} });
   };
-  const startAdd = () => (kinds.length === 1 ? startWithKind(kinds[0]) : setChoosingKind(true));
+  const startAdd = () => {
+    setChooserTypes(null);
+    const all = allowedKinds(bizTypes);
+    return all.length === 1 ? startWithKind(all[0]) : setChoosingKind(true);
+  };
 
   const openEditor = (room: Partial<Room> | null) => {
     const next = defaultMeals();
@@ -566,7 +571,8 @@ export default function PartnerRooms() {
                         })}>
                           <Plus className="mr-1 h-3.5 w-3.5" /> {p.name}
                         </Button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
