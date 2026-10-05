@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { customerView } from "@/config/accommodationTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -348,6 +349,7 @@ export default function HotelRoomList({
       {displayRooms.map((room) => {
 
         const q = quotes[room.id];
+        const cv = customerView(room);
         const photos = (room.photos && room.photos.length > 0) ? room.photos : [FALLBACK_IMG];
         const idx = galleryIdx[room.id] ?? 0;
         const amenityList: string[] = Array.isArray(room.amenities)
