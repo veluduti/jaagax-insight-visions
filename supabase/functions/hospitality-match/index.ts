@@ -100,8 +100,8 @@ Deno.serve(async (req) => {
       const hTypes = (h.business_types ?? []).map(norm);
       const typeHits = wantTypes.filter((t) => hTypes.includes(t));
       if (wantTypes.length && !typeHits.length) continue;
-      if (typeHits.length) const tl = q.business_types.find((t) => hTypes.includes(norm(t))) ?? "";
-        reasons.push({ label: `${TYPE_LABEL[norm(tl)] ?? tl.replace(/_/g, " ")} stay`, points: 20 });
+      if (typeHits.length) { const tl = q.business_types.find((t) => hTypes.includes(norm(t))) ?? "";
+        reasons.push({ label: `${TYPE_LABEL[norm(tl)] ?? tl.replace(/_/g, " ")} stay`, points: 20 }); }
 
       const hAmen = [...(h.amenities ?? []), ...(h.tags ?? [])].map((a: string) => norm(String(a)));
       const amenHits = q.amenities.filter((a) => hAmen.includes(norm(a)));
