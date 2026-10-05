@@ -1,0 +1,1 @@
+ALTER TABLE public.hotel_rooms ADD COLUMN IF NOT EXISTS accommodation_kind text, ADD COLUMN IF NOT EXISTS attributes jsonb NOT NULL DEFAULT '{}'::jsonb;
