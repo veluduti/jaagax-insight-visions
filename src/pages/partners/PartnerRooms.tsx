@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
+import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
+import { CATEGORY_BY_KEY, INVENTORY_PRESETS } from "@/config/hospitalityCategories";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +175,7 @@ const CHANNELS = ["Booking.com", "MakeMyTrip", "Goibibo", "Agoda", "Expedia", "A
 
 export default function PartnerRooms() {
   const { loading: gate, hotelId } = usePartnerHotel();
+  const { types: bizTypes } = usePartnerBusinessTypes();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Room> | null>(null);
@@ -516,6 +519,36 @@ export default function PartnerRooms() {
             <Plus className="mr-1.5 h-4 w-4" /> Add room
           </Button>
         </div>
+
+        {bizTypes.length > 0 && (
+          <Card className="mb-6 border border-border/60 bg-background/60">
+            <CardContent className="space-y-4 p-4">
+              <div>
+                <p className="font-semibold">Your business types</p>
+                <p className="text-xs text-muted-foreground">Tap a type to add it with suggested settings. You can change everything before saving.</p>
+              </div>
+              {bizTypes.map((t) => {
+                const cat = CATEGORY_BY_KEY[t];
+                const count = rooms.filter((r) => r.category === cat?.label).length;
+                return (
+                  <div key={t} className="space-y-2">
+                    <p className="text-sm font-medium">{cat?.emoji} {cat?.label ?? t} <Badge variant="secondary" className="ml-1">{count} added</Badge></p>
+                    <div className="flex flex-wrap gap-2">
+                      {(INVENTORY_PRESETS[t] ?? INVENTORY_PRESETS.other).map((p) => (
+                        <Button key={p.name} size="sm" variant="outline" onClick={() => openEditor({
+                          ...emptyRoom, room_type: p.name, category: cat?.label ?? "Room", stay_unit: p.unit,
+                          base_price: p.price, max_occupancy: p.occupancy,
+                        })}>
+                          <Plus className="mr-1 h-3.5 w-3.5" /> {p.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
 
         {rooms.length === 0 ? (
           <Card className="border border-border/60 bg-background/60 backdrop-blur">

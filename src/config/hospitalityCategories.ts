@@ -103,3 +103,23 @@ export function setupFieldsFor(types: string[]): TypeSetupField[] {
   for (const t of types) for (const f of TYPE_SETUP_FIELDS[normalizeCategory(t)] ?? []) if (!seen.has(f.key)) { seen.add(f.key); out.push(f); }
   return out.length ? out : common;
 }
+
+/** Ready-made inventory types partners can add per business category. */
+export interface InventoryPreset { name: string; unit: StayUnit; price: number; occupancy: number }
+export const INVENTORY_PRESETS: Record<string, InventoryPreset[]> = {
+  hotel: [{ name: "Standard Room", unit: "room", price: 2000, occupancy: 2 }, { name: "Deluxe Room", unit: "room", price: 3000, occupancy: 3 }, { name: "Suite", unit: "room", price: 5500, occupancy: 4 }],
+  resort: [{ name: "Garden Cottage", unit: "room", price: 4500, occupancy: 3 }, { name: "Pool Villa", unit: "unit", price: 9000, occupancy: 4 }, { name: "Tent / Glamping", unit: "room", price: 3000, occupancy: 2 }],
+  hostel: [{ name: "Mixed Dorm Bed", unit: "bed", price: 500, occupancy: 1 }, { name: "Female Dorm Bed", unit: "bed", price: 600, occupancy: 1 }, { name: "Private Room", unit: "room", price: 1500, occupancy: 2 }],
+  apartment: [{ name: "1 BHK Apartment", unit: "unit", price: 2500, occupancy: 2 }, { name: "2 BHK Apartment", unit: "unit", price: 4000, occupancy: 4 }, { name: "3 BHK Apartment", unit: "unit", price: 6000, occupancy: 6 }],
+  serviced_apartment: [{ name: "Studio", unit: "unit", price: 3000, occupancy: 2 }, { name: "1 BHK Serviced", unit: "unit", price: 4000, occupancy: 3 }, { name: "2 BHK Serviced", unit: "unit", price: 6000, occupancy: 4 }],
+  coliving: [{ name: "Shared Room Bed", unit: "bed", price: 500, occupancy: 1 }, { name: "Private Room", unit: "room", price: 1200, occupancy: 1 }],
+  pg: [{ name: "Single Sharing", unit: "bed", price: 600, occupancy: 1 }, { name: "Double Sharing Bed", unit: "bed", price: 400, occupancy: 1 }, { name: "Triple Sharing Bed", unit: "bed", price: 300, occupancy: 1 }],
+  homestay: [{ name: "Family Room", unit: "room", price: 2000, occupancy: 4 }, { name: "Private Room", unit: "room", price: 1500, occupancy: 2 }],
+  farm_stay: [{ name: "Farm Cottage", unit: "room", price: 3000, occupancy: 3 }, { name: "Mud House", unit: "room", price: 2500, occupancy: 2 }, { name: "Entire Farmhouse", unit: "unit", price: 8000, occupancy: 8 }],
+  villa: [{ name: "Entire Villa", unit: "unit", price: 10000, occupancy: 8 }],
+  guest_house: [{ name: "Standard Room", unit: "room", price: 1200, occupancy: 2 }],
+  boutique: [{ name: "Signature Room", unit: "room", price: 4000, occupancy: 2 }, { name: "Boutique Suite", unit: "room", price: 6500, occupancy: 3 }],
+  private_room: [{ name: "Private Room", unit: "room", price: 1200, occupancy: 2 }],
+  shared_room: [{ name: "Shared Room Bed", unit: "bed", price: 400, occupancy: 1 }],
+  other: [{ name: "Room", unit: "room", price: 1500, occupancy: 2 }],
+};

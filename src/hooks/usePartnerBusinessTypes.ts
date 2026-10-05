@@ -17,21 +17,28 @@ export function usePartnerBusinessTypes() {
         .from("hotel_partner_applications")
         .select("id,business_types,business_type,approved_hotel_id")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (!alive || !data) return;
-      const list: string[] = data.business_types?.length
+      let list: string[] = data?.business_types?.length
         ? data.business_types
-        : data.business_type ? String(data.business_type).split(",").map(normalizeCategory) : [];
-      setTypes(list);
-      setAppId(data.id);
-      setHotelId(data.approved_hotel_id ?? null);
+        : data?.business_type ? String(data.business_type).split(",") : [];
+      let hid: string | null = data?.approved_hotel_id ?? null;
+      if (!list.length) {
+        const { data: h } = await (supabase as any).from("partner_hotels")
+          .select("id,business_types").eq("manager_id", user.id).order("created_at").limit(1).maybeSingle();
+        if (h?.business_types?.length) list = h.business_types;
+        hid = hid ?? h?.id ?? null;
+      }
+      if (!alive) return;
+      setTypes(Array.from(new Set(list.map(normalizeCategory))));
+      setAppId(data?.id ?? null);
+      setHotelId(hid);
     })();
     return () => { alive = false; };
   }, []);
 
   const save = async (next: string[]) => {
-    if (!appId) return;
     setTypes(next);
-    await (supabase as any).from("hotel_partner_applications").update({ business_types: next }).eq("id", appId);
+    if (appId) await (supabase as any).from("hotel_partner_applications").update({ business_types: next }).eq("id", appId);
+    if (hotelId) await (supabase as any).from("partner_hotels").update({ business_types: next }).eq("id", hotelId);
   };
 
   const modules: Set<PartnerModule> = modulesFor(types);
