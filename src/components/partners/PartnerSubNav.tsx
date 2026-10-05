@@ -12,24 +12,25 @@ import { CATEGORY_BY_KEY } from "@/config/hospitalityCategories";
 
 const primary = [
   { to: "/partners/dashboard", label: "Overview", icon: LayoutDashboard },
-  { to: "/partners/hotel-profile", label: "Hotel Profile", icon: Building2 },
+  { to: "/partners/properties", label: "Properties", icon: Building2 },
   { to: "/partners/rooms", label: "Rooms & Rates", icon: BedDouble },
   { to: "/partners/inventory", label: "Calendar", icon: CalendarDays },
-  { to: "/partners/reservations", label: "Reservations", icon: CalendarRange },
+  { to: "/partners/reservations", label: "All Bookings", icon: CalendarRange },
   { to: "/partners/guests", label: "Guests", icon: Users },
-  { to: "/partners/pricing", label: "Pricing", icon: TrendingUp },
+  { to: "/partners/payouts", label: "Payments", icon: Wallet },
+  { to: "/partners/inbox", label: "Reviews", icon: MessageSquare },
   { to: "/partners/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/partners/staff", label: "Staff", icon: UserCog },
 ];
 
 const more = [
-  { to: "/partners/portfolio", label: "Businesses & Properties", icon: Briefcase },
+  { to: "/partners/portfolio", label: "Account & Businesses", icon: Briefcase },
+  { to: "/partners/hotel-profile", label: "Settings / Profile", icon: Building2 },
+  { to: "/partners/pricing", label: "Pricing", icon: TrendingUp },
+  { to: "/partners/staff", label: "Staff", icon: UserCog },
   { to: "/partners/demand", label: "Demand & Matches", icon: Target },
   { to: "/partners/rate-plans", label: "Rate Plans", icon: Tag },
   { to: "/partners/extra-services", label: "Extra Services", icon: PartyPopper },
   { to: "/partners/addons", label: "Add-ons", icon: Sparkles },
-  { to: "/partners/payouts", label: "Payouts", icon: Wallet },
-  { to: "/partners/inbox", label: "Inbox", icon: MessageSquare },
   { to: "/partners/booking-engine", label: "Booking Engine", icon: Globe },
 ];
 
