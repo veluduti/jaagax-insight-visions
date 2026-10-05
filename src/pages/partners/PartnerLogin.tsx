@@ -21,14 +21,14 @@ export default function PartnerLogin() {
   const routeAfterLogin = async (uid: string) => {
     const { data: apps } = await (supabase as any)
       .from("hotel_partner_applications")
-      .select("id,status")
+      .select("id,status,pms_setup_completed")
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(1);
     const app = apps?.[0];
     if (!app) navigate("/partners/kyc");
-    else if (app.status === "pending" || app.status === "rejected") navigate("/partners/status");
-    else navigate("/partners/dashboard");
+    else if (app.status === "approved") navigate(app.pms_setup_completed ? "/partners/dashboard" : "/partners/pms-setup");
+    else navigate("/partners/status");
   };
 
   // Returning from the Google redirect on this page.

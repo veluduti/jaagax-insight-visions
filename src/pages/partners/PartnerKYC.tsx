@@ -74,6 +74,15 @@ export default function PartnerKYC() {
           .maybeSingle(),
       ]);
       const app = existing?.[0];
+      // Already submitted: never show the KYC form again unless admin asked for changes.
+      if (app && app.status === "approved") {
+        nav(app.pms_setup_completed ? "/partners/dashboard" : "/partners/pms-setup", { replace: true });
+        return;
+      }
+      if (app && app.status === "pending") {
+        nav("/partners/status", { replace: true });
+        return;
+      }
       if (app) {
         setExistingId(app.id);
         const d: Record<string, string> = {};

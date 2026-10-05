@@ -13081,18 +13081,9 @@ export type Database = {
         }
         Returns: number
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
       drop_property_price: {
         Args: { _new_price: number; _property_id: string }
         Returns: undefined
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       expire_due_property_listings: {
         Args: never
@@ -13254,15 +13245,6 @@ export type Database = {
             }
             Returns: undefined
           }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       nl_can_manage_farm: {
         Args: { _farm_id: string; _user_id: string }
         Returns: boolean
@@ -13352,14 +13334,6 @@ export type Database = {
       purchase_financial_promotion: {
         Args: { _amount: number; _duration_days: number; _package_type: string }
         Returns: Json
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
       }
       redeem_cashback: { Args: { _user_id: string }; Returns: number }
       reject_agent_admin_upgrade: {
