@@ -78,3 +78,29 @@ export function kindFor(key: string | null | undefined, unit?: string | null): A
   if (key && ACCOMMODATION_KINDS[key]) return ACCOMMODATION_KINDS[key];
   return unit === "bed" ? ACCOMMODATION_KINDS.dorm : unit === "unit" ? ACCOMMODATION_KINDS.apartment : ACCOMMODATION_KINDS.room;
 }
+
+/** Customer-facing wording for one accommodation listing. */
+export function customerView(room: {
+  room_type: string; accommodation_kind?: string | null; stay_unit?: string | null;
+  attributes?: Record<string, any> | null; monthly_price?: number | null; weekly_price?: number | null;
+}) {
+  const kind = kindFor(room.accommodation_kind, room.stay_unit);
+  const noun = kind.noun.toLowerCase();
+  const title = kind.unit === "bed" && !/bed\b/i.test(room.room_type) ? `${room.room_type} — Bed` : room.room_type;
+  const a = room.attributes || {};
+  const highlights: string[] = [];
+  if (a.bedrooms) highlights.push(`${a.bedrooms} bedroom${a.bedrooms > 1 ? "s" : ""}`);
+  if (a.bathrooms) highlights.push(`${a.bathrooms} bath`);
+  if (a.beds_in_room) highlights.push(`${a.beds_in_room} beds in room`);
+  if (a.pool && a.pool !== "No pool") highlights.push(a.pool);
+  if (a.view && a.view !== "None") highlights.push(`${a.view} view`);
+  if (a.furnishing) highlights.push(a.furnishing);
+  if (a.gender) highlights.push(a.gender);
+  if (a.kitchen) highlights.push("Kitchen");
+  if (a.attached_bath) highlights.push("Attached bathroom");
+  if (a.beach_access) highlights.push("Beach access");
+  for (const k of ["features", "bed_features", "outdoor", "appliances"]) if (Array.isArray(a[k])) highlights.push(...a[k]);
+  const monthly = Number(room.monthly_price) > 0 ? Number(room.monthly_price) : null;
+  const weekly = Number(room.weekly_price) > 0 ? Number(room.weekly_price) : null;
+  return { kind, noun, title, highlights, monthly, weekly, perNightLabel: `per ${noun} / night` };
+}
