@@ -5886,7 +5886,9 @@ export type Database = {
       }
       hotel_rooms: {
         Row: {
+          accommodation_kind: string | null
           amenities: Json | null
+          attributes: Json
           base_price: number
           bed_type: string | null
           breakfast_included: boolean
@@ -5933,7 +5935,9 @@ export type Database = {
           weekly_price: number | null
         }
         Insert: {
+          accommodation_kind?: string | null
           amenities?: Json | null
+          attributes?: Json
           base_price?: number
           bed_type?: string | null
           breakfast_included?: boolean
@@ -5980,7 +5984,9 @@ export type Database = {
           weekly_price?: number | null
         }
         Update: {
+          accommodation_kind?: string | null
           amenities?: Json | null
+          attributes?: Json
           base_price?: number
           bed_type?: string | null
           breakfast_included?: boolean

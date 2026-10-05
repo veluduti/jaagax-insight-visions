@@ -50,6 +50,13 @@
       "when": 1791196785506,
       "tag": "0006_hospitality_connected_system",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791204994460,
+      "tag": "0007_accommodation_kind_attributes",
+      "breakpoints": true
     }
   ]
 }
