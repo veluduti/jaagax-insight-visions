@@ -114,7 +114,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
       <main className="flex-1">{children}</main>
 
       {/* Footer — JAAGAX tokens */}
-      <footer className="mt-24 pt-16 pb-10 border-t border-border/50 bg-muted/30">
+      <footer className="hidden md:block mt-24 pt-16 pb-10 border-t border-border/50 bg-muted/30">
         <div className="container-padding">
           <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
             <div className="grid gap-12 md:grid-cols-4">

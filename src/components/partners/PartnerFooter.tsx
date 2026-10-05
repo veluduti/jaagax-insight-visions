@@ -3,7 +3,7 @@ import { Building2 } from "lucide-react";
 
 export default function PartnerFooter() {
   return (
-    <footer className="border-t border-border/60 bg-background/60">
+    <footer className="hidden md:block border-t border-border/60 bg-background/60">
       <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-4">
         <div>
           <Link to="/partners" className="flex items-center gap-2 font-bold">
