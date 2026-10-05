@@ -29,6 +29,13 @@ Deno.serve(async (req) => {
     const children = Math.max(0, Number(body?.children ?? 0));
     const infants = Math.max(0, Number(body?.infants ?? 0));
     const roomsWanted = Math.max(1, Number(body?.rooms ?? 1));
+    const arr = (v: unknown): string[] => Array.isArray(v) ? v.map(String).filter(Boolean) : typeof v === "string" && v ? v.split(",") : [];
+    const businessTypes = arr(body?.business_types);
+    const stayUnits = arr(body?.stay_units);
+    const wantAmenities = arr(body?.amenities).map((a) => a.toLowerCase());
+    const preferences = arr(body?.preferences);
+    const minPrice = body?.min_price != null && body.min_price !== "" ? Number(body.min_price) : null;
+    const maxPrice = body?.max_price != null && body.max_price !== "" ? Number(body.max_price) : null;
     const childAges: number[] = Array.isArray(body?.child_ages) ? body.child_ages.map(Number) : [];
 
     const supabase = createClient(
@@ -45,6 +52,12 @@ Deno.serve(async (req) => {
     if (hotel_id) hq = hq.eq("id", hotel_id);
     if (city) hq = hq.ilike("city", `%${city}%`);
     if (locality) hq = hq.ilike("locality", `%${locality}%`);
+    if (businessTypes.length && !hotel_id) {
+      // Legacy hotels with no types are treated as plain hotels.
+      hq = businessTypes.includes("hotel")
+        ? hq.or(`business_types.ov.{${businessTypes.join(",")}},business_types.eq.{}`)
+        : hq.overlaps("business_types", businessTypes);
+    }
     if (query) hq = hq.or(`name.ilike.%${query}%,city.ilike.%${query}%,locality.ilike.%${query}%`);
     const { data: hotels, error: hErr } = await hq;
     if (hErr) return json({ error: hErr.message }, 400);
@@ -63,6 +76,7 @@ Deno.serve(async (req) => {
 
       const canonicalRooms = [];
       for (const room of rooms || []) {
+        if (stayUnits.length && !stayUnits.includes(room.stay_unit ?? "room")) continue;
         const [{ data: bedding }, { data: inventory }] = await Promise.all([
           supabase.from("room_bedding_configurations").select("*").eq("room_id", room.id),
           dates.length
@@ -147,9 +161,44 @@ Deno.serve(async (req) => {
       }
     }
 
+    /* ---------------- preference filters + relevance ---------------- */
+    const AMENITY_WORDS: Record<string, string[]> = {
+      wifi: ["wifi", "wi-fi", "internet"], breakfast: ["breakfast"], parking: ["parking"], pool: ["pool", "swimming"],
+      pet_friendly: ["pet"], ac: ["ac", "air condition"], gym: ["gym", "fitness"], restaurant: ["restaurant", "dining"],
+      kitchen: ["kitchen"], laundry: ["laundry"],
+    };
+    const lowestPrice = (p: any): number | null => {
+      const prices: number[] = [];
+      for (const r of p.rooms ?? []) for (const rp of r.ratePlans ?? r.rate_plans ?? []) {
+        const v = Number(rp?.price?.perNight ?? rp?.pricePerNight ?? rp?.price?.net ?? rp?.price?.amount ?? NaN);
+        if (Number.isFinite(v) && v > 0) prices.push(v);
+      }
+      const base = Number(p.raw?.price_per_night ?? p.pricePerNight ?? NaN);
+      if (!prices.length && Number.isFinite(base) && base > 0) prices.push(base);
+      return prices.length ? Math.min(...prices) : null;
+    };
+    const text = (p: any) => JSON.stringify([p.facilities, p.amenities, p.raw?.amenities, p.name, p.description]).toLowerCase();
+    const filtered = [...results, ...external].map((p: any) => {
+      const t = text(p);
+      const price = lowestPrice(p);
+      let score = 0;
+      const amenityHits = wantAmenities.filter((a) => (AMENITY_WORDS[a] ?? [a]).some((w) => t.includes(w)));
+      score += amenityHits.length * 10;
+      if (maxPrice && price && price <= maxPrice) score += 15;
+      if (preferences.includes("budget") && price && price < 3000) score += 10;
+      if (preferences.includes("luxury") && Number(p.rating ?? p.starRating ?? p.raw?.star_rating ?? 0) >= 4) score += 10;
+      if (preferences.includes("family") && /family|kids|children/.test(t)) score += 5;
+      if (preferences.includes("business") && /business|meeting|work/.test(t)) score += 5;
+      return { ...p, matchScore: score, matchedAmenities: amenityHits, lowestPrice: price };
+    }).filter((p: any) => {
+      if (minPrice != null && p.lowestPrice != null && p.lowestPrice < minPrice) return false;
+      if (maxPrice != null && p.lowestPrice != null && p.lowestPrice > maxPrice) return false;
+      return true;
+    }).sort((a: any, b: any) => b.matchScore - a.matchScore);
+
     return json({
-      results: [...results, ...external],
-      count: results.length + external.length,
+      results: filtered,
+      count: filtered.length,
       searched: { check_in, check_out, nights, adults, children, infants, child_ages: childAges, rooms: roomsWanted },
       channels: { hyperguest: hyperguestConfigured() ? (externalError ? "error" : "ok") : "not_configured" },
       channel_error: externalError,
