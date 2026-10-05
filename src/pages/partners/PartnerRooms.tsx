@@ -662,6 +662,24 @@ export default function PartnerRooms() {
       </div>
 
       {/* Room editor */}
+      <Dialog open={choosingKind} onOpenChange={setChoosingKind}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>What are you adding?</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {kinds.map((k) => (
+              <button key={k.key} type="button" onClick={() => startWithKind(k)}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border p-4 text-sm font-medium hover:border-primary hover:bg-primary/10">
+                <span className="text-2xl">{k.emoji}</span>
+                {k.label}
+                <span className="text-xs text-muted-foreground">Sold per {k.noun.toLowerCase()}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
