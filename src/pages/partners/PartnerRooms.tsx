@@ -41,6 +41,7 @@ type Room = {
   base_price: number;
   max_occupancy: number;
   total_units: number;
+  stay_unit?: "room" | "bed" | "unit";
   amenities: any;
   photos: string[];
   is_active: boolean;
@@ -369,6 +370,7 @@ export default function PartnerRooms() {
         base_price: Number(editing.base_price) || 0,
         max_occupancy: Number(editing.max_occupancy) || 1,
         total_units: Number(editing.total_units) || 1,
+        stay_unit: editing.stay_unit || "room",
         amenities: editing.amenities || [],
         photos: editing.photos || [],
         is_active: editing.is_active ?? true,
@@ -635,6 +637,17 @@ export default function PartnerRooms() {
                       onChange={(e) => setEditing({ ...editing, room_type: e.target.value })}
                       placeholder="e.g. Deluxe King Room"
                     />
+                  </div>
+                  <div>
+                    <Label>Stay type</Label>
+                    <div className="mt-1 grid grid-cols-3 gap-2">
+                      {([["room","Private room"],["bed","Shared / bed"],["unit","Entire unit"]] as const).map(([k,l]) => (
+                        <button key={k} type="button" onClick={() => setEditing({ ...editing, stay_unit: k })}
+                          className={`rounded-lg border px-2 py-2 text-xs font-medium ${ (editing.stay_unit || "room") === k ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>

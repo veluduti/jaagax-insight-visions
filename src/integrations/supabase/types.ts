@@ -4846,6 +4846,7 @@ export type Database = {
           bank_name: string | null
           business_registration_url: string | null
           business_type: string
+          business_types: string[]
           cancelled_cheque_url: string | null
           check_in_24h: boolean
           check_in_time: string | null
@@ -4902,6 +4903,7 @@ export type Database = {
           bank_name?: string | null
           business_registration_url?: string | null
           business_type?: string
+          business_types?: string[]
           cancelled_cheque_url?: string | null
           check_in_24h?: boolean
           check_in_time?: string | null
@@ -4958,6 +4960,7 @@ export type Database = {
           bank_name?: string | null
           business_registration_url?: string | null
           business_type?: string
+          business_types?: string[]
           cancelled_cheque_url?: string | null
           check_in_24h?: boolean
           check_in_time?: string | null
@@ -5748,6 +5751,7 @@ export type Database = {
           max_infants: number
           max_occupancy: number
           min_nights: number
+          min_stay_nights: number | null
           number_of_available_rooms: number | null
           number_of_bedrooms: number | null
           number_of_beds: number | null
@@ -5762,6 +5766,7 @@ export type Database = {
           size_sqft: number | null
           smoking_allowed: boolean
           source_channel: string
+          stay_unit: string
           total_units: number
           updated_at: string
           view_type: string | null
@@ -5790,6 +5795,7 @@ export type Database = {
           max_infants?: number
           max_occupancy?: number
           min_nights?: number
+          min_stay_nights?: number | null
           number_of_available_rooms?: number | null
           number_of_bedrooms?: number | null
           number_of_beds?: number | null
@@ -5804,6 +5810,7 @@ export type Database = {
           size_sqft?: number | null
           smoking_allowed?: boolean
           source_channel?: string
+          stay_unit?: string
           total_units?: number
           updated_at?: string
           view_type?: string | null
@@ -5832,6 +5839,7 @@ export type Database = {
           max_infants?: number
           max_occupancy?: number
           min_nights?: number
+          min_stay_nights?: number | null
           number_of_available_rooms?: number | null
           number_of_bedrooms?: number | null
           number_of_beds?: number | null
@@ -5846,6 +5854,7 @@ export type Database = {
           size_sqft?: number | null
           smoking_allowed?: boolean
           source_channel?: string
+          stay_unit?: string
           total_units?: number
           updated_at?: string
           view_type?: string | null
@@ -5900,6 +5909,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hotel_user_signals: {
+        Row: {
+          created_at: string
+          hotel_id: string | null
+          id: string
+          params: Json
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          params?: Json
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          params?: Json
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       kyc_documents: {
         Row: {
@@ -8569,6 +8605,7 @@ export type Database = {
         Row: {
           address: string | null
           amenities: string[] | null
+          business_types: string[]
           check_in_time: string | null
           check_out_time: string | null
           city: string
@@ -8603,12 +8640,14 @@ export type Database = {
           source_channel: string
           star_rating: number | null
           state: string | null
+          tags: string[]
           total_rooms: number | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
           amenities?: string[] | null
+          business_types?: string[]
           check_in_time?: string | null
           check_out_time?: string | null
           city: string
@@ -8643,12 +8682,14 @@ export type Database = {
           source_channel?: string
           star_rating?: number | null
           state?: string | null
+          tags?: string[]
           total_rooms?: number | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
           amenities?: string[] | null
+          business_types?: string[]
           check_in_time?: string | null
           check_out_time?: string | null
           city?: string
@@ -8683,6 +8724,7 @@ export type Database = {
           source_channel?: string
           star_rating?: number | null
           state?: string | null
+          tags?: string[]
           total_rooms?: number | null
           updated_at?: string | null
         }

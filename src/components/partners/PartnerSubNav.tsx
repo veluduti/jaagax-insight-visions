@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
 
 const primary = [
   { to: "/partners/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -32,12 +33,19 @@ export default function PartnerSubNav() {
   const nav = useNavigate();
   const { pathname } = useLocation();
   const moreActive = more.some((m) => pathname === m.to);
+  const { inventoryLabel, modules } = usePartnerBusinessTypes();
+  const primaryItems = primary.map((p) =>
+    p.to === "/partners/rooms" ? { ...p, label: `${inventoryLabel} & Rates` } : p,
+  );
+  const moreItems = more.filter((m) =>
+    m.to !== "/partners/extra-services" || modules.has("meals") || modules.has("experiences") || modules.has("rooms"),
+  );
 
   return (
     <div className="border-b border-border/60 bg-background/70 backdrop-blur">
       <div className="container mx-auto max-w-7xl px-4">
         <nav className="flex items-center gap-1 overflow-x-auto py-2">
-          {primary.map(({ to, label, icon: Icon }) => (
+          {primaryItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -69,7 +77,7 @@ export default function PartnerSubNav() {
               More
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              {more.map(({ to, label, icon: Icon }) => (
+              {moreItems.map(({ to, label, icon: Icon }) => (
                 <DropdownMenuItem key={to} onSelect={() => nav(to)} className="gap-2">
                   <Icon className="h-4 w-4" />
                   {label}

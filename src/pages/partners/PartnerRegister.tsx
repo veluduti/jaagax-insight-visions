@@ -14,6 +14,7 @@ import PartnerNav from "@/components/partners/PartnerNav";
 import { initSignupOtp } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { HOSPITALITY_CATEGORIES, CATEGORY_BY_KEY } from "@/config/hospitalityCategories";
 import { getExistingAccount, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
 
 const steps = [
@@ -23,15 +24,6 @@ const steps = [
   { key: "verify", label: "Verify", icon: ShieldCheck },
 ];
 
-const businessTypes = [
-  "Independent Hotel",
-  "Boutique Hotel",
-  "Resort",
-  "Homestay / B&B",
-  "Serviced Apartments",
-  "Hostel",
-  "Chain / Group",
-];
 const countries = ["India", "United Arab Emirates", "Sri Lanka", "Nepal", "Bhutan", "Singapore", "Thailand"];
 
 const step1Schema = z.object({
@@ -48,7 +40,7 @@ const step1SchemaLoggedIn = step1Schema.omit({ password: true });
 const step2Schema = z.object({
   hotel_name: z.string().trim().min(2).max(120),
   company_name: z.string().trim().max(150).optional().or(z.literal("")),
-  business_type: z.string().min(1, "Select a business type"),
+  business_types: z.array(z.string()).min(1, "Select at least one business type"),
   country: z.string().min(1),
   state: z.string().trim().min(2).max(80),
   city: z.string().trim().min(2).max(80),
@@ -68,6 +60,7 @@ type FormData = {
   hotel_name: string;
   company_name: string;
   business_type: string;
+  business_types: string[];
   country: string;
   state: string;
   city: string;
@@ -85,6 +78,7 @@ const initialForm: FormData = {
   hotel_name: "",
   company_name: "",
   business_type: "",
+  business_types: [],
   country: "India",
   state: "",
   city: "",
@@ -224,7 +218,10 @@ export default function PartnerRegister() {
     setSubmitting(true);
     try {
       // Persist the form snapshot so KYC step can prefill after login
-      sessionStorage.setItem("partner_signup_snapshot", JSON.stringify(form));
+      sessionStorage.setItem("partner_signup_snapshot", JSON.stringify({
+        ...form,
+        business_type: form.business_types.map((k) => CATEGORY_BY_KEY[k]?.label ?? k).join(", "),
+      }));
 
       // Existing signed-in user reusing their own email → attach the hotel
       // partner profile to that account instead of creating a new one.
@@ -422,20 +419,30 @@ export default function PartnerRegister() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Hotel name" value={form.hotel_name} onChange={set("hotel_name")} />
                     <Field label="Company name (optional)" value={form.company_name} onChange={set("company_name")} />
-                    <div className="space-y-1.5">
-                      <Label>Business type</Label>
-                      <Select value={form.business_type} onValueChange={set("business_type")}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {businessTypes.map((b) => (
-                            <SelectItem key={b} value={b}>
-                              {b}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>Business type <span className="text-xs font-normal text-muted-foreground">(select all that apply)</span></Label>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {HOSPITALITY_CATEGORIES.map((c) => {
+                          const on = form.business_types.includes(c.key);
+                          return (
+                            <button
+                              key={c.key}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() =>
+                                set("business_types")(on ? form.business_types.filter((k) => k !== c.key) : [...form.business_types, c.key])
+                              }
+                              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                                on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <span className="text-lg" aria-hidden>{c.emoji}</span>
+                              <span className="flex-1">{c.label}</span>
+                              {on && <CheckCircle2 className="h-4 w-4" />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Country</Label>
