@@ -84,7 +84,7 @@ max_price, min_price (rupees per night, numbers or null).
     if (req.signal.aborted) return json({ error: "Cancelled" }, 499);
     const status = Number(e?.statusCode ?? e?.status ?? 500);
     if (status === 402) return json({ error: "AI credits are used up. Please add credits to keep using AI search." }, 402);
-    if (status === 429) return json({ error: "AI search is busy right now. Please try again in a moment." }, 429);
+    if (status === 429 || status === 503) return json({ error: "AI search is busy right now. Please try again in a moment." }, 429);
     if (status === 403) return json({ error: "AI search isn't available for this workspace right now." }, 403);
     console.error("hotel-ai-intent", e);
     return json({ error: "AI search failed. Please use the filters instead." }, 500);
