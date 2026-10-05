@@ -60,7 +60,7 @@ Amount paid: ${inr(booking.total_amount)}
 View: ${link}`;
 
     await sendManagedEmail(admin as any, {
-      to, subject, html, text,
+      to, from: FROM_EMAIL, subject, html, text,
       label: "hotel-booking-confirmation",
       idempotencyKey: `hotel-booking-confirm:${booking.id}`,
     });

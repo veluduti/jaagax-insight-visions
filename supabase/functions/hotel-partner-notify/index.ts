@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
     const label = isApproved ? "hotel-partner-approved" : "hotel-partner-rejected";
     const result = await sendManagedEmail(admin as any, {
-      to: app.email, subject, html, text, label,
+      to: app.email, from: FROM_EMAIL, subject, html, text, label,
       idempotencyKey: `${label}:${applicationId}`,
     });
     if (!result.sent) {

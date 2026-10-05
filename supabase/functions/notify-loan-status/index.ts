@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
     let emailed = false;
     try {
       const result = await sendManagedEmail(admin as any, {
-        to, subject: content.subject, html: content.html, text: content.subject, label,
+        to, from: FROM_EMAIL, subject: content.subject, html: content.html, text: content.subject, label,
         idempotencyKey: `${label}:${application_id}`,
       });
       emailed = result.sent;

@@ -133,7 +133,7 @@ export async function sendLifecycleEmail(
 
     const { subject, html, text, label } = buildEmail(event, ctx);
     await sendManagedEmail(admin as any, {
-      to, subject, html, text, label,
+      to, from: FROM_EMAIL, subject, html, text, label,
       idempotencyKey: `${label}:${ctx.propertyId}:${recipientUserId}:${ctx.extra?.bucket_key ?? crypto.randomUUID()}`,
     });
   } catch (e) {
