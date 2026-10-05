@@ -169,15 +169,14 @@ Deno.serve(async (req) => {
     };
     const lowestPrice = (p: any): number | null => {
       const prices: number[] = [];
-      for (const r of p.rooms ?? []) for (const rp of r.ratePlans ?? r.rate_plans ?? []) {
-        const v = Number(rp?.price?.perNight ?? rp?.pricePerNight ?? rp?.price?.net ?? rp?.price?.amount ?? NaN);
+      for (const r of p.rooms ?? []) for (const rp of r.ratePlans ?? []) {
+        const sell = (rp.prices ?? []).find((x: any) => x.priceType === "sell")?.price;
+        const v = sell != null ? Number(sell) / Math.max(1, nights) : Number(rp.jaaga?.basePrice ?? NaN);
         if (Number.isFinite(v) && v > 0) prices.push(v);
       }
-      const base = Number(p.raw?.price_per_night ?? p.pricePerNight ?? NaN);
-      if (!prices.length && Number.isFinite(base) && base > 0) prices.push(base);
-      return prices.length ? Math.min(...prices) : null;
+      return prices.length ? Math.round(Math.min(...prices)) : null;
     };
-    const text = (p: any) => JSON.stringify([p.facilities, p.amenities, p.raw?.amenities, p.name, p.description]).toLowerCase();
+    const text = (p: any) => JSON.stringify([p.jaaga?.amenities, p.jaaga?.description, p.propertyInfo?.name, p.remarks]).toLowerCase();
     const filtered = [...results, ...external].map((p: any) => {
       const t = text(p);
       const price = lowestPrice(p);
@@ -186,7 +185,7 @@ Deno.serve(async (req) => {
       score += amenityHits.length * 10;
       if (maxPrice && price && price <= maxPrice) score += 15;
       if (preferences.includes("budget") && price && price < 3000) score += 10;
-      if (preferences.includes("luxury") && Number(p.rating ?? p.starRating ?? p.raw?.star_rating ?? 0) >= 4) score += 10;
+      if (preferences.includes("luxury") && Number(p.propertyInfo?.starRating ?? 0) >= 4) score += 10;
       if (preferences.includes("family") && /family|kids|children/.test(t)) score += 5;
       if (preferences.includes("business") && /business|meeting|work/.test(t)) score += 5;
       return { ...p, matchScore: score, matchedAmenities: amenityHits, lowestPrice: price };
