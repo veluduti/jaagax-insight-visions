@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from '../_shared/managedEmail.ts'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -129,53 +130,19 @@ Deno.serve(async (req) => {
     }
     if (!to) return new Response(JSON.stringify({ ok: true, emailed: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: suppressed } = await admin.from("suppressed_emails").select("email").eq("email", to).maybeSingle();
-    if (suppressed) return new Response(JSON.stringify({ ok: true, emailed: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-    const messageId = crypto.randomUUID();
     const label = `loan-${status}`;
-
-    let unsubscribeToken: string | null = null;
+    let emailed = false;
     try {
-      const { data: existing } = await admin.from("email_unsubscribe_tokens").select("token").eq("email", to).maybeSingle();
-      if (existing?.token) unsubscribeToken = existing.token as string;
-      else {
-        const token = crypto.randomUUID();
-        const { error } = await admin.from("email_unsubscribe_tokens").insert({ email: to, token });
-        if (!error) unsubscribeToken = token;
-      }
-    } catch { /* best effort */ }
-
-    await admin.from("email_send_log").insert({
-      message_id: messageId, template_name: label, recipient_email: to, status: "pending",
-    });
-
-    const { error: qErr } = await admin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to,
-        from: FROM_EMAIL,
-        sender_domain: SENDER_DOMAIN,
-        subject: content.subject,
-        html: content.html,
-        text: content.subject,
-        purpose: "transactional",
-        label,
-        idempotency_key: `${label}:${application_id}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-
-    if (qErr) {
-      await admin.from("email_send_log").insert({
-        message_id: messageId, template_name: label, recipient_email: to,
-        status: "failed", error_message: qErr.message,
+      const result = await sendManagedEmail(admin as any, {
+        to, from: FROM_EMAIL, subject: content.subject, html: content.html, text: content.subject, label,
+        idempotencyKey: `${label}:${application_id}`,
       });
+      emailed = result.sent;
+    } catch (e) {
+      console.error("notify-loan-status send failed", (e as Error).message);
     }
 
-    return new Response(JSON.stringify({ ok: true, emailed: !qErr }), {
+    return new Response(JSON.stringify({ ok: true, emailed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
