@@ -550,9 +550,18 @@ export default function PartnerRooms() {
                   <div key={t} className="space-y-2">
                     <p className="text-sm font-medium">{cat?.emoji} {cat?.label ?? t} <Badge variant="secondary" className="ml-1">{count} added</Badge></p>
                     <div className="flex flex-wrap gap-2">
-                      {(INVENTORY_PRESETS[t] ?? INVENTORY_PRESETS.other).map((p) => (
+                      {allowedKinds([t]).length > 1 && (
+                        <Button size="sm" onClick={() => { setChooserTypes([t]); setChoosingKind(true); }}>
+                          <Plus className="mr-1 h-3.5 w-3.5" /> {addCtaFor([t])}
+                        </Button>
+                      )}
+                      {(INVENTORY_PRESETS[t] ?? INVENTORY_PRESETS.other).map((p) => {
+                        const tk = allowedKinds([t]);
+                        const k = tk.find((x) => x.unit === p.unit) ?? tk[0];
+                        return (
                         <Button key={p.name} size="sm" variant="outline" onClick={() => openEditor({
-                          ...emptyRoom, room_type: p.name, category: cat?.label ?? "Room", stay_unit: p.unit,
+                          ...emptyRoom, room_type: p.name, category: k?.categories[0] ?? cat?.label ?? "Room", stay_unit: k?.unit ?? p.unit,
+                          accommodation_kind: k?.key, attributes: {},
                           base_price: p.price, max_occupancy: p.occupancy,
                         })}>
                           <Plus className="mr-1 h-3.5 w-3.5" /> {p.name}
