@@ -1,3 +1,5 @@
+import { HOSPITALITY_CATEGORIES } from "@/config/hospitalityCategories";
+import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
@@ -49,6 +51,7 @@ export default function PartnerHotelProfile() {
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState<HotelForm>(EMPTY);
   const [amenityInput, setAmenityInput] = useState("");
+  const biz = usePartnerBusinessTypes();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof HotelForm>(k: K, v: HotelForm[K]) =>
@@ -215,6 +218,28 @@ export default function PartnerHotelProfile() {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader><CardTitle className="text-base">Business types</CardTitle></CardHeader>
+              <CardContent>
+                <p className="mb-3 text-xs text-muted-foreground">Your dashboard and customer search follow these choices. Changes save instantly.</p>
+                <div className="flex flex-wrap gap-2">
+                  {HOSPITALITY_CATEGORIES.map((c) => {
+                    const on = biz.types.includes(c.key);
+                    return (
+                      <button key={c.key} type="button" aria-pressed={on}
+                        onClick={() => {
+                          const next = on ? biz.types.filter((k) => k !== c.key) : [...biz.types, c.key];
+                          if (!next.length) return toast.error("Keep at least one business type");
+                          biz.save(next);
+                        }}
+                        className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border text-muted-foreground"}`}>
+                        {c.emoji} {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader><CardTitle className="text-base">Basic information</CardTitle></CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-4">
