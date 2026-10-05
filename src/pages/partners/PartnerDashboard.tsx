@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import BusinessTypePanels from "@/components/partners/BusinessTypePanels";
+import PartnerTodayPanel from "@/components/partners/PartnerTodayPanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +128,7 @@ export default function PartnerDashboard() {
   const [hotelName, setHotelName] = useState("Your property");
   const [hotelCity, setHotelCity] = useState("");
   const [hotelStatus, setHotelStatus] = useState("");
+  const [hotelIdForToday, setHotelIdForToday] = useState<string | null>(null);
   const [rooms, setRooms] = useState<RoomType[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [date, setDate] = useState<Date>(new Date());
@@ -169,6 +171,7 @@ export default function PartnerDashboard() {
       setHotelName(app.hotel_name || "Your property");
       setHotelCity(app.city || "");
       setHotelStatus(app.status || "");
+      setHotelIdForToday(app.approved_hotel_id || null);
 
       if (app.approved_hotel_id) {
         const { data: h } = await (supabase as any)
@@ -498,6 +501,7 @@ table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border-bottom:1p
             </Popover>
           </div>
         </div>
+        <PartnerTodayPanel hotelId={hotelIdForToday} groupName={hotelName} />
         <BusinessTypePanels />
 
 
