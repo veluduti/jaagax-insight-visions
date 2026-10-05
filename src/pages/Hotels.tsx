@@ -54,6 +54,7 @@ import { resolveHotelImages } from "@/lib/hotelImage";
 import { buildRoomCombinations, roomFitsAlone, toOccupancyRoom, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
 import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels/StayFinder";
+import { matchStayRequest, type Match } from "@/services/hospitality/matchingService";
 import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
 import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
 
@@ -536,6 +537,24 @@ const Hotels = () => {
 
     return result;
   }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+
+  // Shared stay request → matching engine. Reasons come only from partner-entered data.
+  const [matchById, setMatchById] = useState<Record<string, Match>>({});
+  const searchKey = [selectedCity, searchQuery, checkIn?.toDateString(), checkOut?.toDateString(), adults, children, searchParams.toString()].join("|");
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const loc = (selectedCity || searchQuery || "").trim();
+      matchStayRequest({
+        source: "search", location: loc || undefined, city: loc || undefined,
+        check_in: checkIn ? fmt(checkIn) : null, check_out: checkOut ? fmt(checkOut) : null,
+        adults: Math.max(1, adults), children, business_types: stayFilters.types,
+        preferences: stayFilters.prefs, amenities: stayFilters.amenities, budget_max: stayFilters.maxPrice,
+      }).then((r) => setMatchById(Object.fromEntries((r?.matches ?? []).map((m) => [m.hotel_id, m])))).catch(() => setMatchById({}));
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKey]);
 
   // Personal recommendations from the signed-in user's activity.
   const recommended = useMemo(() => {
@@ -1326,6 +1345,11 @@ const Hotels = () => {
                           {renderStars(hotel.star_rating)}
                         </div>
 
+                        {matchById[hotel.id]?.reasons?.length ? (
+                          <p className="mb-1 line-clamp-2 text-[11px] text-primary" title="Why this matched">
+                            ✓ {matchById[hotel.id].reasons.slice(0, 3).map((r) => r.label).join(" · ")}
+                          </p>
+                        ) : null}
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
                           <MapPin className="h-3 w-3 flex-shrink-0 text-primary" />
                           <span className="line-clamp-1 capitalize">
