@@ -83,3 +83,23 @@ export const AMENITY_CHIPS = [
 
 /** Stay-unit implied by a preference key, used for filtering rooms. */
 export const PREF_TO_UNIT: Record<string, StayUnit> = { private_room: "room", shared_room: "bed", entire_place: "unit" };
+
+/** Type-specific setup questions stored in partner_hotels.type_details. */
+export interface TypeSetupField { key: string; label: string; kind: "text" | "number" | "boolean" | "select"; options?: string[] }
+const common: TypeSetupField[] = [{ key: "house_rules", label: "House rules", kind: "text" }];
+export const TYPE_SETUP_FIELDS: Record<string, TypeSetupField[]> = {
+  hotel: [{ key: "front_desk_24h", label: "24-hour front desk", kind: "boolean" }, { key: "restaurant", label: "In-house restaurant", kind: "boolean" }, ...common],
+  resort: [{ key: "acres", label: "Property size (acres)", kind: "number" }, { key: "activities", label: "Activities offered", kind: "text" }, { key: "pool", label: "Swimming pool", kind: "boolean" }, ...common],
+  hostel: [{ key: "dorm_gender", label: "Dorm type", kind: "select", options: ["Mixed", "Female only", "Male only"] }, { key: "lockers", label: "Lockers", kind: "boolean" }, { key: "common_kitchen", label: "Common kitchen", kind: "boolean" }, ...common],
+  apartment: [{ key: "bhk", label: "Configuration (BHK)", kind: "select", options: ["1 RK", "1 BHK", "2 BHK", "3 BHK", "4+ BHK"] }, { key: "furnishing", label: "Furnishing", kind: "select", options: ["Fully furnished", "Semi furnished", "Unfurnished"] }, { key: "kitchen", label: "Kitchen", kind: "boolean" }, ...common],
+  serviced_apartment: [{ key: "housekeeping", label: "Housekeeping frequency", kind: "select", options: ["Daily", "Alternate days", "Weekly"] }, { key: "kitchen", label: "Kitchenette", kind: "boolean" }, ...common],
+  coliving: [{ key: "gender", label: "Residents", kind: "select", options: ["Co-ed", "Female only", "Male only"] }, { key: "workspace", label: "Co-working space", kind: "boolean" }, { key: "community_events", label: "Community events", kind: "boolean" }, { key: "min_months", label: "Minimum stay (months)", kind: "number" }, ...common],
+  pg: [{ key: "gender", label: "PG for", kind: "select", options: ["Boys", "Girls", "Co-ed"] }, { key: "food", label: "Meals included", kind: "select", options: ["None", "Breakfast", "Breakfast + Dinner", "All meals"] }, { key: "deposit_months", label: "Security deposit (months)", kind: "number" }, { key: "curfew", label: "Gate closing time", kind: "text" }, ...common],
+  homestay: [{ key: "host_lives_onsite", label: "Host lives on site", kind: "boolean" }, { key: "home_food", label: "Home-cooked food", kind: "boolean" }, ...common],
+  farm_stay: [{ key: "farm_activities", label: "Farm activities", kind: "text" }, { key: "organic_food", label: "Organic farm food", kind: "boolean" }, { key: "pets", label: "Pets allowed", kind: "boolean" }, ...common],
+};
+export function setupFieldsFor(types: string[]): TypeSetupField[] {
+  const seen = new Set<string>(); const out: TypeSetupField[] = [];
+  for (const t of types) for (const f of TYPE_SETUP_FIELDS[normalizeCategory(t)] ?? []) if (!seen.has(f.key)) { seen.add(f.key); out.push(f); }
+  return out.length ? out : common;
+}

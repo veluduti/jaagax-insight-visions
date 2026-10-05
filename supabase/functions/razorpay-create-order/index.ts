@@ -193,6 +193,16 @@ Deno.serve(async (req) => {
     bookingId = booking.id;
     bookingRef = booking.booking_reference ?? null;
 
+    // Double-booking protection: lock and hold inventory on the shared calendar.
+    const { data: hold, error: holdErr } = await supabase.rpc("reserve_inventory", { _booking_id: bookingId });
+    if (holdErr || (hold && (hold as any).ok === false)) {
+      await supabase.from("hotel_bookings").update({
+        status: "cancelled", payment_status: "failed",
+        cancellation_reason: "Room no longer available",
+      }).eq("id", bookingId);
+      return json({ error: (hold as any)?.error || "Sorry, this room was just booked for those dates." }, 409);
+    }
+
     // Persist every billing component with its price snapshot.
     await saveBookingItems(supabase, bookingId, hotel_id, result);
 
@@ -227,6 +237,7 @@ Deno.serve(async (req) => {
         payment_status: "failed",
         cancellation_reason: "Razorpay order creation failed",
       }).eq("id", bookingId);
+      await supabase.from("hotel_availability_blocks").delete().eq("booking_id", bookingId);
       return json({ error: order?.error?.description || "Failed to create payment order" }, 502);
     }
 

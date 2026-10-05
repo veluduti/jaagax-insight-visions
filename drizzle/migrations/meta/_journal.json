@@ -43,6 +43,13 @@
       "when": 1791194391096,
       "tag": "0005_sync_hotel_business_types",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791196785506,
+      "tag": "0006_hospitality_connected_system",
+      "breakpoints": true
     }
   ]
 }

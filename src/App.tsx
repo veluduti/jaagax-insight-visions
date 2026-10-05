@@ -185,6 +185,10 @@ const FinancialNotifications = lazy(() => import("./pages/financial/Notification
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerPortfolio = lazy(() => import("./pages/partners/PartnerPortfolio"));
+const PartnerInventory = lazy(() => import("./pages/partners/PartnerInventory"));
+const PartnerDemand = lazy(() => import("./pages/partners/PartnerDemand"));
+const AdminHospitality = lazy(() => import("./pages/AdminHospitality"));
 const PartnerPricing = lazy(() => import("./pages/partners/PartnerPricing"));
 const PartnerAddons = lazy(() => import("./pages/partners/PartnerAddons"));
 const PartnerBookingEngine = lazy(() => import("./pages/partners/PartnerBookingEngine"));
@@ -550,6 +554,10 @@ const App = () => (
                   <Route path="/partners/payouts" element={<PartnerPayouts />} />
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
                   <Route path="/partners/staff" element={<PartnerStaff />} />
+                  <Route path="/partners/portfolio" element={<PartnerPortfolio />} />
+                  <Route path="/partners/inventory" element={<PartnerInventory />} />
+                  <Route path="/partners/demand" element={<PartnerDemand />} />
+                  <Route path="/admin/hospitality" element={<ProtectedRoute allowedRole="admin"><AdminHospitality /></ProtectedRoute>} />
                   <Route path="/partners/pricing" element={<PartnerPricing />} />
                   <Route path="/partners/addons" element={<PartnerAddons />} />
                   <Route path="/partners/rate-plans" element={<PartnerRatePlans />} />
