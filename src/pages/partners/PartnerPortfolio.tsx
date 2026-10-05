@@ -109,9 +109,27 @@ export default function PartnerPortfolio() {
               <CardContent className="space-y-5">
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div><Label>Business</Label>
-                    <Select value={p.business_id ?? undefined} onValueChange={async (v) => { await assignPropertyToBusiness(p.id, v).catch((e) => toast.error(e.message)); load(); }}>
-                      <SelectTrigger><SelectValue placeholder="Choose business" /></SelectTrigger>
-                      <SelectContent>{businesses.map((b) => <SelectItem key={b.id} value={b.id}>{b.legal_name}</SelectItem>)}</SelectContent>
+                    <Select value={p.business_id ?? undefined} onValueChange={async (v) => {
+                      try {
+                        let id = v;
+                        if (v === "__new") {
+                          const name = window.prompt("Business name", account.display_name || p.name)?.trim();
+                          if (!name) return;
+                          await createBusiness(account.id, name);
+                          const list = await listBusinesses(account.id);
+                          id = list[list.length - 1]?.id;
+                          if (!id) return;
+                        }
+                        await assignPropertyToBusiness(p.id, id);
+                        toast.success("Business linked");
+                      } catch (e: any) { toast.error(e.message); }
+                      load();
+                    }}>
+                      <SelectTrigger><SelectValue placeholder={businesses.length ? "Choose business" : "No business yet — create one"} /></SelectTrigger>
+                      <SelectContent>
+                        {businesses.map((b) => <SelectItem key={b.id} value={b.id}>{b.legal_name}</SelectItem>)}
+                        <SelectItem value="__new">+ Create new business</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                   <div><Label>Property types</Label><p className="pt-2 text-sm">{(p.business_types ?? []).join(", ") || "Set in Hotel Profile"}</p></div>
