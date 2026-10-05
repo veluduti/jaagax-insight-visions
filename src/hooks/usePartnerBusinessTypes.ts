@@ -2,11 +2,21 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { modulesFor, normalizeCategory, type PartnerModule } from "@/config/hospitalityCategories";
 
+const ACTIVE_KEY = "partner_active_business_type";
+const ACTIVE_EVT = "partner-active-type-change";
+
 /** Loads the signed-in partner's selected business types and derived dashboard modules. */
 export function usePartnerBusinessTypes() {
   const [types, setTypes] = useState<string[]>([]);
   const [appId, setAppId] = useState<string | null>(null);
   const [hotelId, setHotelId] = useState<string | null>(null);
+  const [activeType, setActiveTypeState] = useState<string>(() => localStorage.getItem(ACTIVE_KEY) || "all");
+
+  useEffect(() => {
+    const sync = () => setActiveTypeState(localStorage.getItem(ACTIVE_KEY) || "all");
+    window.addEventListener(ACTIVE_EVT, sync);
+    return () => window.removeEventListener(ACTIVE_EVT, sync);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -41,12 +51,19 @@ export function usePartnerBusinessTypes() {
     if (hotelId) await (supabase as any).from("partner_hotels").update({ business_types: next }).eq("id", hotelId);
   };
 
-  const modules: Set<PartnerModule> = modulesFor(types);
+  const setActiveType = (t: string) => {
+    localStorage.setItem(ACTIVE_KEY, t);
+    window.dispatchEvent(new Event(ACTIVE_EVT));
+  };
+
+  const effectiveActive = activeType !== "all" && types.includes(activeType) ? activeType : "all";
+  const scoped = effectiveActive === "all" ? types : [effectiveActive];
+  const modules: Set<PartnerModule> = modulesFor(scoped);
   const inventoryLabel = [
     modules.has("rooms") && "Rooms",
     modules.has("beds") && "Beds",
     modules.has("units") && "Units",
   ].filter(Boolean).join(", ") || "Rooms";
 
-  return { types, modules, inventoryLabel, hotelId, save };
+  return { types, modules, inventoryLabel, hotelId, save, activeType: effectiveActive, setActiveType };
 }
