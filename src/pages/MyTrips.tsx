@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, MessageSquare, Star, XCircle, LifeBuoy, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import GetHelpDialog from "@/components/hotels/GetHelpDialog";
+import AssistantPanel from "@/components/hospitality/AssistantPanel";
 import { supabase } from "@/integrations/supabase/client";
 import {
   loadMyTrips, tripStage, holdMinutesLeft, sendTripMessage, submitReview, cancelTrip, type Trip, type TripStage,
@@ -99,6 +100,7 @@ export default function MyTrips() {
               })}
             </div>
           )}
+        <div className="my-4"><AssistantPanel role="customer" title="Questions about your stay?" /></div>
       </main>
 
       <GetHelpDialog open={!!helpFor} onClose={() => setHelpFor(null)} booking={helpFor} />

@@ -7,3 +7,4 @@
 - Partner daily operations (check-in/out, housekeeping, maintenance) go through `src/services/hospitality/operationsService.ts` and `hotel_ops_tasks`; check-out auto-creates a cleaning task so front desk and housekeeping share one flow.
 - Long stays/co-living residents and rent use `hotel_long_stays` + `hotel_rent_dues`; the waitlist lives in `hotel_waitlist` and is notified by a trigger when an availability block is deleted, so every room release path alerts waiting guests.
 - Hospitality support, refunds, disputes and safety reports are `hospitality_tickets` (+ `hospitality_ticket_updates`) handled in the Ops queue on `/admin/hospitality`; tickets get priority from their kind so safety is always first.
+- Role-based hospitality AI help (owner/staff/customer/admin) goes through the `hospitality-assistant` function and `AssistantPanel`; owner growth tips are computed in `growthService.ts` from real data so the AI only explains, never invents numbers.
