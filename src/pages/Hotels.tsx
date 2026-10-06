@@ -490,7 +490,7 @@ const Hotels = () => {
       maxPrice: intent.max_price || null,
     };
     setStayFilters(merged, { kinds: intent.accommodation_kinds || [], opt: intent.optional_amenities || [] });
-    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); setSelectedLocality(null as any); }
+    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); setSelectedLocality(null); }
     if (intent.adults) { setAdults(intent.adults); setTempAdults(intent.adults); }
     if (intent.children != null) { setChildren(intent.children); setTempChildren(intent.children); }
     if (intent.rooms) { setRooms(intent.rooms); setTempRooms(intent.rooms); }
@@ -1351,6 +1351,12 @@ const Hotels = () => {
               </Button>
             </div>
           ) : (
+            <>
+            {searchOutcome.partial && (
+              <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
+                No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
@@ -1416,6 +1422,11 @@ const Hotels = () => {
                           {renderStars(hotel.star_rating)}
                         </div>
 
+                        {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? (
+                          <p className="mb-1 text-[11px] font-medium text-destructive">
+                            Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}
+                          </p>
+                        ) : null}
                         {matchById[hotel.id]?.reasons?.length ? (
                           <p className="mb-1 line-clamp-2 text-[11px] text-primary" title="Why this matched">
                             ✓ {matchById[hotel.id].reasons.slice(0, 3).map((r) => r.label).join(" · ")}

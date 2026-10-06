@@ -28,6 +28,8 @@ export interface AiIntent {
   check_in: string | null;
   max_price: number | null;
   min_price: number | null;
+  accommodation_kinds?: string[];
+  optional_amenities?: string[];
 }
 
 interface Props {
@@ -100,7 +102,7 @@ export default function StayFinder({ value, onChange, onAiIntent }: Props) {
           <Input
             value={aiText}
             onChange={(e) => setAiText(e.target.value)}
-            placeholder='Describe your stay — e.g. "Hotel in Hyderabad for family under ₹3,000 with breakfast"'
+            placeholder='Describe your stay — e.g. "Pool villa in Delhi for 4 people, preferably with breakfast"'
             className="h-11 pl-9"
             maxLength={500}
           />
