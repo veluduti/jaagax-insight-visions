@@ -92,6 +92,13 @@
       "when": 1791268390522,
       "tag": "0012_demo_hotel_booking_insert",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791281175802,
+      "tag": "0013_smart_visit_plans",
+      "breakpoints": true
     }
   ]
 }
