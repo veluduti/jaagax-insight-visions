@@ -26,6 +26,15 @@ export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requireP
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { nav("/partners/login", { replace: true }); return; }
 
+      // Demo mode: a hidden sample property the user manages (never shown to customers).
+      const demoId = localStorage.getItem("partner_demo_hotel");
+      if (demoId) {
+        const { data: demo } = await (supabase as any).from("partner_hotels").select("id,name")
+          .eq("id", demoId).eq("manager_id", user.id).contains("tags", ["demo"]).maybeSingle();
+        if (demo) { setCtx({ loading: false, userId: user.id, hotelId: demo.id, hotelName: demo.name, applicationId: null }); return; }
+        localStorage.removeItem("partner_demo_hotel");
+      }
+
       const { data: app } = await (supabase as any)
         .from("hotel_partner_applications")
         .select("id,status,pms_setup_completed,hotel_name,approved_hotel_id")
