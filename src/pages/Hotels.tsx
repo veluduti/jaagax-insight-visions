@@ -181,6 +181,8 @@ const Hotels = () => {
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
+  // Generic City → Locality index built from live hotel data (works for any city)
+  const locationIndex = useMemo(() => buildLocationIndex(hotels), [hotels]);
 
   // Age options for children
   const ageOptions = [
@@ -507,7 +509,7 @@ const Hotels = () => {
         hotel.name.toLowerCase().includes(q) ||
         hotel.city.toLowerCase().includes(q) ||
         hotel.locality.toLowerCase().includes(q) ||
-        (hotel.address || "").toLowerCase().includes(q);
+        (hotel.address || "").toLowerCase().includes(q));
 
       let matchesPrice = true;
       if (selectedPriceRange !== "all") {
@@ -546,7 +548,7 @@ const Hotels = () => {
     result.sort((a, b) => relevance(b) - relevance(a) || (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
@@ -832,6 +834,7 @@ const Hotels = () => {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
+                        if (selectedLocality) setSelectedLocality(null);
                         setShowSuggestions(true);
                       }}
                       onFocus={() => setShowSuggestions(true)}
