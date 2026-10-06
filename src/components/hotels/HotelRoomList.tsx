@@ -11,6 +11,7 @@ import {
   ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers, Tag,
 } from "lucide-react";
 import { toast } from "sonner";
+import { joinWaitlist } from "@/services/hospitality/longStayService";
 import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { boardLabel } from "@/types/hotelCanonical";
 
@@ -539,6 +540,14 @@ export default function HotelRoomList({
                       </>
                     )}
                   </div>
+                  {soldOut && checkIn && checkOut && (
+                    <Button variant="outline" className="min-w-[140px] xl:w-full"
+                      onClick={() => joinWaitlist({ hotel_id: hotelId, room_id: room.id, check_in: checkIn, check_out: checkOut, guests: adults + children })
+                        .then(() => toast.success("You're on the waitlist. We'll notify you if this frees up."))
+                        .catch((e) => toast.error(e.message))}>
+                      Notify me if free
+                    </Button>
+                  )}
                   <Button
                     className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}

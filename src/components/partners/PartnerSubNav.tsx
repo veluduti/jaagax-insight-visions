@@ -24,6 +24,7 @@ const more = [
   { to: "mailto:support@jaagax.com", label: "Support", icon: LifeBuoy },
   { sep: true },
   { to: "/partners/portfolio", label: "Account & Businesses", icon: Briefcase },
+  { to: "/partners/long-stays", label: "Long Stays & Waitlist", icon: CalendarRange },
   { to: "/partners/staff", label: "Staff", icon: UserCog },
   { to: "/partners/demand", label: "Demand & Matches", icon: Target },
   { to: "/partners/rate-plans", label: "Rate Plans", icon: Tag },

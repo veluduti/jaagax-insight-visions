@@ -71,6 +71,13 @@
       "when": 1791266909795,
       "tag": "0009_payment_hold_expiry_and_staff_access",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791267217843,
+      "tag": "0010_long_stays_and_waitlist",
+      "breakpoints": true
     }
   ]
 }

@@ -4925,6 +4925,84 @@ export type Database = {
           },
         ]
       }
+      hotel_long_stays: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deposit: number
+          hotel_id: string
+          id: string
+          monthly_rent: number
+          move_in: string
+          move_out: string | null
+          notes: string | null
+          rent_due_day: number
+          resident_email: string | null
+          resident_name: string
+          resident_phone: string | null
+          room_id: string | null
+          status: string
+          unit_label: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deposit?: number
+          hotel_id: string
+          id?: string
+          monthly_rent?: number
+          move_in: string
+          move_out?: string | null
+          notes?: string | null
+          rent_due_day?: number
+          resident_email?: string | null
+          resident_name: string
+          resident_phone?: string | null
+          room_id?: string | null
+          status?: string
+          unit_label?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deposit?: number
+          hotel_id?: string
+          id?: string
+          monthly_rent?: number
+          move_in?: string
+          move_out?: string | null
+          notes?: string | null
+          rent_due_day?: number
+          resident_email?: string | null
+          resident_name?: string
+          resident_phone?: string | null
+          room_id?: string | null
+          status?: string
+          unit_label?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_long_stays_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_long_stays_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_meals: {
         Row: {
           adult_price: number
@@ -5782,6 +5860,60 @@ export type Database = {
           },
         ]
       }
+      hotel_rent_dues: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          hotel_id: string
+          id: string
+          paid_at: string | null
+          payment_note: string | null
+          period_month: string
+          status: string
+          stay_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date: string
+          hotel_id: string
+          id?: string
+          paid_at?: string | null
+          payment_note?: string | null
+          period_month: string
+          status?: string
+          stay_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          hotel_id?: string
+          id?: string
+          paid_at?: string | null
+          payment_note?: string | null
+          period_month?: string
+          status?: string
+          stay_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_rent_dues_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_rent_dues_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_reviews: {
         Row: {
           body: string | null
@@ -6175,6 +6307,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      hotel_waitlist: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          guests: number
+          hotel_id: string
+          id: string
+          notified_at: string | null
+          room_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          guests?: number
+          hotel_id: string
+          id?: string
+          notified_at?: string | null
+          room_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          guests?: number
+          hotel_id?: string
+          id?: string
+          notified_at?: string | null
+          room_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_waitlist_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_waitlist_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kyc_documents: {
         Row: {
