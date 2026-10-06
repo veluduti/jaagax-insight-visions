@@ -6,11 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { searchHotels } from "@/services/hotelChannelService";
 import { ratePlanSellPrice, type CanonicalProperty } from "@/types/hotelCanonical";
 import { HOTEL_IMAGE_FALLBACK, resolveHotelImage } from "@/lib/hotelImage";
+import { canonicalizeCity } from "@/lib/cityNormalizer";
 
 type Stay = { hotel: CanonicalProperty; image: string };
 
 export default function PlanNearbyHotels({ destination }: { destination?: string | null }) {
-  const city = destination?.trim() ?? "";
+  const city = (destination?.trim() ?? "").split(",")[0].trim();
   const [stays, setStays] = useState<Stay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -21,8 +22,10 @@ export default function PlanNearbyHotels({ destination }: { destination?: string
     setError(false);
     if (!city) return;
     setLoading(true);
-    void searchHotels({ city, limit: 6 }).then(async (result) => {
-      const matches = await Promise.all((result.results ?? []).filter((hotel) => hotel.jaagaHotelId).map(async (hotel) => ({
+    const cities = Array.from(new Set(city.split(/\s+(?:and|to)\s+|\s*[&/]\s*/i).map(canonicalizeCity).filter(Boolean))).slice(0, 4);
+    void Promise.all(cities.map((city) => searchHotels({ city, limit: 6 }))).then(async (results) => {
+      const unique = new Map(results.flatMap((result) => result.results ?? []).filter((hotel) => hotel.jaagaHotelId).map((hotel) => [hotel.jaagaHotelId, hotel]));
+      const matches = await Promise.all(Array.from(unique.values()).slice(0, 6).map(async (hotel) => ({
         hotel, image: await resolveHotelImage(hotel.jaaga?.images?.[0]),
       })));
       if (alive) setStays(matches);
