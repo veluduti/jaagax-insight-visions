@@ -116,16 +116,21 @@ const Hotels = () => {
     amenities: listParam("amen"),
     maxPrice: Number(searchParams.get("maxp")) || null,
   };
-  const setStayFilters = (f: StayFilters) => {
+  // AI-only criteria: accommodation kinds (e.g. villa) and "preferably" amenities.
+  const aiKinds = listParam("kinds");
+  const aiOptional = listParam("opt");
+  const setStayFilters = (f: StayFilters, extra?: { kinds: string[]; opt: string[] }) => {
     const next = new URLSearchParams(searchParams);
     const put = (k: string, v: string) => (v ? next.set(k, v) : next.delete(k));
     put("types", f.types.join(","));
     put("prefs", f.prefs.join(","));
     put("amen", f.amenities.join(","));
     put("maxp", f.maxPrice ? String(f.maxPrice) : "");
+    if (extra) { put("kinds", extra.kinds.join(",")); put("opt", extra.opt.join(",")); }
     setSearchParams(next, { replace: true });
   };
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
+  const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [profile, setProfile] = useState<StayProfile | null>(null);
   useEffect(() => { loadStayProfile().then(setProfile).catch(() => null); }, []);
   const { detectedLocation } = useLocation();
