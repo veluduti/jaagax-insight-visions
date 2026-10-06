@@ -12263,6 +12263,8 @@ export type Database = {
           interest_note: string | null
           interest_property_ids: string[]
           interested_to_buy: boolean
+          paid_at: string | null
+          payment_status: string
           pickup_address: string | null
           pickup_lat: number | null
           pickup_lng: number | null
@@ -12272,6 +12274,8 @@ export type Database = {
           price_per_person: number
           rated_at: string | null
           rating: number | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           review: string | null
           seats: number
           status: string
@@ -12289,6 +12293,8 @@ export type Database = {
           interest_note?: string | null
           interest_property_ids?: string[]
           interested_to_buy?: boolean
+          paid_at?: string | null
+          payment_status?: string
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -12298,6 +12304,8 @@ export type Database = {
           price_per_person?: number
           rated_at?: string | null
           rating?: number | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           review?: string | null
           seats?: number
           status?: string
@@ -12315,6 +12323,8 @@ export type Database = {
           interest_note?: string | null
           interest_property_ids?: string[]
           interested_to_buy?: boolean
+          paid_at?: string | null
+          payment_status?: string
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -12324,6 +12334,8 @@ export type Database = {
           price_per_person?: number
           rated_at?: string | null
           rating?: number | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           review?: string | null
           seats?: number
           status?: string
