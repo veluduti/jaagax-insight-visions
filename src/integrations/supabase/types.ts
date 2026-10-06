@@ -13416,6 +13416,7 @@ export type Database = {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined
       }
+      release_expired_payment_holds: { Args: never; Returns: number }
       release_inventory: { Args: { _booking_id: string }; Returns: Json }
       renew_property_listing: {
         Args: { _property_id: string }
