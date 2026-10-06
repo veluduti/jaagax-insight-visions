@@ -7,6 +7,7 @@ import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "../_
 
 const CATEGORIES = ["hotel","resort","hostel","apartment","serviced_apartment","coliving","pg","homestay","farm_stay","villa","guest_house","boutique","private_room","shared_room"];
 const PREFS = ["family","couple","business","budget","luxury","private_room","shared_room","entire_place","short_stay","long_stay","monthly"];
+const KINDS = ["villa","cottage","tent","cabin","apartment","dorm","private_room","shared_room","entire_home"];
 const AMENITIES = ["pet_friendly","breakfast","wifi","parking","pool","ac","gym","restaurant","kitchen","laundry"];
 
 const Body = z.object({ query: z.string().trim().min(3).max(500), today: z.string().max(20).optional() });
@@ -22,6 +23,8 @@ const Intent = z.object({
   check_in: z.string().nullable().catch(null),
   max_price: z.number().nullable().catch(null),
   min_price: z.number().nullable().catch(null),
+  accommodation_kinds: z.array(z.string()).catch([]),
+  optional_amenities: z.array(z.string()).catch([]),
 });
 
 const json = (d: unknown, status = 200) =>
@@ -35,14 +38,22 @@ Deno.serve(async (req) => {
   if (!apiKey) return json({ error: "AI search is not configured." }, 500);
 
   const today = parsed.data.today || new Date().toISOString().slice(0, 10);
-  const system = `You extract hotel search filters from Indian travellers' requests. Today is ${today}.
-Reply with ONLY a JSON object, no prose, with keys:
-location (city/area/landmark string or null), business_types (subset of ${JSON.stringify(CATEGORIES)}),
-preferences (subset of ${JSON.stringify(PREFS)}), amenities (subset of ${JSON.stringify(AMENITIES)}),
-adults, children, rooms, nights (integers or null), check_in (YYYY-MM-DD or null),
-max_price, min_price (rupees per night, numbers or null).
-"for my family" => preferences family; "two people" => adults 2; "under 3000" => max_price 3000;
-"private room" => business_types ["private_room"] and preferences ["private_room"]; monthly/PG => preferences monthly.`;
+  const system = `You turn Indian travellers' stay requests into search filters. Understand the WHOLE meaning, not single keywords. Today is ${today}.
+Reply with ONLY a JSON object (no prose) with keys:
+location: city/area/landmark only (e.g. "Delhi", "Bangalore"), never words like "near"; null if none.
+business_types: property types, subset of ${JSON.stringify(CATEGORIES)}.
+accommodation_kinds: specific unit the guest wants inside a property, subset of ${JSON.stringify(KINDS)}.
+amenities: REQUIRED amenities, subset of ${JSON.stringify(AMENITIES)}.
+optional_amenities: amenities said with "preferably", "if possible", "would be nice"; same list. Never also put them in amenities.
+preferences: subset of ${JSON.stringify(PREFS)}.
+adults, children, rooms, nights: integers or null. check_in: YYYY-MM-DD or null. max_price, min_price: rupees per night or null.
+Rules:
+- Keep property type and amenities separate. "pool villa" => accommodation_kinds ["villa"] + amenities ["pool"] (no business_types unless a type is named). "hotel with a pool villa" => same; do NOT set business_types ["hotel"].
+- "villa" alone => accommodation_kinds ["villa"]. "farm stay"/"farmhouse stay"/"agri stay" => business_types ["farm_stay"]. "resort" => ["resort"]. "PG"/"paying guest" => ["pg"], preferences monthly.
+- "swimming pool" => pool. "free wifi"/"internet" => wifi. "pets allowed" => pet_friendly. "car parking" => parking.
+- "for 4 people"/"we are four" => adults 4. "family"/"kids" => preferences family. "cheap"/"budget"/"affordable" => preferences budget. "luxury"/"5 star" => luxury. "couple"/"honeymoon" => couple.
+- "under 3000"/"below 3k" => max_price 3000. "private room" => accommodation_kinds ["private_room"], preferences ["private_room"].
+- Only include what the user actually asked for. Empty arrays when nothing applies.`;
 
   const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(req));
   const provider = createOpenAI({
@@ -79,6 +90,8 @@ max_price, min_price (rupees per night, numbers or null).
     intent.business_types = intent.business_types.filter((x) => CATEGORIES.includes(x));
     intent.preferences = intent.preferences.filter((x) => PREFS.includes(x));
     intent.amenities = intent.amenities.filter((x) => AMENITIES.includes(x));
+    intent.accommodation_kinds = intent.accommodation_kinds.filter((x) => KINDS.includes(x));
+    intent.optional_amenities = intent.optional_amenities.filter((x) => AMENITIES.includes(x) && !intent.amenities.includes(x));
     return json({ intent });
   } catch (e: any) {
     if (req.signal.aborted) return json({ error: "Cancelled" }, 499);

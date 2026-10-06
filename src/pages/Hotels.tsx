@@ -59,6 +59,17 @@ import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories"
 import { buildLocationIndex, findCities, findLocalities, sameLocality } from "@/lib/locationAutocomplete";
 import { isSameCity } from "@/lib/cityNormalizer";
 
+interface RoomFeature { kind: string; text: string }
+
+const KIND_LABEL: Record<string, string> = {
+  villa: "Villa", cottage: "Cottage", tent: "Tent", cabin: "Cabin", apartment: "Apartment",
+  dorm: "Dorm bed", private_room: "Private room", shared_room: "Shared room", entire_home: "Entire home", room: "Room",
+};
+const AMENITY_LABEL: Record<string, string> = {
+  wifi: "Wi-Fi", breakfast: "Breakfast", parking: "Parking", pool: "Pool", pet_friendly: "Pet-friendly",
+  ac: "AC", gym: "Gym", restaurant: "Restaurant", kitchen: "Kitchen", laundry: "Laundry",
+};
+
 interface PartnerHotel {
   id: string;
   name: string;
@@ -116,16 +127,21 @@ const Hotels = () => {
     amenities: listParam("amen"),
     maxPrice: Number(searchParams.get("maxp")) || null,
   };
-  const setStayFilters = (f: StayFilters) => {
+  // AI-only criteria: accommodation kinds (e.g. villa) and "preferably" amenities.
+  const aiKinds = listParam("kinds");
+  const aiOptional = listParam("opt");
+  const setStayFilters = (f: StayFilters, extra?: { kinds: string[]; opt: string[] }) => {
     const next = new URLSearchParams(searchParams);
     const put = (k: string, v: string) => (v ? next.set(k, v) : next.delete(k));
     put("types", f.types.join(","));
     put("prefs", f.prefs.join(","));
     put("amen", f.amenities.join(","));
     put("maxp", f.maxPrice ? String(f.maxPrice) : "");
+    if (extra) { put("kinds", extra.kinds.join(",")); put("opt", extra.opt.join(",")); }
     setSearchParams(next, { replace: true });
   };
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
+  const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [profile, setProfile] = useState<StayProfile | null>(null);
   useEffect(() => { loadStayProfile().then(setProfile).catch(() => null); }, []);
   const { detectedLocation } = useLocation();
@@ -274,7 +290,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -282,8 +298,13 @@ const Hotels = () => {
         const minByHotel = new Map<string, number>();
         const occByHotel: Record<string, OccupancyRoom[]> = {};
         const units: Record<string, Set<string>> = {};
+        const feats: Record<string, RoomFeature[]> = {};
         (roomsRes.data || []).forEach((r: any) => {
           (units[r.hotel_id] ||= new Set()).add(r.stay_unit || "room");
+          (feats[r.hotel_id] ||= []).push({
+            kind: r.accommodation_kind || "room",
+            text: JSON.stringify([r.room_type, r.amenities, r.attributes]).toLowerCase(),
+          });
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
           (occByHotel[r.hotel_id] ||= []).push(
@@ -297,6 +318,7 @@ const Hotels = () => {
         });
         setRoomsByHotel(occByHotel);
         setUnitsByHotel(units);
+        setRoomFeatures(feats);
 
 
         const enriched = await Promise.all(
@@ -467,8 +489,8 @@ const Hotels = () => {
       amenities: intent.amenities || [],
       maxPrice: intent.max_price || null,
     };
-    setStayFilters(merged);
-    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); }
+    setStayFilters(merged, { kinds: intent.accommodation_kinds || [], opt: intent.optional_amenities || [] });
+    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); setSelectedLocality(null); }
     if (intent.adults) { setAdults(intent.adults); setTempAdults(intent.adults); }
     if (intent.children != null) { setChildren(intent.children); setTempChildren(intent.children); }
     if (intent.rooms) { setRooms(intent.rooms); setTempRooms(intent.rooms); }
@@ -487,7 +509,7 @@ const Hotels = () => {
   };
 
   const onStayFiltersChange = (f: StayFilters) => {
-    setStayFilters(f);
+    setStayFilters(f, f.types.join() !== stayFilters.types.join() || f.amenities.join() !== stayFilters.amenities.join() ? { kinds: [], opt: [] } : undefined);
     logHotelSignal("search", {
       source: "filters", city: selectedCity !== "all" ? selectedCity : null, business_types: f.types,
       preferences: f.prefs, amenities: f.amenities, max_price: f.maxPrice,
@@ -495,7 +517,7 @@ const Hotels = () => {
   };
 
   // Filter and sort hotels
-  const filteredAndSortedHotels = useMemo(() => {
+  const searchOutcome = useMemo(() => {
     // When the box shows a picked city/area label, the city+locality filters do the work.
     const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
     let result = hotels.filter((hotel) => {
@@ -532,23 +554,62 @@ const Hotels = () => {
               maxRooms: Math.max(rooms, 6), limit: 1,
             }).length > 0;
 
-      // Business-type / stay-unit / budget / amenity filters.
-      const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
-      const matchesType = !stayFilters.types.length || stayFilters.types.some((t) => hTypes.includes(t));
-      const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
-      const hUnits = unitsByHotel[hotel.id] || new Set(["room"]);
-      const matchesUnit = !wantUnits.length || wantUnits.some((u) => hUnits.has(u));
+      const matchesUnit = (() => {
+        const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
+        const hUnits = unitsByHotel[hotel.id] || new Set(["room"]);
+        return !wantUnits.length || wantUnits.some((u) => hUnits.has(u));
+      })();
       const matchesBudget = !stayFilters.maxPrice || hotel.price_per_night <= stayFilters.maxPrice;
-      const amText = (hotel.amenities || []).join(" ").toLowerCase();
-      const matchesAmen = stayFilters.amenities.every((a) => amenityMatch(amText, a));
 
-      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy && matchesType && matchesUnit && matchesBudget && matchesAmen;
+      // Hard filters: location, dates/guests, price.
+      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy && matchesBudget && matchesUnit;
     });
 
-    result.sort((a, b) => relevance(b) - relevance(a) || (b.star_rating || 0) - (a.star_rating || 0));
+    // Requirement checks (AND logic). Stay type and amenities are separate:
+    // "pool villa" = a villa (property type or accommodation) that also has a pool.
+    const missing: Record<string, string[]> = {};
+    const scored = result.map((hotel) => {
+      const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
+      const feats = roomFeatures[hotel.id] || [];
+      const roomKinds = new Set(feats.map((f) => f.kind));
+      const hotelText = JSON.stringify([hotel.amenities, hotel.description]).toLowerCase();
+      const miss: string[] = [];
+      let hits = 0;
 
-    return result;
-  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+      if (stayFilters.types.length) {
+        const ok = stayFilters.types.some((t) => hTypes.includes(t) || roomKinds.has(t));
+        ok ? hits++ : miss.push("stay type");
+      }
+      // Rooms of the requested kind (e.g. villas) — amenities are then checked on those.
+      let scope = feats;
+      if (aiKinds.length) {
+        const kindRooms = feats.filter((f) => aiKinds.includes(f.kind));
+        const typeOk = aiKinds.some((k) => hTypes.includes(k));
+        if (kindRooms.length) { scope = kindRooms; hits++; }
+        else if (typeOk) hits++;
+        else miss.push(aiKinds.map((k) => KIND_LABEL[k] || k).join("/"));
+      }
+      const scopeText = hotelText + scope.map((f) => f.text).join(" ");
+      stayFilters.amenities.forEach((a) => {
+        amenityMatch(scopeText, a) ? hits++ : miss.push(AMENITY_LABEL[a] || a);
+      });
+      const optHits = aiOptional.filter((a) => amenityMatch(scopeText, a)).length;
+      if (miss.length) missing[hotel.id] = miss;
+      return { hotel, hits, optHits, miss: miss.length };
+    });
+
+    const exact = scored.filter((s) => s.miss === 0);
+    const hasRequirements = stayFilters.types.length + aiKinds.length + stayFilters.amenities.length > 0;
+    // No exact match → show the closest partial matches, clearly labelled.
+    const partial = exact.length === 0 && hasRequirements;
+    const pool = partial ? scored.filter((s) => s.hits > 0) : exact;
+    pool.sort((a, b) =>
+      b.hits - a.hits || b.optHits - a.optHits ||
+      relevance(b.hotel) - relevance(a.hotel) || (b.hotel.star_rating || 0) - (a.hotel.star_rating || 0));
+
+    return { list: pool.map((s) => s.hotel), missing, partial };
+  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, roomFeatures, profile]);
+  const filteredAndSortedHotels = searchOutcome.list;
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
@@ -1290,6 +1351,12 @@ const Hotels = () => {
               </Button>
             </div>
           ) : (
+            <>
+            {searchOutcome.partial && (
+              <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
+                No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
@@ -1355,6 +1422,11 @@ const Hotels = () => {
                           {renderStars(hotel.star_rating)}
                         </div>
 
+                        {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? (
+                          <p className="mb-1 text-[11px] font-medium text-destructive">
+                            Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}
+                          </p>
+                        ) : null}
                         {matchById[hotel.id]?.reasons?.length ? (
                           <p className="mb-1 line-clamp-2 text-[11px] text-primary" title="Why this matched">
                             ✓ {matchById[hotel.id].reasons.slice(0, 3).map((r) => r.label).join(" · ")}
@@ -1435,6 +1507,7 @@ const Hotels = () => {
                 </motion.div>
               ))}
             </div>
+            </>
           )}
         </div>
       </main>
