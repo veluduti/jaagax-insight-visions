@@ -251,7 +251,7 @@ function PlanBookings({ plan }: { plan: SmartVisitPlan }) {
               <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />
                 {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${plan.meeting_point}`}
                 {b.drop_address ? ` · Drop: ${b.drop_address}` : ""}</p>
-              <p className="text-xs">{inr(b.price_per_person)} × {b.seats} = <b>{inr(b.total_amount)}</b></p>
+              <p className="text-xs">{inr(b.price_per_person)} × {b.seats} = <b>{inr(b.total_amount)}</b> · <span className={b.payment_status === "paid" ? "text-primary font-medium" : "text-muted-foreground"}>{b.payment_status === "paid" ? "Paid online" : "Not paid"}</span></p>
             </div>
             <Badge variant={statusVariant(b.status) as any}>{statusLabel[b.status] || b.status}</Badge>
           </div>

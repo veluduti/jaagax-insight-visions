@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PlanPropertyList from "@/components/smartvisit/PlanPropertyList";
 import {
-  listOpenPlans, listMyBookings, createBooking, updateBooking, seatsTaken, agentRating, getAgentsPublic,
+  listOpenPlans, listMyBookings, createBooking, updateBooking, payForBooking, seatsTaken, agentRating, getAgentsPublic,
   priceFor, inr, statusLabel, errMsg, type SmartVisitPlan, type PickupType,
 } from "@/services/smartVisitService";
 
@@ -192,6 +192,7 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
   const [review, setReview] = useState("");
   const [note, setNote] = useState("");
   const [showProps, setShowProps] = useState(false);
+  const [paying, setPaying] = useState(false);
   const p: SmartVisitPlan = b.plan;
   const act = async (patch: any, msg: string) => {
     try { await updateBooking(b.id, patch); toast.success(msg); onChange(); } catch (e) { toast.error(errMsg(e)); }
