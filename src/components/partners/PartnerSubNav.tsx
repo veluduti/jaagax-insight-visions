@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare, Star, LifeBuoy, Settings,
-  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase, ChevronDown, Check, ClipboardList,
+  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase, ChevronDown, Check, ClipboardList, PlayCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -102,6 +102,11 @@ export default function PartnerSubNav() {
 
   return (
     <div className="border-b border-border/60 bg-background/70 backdrop-blur">
+      {typeof window !== "undefined" && localStorage.getItem("partner_demo_hotel") && (
+        <div className="bg-primary/15 px-4 py-1.5 text-center text-xs font-medium text-primary">
+          You are in a demo property (sample data, hidden from customers). <NavLink to="/partners/demo" className="underline">Exit or delete demo</NavLink>
+        </div>
+      )}
       <div className="container mx-auto max-w-7xl px-4">
         {/* Property switcher */}
         {current && (
