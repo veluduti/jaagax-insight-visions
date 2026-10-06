@@ -16,7 +16,6 @@ import { useLocation } from "@/contexts/LocationContext";
 import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
-import SneakPeekListings from "@/components/home/SneakPeekListings";
 import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
 import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
@@ -83,7 +82,6 @@ const Index = () => {
           {/* Mobile-only: quick service cards first, Hotel Services / Property Selling below */}
           <MobileQuickAccess />
           <MobileServiceSections />
-          <SneakPeekListings />
           <VisitStayTeaser />
           <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
             <AISpotlight />
