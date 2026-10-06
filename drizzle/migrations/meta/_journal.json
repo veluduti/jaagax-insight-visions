@@ -85,6 +85,13 @@
       "when": 1791267393423,
       "tag": "0011_hospitality_ops_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791268390522,
+      "tag": "0012_demo_hotel_booking_insert",
+      "breakpoints": true
     }
   ]
 }
