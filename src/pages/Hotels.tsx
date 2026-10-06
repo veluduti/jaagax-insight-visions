@@ -641,7 +641,7 @@ const Hotels = () => {
       seen.add(key);
       const t = roomType || kind;
       out.push({
-        id: r.id, hotelId: h.id, name, area, city: h.city,
+        id: r.id, hotelId: h.id, name, area, city: r.attributes?.area ? "" : h.city,
         typeLabel: t.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
         roomType: r.room_type || "", price: Number(r.base_price) || 0,
         photos: Array.isArray(r.photos) ? r.photos.filter(Boolean) : [],
