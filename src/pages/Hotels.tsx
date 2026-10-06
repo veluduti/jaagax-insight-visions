@@ -489,8 +489,8 @@ const Hotels = () => {
       amenities: intent.amenities || [],
       maxPrice: intent.max_price || null,
     };
-    setStayFilters(merged);
-    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); }
+    setStayFilters(merged, { kinds: intent.accommodation_kinds || [], opt: intent.optional_amenities || [] });
+    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); setSelectedLocality(null as any); }
     if (intent.adults) { setAdults(intent.adults); setTempAdults(intent.adults); }
     if (intent.children != null) { setChildren(intent.children); setTempChildren(intent.children); }
     if (intent.rooms) { setRooms(intent.rooms); setTempRooms(intent.rooms); }
@@ -509,7 +509,7 @@ const Hotels = () => {
   };
 
   const onStayFiltersChange = (f: StayFilters) => {
-    setStayFilters(f);
+    setStayFilters(f, { kinds: [], opt: [] });
     logHotelSignal("search", {
       source: "filters", city: selectedCity !== "all" ? selectedCity : null, business_types: f.types,
       preferences: f.prefs, amenities: f.amenities, max_price: f.maxPrice,
@@ -517,7 +517,7 @@ const Hotels = () => {
   };
 
   // Filter and sort hotels
-  const filteredAndSortedHotels = useMemo(() => {
+  const searchOutcome = useMemo(() => {
     // When the box shows a picked city/area label, the city+locality filters do the work.
     const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
     let result = hotels.filter((hotel) => {
