@@ -571,7 +571,7 @@ const App = () => (
                   <Route path="/partners/booking-engine" element={<PartnerBookingEngine />} />
                   <Route path="/book/:hotelId" element={<BookingEngine />} />
                   <Route path="/stay/:token" element={<GuestPortal />} />
-                  <Route path="/my-trips" element={<ProtectedRoute><MyTrips /></ProtectedRoute>} />
+                  <Route path="/my-trips" element={<MyTrips />} />
 
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/services" element={<ServicesHub />} />

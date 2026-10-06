@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, MessageSquare, Star, XCircle, LifeBuoy, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   loadMyTrips, tripStage, holdMinutesLeft, sendTripMessage, submitReview, cancelTrip, type Trip, type TripStage,
 } from "@/services/hospitality/tripsService";
@@ -28,6 +29,8 @@ export default function MyTrips() {
   const [rating, setRating] = useState(5);
   const [busy, setBusy] = useState(false);
 
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)); }, []);
   const load = useCallback(() => loadMyTrips().then(setData).catch((e) => toast.error(e.message)), []);
   useEffect(() => { load(); }, [load]);
 
@@ -49,7 +52,12 @@ export default function MyTrips() {
       <main className="container mx-auto max-w-3xl px-3 pt-24">
         <h1 className="text-2xl font-bold">My trips</h1>
         <p className="mb-4 text-sm text-muted-foreground">Every stay you've booked, what's next and how to get help.</p>
-        {!data ? <Loader2 className="mx-auto mt-10 h-6 w-6 animate-spin text-primary" /> :
+        {signedIn === false ? (
+          <Card><CardContent className="p-6 text-center">
+            <p className="mb-3 text-sm text-muted-foreground">Please sign in to see your trips.</p>
+            <Button asChild><Link to="/auth">Sign in</Link></Button>
+          </CardContent></Card>
+        ) : !data ? <Loader2 className="mx-auto mt-10 h-6 w-6 animate-spin text-primary" /> :
           data.trips.length === 0 ? (
             <Card><CardContent className="p-6 text-center">
               <CalendarDays className="mx-auto mb-2 h-8 w-8 text-primary" />
