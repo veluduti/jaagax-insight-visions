@@ -1,4 +1,6 @@
 # Active roadmap — JAAGA Travel
+- [ ] Keep Travel hotel browsing and room previews on the plan page
+- [ ] Correct right-aligned secondary navigation on narrow screens and verify the layout
 - [x] Align the second Travel header links to the right without changing the main header
 - [x] Show real destination-matched hotels below generated and reopened AI plans
 - [x] Verify header positioning and the signed-in plan-to-hotel journey
