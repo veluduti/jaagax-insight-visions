@@ -1,7 +1,7 @@
-# Hospitality roadmap (from JAAGA master spec gap review)
-- [x] 1. Front Desk / Housekeeping / Maintenance (mobile) — /partners/operations
-- [x] 2. Safer payments, expiring holds, "My trip" page
-- [x] 3. Long stays & co-living (monthly rent, residents, move-in/out), waitlist
-- [x] 4. JAAGA Ops console (support, verification, trust & safety, disputes/refunds), work queues
-- [ ] 5. Owner growth tools & AI helpers per role
-- [ ] 6. Demo data & scenarios
+# Active roadmap — JAAGA Travel
+- [ ] Phase 1: Travel entry points, shell, discovery home, destination and experience details
+- [ ] Phase 2: Travel profile, AI plan creation, flexible itinerary and Ask JAAGA
+- [ ] Phase 3: Saved collections, collaboration and travel memories
+- [ ] Phase 4: Existing hotel/property recommendations and conversion tracking
+- [ ] Phase 5: Partner/creator and global-admin Travel workspaces
+- [ ] Validate mobile/desktop customer, signed-in, partner and admin flows

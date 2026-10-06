@@ -12628,6 +12628,519 @@ export type Database = {
           },
         ]
       }
+      travel_destinations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          best_time: string | null
+          country_name: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          local_areas: string[]
+          name: string
+          personality_tags: string[]
+          recommended_days: string | null
+          slug: string
+          state_name: string
+          status: string
+          suitability: Json
+          tagline: string | null
+          trust_label: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          best_time?: string | null
+          country_name?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          local_areas?: string[]
+          name: string
+          personality_tags?: string[]
+          recommended_days?: string | null
+          slug: string
+          state_name: string
+          status?: string
+          suitability?: Json
+          tagline?: string | null
+          trust_label?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          best_time?: string | null
+          country_name?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          local_areas?: string[]
+          name?: string
+          personality_tags?: string[]
+          recommended_days?: string | null
+          slug?: string
+          state_name?: string
+          status?: string
+          suitability?: Json
+          tagline?: string | null
+          trust_label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      travel_events: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      travel_experiences: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          availability: Json
+          best_for: string[]
+          best_time: string | null
+          capacity: number | null
+          category: string
+          city: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          destination_id: string | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          locality: string | null
+          price: number | null
+          requirements: string | null
+          slug: string
+          status: string
+          title: string
+          trust_label: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          availability?: Json
+          best_for?: string[]
+          best_time?: string | null
+          capacity?: number | null
+          category: string
+          city: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          destination_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          locality?: string | null
+          price?: number | null
+          requirements?: string | null
+          slug: string
+          status?: string
+          title: string
+          trust_label?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          availability?: Json
+          best_for?: string[]
+          best_time?: string | null
+          capacity?: number | null
+          category?: string
+          city?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          destination_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          locality?: string | null
+          price?: number | null
+          requirements?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          trust_label?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_experiences_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "travel_destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_memories: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          notes: string | null
+          photo_urls: string[]
+          plan_id: string | null
+          rating: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          notes?: string | null
+          photo_urls?: string[]
+          plan_id?: string | null
+          rating?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          notes?: string | null
+          photo_urls?: string[]
+          plan_id?: string | null
+          rating?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_memories_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "travel_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_partner_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          partner_type: string
+          updated_at: string
+          user_id: string
+          verification_documents: Json
+          verification_status: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          partner_type: string
+          updated_at?: string
+          user_id: string
+          verification_documents?: Json
+          verification_status?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          partner_type?: string
+          updated_at?: string
+          user_id?: string
+          verification_documents?: Json
+          verification_status?: string
+        }
+        Relationships: []
+      }
+      travel_plan_items: {
+        Row: {
+          created_at: string
+          day_number: number
+          description: string | null
+          duration_minutes: number | null
+          fit_score: number | null
+          id: string
+          is_kept: boolean
+          item_type: string
+          location: string | null
+          period: string
+          plan_id: string
+          position: number
+          reference_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          duration_minutes?: number | null
+          fit_score?: number | null
+          id?: string
+          is_kept?: boolean
+          item_type?: string
+          location?: string | null
+          period?: string
+          plan_id: string
+          position?: number
+          reference_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          duration_minutes?: number | null
+          fit_score?: number | null
+          id?: string
+          is_kept?: boolean
+          item_type?: string
+          location?: string | null
+          period?: string
+          plan_id?: string
+          position?: number
+          reference_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "travel_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_plans: {
+        Row: {
+          budget_preference: string | null
+          companion_type: string | null
+          created_at: string
+          destination_name: string | null
+          duration_days: number
+          end_date: string | null
+          explanation: string | null
+          fit_score: number | null
+          id: string
+          interests: string[]
+          is_collaborative: boolean
+          mood: string | null
+          pace: string
+          purpose: string
+          share_code: string | null
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_preference?: string | null
+          companion_type?: string | null
+          created_at?: string
+          destination_name?: string | null
+          duration_days?: number
+          end_date?: string | null
+          explanation?: string | null
+          fit_score?: number | null
+          id?: string
+          interests?: string[]
+          is_collaborative?: boolean
+          mood?: string | null
+          pace?: string
+          purpose?: string
+          share_code?: string | null
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_preference?: string | null
+          companion_type?: string | null
+          created_at?: string
+          destination_name?: string | null
+          duration_days?: number
+          end_date?: string | null
+          explanation?: string | null
+          fit_score?: number | null
+          id?: string
+          interests?: string[]
+          is_collaborative?: boolean
+          mood?: string | null
+          pace?: string
+          purpose?: string
+          share_code?: string | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      travel_profiles: {
+        Row: {
+          budget_preference: string
+          companion_preference: string
+          created_at: string
+          home_city: string | null
+          interests: string[]
+          moods: string[]
+          pace: string
+          privacy: Json
+          stay_preferences: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_preference?: string
+          companion_preference?: string
+          created_at?: string
+          home_city?: string | null
+          interests?: string[]
+          moods?: string[]
+          pace?: string
+          privacy?: Json
+          stay_preferences?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_preference?: string
+          companion_preference?: string
+          created_at?: string
+          home_city?: string | null
+          interests?: string[]
+          moods?: string[]
+          pace?: string
+          privacy?: Json
+          stay_preferences?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      travel_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reason: string
+          reporter_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason: string
+          reporter_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      travel_saves: {
+        Row: {
+          collection_name: string
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          metadata: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          collection_name?: string
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          metadata?: Json
+          title: string
+          user_id: string
+        }
+        Update: {
+          collection_name?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          metadata?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activities: {
         Row: {
           activity_type: string

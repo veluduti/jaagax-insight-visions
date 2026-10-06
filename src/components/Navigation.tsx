@@ -17,6 +17,7 @@ import {
   DollarSign,
   Zap,
   ArrowLeft,
+  Plane,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -210,6 +211,21 @@ const Navigation = () => {
                         >
                           <Hotel className="h-[18px] w-[18px] mr-2" />
                           Hotels
+                        </Button>
+                      </Link>
+                    </NavigationMenuItem>
+
+                    <NavigationMenuItem>
+                      <Link to="/travel">
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "px-4 py-2.5 text-[15px] font-medium h-auto",
+                            isActive("/travel") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          <Plane className="h-[18px] w-[18px] mr-2" />
+                          Travel
                         </Button>
                       </Link>
                     </NavigationMenuItem>

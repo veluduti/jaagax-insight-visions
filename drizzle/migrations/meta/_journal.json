@@ -99,6 +99,13 @@
       "when": 1791281175802,
       "tag": "0013_smart_visit_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791282995118,
+      "tag": "0014_create_jaaga_travel_core",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   Home, Building2, DollarSign, Hotel, BedDouble, Users, Sparkles, Landmark,
-  TrendingUp, Calendar, Megaphone, LayoutGrid, ChevronRight, Briefcase,
+  TrendingUp, Calendar, Megaphone, LayoutGrid, ChevronRight, Briefcase, Plane,
 } from "lucide-react";
 
 const quick = [
@@ -12,10 +12,11 @@ const quick = [
   { label: "Agents", path: "/agents", icon: Users },
   { label: "AI Advisor", path: "/ai-advisor", icon: Sparkles },
   { label: "Loans", path: "/smart-financing", icon: Landmark },
-  { label: "All", path: "/services", icon: LayoutGrid },
+  { label: "Travel", path: "/travel", icon: Plane },
 ];
 
 const more = [
+  { label: "Travel", path: "/travel", icon: Plane },
   { label: "Market Index", path: "/transactions", icon: TrendingUp },
   { label: "Events", path: "/events", icon: Calendar },
   { label: "Offers", path: "/promotions", icon: Megaphone },
