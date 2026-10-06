@@ -1402,7 +1402,7 @@ const Hotels = () => {
             </div>
           ) : (
             <>
-            {searchOutcome.partial && (
+            {searchOutcome.partial && !typeListings && (
               <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
                 No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
               </div>
