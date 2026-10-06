@@ -12816,6 +12816,74 @@ export type Database = {
           },
         ]
       }
+      travel_journey_members: {
+        Row: {
+          created_at: string
+          journey_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          journey_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          journey_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_journey_members_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "travel_journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_journeys: {
+        Row: {
+          created_at: string
+          description: string | null
+          destination_name: string
+          duration_days: number | null
+          host_id: string
+          id: string
+          seats: number
+          start_date: string | null
+          status: string
+          title: string
+          vibe: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          destination_name: string
+          duration_days?: number | null
+          host_id: string
+          id?: string
+          seats?: number
+          start_date?: string | null
+          status?: string
+          title: string
+          vibe?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          destination_name?: string
+          duration_days?: number | null
+          host_id?: string
+          id?: string
+          seats?: number
+          start_date?: string | null
+          status?: string
+          title?: string
+          vibe?: string | null
+        }
+        Relationships: []
+      }
       travel_memories: {
         Row: {
           created_at: string
