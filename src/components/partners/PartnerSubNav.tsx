@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare, Star, LifeBuoy, Settings,
+  LayoutDashboard, BedDouble, CalendarRange, TrendingUp, Users, BarChart3, Wallet, MessageSquare, Star, LifeBuoy, Settings,
   TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase, ChevronDown, Check, ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

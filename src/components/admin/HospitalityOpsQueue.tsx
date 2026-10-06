@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, ShieldAlert, LifeBuoy, IndianRupee, Scale, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import AssistantPanel from "@/components/hospitality/AssistantPanel";
 import {
   loadQueue, loadUpdates, addUpdate, updateTicket, assignToMe, KIND_LABEL,
   type Ticket, type TicketKind, type TicketUpdate,
@@ -46,6 +47,7 @@ export default function HospitalityOpsQueue() {
 
   return (
     <div className="space-y-3">
+      <AssistantPanel role="admin" title="Ask how to handle a case" />
       <div className="flex flex-wrap gap-2">
         {(Object.keys(labels) as View[]).map((v) => (
           <Button key={v} size="sm" variant={view === v ? "default" : "outline"} onClick={() => setView(v)}>

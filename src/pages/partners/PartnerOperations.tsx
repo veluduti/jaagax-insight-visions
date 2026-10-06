@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
+import AssistantPanel from "@/components/hospitality/AssistantPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,9 @@ export default function PartnerOperations() {
             <TabsContent value="housekeeping"><TaskBoard hotelId={hotelId} kind="housekeeping" /></TabsContent>
             <TabsContent value="maintenance"><TaskBoard hotelId={hotelId} kind="maintenance" /></TabsContent>
           </Tabs>
+        )}
+        {hotelId && (
+          <div className="mt-4"><AssistantPanel role="staff" title="Ask for help with a task" /></div>
         )}
       </main>
     </div>
