@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PartnerNav from "@/components/partners/PartnerNav";
+import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +24,7 @@ export default function PartnerOperations() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <PartnerNav />
+      <PartnerNav /><PartnerSubNav />
       <main className="container mx-auto max-w-3xl px-3 py-4">
         <h1 className="text-xl font-bold">Today's operations</h1>
         <p className="mb-3 text-sm text-muted-foreground">Arrivals, departures, cleaning and repairs in one place.</p>
