@@ -54,7 +54,7 @@ export async function createDemo(): Promise<string> {
   ];
   for (const g of guests) {
     const { data: b, error: be } = await sb.from("hotel_bookings").insert({
-      hotel_id: hid, room_id: g.room, guest_name: g.name, guest_phone: "9000000001", check_in: day(g.in), check_out: day(g.out),
+      hotel_id: hid, room_id: g.room, room_type: rooms.find((r: any) => r.id === g.room)?.room_name, num_guests: 2, guest_name: g.name, guest_phone: "9000000001", check_in: day(g.in), check_out: day(g.out),
       total_amount: g.amt, room_charges: g.amt, status: g.status, actual_check_in_at: g.status === "checked_in" ? new Date(Date.now() + g.in * 864e5).toISOString() : null, payment_status: "paid", amount_paid: g.amt, source: "demo", adults: 2,
     }).select("id").single();
     if (be) throw be;
