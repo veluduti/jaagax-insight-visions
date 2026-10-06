@@ -211,6 +211,10 @@ const TravelPlans = lazy(() => import("./pages/Travel").then(m => ({ default: m.
 const TravelPlanDetail = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPlanDetail })));
 const TravelSaved = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelSaved })));
 const TravelProfile = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelProfile })));
+const TravelInspire = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelInspire })));
+const TravelJourneys = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelJourneys })));
+const TravelMemories = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelMemories })));
+const TravelCommunities = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelCommunities })));
 const TravelPartner = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPartner })));
 const TravelAdmin = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelAdmin })));
 
@@ -600,7 +604,11 @@ const App = () => (
                   <Route path="/travel/plans/:id" element={<TravelPlanDetail />} />
                   <Route path="/travel/saved" element={<TravelSaved />} />
                   <Route path="/travel/profile" element={<TravelProfile />} />
-                  <Route path="/travel/partner" element={<TravelPartner />} />
+                  <Route path="/travel/inspire" element={<TravelInspire />} />
+                 <Route path="/travel/journeys" element={<TravelJourneys />} />
+                 <Route path="/travel/memories" element={<TravelMemories />} />
+                 <Route path="/travel/communities" element={<TravelCommunities />} />
+                 <Route path="/travel/partner" element={<TravelPartner />} />
                   <Route path="/admin/travel" element={<ProtectedRoute allowedRole="admin"><TravelAdmin /></ProtectedRoute>} />
                   <Route path="/smart-visits" element={<SmartVisits />} />
                   <Route path="/dashboard/agent/smart-visits" element={<ProtectedRoute allowedRole="agent"><AgentSmartVisits /></ProtectedRoute>} />
