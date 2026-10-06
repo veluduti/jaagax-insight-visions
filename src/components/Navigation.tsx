@@ -143,7 +143,7 @@ const Navigation = () => {
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
-            <NavigationMenu>
+            <NavigationMenu className="[&>div:last-child]:left-auto [&>div:last-child]:right-0">
               <NavigationMenuList className="gap-2">
                 {
                   <>
