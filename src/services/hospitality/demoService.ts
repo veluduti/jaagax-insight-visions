@@ -36,7 +36,7 @@ export async function createDemo(): Promise<string> {
   const { data: rooms, error: re } = await sb.from("hotel_rooms").insert([
     { hotel_id: hid, room_type: "Deluxe Room", room_name: "Deluxe Room", base_price: 2500, max_occupancy: 2, total_units: 4, accommodation_kind: "room", is_active: true, photos: [] },
     { hotel_id: hid, room_type: "Suite", room_name: "Family Suite", base_price: 4200, max_occupancy: 4, total_units: 2, accommodation_kind: "room", is_active: true, photos: [] },
-    { hotel_id: hid, room_type: "Co-living bed", room_name: "Shared Bed (Co-living)", base_price: 600, monthly_price: 9000, max_occupancy: 1, total_units: 6, accommodation_kind: "bed", stay_unit: "month", is_active: true, photos: [] },
+    { hotel_id: hid, room_type: "Co-living bed", room_name: "Shared Bed (Co-living)", base_price: 600, monthly_price: 9000, max_occupancy: 1, total_units: 6, accommodation_kind: "bed", stay_unit: "bed", is_active: true, photos: [] },
   ]).select("id,room_name");
   if (re) throw re;
   const [deluxe, suite] = rooms;
