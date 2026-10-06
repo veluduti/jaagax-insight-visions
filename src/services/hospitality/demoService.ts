@@ -55,7 +55,7 @@ export async function createDemo(): Promise<string> {
   for (const g of guests) {
     const { data: b, error: be } = await sb.from("hotel_bookings").insert({
       hotel_id: hid, room_id: g.room, guest_name: g.name, guest_phone: "9000000001", check_in: day(g.in), check_out: day(g.out),
-      total_amount: g.amt, room_charges: g.amt, status: g.status, payment_status: "paid", amount_paid: g.amt, source: "demo", adults: 2,
+      total_amount: g.amt, room_charges: g.amt, status: g.status, actual_check_in_at: g.status === "checked_in" ? new Date(Date.now() + g.in * 864e5).toISOString() : null, payment_status: "paid", amount_paid: g.amt, source: "demo", adults: 2,
     }).select("id").single();
     if (be) throw be;
     await sb.from("hotel_availability_blocks").insert({ hotel_id: hid, room_id: g.room, start_date: day(g.in), end_date: day(g.out), units: 1, reason: "booking", booking_id: b.id, created_by: user.id });
