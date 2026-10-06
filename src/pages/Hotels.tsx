@@ -56,6 +56,8 @@ import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels
 import { matchStayRequest, type Match } from "@/services/hospitality/matchingService";
 import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
 import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
+import { buildLocationIndex, findCities, findLocalities, sameLocality } from "@/lib/locationAutocomplete";
+import { isSameCity } from "@/lib/cityNormalizer";
 
 interface PartnerHotel {
   id: string;
@@ -91,6 +93,7 @@ interface VisitPackage {
 interface SearchSuggestion {
   type: "city" | "hotel" | "locality" | "popular" | "recent";
   name: string;
+  city?: string;
   subtitle?: string;
   count?: number;
   icon?: React.ReactNode;
@@ -134,6 +137,8 @@ const Hotels = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
+  const [selectedLocality, setSelectedLocality] = useState<string | null>(searchParams.get("locality"));
+  const [locationLabel, setLocationLabel] = useState<string>("");
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
@@ -176,6 +181,8 @@ const Hotels = () => {
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
+  // Generic City → Locality index built from live hotel data (works for any city)
+  const locationIndex = useMemo(() => buildLocationIndex(hotels), [hotels]);
 
   // Age options for children
   const ageOptions = [
@@ -351,26 +358,44 @@ const Hotels = () => {
 
     const newSuggestions: SearchSuggestion[] = [];
 
-    // 1. City suggestions (exact match priority) - with better formatting
-    const cityMatches = popularLocations.filter((city) => city.toLowerCase().includes(query));
-    cityMatches.forEach((city) => {
-      const count = hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length;
+    // 1. Cities (alias + fuzzy), each followed by its most popular areas from real data
+    const cityMatches = findCities(locationIndex, query, 2);
+    cityMatches.forEach(({ city }, i) => {
       newSuggestions.push({
         type: "city",
-        name: city,
-        count,
-        subtitle: `${count} hotels available`,
+        name: city.name,
+        count: city.count,
+        subtitle: city.count ? `${city.count} hotels available` : "City",
+      });
+      if (i === 0 || city.count > 0) {
+        city.localities.slice(0, i === 0 ? 8 : 3).forEach((loc) => {
+          newSuggestions.push({
+            type: "locality",
+            name: loc.name,
+            city: city.name,
+            subtitle: `Area in ${city.name}`,
+            count: loc.count,
+          });
+        });
+      }
+    });
+
+    // 2. Areas matching the text directly (e.g. "madha" → Madhapur, Hyderabad)
+    findLocalities(locationIndex, query, 5).forEach(({ city, locality }) => {
+      if (newSuggestions.some((s) => s.type === "locality" && s.city === city.name && s.name === locality.name)) return;
+      newSuggestions.push({
+        type: "locality",
+        name: locality.name,
+        city: city.name,
+        subtitle: `Area in ${city.name}`,
+        count: locality.count,
       });
     });
 
-    // 2. Hotel name suggestions - with location and count
-    const hotelMatches = hotels.filter(
-      (hotel) => hotel.name.toLowerCase().includes(query) || hotel.locality.toLowerCase().includes(query),
-    );
-
-    const uniqueHotelMatches = hotelMatches.filter(
-      (hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name),
-    );
+    // 3. Hotel name suggestions
+    const uniqueHotelMatches = hotels
+      .filter((hotel) => hotel.name.toLowerCase().includes(query))
+      .filter((hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name));
     uniqueHotelMatches.slice(0, 5).forEach((hotel) => {
       newSuggestions.push({
         type: "hotel",
@@ -380,23 +405,9 @@ const Hotels = () => {
       });
     });
 
-    // 3. Locality suggestions
-    const localityMatches = hotels.filter(
-      (hotel) => hotel.locality.toLowerCase().includes(query) && !hotel.name.toLowerCase().includes(query),
-    );
-    localityMatches.slice(0, 3).forEach((hotel) => {
-      newSuggestions.push({
-        type: "locality",
-        name: hotel.locality,
-        subtitle: `${hotel.city}`,
-        count: hotels.filter((h) => h.locality.toLowerCase() === hotel.locality.toLowerCase()).length,
-      });
-    });
-
-    // Limit total suggestions
-    setSuggestions(newSuggestions.slice(0, 12));
+    setSuggestions(newSuggestions.slice(0, 14));
     setIsSearching(false);
-  }, [searchQuery, hotels, recentSearches]);
+  }, [searchQuery, hotels, recentSearches, locationIndex]);
 
   // Get amenity icon with colors
   const getAmenityIcon = (amenity: string) => {
@@ -485,18 +496,20 @@ const Hotels = () => {
 
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    // When the box shows a picked city/area label, the city+locality filters do the work.
+    const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
     let result = hotels.filter((hotel) => {
       const matchesCity =
         selectedCity === "all" ||
-        hotel.city.toLowerCase() === selectedCity.toLowerCase() ||
+        isSameCity(hotel.city, selectedCity) ||
         hotel.city.toLowerCase().includes(selectedCity.toLowerCase());
+      const matchesLocality = !selectedLocality || sameLocality(hotel.locality, selectedLocality);
       const matchesSearch =
-        !q ||
+        matchesLocality && (!q ||
         hotel.name.toLowerCase().includes(q) ||
         hotel.city.toLowerCase().includes(q) ||
         hotel.locality.toLowerCase().includes(q) ||
-        (hotel.address || "").toLowerCase().includes(q);
+        (hotel.address || "").toLowerCase().includes(q));
 
       let matchesPrice = true;
       if (selectedPriceRange !== "all") {
@@ -535,7 +548,7 @@ const Hotels = () => {
     result.sort((a, b) => relevance(b) - relevance(a) || (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
@@ -635,9 +648,19 @@ const Hotels = () => {
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (suggestion.type === "city") {
       setSelectedCity(suggestion.name);
+      setSelectedLocality(null);
       setSearchQuery(suggestion.name);
+      setLocationLabel(suggestion.name);
       navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
+    } else if (suggestion.type === "locality" && suggestion.city) {
+      const label = `${suggestion.name}, ${suggestion.city}`;
+      setSelectedCity(suggestion.city);
+      setSelectedLocality(suggestion.name);
+      setSearchQuery(label);
+      setLocationLabel(label);
+      navigate(`/hotels?city=${encodeURIComponent(suggestion.city)}&locality=${encodeURIComponent(suggestion.name)}`);
     } else if (suggestion.type === "hotel" || suggestion.type === "locality") {
+      setSelectedLocality(null);
       setSearchQuery(suggestion.name);
       if (inputRef.current) {
         inputRef.current.focus();
@@ -811,6 +834,7 @@ const Hotels = () => {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
+                        if (selectedLocality) setSelectedLocality(null);
                         setShowSuggestions(true);
                       }}
                       onFocus={() => setShowSuggestions(true)}
