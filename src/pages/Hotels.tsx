@@ -274,7 +274,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -282,8 +282,13 @@ const Hotels = () => {
         const minByHotel = new Map<string, number>();
         const occByHotel: Record<string, OccupancyRoom[]> = {};
         const units: Record<string, Set<string>> = {};
+        const feats: Record<string, RoomFeature[]> = {};
         (roomsRes.data || []).forEach((r: any) => {
           (units[r.hotel_id] ||= new Set()).add(r.stay_unit || "room");
+          (feats[r.hotel_id] ||= []).push({
+            kind: r.accommodation_kind || "room",
+            text: JSON.stringify([r.room_type, r.amenities, r.attributes]).toLowerCase(),
+          });
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
           (occByHotel[r.hotel_id] ||= []).push(
@@ -297,6 +302,7 @@ const Hotels = () => {
         });
         setRoomsByHotel(occByHotel);
         setUnitsByHotel(units);
+        setRoomFeatures(feats);
 
 
         const enriched = await Promise.all(
