@@ -231,8 +231,10 @@ export function getUnitSuggestions(
     return [];
   }
 
+  const formatted = new Intl.NumberFormat("en-IN").format(raw);
+
   return units.map((unit) => ({
-    label: `${formatIndianNumber(raw)} ${unit}`,
+    label: `${formatted} ${unit}`,
 
     value: raw,
 
