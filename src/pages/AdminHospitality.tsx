@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import HospitalityOpsQueue from "@/components/admin/HospitalityOpsQueue";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,8 +55,9 @@ export default function AdminHospitality() {
       <main className="container mx-auto max-w-6xl px-4 pb-24 pt-24">
         <h1 className="mb-4 text-2xl font-bold">Hospitality Admin</h1>
         {!props ? <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /> : (
-          <Tabs defaultValue="review">
+          <Tabs defaultValue="ops">
             <TabsList className="flex-wrap">
+              <TabsTrigger value="ops">Ops queue</TabsTrigger>
               <TabsTrigger value="review">Property review ({pending.length})</TabsTrigger>
               <TabsTrigger value="all">All properties</TabsTrigger>
               <TabsTrigger value="biz">Businesses</TabsTrigger>
@@ -63,6 +65,7 @@ export default function AdminHospitality() {
               <TabsTrigger value="audit">Audit log</TabsTrigger>
             </TabsList>
 
+            <TabsContent value="ops"><HospitalityOpsQueue /></TabsContent>
             <TabsContent value="review" className="space-y-2">
               {!pending.length && <p className="text-sm text-muted-foreground">Nothing waiting for review.</p>}
               {pending.map((p) => <PropRow key={p.id} p={p} onSet={setPropStatus} />)}

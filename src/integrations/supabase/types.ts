@@ -3708,6 +3708,113 @@ export type Database = {
         }
         Relationships: []
       }
+      hospitality_ticket_updates: {
+        Row: {
+          author_id: string
+          author_role: string
+          body: string
+          created_at: string
+          id: string
+          internal: boolean
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          author_role?: string
+          body: string
+          created_at?: string
+          id?: string
+          internal?: boolean
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          author_role?: string
+          body?: string
+          created_at?: string
+          id?: string
+          internal?: boolean
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_ticket_updates_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_tickets: {
+        Row: {
+          assigned_to: string | null
+          body: string | null
+          booking_id: string | null
+          created_at: string
+          hotel_id: string | null
+          id: string
+          kind: string
+          opened_by: string
+          priority: string
+          refund_amount: number | null
+          resolution: string | null
+          resolved_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          body?: string | null
+          booking_id?: string | null
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          kind?: string
+          opened_by: string
+          priority?: string
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          body?: string | null
+          booking_id?: string | null
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          kind?: string
+          opened_by?: string
+          priority?: string
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_tickets_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_tickets_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_addons: {
         Row: {
           availability_end: string | null
