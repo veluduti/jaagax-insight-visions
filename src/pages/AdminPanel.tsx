@@ -79,6 +79,7 @@ import {
   applyAdminScope,
 } from "@/contexts/AdminScopeFilterContext";
 import { motion } from "framer-motion";
+import SmartVisitReviewPanel from "@/components/admin/SmartVisitReviewPanel";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 import {
   DropdownMenu,
@@ -193,6 +194,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
       items: [
         { value: "weekend", label: "Weekend Explorer", icon: MapPinned },
         { value: "quick-visits", label: "Quick Visits", icon: Zap },
+        { value: "smart-visits", label: "Smart Visits", icon: Zap },
       ],
     },
     {
@@ -750,6 +752,10 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
                 <WeekendBookingsList scope="admin" kind="quick_visit" />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="smart-visits" className="mt-4">
+            <SmartVisitReviewPanel />
           </TabsContent>
 
           {/* REGISTERED USERS */}

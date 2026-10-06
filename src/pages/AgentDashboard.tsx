@@ -1394,9 +1394,14 @@ export default function AgentDashboard() {
               <Calendar className="h-5 w-5 text-primary" />
               Visit Management
             </CardTitle>
-            <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/agent/visits")}>
-              View All <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" onClick={() => navigate("/dashboard/agent/smart-visits")}>
+                <Plus className="h-4 w-4 mr-1" /> Smart Visit Plan
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/agent/visits")}>
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="pending">
