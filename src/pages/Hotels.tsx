@@ -509,7 +509,7 @@ const Hotels = () => {
   };
 
   const onStayFiltersChange = (f: StayFilters) => {
-    setStayFilters(f, { kinds: [], opt: [] });
+    setStayFilters(f, f.types.join() !== stayFilters.types.join() || f.amenities.join() !== stayFilters.amenities.join() ? { kinds: [], opt: [] } : undefined);
     logHotelSignal("search", {
       source: "filters", city: selectedCity !== "all" ? selectedCity : null, business_types: f.types,
       preferences: f.prefs, amenities: f.amenities, max_price: f.maxPrice,
