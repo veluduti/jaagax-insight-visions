@@ -185,6 +185,7 @@ const FinancialNotifications = lazy(() => import("./pages/financial/Notification
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerOperations = lazy(() => import("./pages/partners/PartnerOperations"));
 const PartnerPortfolio = lazy(() => import("./pages/partners/PartnerPortfolio"));
 const PartnerProperties = lazy(() => import("./pages/partners/PartnerProperties"));
 const PartnerInventory = lazy(() => import("./pages/partners/PartnerInventory"));
@@ -555,6 +556,7 @@ const App = () => (
                   <Route path="/partners/payouts" element={<PartnerPayouts />} />
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
                   <Route path="/partners/staff" element={<PartnerStaff />} />
+                  <Route path="/partners/operations" element={<PartnerOperations />} />
                   <Route path="/partners/portfolio" element={<PartnerPortfolio />} />
                   <Route path="/partners/properties" element={<PartnerProperties />} />
                   <Route path="/partners/properties/:id" element={<PartnerProperties />} />
