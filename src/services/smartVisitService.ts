@@ -45,6 +45,8 @@ export interface SmartVisitBooking {
   review: string | null;
   interested_to_buy: boolean;
   interest_note: string | null;
+  payment_status: string;
+  paid_at: string | null;
   created_at: string;
 }
 
@@ -178,8 +180,44 @@ export async function createBooking(b: {
   plan_id: string; customer_id: string; customer_name: string; contact_phone: string;
   seats: number; pickup_type: PickupType; pickup_address?: string; drop_address?: string;
 }) {
-  const { error } = await db.from("smart_visit_bookings").insert(b);
+  const { data, error } = await db.from("smart_visit_bookings").insert(b).select("id").single();
   if (error) throw error;
+  return data.id as string;
+}
+
+let rzpScript: Promise<void> | null = null;
+const loadRazorpay = () => {
+  if ((window as any).Razorpay) return Promise.resolve();
+  rzpScript ??= new Promise<void>((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => res();
+    s.onerror = () => { rzpScript = null; rej(new Error("Could not load payment window")); };
+    document.body.appendChild(s);
+  });
+  return rzpScript;
+};
+
+/** Opens Razorpay for a booking; resolves only after the server confirms payment. */
+export async function payForBooking(bookingId: string, prefill: { name?: string; email?: string; contact?: string }, title: string) {
+  await loadRazorpay();
+  const { data: order, error } = await supabase.functions.invoke("smart-visit-pay", { body: { action: "create", booking_id: bookingId } });
+  if (error || order?.error) throw new Error(order?.error || "Could not start payment");
+  if (order?.already) return;
+  await new Promise<void>((resolve, reject) => {
+    const rzp = new (window as any).Razorpay({
+      key: order.key_id, amount: order.amount, currency: order.currency, order_id: order.order_id,
+      name: "JAAGA X Smart Visit", description: title, prefill, theme: { color: "#10b981" },
+      handler: async (r: any) => {
+        const { data, error: vErr } = await supabase.functions.invoke("smart-visit-pay", { body: { action: "verify", booking_id: bookingId, ...r } });
+        if (vErr || !data?.success) reject(new Error(data?.error || "Payment could not be verified"));
+        else resolve();
+      },
+      modal: { ondismiss: () => reject(new Error("Payment cancelled")) },
+    });
+    rzp.on("payment.failed", (r: any) => reject(new Error(r?.error?.description || "Payment failed")));
+    rzp.open();
+  });
 }
 
 // ---------- Admin ----------
