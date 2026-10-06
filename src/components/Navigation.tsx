@@ -227,9 +227,9 @@ const Navigation = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/ai-advisor")}
-                className="text-sm text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
+                className="text-[15px] text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
               >
-                <Sparkles className="h-4 w-4 sm:mr-1.5 text-primary" />
+                <Sparkles className="h-[18px] w-[18px] sm:mr-2 text-primary" />
                 <span className="hidden 2xl:inline">Get Guidance</span>
               </Button>
 
@@ -239,16 +239,16 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-sm">
+                  <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-[15px] px-5">
                     Dashboard
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="text-sm">
+                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="text-[15px]">
                     Sign In
                   </Button>
-                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="text-sm">
+                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="text-[15px] px-5">
                     Register
                   </Button>
                 </>
