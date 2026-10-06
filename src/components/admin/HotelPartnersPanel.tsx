@@ -25,7 +25,7 @@ export default function HotelPartnersPanel() {
   const [acting, setActing] = useState(false);
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [businessFilter, setBusinessFilter] = useState<string>("all");
