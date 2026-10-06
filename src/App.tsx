@@ -164,6 +164,8 @@ const Promotions = lazy(() => import("./pages/Promotions"));
 const ServicesHub = lazy(() => import("./pages/ServicesHub"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
+const SmartVisits = lazy(() => import("./pages/SmartVisits"));
+const AgentSmartVisits = lazy(() => import("./pages/AgentSmartVisits"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const HotelManagerDashboard = lazy(() => import("./pages/HotelManagerDashboard"));
 const CompareProperties = lazy(() => import("./pages/CompareProperties"));
@@ -578,6 +580,8 @@ const App = () => (
                   <Route path="/book/:hotelId" element={<BookingEngine />} />
                   <Route path="/stay/:token" element={<GuestPortal />} />
                   <Route path="/my-trips" element={<MyTrips />} />
+                  <Route path="/smart-visits" element={<SmartVisits />} />
+                  <Route path="/dashboard/agent/smart-visits" element={<ProtectedRoute allowedRole="agent"><AgentSmartVisits /></ProtectedRoute>} />
 
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/services" element={<ServicesHub />} />

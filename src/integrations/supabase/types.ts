@@ -12251,6 +12251,167 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_visit_bookings: {
+        Row: {
+          agent_message: string | null
+          contact_phone: string | null
+          created_at: string
+          customer_id: string
+          customer_name: string | null
+          drop_address: string | null
+          id: string
+          interest_note: string | null
+          interest_property_ids: string[]
+          interested_to_buy: boolean
+          pickup_address: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          pickup_time: string | null
+          pickup_type: string
+          plan_id: string
+          price_per_person: number
+          rated_at: string | null
+          rating: number | null
+          review: string | null
+          seats: number
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          agent_message?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          customer_id: string
+          customer_name?: string | null
+          drop_address?: string | null
+          id?: string
+          interest_note?: string | null
+          interest_property_ids?: string[]
+          interested_to_buy?: boolean
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_time?: string | null
+          pickup_type?: string
+          plan_id: string
+          price_per_person?: number
+          rated_at?: string | null
+          rating?: number | null
+          review?: string | null
+          seats?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_message?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_name?: string | null
+          drop_address?: string | null
+          id?: string
+          interest_note?: string | null
+          interest_property_ids?: string[]
+          interested_to_buy?: boolean
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_time?: string | null
+          pickup_type?: string
+          plan_id?: string
+          price_per_person?: number
+          rated_at?: string | null
+          rating?: number | null
+          review?: string | null
+          seats?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_visit_bookings_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "smart_visit_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_visit_plans: {
+        Row: {
+          admin_notes: string | null
+          agent_id: string
+          agent_user_id: string
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          max_seats: number
+          meeting_point: string | null
+          price_home_pickup: number
+          price_meeting_point: number
+          property_ids: string[]
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_time: string
+          status: string
+          title: string
+          trip_details: string | null
+          updated_at: string
+          visit_date: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          agent_id: string
+          agent_user_id: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_seats?: number
+          meeting_point?: string | null
+          price_home_pickup?: number
+          price_meeting_point?: number
+          property_ids?: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time: string
+          status?: string
+          title: string
+          trip_details?: string | null
+          updated_at?: string
+          visit_date: string
+        }
+        Update: {
+          admin_notes?: string | null
+          agent_id?: string
+          agent_user_id?: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_seats?: number
+          meeting_point?: string | null
+          price_home_pickup?: number
+          price_meeting_point?: number
+          property_ids?: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string
+          status?: string
+          title?: string
+          trip_details?: string | null
+          updated_at?: string
+          visit_date?: string
+        }
+        Relationships: []
+      }
       stay_requests: {
         Row: {
           adults: number
@@ -13578,6 +13739,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_smart_plan_agent: {
+        Args: { _plan: string; _uid: string }
+        Returns: boolean
+      }
       is_valid_property_transition: {
         Args: {
           _from: Database["public"]["Enums"]["property_lifecycle_status"]
@@ -13862,6 +14027,14 @@ export type Database = {
         Returns: string
       }
       slugify: { Args: { _input: string }; Returns: string }
+      smart_visit_agent_rating: {
+        Args: { _agent: string }
+        Returns: {
+          avg_rating: number
+          rating_count: number
+        }[]
+      }
+      smart_visit_seats_taken: { Args: { _plan: string }; Returns: number }
       submit_kyc: {
         Args: { _aadhaar: string; _pan: string; _selfie: string }
         Returns: undefined
