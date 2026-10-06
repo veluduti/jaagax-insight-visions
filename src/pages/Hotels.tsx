@@ -30,7 +30,6 @@ import {
   TrendingUp as TrendingUpIcon,
   Calendar,
   Users,
-  Home,
   Plus,
   Minus,
   User,
