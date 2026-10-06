@@ -75,7 +75,7 @@ export async function createOffer(hotelId: string, o: { code: string; descriptio
   const today = new Date();
   const { error } = await sb.from("hotel_promo_codes").insert({
     hotel_id: hotelId, code: o.code.toUpperCase().replace(/[^A-Z0-9]/g, ""), description: o.description,
-    discount_type: "percentage", discount_value: o.percent, valid_from: iso(today),
+    discount_type: "percent", discount_value: o.percent, valid_from: iso(today),
     valid_until: iso(new Date(today.getTime() + o.days * 864e5)), is_active: true, uses_count: 0,
   });
   if (error) throw error;

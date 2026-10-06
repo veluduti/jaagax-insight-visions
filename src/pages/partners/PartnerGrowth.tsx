@@ -118,7 +118,7 @@ export default function PartnerGrowth() {
                 </CardContent></Card>
                 {d.offers.map((o) => (
                   <Card key={o.id}><CardContent className="flex items-center justify-between gap-2 p-3">
-                    <div><div className="font-medium">{o.code} · {o.discount_value}{o.discount_type === "percentage" ? "%" : "₹"} off</div>
+                    <div><div className="font-medium">{o.code} · {o.discount_value}{o.discount_type === "percent" ? "%" : "₹"} off</div>
                       <div className="text-xs text-muted-foreground">{o.description} {o.valid_until && `· until ${o.valid_until}`} · used {o.uses_count}</div></div>
                     <Button size="sm" variant={o.is_active ? "outline" : "default"} onClick={() => run(() => toggleOffer(o.id, !o.is_active), o.is_active ? "Offer paused" : "Offer live")}>{o.is_active ? "Pause" : "Start"}</Button>
                   </CardContent></Card>

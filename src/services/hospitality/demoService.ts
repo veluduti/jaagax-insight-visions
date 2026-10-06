@@ -68,16 +68,16 @@ export async function createDemo(): Promise<string> {
   ]);
 
   const { data: stays } = await sb.from("hotel_long_stays").insert([
-    { hotel_id: hid, unit_label: "Bed A1", resident_name: "Kiran Rao", resident_phone: "9000000002", move_in: day(-60), monthly_rent: 9000, deposit: 18000, rent_due_day: 5, created_by: user.id },
+    { hotel_id: hid, unit_label: "Bed A1", resident_name: "Kiran Rao", resident_phone: "9000000002", status: "active", move_in: day(-60), monthly_rent: 9000, deposit: 18000, rent_due_day: 5, created_by: user.id },
     { hotel_id: hid, unit_label: "Bed A2", resident_name: "Divya Nair", resident_phone: "9000000003", move_in: day(-30), monthly_rent: 9000, deposit: 18000, rent_due_day: 5, status: "notice", move_out: day(20), created_by: user.id },
-    { hotel_id: hid, unit_label: "Bed B1", resident_name: "Rahul Verma", resident_phone: "9000000004", move_in: day(7), monthly_rent: 9500, deposit: 19000, rent_due_day: 5, created_by: user.id },
+    { hotel_id: hid, unit_label: "Bed B1", resident_name: "Rahul Verma", resident_phone: "9000000004", status: "active", move_in: day(7), monthly_rent: 9500, deposit: 19000, rent_due_day: 5, created_by: user.id },
   ]).select("id,monthly_rent,move_in");
   const m = new Date(); const period = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}-01`;
   if (stays?.length) await sb.from("hotel_rent_dues").insert(stays.filter((s: any) => s.move_in <= day(0)).map((s: any, i: number) => ({
     stay_id: s.id, hotel_id: hid, period_month: period, amount: s.monthly_rent, due_date: `${period.slice(0, 8)}05`, status: i === 0 ? "paid" : "due", paid_at: i === 0 ? new Date().toISOString() : null,
   })));
 
-  await sb.from("hotel_promo_codes").insert({ hotel_id: hid, code: "DEMO10", description: "10% off – sample offer", discount_type: "percentage", discount_value: 10, valid_from: day(0), valid_until: day(30), is_active: true, uses_count: 0 });
+  await sb.from("hotel_promo_codes").insert({ hotel_id: hid, code: "DEMO10", description: "10% off – sample offer", discount_type: "percent", discount_value: 10, valid_from: day(0), valid_until: day(30), is_active: true, uses_count: 0 });
 
   await sb.from("partner_hotels").update({ type_details: { demo_seeded: true } }).eq("id", hid);
   localStorage.setItem(DEMO_KEY, hid);
