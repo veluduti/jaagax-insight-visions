@@ -45,6 +45,8 @@ export interface SmartVisitBooking {
   review: string | null;
   interested_to_buy: boolean;
   interest_note: string | null;
+  payment_status: string;
+  paid_at: string | null;
   created_at: string;
 }
 
