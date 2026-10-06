@@ -31,6 +31,7 @@ const publicGroups: Group[] = [
     title: "Hotels & Stays",
     items: [
       { label: "Book Hotels", path: "/hotels", icon: Hotel },
+      { label: "My Trips", path: "/my-trips", icon: CalendarDays },
       { label: "Visit + Stay", path: "/plan-visit-stay", icon: BedDouble },
       { label: "List Your Hotel", path: "/hotels/partner", icon: Briefcase },
       { label: "Partner Login", path: "/partners/login", icon: UserCog },
