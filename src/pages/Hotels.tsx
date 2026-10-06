@@ -30,7 +30,6 @@ import {
   TrendingUp as TrendingUpIcon,
   Calendar,
   Users,
-  Home,
   Plus,
   Minus,
   User,
@@ -1110,25 +1109,12 @@ const Hotels = () => {
                   )}
                 </div>
 
-                {/* Price Per Night & Search */}
+                {/* Search */}
                 <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1">
-                    <Home className="h-3 w-3 inline mr-1 text-gray-600" />
-                    Price Per Night
+                  <label className="text-xs font-medium text-transparent block mb-1 select-none">
+                    Search
                   </label>
                   <div className="flex gap-2">
-                    <select
-                      value={selectedPriceRange}
-                      onChange={(e) => setSelectedPriceRange(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
-                    >
-                      <option value="all">All Prices</option>
-                      <option value="0-1500">₹0-₹1500</option>
-                      <option value="1500-2500">₹1500-₹2500</option>
-                      <option value="2500-5000">₹2500-₹5000</option>
-                      <option value="5000-10000">₹5000-₹10000</option>
-                      <option value="10000+">₹10000+</option>
-                    </select>
                     <Button
                       onClick={handleAdvancedSearch}
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 shadow-md hover:shadow-lg transition-all flex-shrink-0"
