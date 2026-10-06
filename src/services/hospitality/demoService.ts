@@ -20,7 +20,11 @@ export async function createDemo(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Please sign in first");
   const existing = await findDemoHotel(user.id);
-  if (existing) { localStorage.setItem(DEMO_KEY, existing); return existing; }
+  if (existing) {
+    const { count } = await sb.from("hotel_rooms").select("id", { count: "exact", head: true }).eq("hotel_id", existing);
+    if (count) { localStorage.setItem(DEMO_KEY, existing); return existing; }
+    await sb.from("partner_hotels").delete().eq("id", existing).eq("manager_id", user.id); // half-made demo: start over
+  }
 
   const { data: hotel, error } = await sb.from("partner_hotels").insert({
     name: "JAAGA Demo Stay (sample)", city: "Hyderabad", locality: "Madhapur", state: "Telangana", country: "India",
