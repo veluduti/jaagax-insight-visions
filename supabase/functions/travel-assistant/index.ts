@@ -31,7 +31,17 @@ Deno.serve(async (req) => {
     const instructions = mode === "plan"
       ? "Create a flexible India travel discovery plan. Use morning/afternoon/evening blocks, not exact transport schedules. Never offer or book flights, trains, buses, cabs, taxis, rentals, transfers, drivers, or fleets. Property discovery is optional and only when explicitly relevant. Do not promise investment returns. Use realistic concise suggestions and do not invent verified business facts."
       : "You are JAAGA Travel, a concise India travel discovery companion. Answer from the supplied plan/page context. Explain recommendations. You may suggest experiences, areas and a stay search, but never transport booking. Never invent verified details or investment returns. If the user asks to change a plan, give a clear revised suggestion.";
-    const payload: Record<string, unknown> = { model: "openai/gpt-5-mini", store: false, reasoning: { effort: "low" }, instructions, input: [{ role: "user", content: context ? `Context:\n${context}\n\nRequest: ${question}` : question }] };
+    const payload: Record<string, unknown> = {
+      model: "openai/gpt-6-astra",
+      stream: true,
+      store: false,
+      reasoning: { effort: "low", summary: "auto" },
+      include: ["reasoning.encrypted_content"],
+      input: [
+        { role: "system", content: instructions },
+        { role: "user", content: context ? `Context:\n${context}\n\nRequest: ${question}` : question },
+      ],
+    };
     if (mode === "plan") payload.text = { format: { type: "json_schema", name: "travel_plan", strict: true, schema: planSchema } };
     const response = await fetch("https://ai.gateway.lovable.dev/v1/responses", { method: "POST", headers: { "Content-Type": "application/json", "Lovable-API-Key": key, Authorization: `Bearer ${key}`, "X-Lovable-AIG-SDK": "fetch" }, body: JSON.stringify(payload) });
     if (!response.ok) {
@@ -40,8 +50,27 @@ Deno.serve(async (req) => {
       if (response.status === 402) return json({ error: "AI credits have run out." });
       return json({ error: "JAAGA could not plan that right now." }, 500);
     }
-    const result = await response.json();
-    const output = result.output?.flatMap((entry: any) => entry.content ?? []).find((entry: any) => entry.type === "output_text")?.text ?? result.output_text ?? "";
+    if (!response.body) return json({ error: "JAAGA could not create a response." });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let output = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === "[DONE]") continue;
+        try {
+          const event = JSON.parse(raw);
+          if (event.type === "response.output_text.delta") output += event.delta ?? "";
+        } catch { /* ignore incomplete stream events */ }
+      }
+    }
     if (!output) return json({ error: "JAAGA could not create a useful answer. Try adding a destination or number of days." });
     if (mode === "plan") { try { return json({ plan: JSON.parse(output) }); } catch { return json({ error: "The plan needs another try." }); } }
     return json({ answer: output.trim() });

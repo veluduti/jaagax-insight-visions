@@ -9,3 +9,4 @@
 - Hospitality support, refunds, disputes and safety reports are `hospitality_tickets` (+ `hospitality_ticket_updates`) handled in the Ops queue on `/admin/hospitality`; tickets get priority from their kind so safety is always first.
 - Role-based hospitality AI help (owner/staff/customer/admin) goes through the `hospitality-assistant` function and `AssistantPanel`; owner growth tips are computed in `growthService.ts` from real data so the AI only explains, never invents numbers.
 - The partner demo property is a `partner_hotels` row tagged `demo` with `is_active=false`, selected via localStorage in `usePartnerHotel` and created/deleted by `demoService.ts`; deleting the hotel cascades all sample data so it never reaches customers.
+- JAAGA Travel owns discovery, experiences, profiles, plans, saves, memories and moderation in `travel_*`; it only links to current Hospitality and Property inventory, while transport booking remains a future plug-in.
