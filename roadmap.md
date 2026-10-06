@@ -1,4 +1,7 @@
 # Active roadmap — JAAGA Travel
+- [x] Align the second Travel header links to the right without changing the main header
+- [x] Show real destination-matched hotels below generated and reopened AI plans
+- [x] Verify header positioning and the signed-in plan-to-hotel journey
 - [x] Phase 1: Travel entry points, shell, discovery home, destination and experience details
 - [x] Phase 2: Travel profile, AI plan creation, flexible itinerary and Ask JAAGA
 - [x] Phase 3: Saved collections, plan comments and private travel memories
