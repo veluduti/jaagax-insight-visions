@@ -554,23 +554,62 @@ const Hotels = () => {
               maxRooms: Math.max(rooms, 6), limit: 1,
             }).length > 0;
 
-      // Business-type / stay-unit / budget / amenity filters.
-      const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
-      const matchesType = !stayFilters.types.length || stayFilters.types.some((t) => hTypes.includes(t));
-      const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
-      const hUnits = unitsByHotel[hotel.id] || new Set(["room"]);
-      const matchesUnit = !wantUnits.length || wantUnits.some((u) => hUnits.has(u));
+      const matchesUnit = (() => {
+        const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
+        const hUnits = unitsByHotel[hotel.id] || new Set(["room"]);
+        return !wantUnits.length || wantUnits.some((u) => hUnits.has(u));
+      })();
       const matchesBudget = !stayFilters.maxPrice || hotel.price_per_night <= stayFilters.maxPrice;
-      const amText = (hotel.amenities || []).join(" ").toLowerCase();
-      const matchesAmen = stayFilters.amenities.every((a) => amenityMatch(amText, a));
 
-      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy && matchesType && matchesUnit && matchesBudget && matchesAmen;
+      // Hard filters: location, dates/guests, price.
+      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy && matchesBudget && matchesUnit;
     });
 
-    result.sort((a, b) => relevance(b) - relevance(a) || (b.star_rating || 0) - (a.star_rating || 0));
+    // Requirement checks (AND logic). Stay type and amenities are separate:
+    // "pool villa" = a villa (property type or accommodation) that also has a pool.
+    const missing: Record<string, string[]> = {};
+    const scored = result.map((hotel) => {
+      const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
+      const feats = roomFeatures[hotel.id] || [];
+      const roomKinds = new Set(feats.map((f) => f.kind));
+      const hotelText = JSON.stringify([hotel.amenities, hotel.description]).toLowerCase();
+      const miss: string[] = [];
+      let hits = 0;
 
-    return result;
-  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, profile]);
+      if (stayFilters.types.length) {
+        const ok = stayFilters.types.some((t) => hTypes.includes(t) || roomKinds.has(t));
+        ok ? hits++ : miss.push("stay type");
+      }
+      // Rooms of the requested kind (e.g. villas) — amenities are then checked on those.
+      let scope = feats;
+      if (aiKinds.length) {
+        const kindRooms = feats.filter((f) => aiKinds.includes(f.kind));
+        const typeOk = aiKinds.some((k) => hTypes.includes(k));
+        if (kindRooms.length) { scope = kindRooms; hits++; }
+        else if (typeOk) hits++;
+        else miss.push(aiKinds.map((k) => KIND_LABEL[k] || k).join("/"));
+      }
+      const scopeText = hotelText + scope.map((f) => f.text).join(" ");
+      stayFilters.amenities.forEach((a) => {
+        amenityMatch(scopeText, a) ? hits++ : miss.push(AMENITY_LABEL[a] || a);
+      });
+      const optHits = aiOptional.filter((a) => amenityMatch(scopeText, a)).length;
+      if (miss.length) missing[hotel.id] = miss;
+      return { hotel, hits, optHits, miss: miss.length };
+    });
+
+    const exact = scored.filter((s) => s.miss === 0);
+    const hasRequirements = stayFilters.types.length + aiKinds.length + stayFilters.amenities.length > 0;
+    // No exact match → show the closest partial matches, clearly labelled.
+    const partial = exact.length === 0 && hasRequirements;
+    const pool = partial ? scored.filter((s) => s.hits > 0) : exact;
+    pool.sort((a, b) =>
+      b.hits - a.hits || b.optHits - a.optHits ||
+      relevance(b.hotel) - relevance(a.hotel) || (b.hotel.star_rating || 0) - (a.hotel.star_rating || 0));
+
+    return { list: pool.map((s) => s.hotel), missing, partial };
+  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, roomFeatures, profile]);
+  const filteredAndSortedHotels = searchOutcome.list;
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
