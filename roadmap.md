@@ -1,4 +1,7 @@
-- [x] Prefill Property Location from the saved navbar pin and allow changing it on a map.
-- [x] Remove manual location fields from the property chat and require a resolved address before continuing.
-- [x] Verify address lookup and location hierarchy availability against the live preview.
-- [x] Show fixed answer choices beside the question and typing suggestions beside the message bar.
+# Hospitality roadmap (from JAAGA master spec gap review)
+- [x] 1. Front Desk / Housekeeping / Maintenance (mobile) — /partners/operations
+- [ ] 2. Safer payments, expiring holds, "My trip" page
+- [ ] 3. Long stays & co-living (monthly rent, residents, move-in/out), waitlist
+- [ ] 4. JAAGA Ops console (support, verification, trust & safety, disputes/refunds), work queues
+- [ ] 5. Owner growth tools & AI helpers per role
+- [ ] 6. Demo data & scenarios

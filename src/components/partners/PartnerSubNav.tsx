@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare, Star, LifeBuoy, Settings,
-  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase, ChevronDown, Check,
+  TrendingUp, Sparkles, UserCog, Globe, MoreHorizontal, Tag, PartyPopper, Building2, CalendarDays, Target, Briefcase, ChevronDown, Check, ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -74,6 +74,7 @@ export default function PartnerSubNav() {
   const primary = [
     { to: "/partners/dashboard", label: "Overview", icon: LayoutDashboard },
     { to: "/partners/properties", label: "Properties", icon: Building2 },
+    { to: "/partners/operations", label: "Today", icon: ClipboardList },
     { to: "/partners/reservations", label: "Bookings", icon: CalendarRange },
     { to: "/partners/inventory", label: "Calendar", icon: CalendarDays },
     ...contextual,

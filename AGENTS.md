@@ -4,3 +4,4 @@
 - Hospitality screens call `src/services/hospitality/*` instead of querying tables directly, so the backend can later move behind an API without UI changes.
 - Partner property workspaces are defined per business type in `src/config/propertyWorkspaces.ts` and rendered by `PartnerProperties`; all types share the same rooms/units/bookings data, so only sections and wording differ per type.
 - Accommodation kinds (room, villa, dorm, apartment…) and which property types allow them live in `src/config/accommodationTypes.ts`; the partner add form reads it and saves `hotel_rooms.accommodation_kind` + `attributes`, so new types need config only, not new screens.
+- Partner daily operations (check-in/out, housekeeping, maintenance) go through `src/services/hospitality/operationsService.ts` and `hotel_ops_tasks`; check-out auto-creates a cleaning task so front desk and housekeeping share one flow.

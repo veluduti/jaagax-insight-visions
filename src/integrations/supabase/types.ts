@@ -4982,6 +4982,72 @@ export type Database = {
           },
         ]
       }
+      hotel_ops_tasks: {
+        Row: {
+          assigned_to: string | null
+          booking_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          kind: string
+          notes: string | null
+          priority: string
+          room_label: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          priority?: string
+          room_label?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          priority?: string
+          room_label?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_ops_tasks_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_ops_tasks_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_partner_applications: {
         Row: {
           address: string | null
