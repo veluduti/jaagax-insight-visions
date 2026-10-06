@@ -21,12 +21,44 @@ Deno.serve(async (req) => {
     const key = Deno.env.get("LOVABLE_API_KEY");
     if (!key) return json({ error: "Travel planning is not configured." }, 500);
     const { question, context, mode } = parsed.data;
-    const planSchema = {
-      type: "object", additionalProperties: false,
+    const planItemSchema = {
+      type: "object",
+      additionalProperties: false,
       properties: {
-        destination: { type: "string" }, title: { type: "string" }, durationDays: { type: "integer", minimum: 1, maximum: 14 }, mood: { type: "string" }, pace: { type: "string", enum: ["slow", "balanced", "active", "intensive"] }, interests: { type: "array", items: { type: "string" } }, purpose: { type: "string", enum: ["leisure", "family", "business", "relocation", "property", "nri"] }, fitScore: { type: "integer", minimum: 1, maximum: 100 }, explanation: { type: "string" },
-        days: { type: "array", items: { type: "object", additionalProperties: false, properties: { day: { type: "integer" }, theme: { type: "string" }, items: { type: "array", items: { type: "object", additionalProperties: false, properties: { period: { type: "string", enum: ["morning", "afternoon", "evening", "flexible"] }, title: { type: "string" }, description: { type: "string" }, location: { type: "string" }, fitScore: { type: "integer", minimum: 1, maximum: 100 } }, required: ["period", "title", "description", "location", "fitScore"] } }, required: ["day", "theme", "items"] } }
-      }, required: ["destination", "title", "durationDays", "mood", "pace", "interests", "purpose", "fitScore", "explanation", "days"]
+        period: { type: "string", enum: ["morning", "afternoon", "evening", "flexible"] },
+        title: { type: "string" },
+        description: { type: "string" },
+        location: { type: "string" },
+        fitScore: { type: "integer", minimum: 1, maximum: 100 },
+      },
+      required: ["period", "title", "description", "location", "fitScore"],
+    };
+    const planDaySchema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        day: { type: "integer" },
+        theme: { type: "string" },
+        items: { type: "array", items: planItemSchema },
+      },
+      required: ["day", "theme", "items"],
+    };
+    const planSchema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        destination: { type: "string" },
+        title: { type: "string" },
+        durationDays: { type: "integer", minimum: 1, maximum: 14 },
+        mood: { type: "string" },
+        pace: { type: "string", enum: ["slow", "balanced", "active", "intensive"] },
+        interests: { type: "array", items: { type: "string" } },
+        purpose: { type: "string", enum: ["leisure", "family", "business", "relocation", "property", "nri"] },
+        fitScore: { type: "integer", minimum: 1, maximum: 100 },
+        explanation: { type: "string" },
+        days: { type: "array", items: planDaySchema },
+      },
+      required: ["destination", "title", "durationDays", "mood", "pace", "interests", "purpose", "fitScore", "explanation", "days"],
     };
     const instructions = mode === "plan"
       ? "Create a flexible India travel discovery plan. Use morning/afternoon/evening blocks, not exact transport schedules. Never offer or book flights, trains, buses, cabs, taxis, rentals, transfers, drivers, or fleets. Property discovery is optional and only when explicitly relevant. Do not promise investment returns. Use realistic concise suggestions and do not invent verified business facts."
