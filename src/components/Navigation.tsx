@@ -143,7 +143,7 @@ const Navigation = () => {
 
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu>
-              <NavigationMenuList className="gap-1">
+              <NavigationMenuList className="gap-2">
                 {
                   <>
                     {/* Sell Your Property - Direct Link (all roles) */}
@@ -152,11 +152,11 @@ const Navigation = () => {
                         <Link
                           to="/sell-property"
                           className={cn(
-                            "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
+                            "inline-flex items-center whitespace-nowrap rounded-md px-4 py-2.5 text-[15px] font-medium transition-colors hover:bg-accent hover:text-foreground",
                             isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
                           )}
                         >
-                          <DollarSign className="h-4 w-4 mr-1.5" />
+                          <DollarSign className="h-[18px] w-[18px] mr-2" />
                           Sell Your Property
                         </Link>
                       </NavigationMenuLink>
@@ -166,11 +166,11 @@ const Navigation = () => {
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
                         className={cn(
-                          "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                          "bg-transparent h-auto px-4 py-2.5 text-[15px] font-medium",
                           isExploreActive ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        <Compass className="h-4 w-4 mr-1.5" />
+                        <Compass className="h-[18px] w-[18px] mr-2" />
                         Explore
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -204,11 +204,11 @@ const Navigation = () => {
                         <Button
                           variant="ghost"
                           className={cn(
-                            "px-3 py-2 text-sm font-medium h-auto",
+                            "px-4 py-2.5 text-[15px] font-medium h-auto",
                             isActive("/hotels") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                           )}
                         >
-                          <Hotel className="h-4 w-4 mr-1.5" />
+                          <Hotel className="h-[18px] w-[18px] mr-2" />
                           Hotels
                         </Button>
                       </Link>
