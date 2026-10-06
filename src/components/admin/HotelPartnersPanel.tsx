@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText, RefreshCw, Lock, LogIn, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import PendingPropertyReviews from "./PendingPropertyReviews";
 
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
 
@@ -148,6 +149,7 @@ export default function HotelPartnersPanel() {
 
   return (
     <div className="space-y-4">
+      <PendingPropertyReviews />
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
