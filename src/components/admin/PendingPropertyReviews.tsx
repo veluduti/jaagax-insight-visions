@@ -51,7 +51,7 @@ export default function PendingPropertyReviews() {
     <Card>
       <CardHeader>
         <CardTitle>Properties waiting for review ({rows?.length ?? 0})</CardTitle>
-        <CardDescription>Partner properties submitted for review from the partner workspace.</CardDescription>
+        <CardDescription>Partner properties submitted for review. Support, refunds, disputes and safety reports are in the <a className="text-primary underline" href="/admin/hospitality">Hospitality Ops queue</a>.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {!rows ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> :

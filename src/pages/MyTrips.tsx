@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, MessageSquare, Star, XCircle, LifeBuoy, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
+import GetHelpDialog from "@/components/hotels/GetHelpDialog";
 import { supabase } from "@/integrations/supabase/client";
 import {
   loadMyTrips, tripStage, holdMinutesLeft, sendTripMessage, submitReview, cancelTrip, type Trip, type TripStage,
@@ -28,6 +29,7 @@ export default function MyTrips() {
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
   const [busy, setBusy] = useState(false);
+  const [helpFor, setHelpFor] = useState<Trip | null>(null);
 
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)); }, []);
@@ -90,7 +92,7 @@ export default function MyTrips() {
                       {stage !== "cancelled" && <Button size="sm" variant="outline" onClick={() => setDialog({ mode: "message", trip: t })}><MessageSquare className="mr-1 h-4 w-4" />Message property</Button>}
                       {stage === "completed" && !data.reviewed.has(t.id) && <Button size="sm" onClick={() => setDialog({ mode: "review", trip: t })}><Star className="mr-1 h-4 w-4" />Write a review</Button>}
                       {(stage === "upcoming" || stage === "awaiting_payment") && <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "cancel", trip: t })}><XCircle className="mr-1 h-4 w-4" />Cancel</Button>}
-                      <Button asChild size="sm" variant="ghost"><a href={`mailto:support@jaagax.com?subject=Help with booking ${t.booking_reference || t.id}`}><LifeBuoy className="mr-1 h-4 w-4" />JAAGA support</a></Button>
+                      <Button size="sm" variant="ghost" onClick={() => setHelpFor(t)}><LifeBuoy className="mr-1 h-4 w-4" />Get help</Button>
                     </div>
                   </CardContent></Card>
                 );
@@ -99,6 +101,7 @@ export default function MyTrips() {
           )}
       </main>
 
+      <GetHelpDialog open={!!helpFor} onClose={() => setHelpFor(null)} booking={helpFor} />
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>
