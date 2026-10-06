@@ -59,6 +59,17 @@ import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories"
 import { buildLocationIndex, findCities, findLocalities, sameLocality } from "@/lib/locationAutocomplete";
 import { isSameCity } from "@/lib/cityNormalizer";
 
+interface RoomFeature { kind: string; text: string }
+
+const KIND_LABEL: Record<string, string> = {
+  villa: "Villa", cottage: "Cottage", tent: "Tent", cabin: "Cabin", apartment: "Apartment",
+  dorm: "Dorm bed", private_room: "Private room", shared_room: "Shared room", entire_home: "Entire home", room: "Room",
+};
+const AMENITY_LABEL: Record<string, string> = {
+  wifi: "Wi-Fi", breakfast: "Breakfast", parking: "Parking", pool: "Pool", pet_friendly: "Pet-friendly",
+  ac: "AC", gym: "Gym", restaurant: "Restaurant", kitchen: "Kitchen", laundry: "Laundry",
+};
+
 interface PartnerHotel {
   id: string;
   name: string;
