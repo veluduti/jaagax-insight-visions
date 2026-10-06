@@ -166,7 +166,6 @@ const InnovationHub = () => {
           </TabsContent>
 
           <TabsContent value="visits">
-            <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-3 flex-wrap"><p className="text-sm">Join a guided group site visit with a JAAGA agent — pickup and drop included.</p><a href="/smart-visits" className="text-sm font-semibold text-primary underline">Browse Smart Visits</a></div>
             <SmartVisitCluster savedProperties={[]} onScheduleCluster={handleScheduleCluster} />
           </TabsContent>
         </Tabs>
