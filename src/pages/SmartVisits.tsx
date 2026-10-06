@@ -139,12 +139,20 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
     if (pickup === "home" && !address.trim()) return toast.error("Please enter your pickup address");
     if (seats < 1 || seats > left) return toast.error(`Choose 1 to ${left} seats`);
     setSaving(true);
+    let id: string | null = null;
     try {
-      await createBooking({ plan_id: plan.id, customer_id: user.id, customer_name: name.trim(), contact_phone: phone.trim(),
+      id = await createBooking({ plan_id: plan.id, customer_id: user.id, customer_name: name.trim(), contact_phone: phone.trim(),
         seats, pickup_type: pickup, pickup_address: pickup === "home" ? address.trim() : undefined, drop_address: drop.trim() || undefined });
-      toast.success("Booked! The agent will send your pickup time and trip details.");
+      await payForBooking(id, { name: name.trim(), email: user.email ?? undefined, contact: phone.trim() }, plan.title);
+      toast.success("Paid and booked! The agent will send your pickup time and trip details.");
       onDone();
-    } catch (e) { toast.error(errMsg(e)); } finally { setSaving(false); }
+    } catch (e: any) {
+      if (id) {
+        toast.message(e?.message === "Payment cancelled" ? "Payment not finished" : errMsg(e),
+          { description: "Your seat is saved. Tap “Pay now” in My bookings to finish payment." });
+        onDone();
+      } else toast.error(errMsg(e));
+    } finally { setSaving(false); }
   };
 
   return (
@@ -171,9 +179,9 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
           </div>
           <div><Label>People ({left} seats left)</Label><Input type="number" min={1} max={left} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
           <div className="rounded-lg bg-muted p-3 text-sm flex justify-between"><span>{inr(per)} × {seats}</span><b>{inr(per * seats)}</b></div>
-          <p className="text-xs text-muted-foreground">Pay the agent on the day of the visit.</p>
+          <p className="text-xs text-muted-foreground">Pay securely online with UPI, card or net banking.</p>
         </div>
-        <DialogFooter><Button onClick={submit} disabled={saving} className="w-full">{saving ? "Booking…" : "Confirm booking"}</Button></DialogFooter>
+        <DialogFooter><Button onClick={submit} disabled={saving} className="w-full">{saving ? "Processing…" : `Pay ${inr(per * seats)} & book`}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -197,7 +205,10 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
             <p className="text-xs text-muted-foreground">{p?.visit_date} · {p?.start_time} · {b.seats} seat(s) · {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point}`}</p>
             <p className="text-sm">Total: <b>{inr(b.total_amount)}</b> <span className="text-xs text-muted-foreground">({inr(b.price_per_person)}/person)</span></p>
           </div>
-          <Badge>{statusLabel[b.status] || b.status}</Badge>
+          <div className="flex gap-1 flex-wrap items-start">
+            <Badge>{statusLabel[b.status] || b.status}</Badge>
+            <Badge variant={b.payment_status === "paid" ? "default" : "outline"}>{b.payment_status === "paid" ? "Paid" : "Not paid"}</Badge>
+          </div>
         </div>
         {(b.pickup_time || b.agent_message) && (
           <div className="rounded-lg bg-primary/10 p-3 text-sm">
@@ -208,9 +219,17 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
         )}
         {b.status === "booked" && <p className="text-xs text-muted-foreground">Waiting for the agent to send pickup time and trip details.</p>}
         <div className="flex gap-2 flex-wrap">
+          {b.payment_status !== "paid" && ["booked", "confirmed"].includes(b.status) && (
+            <Button size="sm" disabled={paying} onClick={async () => {
+              setPaying(true);
+              try { await payForBooking(b.id, { name: b.customer_name ?? undefined, contact: b.contact_phone ?? undefined }, p?.title || "Smart Visit"); toast.success("Payment received"); onChange(); }
+              catch (e: any) { if (e?.message !== "Payment cancelled") toast.error(errMsg(e)); }
+              finally { setPaying(false); }
+            }}>{paying ? "Processing…" : `Pay now ${inr(b.total_amount)}`}</Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => setShowProps(!showProps)}>{showProps ? "Hide" : "View"} properties</Button>
           {["booked", "confirmed"].includes(b.status) && (
-            <Button size="sm" variant="ghost" onClick={() => confirm("Cancel this booking?") && act({ status: "cancelled" }, "Booking cancelled")}>Cancel booking</Button>
+            <Button size="sm" variant="ghost" onClick={() => confirm(b.payment_status === "paid" ? "Cancel this booking? For a refund, use Get help or contact the agent." : "Cancel this booking?") && act({ status: "cancelled" }, "Booking cancelled")}>Cancel booking</Button>
           )}
         </div>
         {showProps && p && <PlanPropertyList ids={p.property_ids} />}
