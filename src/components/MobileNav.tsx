@@ -1,4 +1,4 @@
-import { Home, Hotel, DollarSign, Megaphone, LayoutGrid, User } from "lucide-react";
+import { Home, Hotel, DollarSign, Plane, LayoutGrid, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,7 +13,7 @@ const MobileNav = () => {
     { icon: Home, label: "Home", path: "/", match: ["/"] },
     { icon: Hotel, label: "Hotels", path: "/hotels", match: ["/hotels", "/plan-visit-stay"] },
     { icon: DollarSign, label: "Sell", path: "/sell-property", match: ["/sell-property"] },
-    { icon: Megaphone, label: "Offers", path: "/promotions", match: ["/promotions"] },
+    { icon: Plane, label: "Travel", path: "/travel", match: ["/travel"] },
     { icon: LayoutGrid, label: "Services", path: "/services", match: ["/services"] },
     { icon: User, label: "Profile", path: session ? "/select-profile" : "/auth", match: ["/select-profile", "/auth", "/dashboard", "/partners/dashboard", "/admin"] },
   ];

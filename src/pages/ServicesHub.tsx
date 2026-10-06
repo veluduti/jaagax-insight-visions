@@ -4,7 +4,7 @@ import {
   Home, Building2, DollarSign, Hotel, MapPin, Users, Calendar, TrendingUp, Sparkles, Zap,
   Search, Map, Film, Scale, Calculator, ShieldCheck, BedDouble, Briefcase, Landmark,
   LayoutDashboard, UserCog, ClipboardCheck, Trophy, BookOpen, HelpCircle, Phone, Megaphone, Star, Search as SearchIcon,
-  CalendarDays,
+  CalendarDays, Plane,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import SEO from "@/components/SEO";
@@ -15,6 +15,17 @@ type Item = { label: string; path: string; icon: any; desc?: string };
 type Group = { title: string; items: Item[] };
 
 const publicGroups: Group[] = [
+  {
+    title: "Travel",
+    items: [
+      { label: "Discover Travel", path: "/travel", icon: Plane },
+      { label: "Explore", path: "/travel/explore", icon: Map },
+      { label: "Plan with JAAGA", path: "/travel/plan", icon: Sparkles },
+      { label: "My Plans", path: "/travel/plans", icon: CalendarDays },
+      { label: "Saved", path: "/travel/saved", icon: Star },
+      { label: "Travel Partner", path: "/travel/partner", icon: Briefcase },
+    ],
+  },
   {
     title: "Property",
     items: [
