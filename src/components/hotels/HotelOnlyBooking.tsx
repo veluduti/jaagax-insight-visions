@@ -25,6 +25,7 @@ interface HotelOnlyBookingProps {
   initialCheckOut?: Date;
   initialGuests?: number;
   initialRooms?: number;
+  onlyRoomIds?: string[];
 }
 
 export const HotelOnlyBooking = ({
@@ -35,6 +36,7 @@ export const HotelOnlyBooking = ({
   initialCheckOut,
   initialGuests,
   initialRooms,
+  onlyRoomIds,
 }: HotelOnlyBookingProps) => {
   return (
     <HotelBookingModal
@@ -46,6 +48,7 @@ export const HotelOnlyBooking = ({
       initialCheckOut={initialCheckOut}
       initialGuests={initialGuests}
       initialRooms={initialRooms}
+      onlyRoomIds={onlyRoomIds}
     />
   );
 };

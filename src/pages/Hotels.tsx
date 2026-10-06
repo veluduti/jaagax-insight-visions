@@ -43,6 +43,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
+import StayListingDetail, { type StayListing } from "@/components/hotels/StayListingDetail";
 import { WeekendExplorerWizard } from "@/components/booking/WeekendExplorerWizard";
 import { QuickVisitWizard } from "@/components/booking/QuickVisitWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
@@ -142,6 +143,9 @@ const Hotels = () => {
   };
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
   const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
+  const [rawRooms, setRawRooms] = useState<any[]>([]);
+  const [openListing, setOpenListing] = useState<StayListing | null>(null);
+  const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
   useEffect(() => { loadStayProfile().then(setProfile).catch(() => null); }, []);
   const { detectedLocation } = useLocation();
@@ -290,7 +294,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities, room_name, description, photos")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -319,6 +323,7 @@ const Hotels = () => {
         setRoomsByHotel(occByHotel);
         setUnitsByHotel(units);
         setRoomFeatures(feats);
+        setRawRooms(roomsRes.data || []);
 
 
         const enriched = await Promise.all(
@@ -610,6 +615,51 @@ const Hotels = () => {
     return { list: pool.map((s) => s.hotel), missing, partial };
   }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, roomFeatures, profile]);
   const filteredAndSortedHotels = searchOutcome.list;
+
+  // When a stay type is searched (e.g. "guest houses"), show each listing of that
+  // type exactly as the partner entered it, instead of whole mixed properties.
+  const typeListings = useMemo<StayListing[] | null>(() => {
+    const want = [...stayFilters.types, ...aiKinds].map(normalizeCategory);
+    if (!want.length) return null;
+    const byId = new Map(filteredAndSortedHotels.map((h) => [h.id, h]));
+    const seen = new Set<string>();
+    const out: StayListing[] = [];
+    rawRooms.forEach((r) => {
+      const h = byId.get(r.hotel_id);
+      if (!h) return;
+      const bt = r.attributes?.business_type ? normalizeCategory(r.attributes.business_type) : null;
+      const kind = r.accommodation_kind || "room";
+      const roomType = bt ?? (h.business_types?.length === 1 ? normalizeCategory(h.business_types[0]) : null);
+      if (!want.some((w) => w === roomType || (kind !== "room" && w === kind))) return;
+      const text = JSON.stringify([r.room_type, r.amenities, r.attributes, r.description]).toLowerCase();
+      if (!stayFilters.amenities.every((a) => amenityMatch(text, a))) return;
+      if (stayFilters.maxPrice && Number(r.base_price) > stayFilters.maxPrice) return;
+      const name = r.room_name || h.name;
+      const area = r.attributes?.area || h.locality || "";
+      const key = `${name}|${area}`.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      const t = roomType || kind;
+      out.push({
+        id: r.id, hotelId: h.id, name, area, city: r.attributes?.area ? "" : h.city,
+        typeLabel: t.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+        roomType: r.room_type || "", price: Number(r.base_price) || 0,
+        photos: Array.isArray(r.photos) ? r.photos.filter(Boolean) : [],
+        highlights: String(r.description || "").split(/[;\n]/).map((x: string) => x.trim()).filter(Boolean),
+        maxAdults: r.max_adults ?? null, maxOccupancy: r.max_occupancy ?? null, units: r.total_units ?? null,
+      });
+    });
+    return out.sort((a, b) => a.price - b.price);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredAndSortedHotels, rawRooms, searchParams]);
+  const bookListing = (l: StayListing) => {
+    const h = hotels.find((x) => x.id === l.hotelId);
+    if (!h) return;
+    setOpenListing(null);
+    setBookRoomIds([l.id]);
+    setSelectedHotel({ ...h, name: l.name, price_per_night: l.price });
+    setShowHotelOnlyModal(true);
+  };
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
@@ -1352,11 +1402,40 @@ const Hotels = () => {
             </div>
           ) : (
             <>
-            {searchOutcome.partial && (
+            {searchOutcome.partial && !typeListings && (
               <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
                 No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
               </div>
             )}
+            {typeListings ? (
+              typeListings.length === 0 ? (
+                <p className="rounded-xl border border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
+                  No stays of this type match your search yet. Try another city or remove some requirements.
+                </p>
+              ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {typeListings.map((l) => (
+                  <Card key={l.id} className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl" onClick={() => setOpenListing(l)}>
+                    <div className="h-52 w-full bg-muted">
+                      {l.photos[0] ? <img src={l.photos[0]} alt={l.name} className="h-full w-full object-cover" loading="lazy" /> : (
+                        <div className="flex h-full items-center justify-center"><Hotel className="h-16 w-16 text-muted-foreground" /></div>
+                      )}
+                    </div>
+                    <CardContent className="flex flex-1 flex-col p-3.5">
+                      <Badge variant="secondary" className="mb-1 w-fit text-[10px]">{l.typeLabel}</Badge>
+                      <h3 className="line-clamp-1 text-sm font-semibold">{l.name}</h3>
+                      <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3 text-primary" /><span className="line-clamp-1">{[l.area, l.city].filter(Boolean).join(", ")}</span></p>
+                      {l.highlights.length > 0 && <p className="mb-2 line-clamp-2 text-[11px] text-muted-foreground">{l.highlights.slice(0, 3).join(" · ")}</p>}
+                      <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
+                        <div><span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span><span className="text-[10px] text-muted-foreground">/night</span></div>
+                        <Button size="sm" className="h-8 rounded-xl px-4 text-xs" onClick={(e) => { e.stopPropagation(); bookListing(l); }}>Book</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              )
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
@@ -1495,6 +1574,7 @@ const Hotels = () => {
                           className="text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setBookRoomIds(undefined);
                             setSelectedHotel(hotel);
                             setShowHotelOnlyModal(true);
                           }}
@@ -1507,6 +1587,7 @@ const Hotels = () => {
                 </motion.div>
               ))}
             </div>
+            )}
             </>
           )}
         </div>
@@ -1527,8 +1608,10 @@ const Hotels = () => {
           initialCheckOut={checkOut}
           initialGuests={adults + children}
           initialRooms={rooms}
+          onlyRoomIds={bookRoomIds}
         />
       )}
+      <StayListingDetail listing={openListing} onClose={() => setOpenListing(null)} onBook={bookListing} />
 
       {/* Weekend Property Explorer Wizard */}
       <WeekendExplorerWizard

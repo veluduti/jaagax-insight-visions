@@ -43,6 +43,8 @@ interface HotelBookingModalProps {
   initialCheckOut?: Date;
   initialGuests?: number;
   initialRooms?: number;
+  /** Limit choices to these rooms (e.g. one listing picked from search). */
+  onlyRoomIds?: string[];
 }
 
 interface RoomRow {
@@ -86,6 +88,7 @@ const HotelBookingModal = ({
   initialCheckOut,
   initialGuests,
   initialRooms,
+  onlyRoomIds,
 }: HotelBookingModalProps) => {
   const navigate = useNavigate();
   const { isAuthenticated, openAuthPopup } = useRequireAuth();
@@ -187,11 +190,12 @@ const HotelBookingModal = ({
         .eq("hotel_id", hotel.id).eq("is_active", true)
         .order("base_price", { ascending: true });
       if (cancelled) return;
-      setRooms((data || []) as RoomRow[]);
+      const all = (data || []) as RoomRow[];
+      setRooms(onlyRoomIds?.length ? all.filter((r: any) => onlyRoomIds.includes(r.id)) : all);
       setLoadingRooms(false);
     })();
     return () => { cancelled = true; };
-  }, [open, hotel.id]);
+  }, [open, hotel.id, onlyRoomIds?.join(",")]);
 
   // --- Server-authoritative per-room quote (rate calendar, stop-sell, inventory) ---
   // Quoted for ONE unit so availability and per-night price are room-level facts;
