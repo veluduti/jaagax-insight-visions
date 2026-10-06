@@ -5,7 +5,6 @@ import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
 import {
-  Leaf,
   Sparkles,
   Home,
   Building2,
@@ -21,8 +20,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import {
   NavigationMenu,
@@ -56,25 +53,6 @@ const Navigation = () => {
             : role === "hotel_manager"
               ? "/partners/dashboard"
               : `/dashboard/${role || "buyer"}`;
-  const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
-  const isNaturalLivingRoute = location.pathname.startsWith("/natural-living");
-
-  useEffect(() => {
-    const fetchFeatureFlag = async () => {
-      try {
-        const { data } = await (supabase.from("feature_flags" as any).select("enabled") as any)
-          .eq("flag_name", "natural_living_enabled")
-          .maybeSingle();
-
-        if (data) {
-          setNaturalLivingEnabled(data.enabled ?? false);
-        }
-      } catch (error) {
-        console.log("Feature flags not available");
-      }
-    };
-    fetchFeatureFlag();
-  }, []);
 
   const allPropertiesItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
     {
@@ -236,23 +214,6 @@ const Navigation = () => {
                       </Link>
                     </NavigationMenuItem>
 
-                    {/* Natural Living - Direct Link */}
-                    <NavigationMenuItem>
-                      <Link to="/natural-living">
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
-                            isActive("/natural-living")
-                              ? "text-foreground"
-                              : "text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          <Leaf className="h-4 w-4 text-emerald-500" />
-                          Natural Living
-                        </Button>
-                      </Link>
-                    </NavigationMenuItem>
                   </>
                 }
               </NavigationMenuList>
