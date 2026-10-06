@@ -12896,6 +12896,83 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_plan_collaborators: {
+        Row: {
+          created_at: string
+          invite_status: string
+          plan_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          invite_status?: string
+          plan_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          invite_status?: string
+          plan_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_plan_collaborators_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "travel_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_plan_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          plan_id: string
+          plan_item_id: string | null
+          user_id: string
+          vote_value: number | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          plan_id: string
+          plan_item_id?: string | null
+          user_id: string
+          vote_value?: number | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          plan_id?: string
+          plan_item_id?: string | null
+          user_id?: string
+          vote_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_plan_comments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "travel_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_plan_comments_plan_item_id_fkey"
+            columns: ["plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "travel_plan_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_plan_items: {
         Row: {
           created_at: string
