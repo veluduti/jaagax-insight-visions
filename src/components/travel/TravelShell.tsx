@@ -1,13 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Compass, Heart, Hotel, Map, Sparkles, UserRound } from "lucide-react";
+import { Camera, Compass, Heart, Map, Sparkles, UserRound, Users, Wand2, MessagesSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
   { label: "Home", path: "/travel", icon: Compass },
   { label: "Explore", path: "/travel/explore", icon: Map },
+  { label: "Inspire", path: "/travel/inspire", icon: Wand2 },
+  { label: "Journeys", path: "/travel/journeys", icon: Users },
+  { label: "Community", path: "/travel/communities", icon: MessagesSquare },
+  { label: "Memories", path: "/travel/memories", icon: Camera },
   { label: "Plans", path: "/travel/plans", icon: Sparkles },
-  { label: "Stays", path: "/hotels", icon: Hotel },
   { label: "Saved", path: "/travel/saved", icon: Heart },
   { label: "Profile", path: "/travel/profile", icon: UserRound },
 ];

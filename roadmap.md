@@ -11,6 +11,8 @@
 - [x] Phase 5: Partner submissions and global-admin Travel review foundations
 - [x] Validate public desktop/mobile discovery and signed-in plan generation, save and reopen
 
+- [x] Spec v2: new home hero/actions, Inspire Me + Surprise Me, Join a Journey (group trips), Communities, Memories feed
+
 ## Future expansion
 - [ ] Invite-based collaborative editing and itinerary voting
 - [ ] Rich memory albums with photo uploads and privacy controls

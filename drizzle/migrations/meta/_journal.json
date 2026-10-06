@@ -113,6 +113,13 @@
       "when": 1791283361549,
       "tag": "0015_add_travel_collaboration",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791285857177,
+      "tag": "0016_travel_group_journeys",
+      "breakpoints": true
     }
   ]
 }
