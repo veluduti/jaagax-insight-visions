@@ -21,8 +21,8 @@ export async function createDemo(): Promise<string> {
   if (!user) throw new Error("Please sign in first");
   const existing = await findDemoHotel(user.id);
   if (existing) {
-    const { count } = await sb.from("hotel_rooms").select("id", { count: "exact", head: true }).eq("hotel_id", existing);
-    if (count) { localStorage.setItem(DEMO_KEY, existing); return existing; }
+    const { data: h } = await sb.from("partner_hotels").select("type_details").eq("id", existing).maybeSingle();
+    if (h?.type_details?.demo_seeded) { localStorage.setItem(DEMO_KEY, existing); return existing; }
     await sb.from("partner_hotels").delete().eq("id", existing).eq("manager_id", user.id); // half-made demo: start over
   }
 
@@ -79,6 +79,7 @@ export async function createDemo(): Promise<string> {
 
   await sb.from("hotel_promo_codes").insert({ hotel_id: hid, code: "DEMO10", description: "10% off – sample offer", discount_type: "percentage", discount_value: 10, valid_from: day(0), valid_until: day(30), is_active: true, uses_count: 0 });
 
+  await sb.from("partner_hotels").update({ type_details: { demo_seeded: true } }).eq("id", hid);
   localStorage.setItem(DEMO_KEY, hid);
   return hid;
 }
