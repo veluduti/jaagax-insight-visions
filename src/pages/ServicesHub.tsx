@@ -4,6 +4,7 @@ import {
   Home, Building2, DollarSign, Hotel, MapPin, Users, Calendar, TrendingUp, Sparkles, Zap,
   Search, Map, Film, Scale, Calculator, ShieldCheck, BedDouble, Briefcase, Landmark,
   LayoutDashboard, UserCog, ClipboardCheck, Trophy, BookOpen, HelpCircle, Phone, Megaphone, Star, Search as SearchIcon,
+  CalendarDays,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import SEO from "@/components/SEO";
