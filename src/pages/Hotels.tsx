@@ -1507,6 +1507,7 @@ const Hotels = () => {
                 </motion.div>
               ))}
             </div>
+            </>
           )}
         </div>
       </main>
