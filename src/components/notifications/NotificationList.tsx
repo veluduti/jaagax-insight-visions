@@ -1,6 +1,9 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { notificationDestination, notificationIsRead } from "@/lib/notificationDestination";
+import { toast } from "sonner";
 import { 
   CheckCheck, 
   Calendar, 
@@ -14,13 +17,22 @@ interface NotificationListProps {
   notifications: any[];
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
+  onNavigate?: () => void;
 }
 
 export const NotificationList = ({
   notifications,
   onMarkAsRead,
   onMarkAllAsRead,
+  onNavigate,
 }: NotificationListProps) => {
+  const navigate = useNavigate();
+  const openNotification = (notification: any) => {
+    if (!notificationIsRead(notification)) onMarkAsRead(notification.id);
+    const destination = notificationDestination(notification);
+    if (destination) { onNavigate?.(); navigate(destination); }
+    else toast.message(notification.title, { description: notification.message });
+  };
   const getIcon = (type: string) => {
     switch (type) {
       case 'booking': return Calendar;
@@ -44,7 +56,7 @@ export const NotificationList = ({
     <div>
       <div className="flex items-center justify-between p-4 border-b">
         <h3 className="font-semibold">Notifications</h3>
-        {notifications.some(n => !n.read) && (
+        {notifications.some(n => !notificationIsRead(n)) && (
           <Button variant="ghost" size="sm" onClick={onMarkAllAsRead}>
             <CheckCheck className="w-4 h-4 mr-2" />
             Mark all read
@@ -57,23 +69,24 @@ export const NotificationList = ({
           {notifications.map((notification) => {
             const Icon = getIcon(notification.type);
             return (
-              <div
+               <Button
                 key={notification.id}
-                className={`p-4 cursor-pointer hover:bg-secondary/50 transition-colors ${
-                  !notification.read ? 'bg-primary/5' : ''
+                 variant="ghost"
+                 className={`block w-full h-auto whitespace-normal rounded-none text-left p-4 hover:bg-secondary/50 transition-colors ${
+                   !notificationIsRead(notification) ? 'bg-primary/5' : ''
                 }`}
-                onClick={() => !notification.read && onMarkAsRead(notification.id)}
+                 onClick={() => openNotification(notification)}
               >
                 <div className="flex gap-3">
                   <div className={`p-2 rounded-lg ${
-                    !notification.read ? 'bg-primary/20' : 'bg-secondary'
+                     !notificationIsRead(notification) ? 'bg-primary/20' : 'bg-secondary'
                   }`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h4 className="font-medium text-sm">{notification.title}</h4>
-                      {!notification.read && (
+                       {!notificationIsRead(notification) && (
                         <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1" />
                       )}
                     </div>
@@ -81,11 +94,11 @@ export const NotificationList = ({
                       {notification.message}
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                       {Number.isNaN(new Date(notification.created_at).getTime()) ? "" : formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </p>
                   </div>
                 </div>
-              </div>
+              </Button>
             );
           })}
         </div>

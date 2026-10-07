@@ -9,8 +9,12 @@ import {
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationList } from "./NotificationList";
+import { useAuth } from "@/hooks/useAuth";
+import { notificationIsRead } from "@/lib/notificationDestination";
+import { toast } from "sonner";
 
 export const NotificationBell = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -19,6 +23,9 @@ export const NotificationBell = () => {
   );
 
   useEffect(() => {
+    setNotifications([]);
+    setUnreadCount(0);
+    if (!user?.id) return;
     fetchNotifications();
     
     // Set up realtime subscription for new notifications
@@ -27,21 +34,19 @@ export const NotificationBell = () => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
-          setNotifications(prev => [payload.new, ...prev]);
-          setUnreadCount(prev => prev + 1);
-        }
+        () => { fetchNotifications(); }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -56,18 +61,20 @@ export const NotificationBell = () => {
 
     if (!error && data) {
       setNotifications(data);
-      setUnreadCount(data.filter((n: any) => !n.read).length);
+      setUnreadCount(data.filter((n: any) => !notificationIsRead(n)).length);
     }
   };
 
   const markAsRead = async (notificationId: string) => {
-    await supabase
+    if (!user) return;
+    const { error } = await supabase
       .from('notifications' as any)
-      .update({ read: true })
-      .eq('id', notificationId);
+      .update({ read: true, is_read: true })
+      .eq('id', notificationId).eq('user_id', user.id);
+    if (error) { toast.error("Could not mark notification as read"); return; }
 
     setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      prev.map(n => n.id === notificationId ? { ...n, read: true, is_read: true } : n)
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
@@ -76,20 +83,20 @@ export const NotificationBell = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase
+    const { error } = await supabase
       .from('notifications' as any)
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
+      .update({ read: true, is_read: true })
+      .eq('user_id', user.id);
+    if (error) { toast.error("Could not mark notifications as read"); return; }
 
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true, is_read: true })));
     setUnreadCount(0);
   };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <Badge 
@@ -101,11 +108,12 @@ export const NotificationBell = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 max-w-[calc(100vw-24px)] p-0" align="end">
         <NotificationList
           notifications={notifications}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
+          onNavigate={() => setOpen(false)}
         />
       </PopoverContent>
     </Popover>

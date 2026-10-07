@@ -42,7 +42,7 @@ export default function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[400px] p-0">
-        <NotificationCenter />
+          <NotificationCenter compact onChanged={refresh} onNavigate={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
   );

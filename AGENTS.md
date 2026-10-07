@@ -12,3 +12,5 @@
 - JAAGA Travel owns discovery, experiences, profiles, plans, saves, memories and moderation in `travel_*`; it only links to current Hospitality and Property inventory, while transport booking remains a future plug-in.
 - Travel itinerary hotel suggestions and inline room previews use the canonical hotel-search service through PlanNearbyHotels on generated and saved plans; only booking links leave the plan, keeping browsing context intact and inventory consistent.
 - Travel group trips live in `travel_journeys` + `travel_journey_members` (seat limit enforced in RLS); community membership reuses `travel_saves` with item_type `community`, so no extra tables are needed for joining.
+- Smart Visit cards share guarded date/time formatters that accept legacy AM/PM text and database times, preventing invalid date displays.
+- Notification clicks resolve same-origin destinations through one shared helper; read actions update both legacy read flags for cross-dashboard consistency.

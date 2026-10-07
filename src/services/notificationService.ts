@@ -64,7 +64,7 @@ export const notificationService = {
 
   // ---- Mark single notification as read ----
   async markAsRead(id: string) {
-    const { error } = await supabase.from(TABLE).update({ is_read: true }).eq("id", id);
+    const { error } = await supabase.from(TABLE).update({ is_read: true, read: true }).eq("id", id);
 
     if (error) throw error;
   },
@@ -76,7 +76,7 @@ export const notificationService = {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from(TABLE).update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
+    const { error } = await supabase.from(TABLE).update({ is_read: true, read: true }).eq("user_id", user.id);
 
     if (error) throw error;
   },

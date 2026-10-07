@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Route, Calendar, MapPin, Users, Star, Car, Home as HomeIcon, ArrowLeft } from "lucide-react";
+import { Route, Calendar, Clock, MapPin, Users, Star, Car, Home as HomeIcon, ArrowLeft, Building2, ChevronDown, ArrowRight } from "lucide-react";
+import { visitDateLabel, visitTimeLabel } from "@/lib/smartVisitDate";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,12 @@ export default function SmartVisits() {
   const loadMine = () => user && listMyBookings(user.id).then(setMine).catch(() => setMine([]));
   useEffect(() => { loadOpen(); }, []);
   useEffect(() => { loadMine(); }, [user?.id]);
+  useEffect(() => {
+    const selected = params.get("plan");
+    if (!selected || !plans.some((p) => p.id === selected)) return;
+    setExpanded(selected);
+    requestAnimationFrame(() => document.getElementById(`visit-${selected}`)?.scrollIntoView({ block: "center" }));
+  }, [params, plans]);
 
   const filtered = useMemo(() => plans.filter((p) => !city || (p.city || "").toLowerCase().includes(city.toLowerCase())), [plans, city]);
   const bookedPlanIds = new Set(mine.filter((b) => b.status !== "cancelled").map((b) => b.plan_id));
@@ -76,32 +83,38 @@ export default function SmartVisits() {
             {filtered.map((p) => {
               const ag = agents[p.agent_id]; const rt = ratings[p.agent_id]; const left = meta[p.id]?.left ?? p.max_seats;
               return (
-                <Card key={p.id}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex justify-between gap-2 flex-wrap">
-                      <div>
-                        <h3 className="font-semibold">{p.title}</h3>
-                        <p className="text-xs text-muted-foreground flex flex-wrap gap-3 mt-1">
-                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{p.visit_date} · {p.start_time}</span>
-                          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{p.city || "N/A"}</span>
-                          <span className="flex items-center gap-1"><Users className="h-3 w-3" />{left > 0 ? `${left} seats left` : "Full"}</span>
-                        </p>
-                        <p className="text-xs mt-1">Agent {ag?.agent_code || "JAAGA"}{rt?.count ? <> · <Star className="inline h-3 w-3 text-primary" /> {rt.avg} ({rt.count})</> : " · New"}</p>
+                <Card key={p.id} id={`visit-${p.id}`} className={`overflow-hidden rounded-lg shadow-sm transition-shadow hover:shadow-md scroll-mt-28 ${params.get("plan") === p.id ? "border-primary" : "border-border"}`}>
+                  <CardContent className="p-0">
+                    <div className="p-5 sm:p-6 space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="h-12 w-12 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Route className="h-6 w-6" /></div>
+                          <div className="min-w-0">
+                            <h3 className="text-lg font-semibold break-words">{p.title}</h3>
+                            <p className="text-xs text-muted-foreground mt-1">Agent {ag?.agent_code || "JAAGA"}{rt?.count ? <> · <Star className="inline h-3 w-3 text-primary" /> {rt.avg} ({rt.count})</> : " · New"}</p>
+                          </div>
+                        </div>
+                        <Badge variant={left > 0 ? "secondary" : "outline"} className="shrink-0 gap-1.5"><Users className="h-3.5 w-3.5" />{left > 0 ? `${left} seats left` : "Full"}</Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm"><b>{inr(p.price_meeting_point)}</b> <span className="text-xs text-muted-foreground">/person meeting point</span></p>
-                        <p className="text-sm"><b>{inr(p.price_home_pickup)}</b> <span className="text-xs text-muted-foreground">/person home pickup</span></p>
+                      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" />{visitDateLabel(p.visit_date)}</span>
+                        <span className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" />{visitTimeLabel(p.start_time)}</span>
+                        <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{p.city || "Location to be confirmed"}</span>
                       </div>
-                    </div>
-                    {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
-                    <div className="flex gap-2 flex-wrap">
-                      <Button size="sm" variant="outline" onClick={() => setExpanded(expanded === p.id ? null : p.id)}>
-                        {expanded === p.id ? "Hide properties" : `View ${p.property_ids.length} properties`}
+                      {p.description && <p className="text-sm text-muted-foreground break-words">{p.description}</p>}
+                      {p.meeting_point && <p className="text-sm"><span className="text-muted-foreground">Meeting point · </span>{p.meeting_point}</p>}
+                      <Button variant="outline" onClick={() => setExpanded(expanded === p.id ? null : p.id)} className="gap-2">
+                        <Building2 className="h-4 w-4" />{expanded === p.id ? "Hide properties" : `View ${p.property_ids?.length ?? 0} properties`}<ChevronDown className={`h-4 w-4 transition-transform ${expanded === p.id ? "rotate-180" : ""}`} />
                       </Button>
-                      {bookedPlanIds.has(p.id) ? <Badge>Booked</Badge> :
-                        <Button size="sm" disabled={left <= 0} onClick={() => startBooking(p)}>Book visit</Button>}
+                      {expanded === p.id && <PlanPropertyList ids={p.property_ids ?? []} />}
                     </div>
-                    {expanded === p.id && <PlanPropertyList ids={p.property_ids} />}
+                    <div className="border-t border-border bg-muted/30 px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex flex-wrap gap-x-8 gap-y-3">
+                        <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />Meeting point</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_meeting_point)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
+                        <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><Car className="h-3.5 w-3.5" />Home pickup</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_home_pickup)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
+                      </div>
+                      {bookedPlanIds.has(p.id) ? <Badge>Booked</Badge> : <Button disabled={left <= 0} onClick={() => startBooking(p)} className="gap-2 w-full sm:w-auto">Book visit<ArrowRight className="h-4 w-4" /></Button>}
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -203,7 +216,7 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
         <div className="flex justify-between gap-2 flex-wrap">
           <div>
             <h3 className="font-semibold">{p?.title || "Smart Visit"}</h3>
-            <p className="text-xs text-muted-foreground">{p?.visit_date} · {p?.start_time} · {b.seats} seat(s) · {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point}`}</p>
+            <p className="text-xs text-muted-foreground">{visitDateLabel(p?.visit_date)} · {visitTimeLabel(p?.start_time)} · {b.seats} seat(s) · {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point || "To be confirmed"}`}</p>
             <p className="text-sm">Total: <b>{inr(b.total_amount)}</b> <span className="text-xs text-muted-foreground">({inr(b.price_per_person)}/person)</span></p>
           </div>
           <div className="flex gap-1 flex-wrap items-start">

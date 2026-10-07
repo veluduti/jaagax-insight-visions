@@ -3,22 +3,13 @@ import { Link } from "react-router-dom";
 import { Calendar, Clock, Loader2, MapPin, Route, Users, Car } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { visitDateLabel, visitTimeLabel } from "@/lib/smartVisitDate";
 import { listOpenPlans, getProperties, firstImage, inr, type SmartVisitPlan, type PlanProperty } from "@/services/smartVisitService";
 
 interface SmartVisitClusterProps {
   savedProperties?: unknown[];
   onScheduleCluster?: (...args: any[]) => void;
 }
-
-const dayLabel = (d: string) => {
-  const date = new Date(`${d}T00:00:00`);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  return date.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
-};
-const timeLabel = (t: string) => { const [h, m] = (t || "00:00").split(":").map(Number); const d = new Date(); d.setHours(h, m); return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }); };
 
 const SmartVisitCluster = (_props: SmartVisitClusterProps) => {
   const [plans, setPlans] = useState<SmartVisitPlan[]>([]);
@@ -55,8 +46,8 @@ const SmartVisitCluster = (_props: SmartVisitClusterProps) => {
             return (
               <Link key={plan.id} to={`/smart-visits?plan=${plan.id}`} className="block rounded-2xl border border-border bg-card p-5 transition hover:border-primary hover:shadow-md">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="secondary" className="gap-1"><Calendar className="h-3.5 w-3.5" />{dayLabel(plan.visit_date)}</Badge>
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-3.5 w-3.5" />{timeLabel(plan.start_time)}</span>
+                  <Badge variant="secondary" className="gap-1 whitespace-normal"><Calendar className="h-3.5 w-3.5 shrink-0" />{visitDateLabel(plan.visit_date, true)}</Badge>
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-3.5 w-3.5 shrink-0" />{visitTimeLabel(plan.start_time)}</span>
                 </div>
                 <h4 className="mt-3 font-semibold line-clamp-1">{plan.title}</h4>
                 <div className="mt-3 flex items-center gap-3">

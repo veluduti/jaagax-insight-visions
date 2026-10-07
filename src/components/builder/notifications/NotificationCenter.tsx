@@ -26,6 +26,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import notificationService, { Notification, NotificationType } from "@/services/notificationService";
+import { notificationDestination } from "@/lib/notificationDestination";
 
 // Icon mapping for notification types
 const ICONS: Record<string, any> = {
@@ -62,10 +63,11 @@ const ICON_COLORS: Record<string, string> = {
 
 interface Props {
   onChanged?: () => void;
+  onNavigate?: () => void;
   compact?: boolean;
 }
 
-export default function NotificationCenter({ onChanged, compact = false }: Props) {
+export default function NotificationCenter({ onChanged, onNavigate, compact = false }: Props) {
   const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,8 +140,10 @@ export default function NotificationCenter({ onChanged, compact = false }: Props
     if (!n.is_read) {
       await handleMarkAsRead(n.id);
     }
-    if (n.link) {
-      navigate(n.link);
+    const destination = notificationDestination(n);
+    if (destination) {
+      onNavigate?.();
+      navigate(destination);
     }
   };
 
