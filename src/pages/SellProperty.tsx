@@ -56,7 +56,13 @@ import { getPropertyFlow } from "@/config/propertyFlows";
 import DocumentUploadWidget from "@/components/financial/DocumentUploadWidget";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
-import { formatUnitPrice, getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+import {
+  formatUnitPrice,
+  getPriceSuggestions,
+  getRentSuggestions,
+  getUnitSuggestions,
+  type PriceUnit,
+} from "@/utils/suggestionEngine";
 import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
 import NearbyAgentsRail from "@/components/agents/NearbyAgentsRail";
@@ -149,13 +155,15 @@ function canonId(id?: string | null): string {
 
 function distinctLocationParts(parts: unknown[]): string[] {
   const seen = new Set<string>();
-  return parts.filter((part): part is string => {
-    if (typeof part !== "string" || !part.trim()) return false;
-    const key = part.trim().toLocaleLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).map((part) => part.trim());
+  return parts
+    .filter((part): part is string => {
+      if (typeof part !== "string" || !part.trim()) return false;
+      const key = part.trim().toLocaleLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((part) => part.trim());
 }
 
 /**
@@ -752,14 +760,25 @@ type ChatMsg =
 
 const DRAFT_VERSION = 1;
 const DRAFT_PREFIX = "jaagax-property-draft-v1:";
-const draftCategories: PropertyCategory[] = ["residential", "commercial", "plots", "agriculture", "coworking", "financial", "land"];
+const draftCategories: PropertyCategory[] = [
+  "residential",
+  "commercial",
+  "plots",
+  "agriculture",
+  "coworking",
+  "financial",
+  "land",
+];
 // Drafts stay on this device. Never store uploaded documents, image URLs or base64 data in browser storage.
 function safeDraftData(input: unknown): any {
   if (typeof input === "string") return /^(blob:|data:)/i.test(input) ? "" : input;
   if (Array.isArray(input)) return input.map(safeDraftData);
   if (input && typeof input === "object") {
-    return Object.fromEntries(Object.entries(input).filter(([key]) => !/^(media_urls|images|documents|document_urls|image_url|file_url)$/i.test(key))
-      .map(([key, val]) => [key, safeDraftData(val)]));
+    return Object.fromEntries(
+      Object.entries(input)
+        .filter(([key]) => !/^(media_urls|images|documents|document_urls|image_url|file_url)$/i.test(key))
+        .map(([key, val]) => [key, safeDraftData(val)]),
+    );
   }
   return input;
 }
@@ -768,7 +787,8 @@ const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
 const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK)$/i;
 
-const PRICE_UNIT_PATTERN = /^₹?\s?\d+(?:,\d{3})*(?:\.\d+)?\s*(?:per|\/)\s*(?:sqft|sq ft|sqyd|sq yd|sq yard|acre|acres|gunta|cent|sq m|sqm|hectare|bigha|katha)$/i;
+const PRICE_UNIT_PATTERN =
+  /^₹?\s?\d+(?:,\d{3})*(?:\.\d+)?\s*(?:per|\/)\s*(?:sqft|sq ft|sqyd|sq yd|sq yard|acre|acres|gunta|cent|sq m|sqm|hectare|bigha|katha)$/i;
 const BATHROOM_PATTERN = /^\d+(\+)?\s?(bathroom|bathrooms)$/i;
 const FLOOR_PATTERN = /^(\d+)(st|nd|rd|th)?\s?floor$|^ground floor$|^\d+\s?floors$/i;
 const MEASUREMENT_PATTERN = /^(\d+(?:\.\d+)?)\s?(sq\s?ft|sqft|sq\s?yd|sqyd|sq\s?m|sqm|acre|acres|gunta|cent)$/i;
@@ -1065,15 +1085,39 @@ function normalizeToArray(value: any): string[] {
   return [];
 }
 
-
 /* ----- Detect when a pasted description contradicts the picked property type ----- */
 const DESCRIBED_TYPE_FAMILIES: { re: RegExp; sel: RegExp; cat: PropertyCategory; type: string }[] = [
-  { re: /\b(agricultur\w*|farm\s*land|farmland|orchard|plantation|acres?\s+of\s+(agri|farm)\w*)\b/i, sel: /agri|farm|orchard|plantation|horticulture/i, cat: "agriculture", type: "Agricultural Land" },
-  { re: /\b(plots?|open\s+land|open\s+site|layout)\b/i, sel: /plot|open land|land/i, cat: "plots", type: "Residential Plot" },
-  { re: /\b(flat|apartment|penthouse|studio)\b/i, sel: /apartment|flat|penthouse|studio/i, cat: "residential", type: "Apartment / Flat" },
+  {
+    re: /\b(agricultur\w*|farm\s*land|farmland|orchard|plantation|acres?\s+of\s+(agri|farm)\w*)\b/i,
+    sel: /agri|farm|orchard|plantation|horticulture/i,
+    cat: "agriculture",
+    type: "Agricultural Land",
+  },
+  {
+    re: /\b(plots?|open\s+land|open\s+site|layout)\b/i,
+    sel: /plot|open land|land/i,
+    cat: "plots",
+    type: "Residential Plot",
+  },
+  {
+    re: /\b(flat|apartment|penthouse|studio)\b/i,
+    sel: /apartment|flat|penthouse|studio/i,
+    cat: "residential",
+    type: "Apartment / Flat",
+  },
   { re: /\bvillas?\b(?!\s*plot)/i, sel: /villa/i, cat: "residential", type: "Villa" },
-  { re: /\b(independent|individual)\s+house\b|\bduplex\b|\brow\s*house\b/i, sel: /house|duplex|villa|floor/i, cat: "residential", type: "Independent House" },
-  { re: /\b(shop|retail\s+store)\b/i, sel: /shop|retail|showroom|commercial/i, cat: "commercial", type: "Shop / Retail Store" },
+  {
+    re: /\b(independent|individual)\s+house\b|\bduplex\b|\brow\s*house\b/i,
+    sel: /house|duplex|villa|floor/i,
+    cat: "residential",
+    type: "Independent House",
+  },
+  {
+    re: /\b(shop|retail\s+store)\b/i,
+    sel: /shop|retail|showroom|commercial/i,
+    cat: "commercial",
+    type: "Shop / Retail Store",
+  },
   { re: /\b(office\s+space|office)\b/i, sel: /office|cowork|cabin|business/i, cat: "commercial", type: "Office Space" },
   { re: /\b(warehouse|godown)\b/i, sel: /warehouse|godown|shed/i, cat: "commercial", type: "Warehouse / Godown" },
 ];
@@ -1121,7 +1165,12 @@ export default function SellProperty() {
   // Keep the review dock hidden for the entire payment transition. This is
   // intentionally separate from the dialog's animation state on mobile.
   const [paymentFlowActive, setPaymentFlowActive] = useState(false);
-  const [payUser, setPayUser] = useState<{ id: string; name?: string | null; email?: string | null; contact?: string | null } | null>(null);
+  const [payUser, setPayUser] = useState<{
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    contact?: string | null;
+  } | null>(null);
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
@@ -1135,7 +1184,6 @@ export default function SellProperty() {
       });
     })();
   }, []);
-
 
   useEffect(() => {
     if (!field) return;
@@ -1572,7 +1620,7 @@ export default function SellProperty() {
         id: uid(),
         role: "ai",
         kind: "text",
-        text: "👋 Hi! I'll help you list your property.",
+        text: "👋 Hi! I’ll help you with your property journey — whether you want to **sell, rent, or invest**. Let’s get started!",
       },
       {
         id: uid(),
@@ -1595,7 +1643,13 @@ export default function SellProperty() {
         const raw = localStorage.getItem(key);
         if (raw) {
           const draft = JSON.parse(raw);
-          if (draft.version !== DRAFT_VERSION || !draftCategories.includes(draft.category) || !draft.state || typeof draft.state !== "object" || !draft.engineState?.answers) {
+          if (
+            draft.version !== DRAFT_VERSION ||
+            !draftCategories.includes(draft.category) ||
+            !draft.state ||
+            typeof draft.state !== "object" ||
+            !draft.engineState?.answers
+          ) {
             localStorage.removeItem(key);
           } else {
             const engine = createConversationEngine(draft.category, draft.engineState);
@@ -1627,7 +1681,9 @@ export default function SellProperty() {
       draftReady.current = true;
       setDraftUserId(data.user.id);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -1638,19 +1694,49 @@ export default function SellProperty() {
       return;
     }
     try {
-      localStorage.setItem(key, JSON.stringify({
-        version: DRAFT_VERSION, category, state: safeDraftData(state),
-        engineState: engineRef.current ? safeDraftData(engineRef.current.getState()) : undefined,
-        field: safeDraftData(field), value: safeDraftData(value),
-        history: safeDraftData(history), progress, intakeDone, intakeText,
-        messages: messages.filter((m) => m.kind === "text").slice(-80),
-        done, editForm: safeDraftData(editForm), aiTitles, selectedTitleIdx,
-        posterTitle, verificationRequested,
-      }));
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          version: DRAFT_VERSION,
+          category,
+          state: safeDraftData(state),
+          engineState: engineRef.current ? safeDraftData(engineRef.current.getState()) : undefined,
+          field: safeDraftData(field),
+          value: safeDraftData(value),
+          history: safeDraftData(history),
+          progress,
+          intakeDone,
+          intakeText,
+          messages: messages.filter((m) => m.kind === "text").slice(-80),
+          done,
+          editForm: safeDraftData(editForm),
+          aiTitles,
+          selectedTitleIdx,
+          posterTitle,
+          verificationRequested,
+        }),
+      );
     } catch (error) {
       console.warn("Could not save property draft", error);
     }
-  }, [draftUserId, category, state, field, value, history, progress, intakeDone, intakeText, messages, done, editForm, aiTitles, selectedTitleIdx, posterTitle, verificationRequested]);
+  }, [
+    draftUserId,
+    category,
+    state,
+    field,
+    value,
+    history,
+    progress,
+    intakeDone,
+    intakeText,
+    messages,
+    done,
+    editForm,
+    aiTitles,
+    selectedTitleIdx,
+    posterTitle,
+    verificationRequested,
+  ]);
 
   const deleteDraft = () => {
     if (draftUserId) localStorage.removeItem(DRAFT_PREFIX + draftUserId);
@@ -1726,7 +1812,6 @@ export default function SellProperty() {
     startCategory(cat);
   };
 
-
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
   const fileToDataUrl = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -1746,8 +1831,7 @@ export default function SellProperty() {
     if (ext.location) tail.push(`in ${ext.location}`);
     if (ext.city) tail.push(ext.city);
     if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sq ft"}`);
-    if (ext.price_per_unit)
-      tail.push(formatUnitPrice(Number(ext.price_per_unit), ext.area_unit || "unit"));
+    if (ext.price_per_unit) tail.push(formatUnitPrice(Number(ext.price_per_unit), ext.area_unit || "unit"));
     if (ext.furnishing) tail.push(ext.furnishing);
     if (ext.purpose) tail.push(`for ${ext.purpose}`);
 
@@ -1841,7 +1925,11 @@ export default function SellProperty() {
       const typeField = TYPE_FIELD_BY_CATEGORY[cat];
       const selectedType = String(before[typeField] || "");
       if (!skipTypeCheck && selectedType) {
-        const detected = detectDescribedType(`${trimmedText} ${ext.sub_type || ""} ${ext.title || ""}`, ext, selectedType);
+        const detected = detectDescribedType(
+          `${trimmedText} ${ext.sub_type || ""} ${ext.title || ""}`,
+          ext,
+          selectedType,
+        );
         if (detected) {
           deferred = true;
           setTypeConflict({
@@ -1895,14 +1983,34 @@ export default function SellProperty() {
 
       // Build a friendly summary of what was auto-filled
       const summaryPairs: string[] = [];
-      const pretty = (k: string) =>
-        k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const pretty = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       const summaryOrder = [
-        "property_type","listing_type","bhk_type","bedroom_count","bathroom_count","balcony_count",
-        "flat_size","built_area","land_size","carpet_area","super_builtup_area",
-        "total_price","monthly_rent","price_per_unit","property_facing","furnishing_status",
-        "parking_count","project_name","builder_name","rera_number","possession_status",
-        "property_age","ownership","location","amenities","approvals",
+        "property_type",
+        "listing_type",
+        "bhk_type",
+        "bedroom_count",
+        "bathroom_count",
+        "balcony_count",
+        "flat_size",
+        "built_area",
+        "land_size",
+        "carpet_area",
+        "super_builtup_area",
+        "total_price",
+        "monthly_rent",
+        "price_per_unit",
+        "property_facing",
+        "furnishing_status",
+        "parking_count",
+        "project_name",
+        "builder_name",
+        "rera_number",
+        "possession_status",
+        "property_age",
+        "ownership",
+        "location",
+        "amenities",
+        "approvals",
       ];
       const seen = new Set<string>();
       const pushPair = (k: string, v: any) => {
@@ -1923,8 +2031,7 @@ export default function SellProperty() {
 
       const newlyFilled = Object.keys(mappedHigh).filter((k) => {
         const prev = (before as any)[k];
-        return prev === undefined || prev === null || prev === "" ||
-          (Array.isArray(prev) && prev.length === 0);
+        return prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
       }).length;
 
       // Replace typing bubble with the extraction summary
@@ -1981,7 +2088,6 @@ export default function SellProperty() {
     }
   };
 
-
   const resolveTypeConflict = async (useDetected: boolean) => {
     const c = typeConflict;
     if (!c) return;
@@ -1998,7 +2104,15 @@ export default function SellProperty() {
         setCategory(targetCat);
         base = { property_category: targetCat, [typeField]: chosenType };
         const label = CATEGORY_OPTIONS.find((o) => o.id === targetCat)?.label || targetCat;
-        setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: `Got it — switching to **${label}** listing as **${chosenType}**.` }]);
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: `Got it — switching to **${label}** listing as **${chosenType}**.`,
+          },
+        ]);
       } else {
         base = { ...base, [typeField]: chosenType };
       }
@@ -2406,12 +2520,19 @@ export default function SellProperty() {
     land: "List Your Land",
   };
   const detectMentionedCategory = (lower: string): PropertyCategory | null => {
-    if (/\b(agri|agriculture|agricultural|farm ?land|farming|acres?|mango garden|orchard|paddy|cultivat)/.test(lower)) return "agriculture";
+    if (/\b(agri|agriculture|agricultural|farm ?land|farming|acres?|mango garden|orchard|paddy|cultivat)/.test(lower))
+      return "agriculture";
     if (/\b(co-?working|coworking|shared office|hot ?desk|seats?)\b/.test(lower)) return "coworking";
     if (/\b(loan|mortgage|emi|finance|financing)\b/.test(lower)) return "financial";
-    if (/\b(shop|showroom|office space|office|warehouse|godown|retail|commercial|restaurant|mall|factory|industrial)\b/.test(lower)) return "commercial";
+    if (
+      /\b(shop|showroom|office space|office|warehouse|godown|retail|commercial|restaurant|mall|factory|industrial)\b/.test(
+        lower,
+      )
+    )
+      return "commercial";
     if (/\b(plot|plots|open land|sq ?yds?|sqyds?|layout|venture)\b/.test(lower)) return "plots";
-    if (/\b(flat|apartment|villa|bhk|independent house|duplex|penthouse|row house|residential)\b/.test(lower)) return "residential";
+    if (/\b(flat|apartment|villa|bhk|independent house|duplex|penthouse|row house|residential)\b/.test(lower))
+      return "residential";
     return null;
   };
   const isCompatibleCategory = (current: string | null, mentioned: string) => {
@@ -2450,7 +2571,9 @@ export default function SellProperty() {
     if (categoryBlock) setCategoryBlock(null);
 
     const isReluctant =
-      /\b(don'?t|dont|do not|won'?t|not)\s+(want|wanna|like|know|sure|share|tell|answer)|\bno idea\b|\blater\b|\bwhy (do|should)\b|\bprivate\b|\bskip\b/.test(lower);
+      /\b(don'?t|dont|do not|won'?t|not)\s+(want|wanna|like|know|sure|share|tell|answer)|\bno idea\b|\blater\b|\bwhy (do|should)\b|\bprivate\b|\bskip\b/.test(
+        lower,
+      );
     const isQuestion =
       text.includes("?") ||
       /^(what|why|how|when|where|who|which|can|could|should|would|is|are|do|does|will|tell|explain|help)\b/.test(lower);
@@ -2461,17 +2584,18 @@ export default function SellProperty() {
     const matchesOption =
       opts.length === 0 ||
       opts.some((o) => {
-        const s = String(typeof o === "object" ? o?.label ?? o?.value ?? "" : o).toLowerCase();
+        const s = String(typeof o === "object" ? (o?.label ?? o?.value ?? "") : o).toLowerCase();
         return s && (s.includes(lower) || lower.includes(s));
       });
     // Option-based question: typed text must match one of the choices.
     // Keep cautioning (and keep the same question active) until a valid answer is given.
     if (opts.length > 0 && !matchesOption && !isQuestion && !isReluctant) {
-      const labels = opts
-        .map((o) => String(typeof o === "object" ? o?.label ?? o?.value ?? "" : o))
-        .filter(Boolean);
+      const labels = opts.map((o) => String(typeof o === "object" ? (o?.label ?? o?.value ?? "") : o)).filter(Boolean);
       const tokenHit = labels.some((l) =>
-        l.toLowerCase().split(/[\s/,()-]+/).some((w) => w.length >= 3 && words.some((u) => u.length >= 3 && (w.startsWith(u) || u.startsWith(w)))),
+        l
+          .toLowerCase()
+          .split(/[\s/,()-]+/)
+          .some((w) => w.length >= 3 && words.some((u) => u.length >= 3 && (w.startsWith(u) || u.startsWith(w)))),
       );
       if (!tokenHit) {
         setMessages((m) => [
@@ -2503,10 +2627,15 @@ export default function SellProperty() {
       { id: typingId, role: "ai", kind: "typing" },
     ]);
     try {
-      const { data, error } = await supabase.functions.invoke<{ intent: string; reply: string }>(
-        "ai-listing-guard",
-        { body: { message: text, question: fAny.question || fAny.label || f.id, category, answers: state, required: !!fAny.required } },
-      );
+      const { data, error } = await supabase.functions.invoke<{ intent: string; reply: string }>("ai-listing-guard", {
+        body: {
+          message: text,
+          question: fAny.question || fAny.label || f.id,
+          category,
+          answers: state,
+          required: !!fAny.required,
+        },
+      });
       if (error || !data || data.intent === "answer") {
         // Treat as a real answer: drop the echo + typing and continue normally
         setMessages((m) => m.filter((x: any) => x.id !== typingId).slice(0, -1));
@@ -2518,7 +2647,9 @@ export default function SellProperty() {
       }
       const prefix = data.intent === "question" ? "💡 " : data.intent === "reluctant" ? "🙂 " : "⚠️ ";
       setMessages((m) =>
-        m.map((x: any) => (x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x)),
+        m.map((x: any) =>
+          x.id === typingId ? { id: typingId, role: "ai", kind: "text", text: prefix + data.reply } : x,
+        ),
       );
       setValue("");
       if (data.intent === "reluctant" && !fAny.required) {
@@ -3439,7 +3570,12 @@ export default function SellProperty() {
             if (!pv.valid) {
               setMessages((m) => [
                 ...m.filter((x) => x.id !== bubbleId),
-                { id: uid(), role: "ai", kind: "text", text: "This document doesn't appear related to a property listing. Please upload a property brochure, layout or floor plan." },
+                {
+                  id: uid(),
+                  role: "ai",
+                  kind: "text",
+                  text: "This document doesn't appear related to a property listing. Please upload a property brochure, layout or floor plan.",
+                },
               ]);
               return;
             }
@@ -3730,7 +3866,6 @@ export default function SellProperty() {
         area_value: area || null,
         area_unit: editForm.area_unit || null,
 
-
         // ============================================
         // CONFIGURATION
         // ============================================
@@ -3847,7 +3982,6 @@ export default function SellProperty() {
       payload.verification_status = "pending";
       payload.assigned_agent_id = null;
 
-
       // Safety net: only send columns that exist on the `properties` table.
       const PROPERTIES_COLUMNS = new Set([
         "submitted_by",
@@ -3912,7 +4046,6 @@ export default function SellProperty() {
         "builder_id",
         "verification_requested",
         "needs_agent",
-
       ]);
       const cleanPayload: any = {};
       for (const k of Object.keys(payload)) {
@@ -4021,7 +4154,8 @@ export default function SellProperty() {
           if (queueErr) throw queueErr;
           const level = (queueRes as any)?.level;
           if ((queueRes as any)?.escalated_to === "super_admin") {
-            assignmentMessage = "No regional admin is available — the JAAGAX head office team will review your listing.";
+            assignmentMessage =
+              "No regional admin is available — the JAAGAX head office team will review your listing.";
           } else if (level) {
             assignmentMessage = `Your listing is in the JAAGAX ${level.charAt(0).toUpperCase() + level.slice(1)} Admin review queue.`;
           }
@@ -4034,7 +4168,6 @@ export default function SellProperty() {
       await refreshEntitlement();
       localStorage.removeItem(DRAFT_PREFIX + user.id);
       draftReady.current = false;
-
 
       if (isAgentMode && isTrustedAgent) {
         toast.success("Property submitted ✅", {
@@ -4050,7 +4183,6 @@ export default function SellProperty() {
         toast.success("Your property is submitted ✅", { description: assignmentMessage });
         navigate("/dashboard/customer");
       }
-
     } catch (e: any) {
       console.error("Property submit failed", e);
       const raw = String(e?.message || "");
@@ -4069,7 +4201,6 @@ export default function SellProperty() {
         friendly = raw;
       }
       toast.error("Publishing failed", { description: friendly });
-
     } finally {
       setSubmitting(false);
       setPaymentFlowActive(false);
@@ -4082,11 +4213,9 @@ export default function SellProperty() {
   const answered = answeredFields(state);
 
   const showIntakeBar = !!category && !intakeDone && !done && !typeConflict && intakeMode === "paste";
-  const showInputBar =
-    showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
+  const showInputBar = showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
-  const isChoiceOnly =
-    !!field && (field.input === "single" || field.input === "yesno" || field.input === "multi");
+  const isChoiceOnly = !!field && (field.input === "single" || field.input === "yesno" || field.input === "multi");
   const isReviewFinancial = category === "financial";
   const reviewTitleReady = isReviewFinancial || !!editForm.title?.trim();
   const canPublishReview = reviewTitleReady && !submitting && !titlesLoading;
@@ -4165,7 +4294,25 @@ export default function SellProperty() {
   };
 
   const savePropertyLocation = async (data: Record<string, any>, editing = false) => {
-    const keys = ["country", "state_name", "district", "city", "locality", "sub_locality", "landmark", "address", "pincode", "latitude", "longitude", "place_id", "country_id", "state_id", "district_id", "city_id", "locality_id"];
+    const keys = [
+      "country",
+      "state_name",
+      "district",
+      "city",
+      "locality",
+      "sub_locality",
+      "landmark",
+      "address",
+      "pincode",
+      "latitude",
+      "longitude",
+      "place_id",
+      "country_id",
+      "state_id",
+      "district_id",
+      "city_id",
+      "locality_id",
+    ];
     const partial: Record<string, any> = {};
     keys.forEach((key) => {
       partial[key] = data[key] ?? (key.endsWith("_id") || key === "latitude" || key === "longitude" ? null : "");
@@ -4176,11 +4323,27 @@ export default function SellProperty() {
     try {
       engineRef.current?.applyExtractedFields({ ...partial, location: merged.location }, { overwrite: true });
     } catch {}
-    const summary = distinctLocationParts([data.locality, data.city, data.state_name]).join(", ") || data.address || data.pincode || "Location saved";
+    const summary =
+      distinctLocationParts([data.locality, data.city, data.state_name]).join(", ") ||
+      data.address ||
+      data.pincode ||
+      "Location saved";
     setMessages((current) => {
-      const index = editing ? current.map((msg) => msg.role === "user" && msg.kind === "text" && (msg.fieldId === "location" || msg.text.startsWith("📍 "))).lastIndexOf(true) : -1;
-      if (index < 0) return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" }];
-      return current.map((msg, i) => i === index && msg.kind === "text" ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } : msg);
+      const index = editing
+        ? current
+            .map(
+              (msg) =>
+                msg.role === "user" &&
+                msg.kind === "text" &&
+                (msg.fieldId === "location" || msg.text.startsWith("📍 ")),
+            )
+            .lastIndexOf(true)
+        : -1;
+      if (index < 0)
+        return [...current, { id: uid(), role: "user", kind: "text", text: `📍 ${summary}`, fieldId: "location" }];
+      return current.map((msg, i) =>
+        i === index && msg.kind === "text" ? { ...msg, text: `📍 ${summary}`, fieldId: "location" } : msg,
+      );
     });
     if (editing) {
       setEditingLocation(false);
@@ -4248,9 +4411,14 @@ export default function SellProperty() {
           </div>
           {/* Selected Category Badge - shows what user selected */}
           {category && (
-            <button type="button" onClick={deleteDraft}
+            <button
+              type="button"
+              onClick={deleteDraft}
               className="shrink-0 text-[11px] sm:text-xs text-destructive hover:underline"
-              aria-label="Delete draft and start again">Delete draft</button>
+              aria-label="Delete draft and start again"
+            >
+              Delete draft
+            </button>
           )}
           {category && (
             <div className="hidden sm:flex items-center gap-1.5 shrink-0">
@@ -4264,12 +4432,14 @@ export default function SellProperty() {
         {draftResumed && category && (
           <div className="px-4 py-1.5 text-xs text-primary bg-primary/5 border-t border-border/40 flex justify-between gap-2">
             <span>Draft restored — continue where you left off.</span>
-            <button type="button" onClick={() => setDraftResumed(false)} aria-label="Dismiss draft notice"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setDraftResumed(false)} aria-label="Dismiss draft notice">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
         {/* Mobile category switcher chips */}
-        {(
+        {
           <div className="lg:hidden border-t border-border/40 bg-background/60">
             <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {CATEGORY_OPTIONS.map((opt) => (
@@ -4290,11 +4460,11 @@ export default function SellProperty() {
               ))}
             </div>
           </div>
-        )}
+        }
       </div>
 
       {/* Desktop left rail — categories in chat mode, nearby agents on the picker */}
-      {(
+      {
         <aside className="hidden lg:flex flex-col fixed left-4 xl:left-8 top-36 bottom-44 z-30 w-56 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
           <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
             Property category
@@ -4333,22 +4503,17 @@ export default function SellProperty() {
             Switching a category restarts the questions for that property type.
           </div>
         </aside>
-      )}
+      }
 
       {/* Desktop right rail — nearby verified agents */}
       <NearbyAgentsRail
         city={savedLocation?.city || null}
-        className={cn(
-          "hidden xl:flex fixed right-4 2xl:right-8 top-36 z-[45] w-60",
-          "bottom-44",
-        )}
+        className={cn("hidden xl:flex fixed right-4 2xl:right-8 top-36 z-[45] w-60", "bottom-44")}
       />
-
 
       {/* Chat scroll area */}
 
-
-      {(
+      {
         <div
           ref={scrollRef}
           className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-[200px] xl:pb-[180px]"
@@ -4367,22 +4532,43 @@ export default function SellProperty() {
                   transition={{ duration: 0.18 }}
                   className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
                 >
-                  <div className={cn("flex items-center gap-2 w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 w-full",
+                      msg.role === "user" ? "justify-end" : "justify-start",
+                    )}
+                  >
                     <Bubble msg={msg} />
 
-                    {msg.role === "user" && msg.kind === "text" && ((msg as any).fieldId || msg.text.startsWith("📍 ")) && (
-                      <Button
-                        type="button"
-                        variant={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "outline" : "ghost"}
-                        size="icon"
-                        aria-label={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
-                        title={((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? "Edit property location" : "Edit answer"}
-                        onClick={() => ((msg as any).fieldId === "location" || msg.text.startsWith("📍 ")) ? setEditingLocation(true) : jumpToField((msg as any).fieldId)}
-                        className="shrink-0 text-foreground"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
+                    {msg.role === "user" &&
+                      msg.kind === "text" &&
+                      ((msg as any).fieldId || msg.text.startsWith("📍 ")) && (
+                        <Button
+                          type="button"
+                          variant={
+                            (msg as any).fieldId === "location" || msg.text.startsWith("📍 ") ? "outline" : "ghost"
+                          }
+                          size="icon"
+                          aria-label={
+                            (msg as any).fieldId === "location" || msg.text.startsWith("📍 ")
+                              ? "Edit property location"
+                              : "Edit answer"
+                          }
+                          title={
+                            (msg as any).fieldId === "location" || msg.text.startsWith("📍 ")
+                              ? "Edit property location"
+                              : "Edit answer"
+                          }
+                          onClick={() =>
+                            (msg as any).fieldId === "location" || msg.text.startsWith("📍 ")
+                              ? setEditingLocation(true)
+                              : jumpToField((msg as any).fieldId)
+                          }
+                          className="shrink-0 text-foreground"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                   </div>
                 </motion.div>
               ))}
@@ -4391,10 +4577,35 @@ export default function SellProperty() {
             {editingLocation && (
               <div className="w-full max-w-xl self-end space-y-2 pt-3" aria-label="Edit property location">
                 <SmartLocationWidget
-                  initialValue={{ ...(state.location || {}), ...Object.fromEntries(["country", "country_id", "state_name", "state_id", "district", "district_id", "city", "city_id", "locality", "locality_id", "sub_locality", "landmark", "address", "pincode", "latitude", "longitude", "place_id"].map((key) => [key, state[key] ?? state.location?.[key]])) }}
+                  initialValue={{
+                    ...(state.location || {}),
+                    ...Object.fromEntries(
+                      [
+                        "country",
+                        "country_id",
+                        "state_name",
+                        "state_id",
+                        "district",
+                        "district_id",
+                        "city",
+                        "city_id",
+                        "locality",
+                        "locality_id",
+                        "sub_locality",
+                        "landmark",
+                        "address",
+                        "pincode",
+                        "latitude",
+                        "longitude",
+                        "place_id",
+                      ].map((key) => [key, state[key] ?? state.location?.[key]]),
+                    ),
+                  }}
                   onSubmit={(data) => savePropertyLocation(data, true)}
                 />
-                <Button type="button" variant="ghost" onClick={() => setEditingLocation(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" onClick={() => setEditingLocation(false)}>
+                  Cancel
+                </Button>
               </div>
             )}
 
@@ -4408,7 +4619,9 @@ export default function SellProperty() {
                     return (
                       <section key={opt.id} className="min-w-0 border-t border-border pt-3">
                         <div className="flex items-center gap-2 mb-3">
-                          <span aria-hidden="true" className="text-lg">{opt.emoji}</span>
+                          <span aria-hidden="true" className="text-lg">
+                            {opt.emoji}
+                          </span>
                           <h3 className="text-sm font-semibold text-foreground">{opt.label}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -4453,10 +4666,24 @@ export default function SellProperty() {
             {/* Description-or-flow choice shown right after a type is picked. */}
             {typeConflict && (
               <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="Confirm property type">
-                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={() => resolveTypeConflict(false)} disabled={extracting}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-auto min-h-9"
+                  onClick={() => resolveTypeConflict(false)}
+                  disabled={extracting}
+                >
                   {typeConflict.selectedType}
                 </Button>
-                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={() => resolveTypeConflict(true)} disabled={extracting}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-auto min-h-9"
+                  onClick={() => resolveTypeConflict(true)}
+                  disabled={extracting}
+                >
                   {typeConflict.detectedType}
                 </Button>
               </div>
@@ -4464,17 +4691,34 @@ export default function SellProperty() {
 
             {category && !intakeDone && !done && !typeConflict && intakeMode === "ask" && (
               <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="How would you like to continue">
-                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={choosePasteDescription} disabled={extracting}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-auto min-h-9"
+                  onClick={choosePasteDescription}
+                  disabled={extracting}
+                >
                   I have a description
                 </Button>
-                <Button type="button" size="sm" variant="outline" className="h-auto min-h-9" onClick={skipIntake} disabled={extracting}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-auto min-h-9"
+                  onClick={skipIntake}
+                  disabled={extracting}
+                >
                   Continue with flow
                 </Button>
               </div>
             )}
 
             {/* Fixed answers belong with the active question, not the message bar. */}
-            {field && !categoryBlock && !loadingNext && !done &&
+            {field &&
+              !categoryBlock &&
+              !loadingNext &&
+              !done &&
               (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
                 <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="Answer choices">
                   {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
@@ -4500,22 +4744,33 @@ export default function SellProperty() {
                 </div>
               )}
 
-            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
-              <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="Quick answers">
-                {NUMBER_QUICK_REPLIES[field.id].map((opt) => (
-                  <Button
-                    key={opt}
-                    type="button"
-                    size="sm"
-                    variant={String(value) === opt ? "default" : "outline"}
-                    className="h-auto min-h-9"
-                    onClick={() => field.id === "price_per_unit" ? void commitAnswer(`₹${opt}`, formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1])) : setValue(opt)}
-                  >
-                    {field.id === "price_per_unit" ? formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1]) : opt}
-                  </Button>
-                ))}
-              </div>
-            )}
+            {field &&
+              !categoryBlock &&
+              !loadingNext &&
+              !done &&
+              field.input === "number" &&
+              NUMBER_QUICK_REPLIES[field.id] && (
+                <div className="flex flex-wrap gap-2 pt-1 pl-1" aria-label="Quick answers">
+                  {NUMBER_QUICK_REPLIES[field.id].map((opt) => (
+                    <Button
+                      key={opt}
+                      type="button"
+                      size="sm"
+                      variant={String(value) === opt ? "default" : "outline"}
+                      className="h-auto min-h-9"
+                      onClick={() =>
+                        field.id === "price_per_unit"
+                          ? void commitAnswer(`₹${opt}`, formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1]))
+                          : setValue(opt)
+                      }
+                    >
+                      {field.id === "price_per_unit"
+                        ? formatUnitPrice(Number(opt.split("/")[0]), opt.split("/")[1])
+                        : opt}
+                    </Button>
+                  ))}
+                </div>
+              )}
 
             {field && smartHint && !loadingNext && !done && !categoryBlock && (
               <div className="pl-1 pt-1">
@@ -4541,7 +4796,8 @@ export default function SellProperty() {
                   variant="outline"
                   onClick={() => {
                     setCategoryBlock(null);
-                    if (field?.question) setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: field.question }]);
+                    if (field?.question)
+                      setMessages((m) => [...m, { id: uid(), role: "ai", kind: "text", text: field.question }]);
                   }}
                 >
                   Stay in {CATEGORY_LABELS[category || ""] || "current flow"}
@@ -4735,7 +4991,10 @@ export default function SellProperty() {
                 const propTypeRaw = pick("property_type");
                 const sub = (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
                 const purpose = (pick("listing_type") || "sale").toString().toLowerCase();
-                const locLine = distinctLocationParts([editForm.locality || state.locality, editForm.city || state.city]).join(", ");
+                const locLine = distinctLocationParts([
+                  editForm.locality || state.locality,
+                  editForm.city || state.city,
+                ]).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
@@ -4889,8 +5148,7 @@ export default function SellProperty() {
                  * lives under different keys (e.g. built_area vs built_up_area).
                  */
                 const activeCategory = (category || (state as any).property_category || (state as any).category) as
-                  | PropertyCategory
-                  | undefined;
+                  PropertyCategory | undefined;
 
                 const FIELD_ALIASES: Record<string, string[]> = {
                   built_area: ["built_area", "built_up_area", "builtup_area", "building_area_sqft", "flat_size"],
@@ -5322,7 +5580,6 @@ export default function SellProperty() {
                       }}
                       onEntitlementChanged={refreshEntitlement}
                     />
-
 
                     {/* EDIT DRAWER — dynamic, only filled fields */}
                     <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
@@ -5761,7 +6018,7 @@ export default function SellProperty() {
               })()}
           </div>
         </div>
-      )}
+      }
 
       {/* Final review controls live outside the scrolling preview so mobile browsers cannot clip them. */}
       {done && !paymentFlowActive && !showEditSheet && (
@@ -5776,25 +6033,31 @@ export default function SellProperty() {
               />
             )}
             {!isReviewFinancial && entitlement && (
-              <div className={cn(
-                "rounded-xl border px-2.5 py-1.5 text-[11px]",
-                entitlement.has_agent_subscription
-                  ? "border-yellow-500/30 bg-yellow-500/5"
-                  : entitlement.requires_payment
-                    ? "border-amber-500/30 bg-amber-500/5"
-                    : "border-emerald-500/30 bg-emerald-500/5",
-              )}>
+              <div
+                className={cn(
+                  "rounded-xl border px-2.5 py-1.5 text-[11px]",
+                  entitlement.has_agent_subscription
+                    ? "border-yellow-500/30 bg-yellow-500/5"
+                    : entitlement.requires_payment
+                      ? "border-amber-500/30 bg-amber-500/5"
+                      : "border-emerald-500/30 bg-emerald-500/5",
+                )}
+              >
                 {entitlement.has_agent_subscription ? (
                   <span>Agent subscription active — unlimited property postings.</span>
                 ) : entitlement.requires_payment ? (
-                  <span>This listing costs <strong>₹{Number(entitlement.total).toLocaleString("en-IN")}</strong>.</span>
+                  <span>
+                    This listing costs <strong>₹{Number(entitlement.total).toLocaleString("en-IN")}</strong>.
+                  </span>
                 ) : (
-                  <span><strong>{entitlement.free_remaining}</strong> of {entitlement.free_limit} free posts remaining.</span>
+                  <span>
+                    <strong>{entitlement.free_remaining}</strong> of {entitlement.free_limit} free posts remaining.
+                  </span>
                 )}
               </div>
             )}
-            {!isReviewFinancial && (
-              agentCardMinimized ? (
+            {!isReviewFinancial &&
+              (agentCardMinimized ? (
                 <button
                   type="button"
                   onClick={() => setAgentCardMinimized(false)}
@@ -5809,16 +6072,33 @@ export default function SellProperty() {
                 <div className="rounded-xl border border-border bg-card p-2.5">
                   <div className="text-sm font-semibold mb-2">Do you need a JAAGAX Agent?</div>
                   <div className="flex gap-2">
-                    <Button type="button" size="sm" variant={verificationRequested ? "default" : "outline"} onClick={() => { setVerificationRequested(true); setAgentCardMinimized(true); }} className="flex-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={verificationRequested ? "default" : "outline"}
+                      onClick={() => {
+                        setVerificationRequested(true);
+                        setAgentCardMinimized(true);
+                      }}
+                      className="flex-1"
+                    >
                       Yes, assign
                     </Button>
-                    <Button type="button" size="sm" variant={!verificationRequested ? "default" : "outline"} onClick={() => { setVerificationRequested(false); setAgentCardMinimized(true); }} className="flex-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={!verificationRequested ? "default" : "outline"}
+                      onClick={() => {
+                        setVerificationRequested(false);
+                        setAgentCardMinimized(true);
+                      }}
+                      className="flex-1"
+                    >
                       No, I'll handle it
                     </Button>
                   </div>
                 </div>
-              )
-            )}
+              ))}
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowEditSheet(true)} className="flex-1 sm:flex-none">
                 <Pencil className="h-4 w-4 mr-1" /> Edit details
@@ -5950,108 +6230,126 @@ export default function SellProperty() {
             ) : (
               <>
                 {/* Only suggestions generated from the current typed answer stay by the message bar. */}
-                <div className="max-h-[min(28dvh,220px)] overflow-y-auto overscroll-contain pb-2 space-y-2" aria-label="Suggestions while typing">
-            {/* Unit/price/measurement chips for NUMBER fields — beside the composer */}
-            {field && !categoryBlock && !loadingNext && !done && field.input === "number" && value && (() => {
-              const isCountField =
-                /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
-                  field.id,
-                );
-              const fidCanon = canonId(field.id);
-              const HANDLED_BY_CUSTOM = new Set([
-                "price_per_unit",
-                "bhk",
-                "bathrooms",
-                "floor_number",
-                "total_plots",
-                "total_towers",
-                "towers",
-                "floors_per_tower",
-                "total_units",
-                "units",
-                ...Object.keys(COUNT_FIELD_LABELS),
-              ]);
-              if (HANDLED_BY_CUSTOM.has(fidCanon)) return null;
-              const sType =
-                field.suggestionType ||
-                (/rent/i.test(field.id)
-                  ? "rental_duration"
-                  : /price|amount|cost|budget/i.test(field.id)
-                    ? "price"
-                    : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
-                      ? "measurement_units"
-                      : undefined);
-
-              let chips: any[] = [];
-              if (sType === "rental_duration") {
-                chips = getRentSuggestions(value, field.durations);
-              } else if (sType === "price" || sType === "price_per_unit") {
-                chips = getPriceSuggestions(value);
-              } else if (sType === "measurement_units") {
-                chips = getUnitSuggestions(
-                  value,
-                  (field.units && field.units.length
-                    ? field.units
-                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
-                );
-              }
-              if (!chips.length) return null;
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-wrap gap-2 pt-1 pl-1"
+                <div
+                  className="max-h-[min(28dvh,220px)] overflow-y-auto overscroll-contain pb-2 space-y-2"
+                  aria-label="Suggestions while typing"
                 >
-                  {chips.map((c: any, i: number) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => commitAnswer(sType === "measurement_units" ? `${c.value} ${c.unit}` : c.value, c.label)}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
-                    >
-                      {c.label || String(c)}
-                    </button>
-                  ))}
-                </motion.div>
-              );
-            })()}
+                  {/* Unit/price/measurement chips for NUMBER fields — beside the composer */}
+                  {field &&
+                    !categoryBlock &&
+                    !loadingNext &&
+                    !done &&
+                    field.input === "number" &&
+                    value &&
+                    (() => {
+                      const isCountField =
+                        /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
+                          field.id,
+                        );
+                      const fidCanon = canonId(field.id);
+                      const HANDLED_BY_CUSTOM = new Set([
+                        "price_per_unit",
+                        "bhk",
+                        "bathrooms",
+                        "floor_number",
+                        "total_plots",
+                        "total_towers",
+                        "towers",
+                        "floors_per_tower",
+                        "total_units",
+                        "units",
+                        ...Object.keys(COUNT_FIELD_LABELS),
+                      ]);
+                      if (HANDLED_BY_CUSTOM.has(fidCanon)) return null;
+                      const sType =
+                        field.suggestionType ||
+                        (/rent/i.test(field.id)
+                          ? "rental_duration"
+                          : /price|amount|cost|budget/i.test(field.id)
+                            ? "price"
+                            : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
+                              ? "measurement_units"
+                              : undefined);
 
-            {/* ============================================
+                      let chips: any[] = [];
+                      if (sType === "rental_duration") {
+                        chips = getRentSuggestions(value, field.durations);
+                      } else if (sType === "price" || sType === "price_per_unit") {
+                        chips = getPriceSuggestions(value);
+                      } else if (sType === "measurement_units") {
+                        chips = getUnitSuggestions(
+                          value,
+                          (field.units && field.units.length
+                            ? field.units
+                            : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
+                        );
+                      }
+                      if (!chips.length) return null;
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex flex-wrap gap-2 pt-1 pl-1"
+                        >
+                          {chips.map((c: any, i: number) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() =>
+                                commitAnswer(sType === "measurement_units" ? `${c.value} ${c.unit}` : c.value, c.label)
+                              }
+                              className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
+                            >
+                              {c.label || String(c)}
+                            </button>
+                          ))}
+                        </motion.div>
+                      );
+                    })()}
+
+                  {/* ============================================
     DYNAMIC INPUT SUGGESTIONS
 ============================================ */}
 
-            {field && !loadingNext && !done && !categoryBlock && typeof value === "string" && value.trim().length > 0 && Array.isArray(suggestions) && suggestions.length > 0 && (typeof suggestions[0] === "string" || canonId(field.id) === "price_per_unit") && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-2 pt-1 pl-1"
-              >
-                {suggestions.map((sug) => {
-                  const label = typeof sug === "string" ? sug : sug.label;
-                  const answer = typeof sug === "string" ? sug : sug.value;
-                  const active = value === answer;
+                  {field &&
+                    !loadingNext &&
+                    !done &&
+                    !categoryBlock &&
+                    typeof value === "string" &&
+                    value.trim().length > 0 &&
+                    Array.isArray(suggestions) &&
+                    suggestions.length > 0 &&
+                    (typeof suggestions[0] === "string" || canonId(field.id) === "price_per_unit") && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-wrap gap-2 pt-1 pl-1"
+                      >
+                        {suggestions.map((sug) => {
+                          const label = typeof sug === "string" ? sug : sug.label;
+                          const answer = typeof sug === "string" ? sug : sug.value;
+                          const active = value === answer;
 
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={async () => {
-                        await commitAnswer(answer, typeof sug === "string" ? undefined : label);
-                      }}
-                      className={cn(
-                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                        active
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card hover:bg-primary/5 border-border",
-                      )}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </motion.div>
-            )}
-
+                          return (
+                            <button
+                              key={label}
+                              type="button"
+                              onClick={async () => {
+                                await commitAnswer(answer, typeof sug === "string" ? undefined : label);
+                              }}
+                              className={cn(
+                                "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                                active
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-card hover:bg-primary/5 border-border",
+                              )}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
                 </div>
 
                 {/* ===================================================
@@ -6406,9 +6704,10 @@ function Bubble({ msg }: { msg: ChatMsg }) {
             }
           })();
 
-  const visibleText = isUser && safeText.startsWith("📍 ")
-    ? `📍 ${distinctLocationParts(safeText.slice(3).split(",")).join(", ")}`
-    : safeText;
+  const visibleText =
+    isUser && safeText.startsWith("📍 ")
+      ? `📍 ${distinctLocationParts(safeText.slice(3).split(",")).join(", ")}`
+      : safeText;
   return <div className={base}>{visibleText}</div>;
 }
 
