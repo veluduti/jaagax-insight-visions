@@ -12361,6 +12361,8 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           max_seats: number
           meeting_point: string | null
           price_home_pickup: number
@@ -12384,6 +12386,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           max_seats?: number
           meeting_point?: string | null
           price_home_pickup?: number
@@ -12407,6 +12411,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           max_seats?: number
           meeting_point?: string | null
           price_home_pickup?: number
