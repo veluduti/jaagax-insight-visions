@@ -1,4 +1,5 @@
 # Active roadmap — JAAGA Travel
+- [x] Add Find My Agent and Smart Visits shortcuts directly above homepage Featured Properties
 - [x] Improve Smart Visit cards and validate time labels
 - [x] Navigate notifications to their linked pages; correct legacy dashboard URLs
 - [x] Keep Explore above Stays search controls
