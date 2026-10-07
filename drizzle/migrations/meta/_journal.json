@@ -120,6 +120,13 @@
       "when": 1791285857177,
       "tag": "0016_travel_group_journeys",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791348672213,
+      "tag": "0017_smart_visit_nearby_notify",
+      "breakpoints": true
     }
   ]
 }
