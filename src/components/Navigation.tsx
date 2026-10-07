@@ -174,7 +174,7 @@ const Navigation = () => {
                           )}
                         >
                           <Hotel className="h-[18px] w-[18px] mr-2" />
-                          Stays
+                          Jaaga Stays
                         </Button>
                       </Link>
                     </NavigationMenuItem>
@@ -214,7 +214,6 @@ const Navigation = () => {
                         </ul>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
-
                   </>
                 }
               </NavigationMenuList>
@@ -240,7 +239,12 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-[15px] px-5">
+                  <Button
+                    onClick={() => navigate(dashboardPath)}
+                    variant="default"
+                    size="sm"
+                    className="text-[15px] px-5"
+                  >
                     Dashboard
                   </Button>
                 </>
@@ -249,12 +253,16 @@ const Navigation = () => {
                   <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="text-[15px]">
                     Sign In
                   </Button>
-                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="text-[15px] px-5">
+                  <Button
+                    onClick={() => navigate("/register")}
+                    variant="default"
+                    size="sm"
+                    className="text-[15px] px-5"
+                  >
                     Register
                   </Button>
                 </>
               )}
-
             </div>
           </div>
         </div>
@@ -269,37 +277,44 @@ const Navigation = () => {
         <div className="container-padding py-3 max-[399px]:px-2">
           <div className="flex items-center justify-between gap-1 sm:gap-2 min-w-0 h-10">
             <div className="flex items-center gap-0.5 sm:gap-1 min-w-0 shrink">
-            {location.pathname !== "/" && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
-                aria-label="Go back"
-                className="h-10 w-10 shrink-0 rounded-full active:scale-90 transition-transform"
-              >
-                <ArrowLeft className="h-5 w-5 text-foreground" />
-              </Button>
-            )}
-            <Link to="/" className="flex items-center min-w-0 shrink" aria-label="JAAGA X - Home">
-              <img
-                src={jaagaxLogo}
-                alt="JAAGA X"
-                className="h-9 sm:h-11 w-auto max-w-full max-h-11 object-contain object-left"
-                loading="lazy"
-                decoding="async"
-              />
-            </Link>
+              {location.pathname !== "/" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+                  aria-label="Go back"
+                  className="h-10 w-10 shrink-0 rounded-full active:scale-90 transition-transform"
+                >
+                  <ArrowLeft className="h-5 w-5 text-foreground" />
+                </Button>
+              )}
+              <Link to="/" className="flex items-center min-w-0 shrink" aria-label="JAAGA X - Home">
+                <img
+                  src={jaagaxLogo}
+                  alt="JAAGA X"
+                  className="h-9 sm:h-11 w-auto max-w-full max-h-11 object-contain object-left"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </Link>
             </div>
 
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 min-w-0">
               <LocationPill mobileCompact className="max-w-[112px] sm:max-w-[180px]" />
-              <div className="hidden sm:block"><ThemeToggle /></div>
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
               {session && <NotificationBell />}
               <SidebarMenu />
 
               {session ? (
                 <>
-                  <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  <Button
+                    onClick={() => navigate(dashboardPath)}
+                    variant="ghost"
+                    size="sm"
+                    className="hidden sm:inline-flex"
+                  >
                     Dashboard
                   </Button>
                 </>
@@ -308,12 +323,16 @@ const Navigation = () => {
                   <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="hidden sm:inline-flex">
                     Sign In
                   </Button>
-                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="hidden sm:inline-flex">
+                  <Button
+                    onClick={() => navigate("/register")}
+                    variant="default"
+                    size="sm"
+                    className="hidden sm:inline-flex"
+                  >
                     Register
                   </Button>
                 </>
               )}
-
             </div>
           </div>
         </div>
