@@ -12256,6 +12256,7 @@ export type Database = {
           agent_message: string | null
           contact_phone: string | null
           created_at: string
+          customer_hidden: boolean
           customer_id: string
           customer_name: string | null
           drop_address: string | null
@@ -12286,6 +12287,7 @@ export type Database = {
           agent_message?: string | null
           contact_phone?: string | null
           created_at?: string
+          customer_hidden?: boolean
           customer_id: string
           customer_name?: string | null
           drop_address?: string | null
@@ -12316,6 +12318,7 @@ export type Database = {
           agent_message?: string | null
           contact_phone?: string | null
           created_at?: string
+          customer_hidden?: boolean
           customer_id?: string
           customer_name?: string | null
           drop_address?: string | null

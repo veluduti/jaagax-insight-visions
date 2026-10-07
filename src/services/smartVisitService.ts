@@ -181,7 +181,7 @@ export async function listOpenPlans() {
 
 export async function listMyBookings(userId: string) {
   const { data, error } = await db.from("smart_visit_bookings")
-    .select("*, plan:smart_visit_plans(*)").eq("customer_id", userId).order("created_at", { ascending: false });
+    .select("*, plan:smart_visit_plans(*)").eq("customer_id", userId).eq("customer_hidden", false).order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as (SmartVisitBooking & { plan: SmartVisitPlan })[];
 }
