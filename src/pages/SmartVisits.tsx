@@ -222,6 +222,12 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
           <div className="flex gap-1 flex-wrap items-start">
             <Badge>{statusLabel[b.status] || b.status}</Badge>
             <Badge variant={b.payment_status === "paid" ? "default" : "outline"}>{b.payment_status === "paid" ? "Paid" : "Not paid"}</Badge>
+            {["cancelled", "completed", "no_show"].includes(b.status) && (
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" aria-label="Delete booking"
+                onClick={() => confirm("Remove this booking from your list?") && act({ customer_hidden: true } as any, "Booking removed")}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         {(b.pickup_time || b.agent_message) && (
@@ -231,6 +237,10 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
             {b.agent_message && <p>{b.agent_message}</p>}
           </div>
         )}
+        {b.status === "cancelled" && (p?.status === "cancelled"
+          ? <p className="text-xs text-destructive">The agent cancelled this visit.{b.payment_status === "paid" ? " Your payment will be reviewed for a refund by JAAGA." : ""}</p>
+          : <p className="text-xs text-muted-foreground">This booking was cancelled.{b.payment_status === "paid" ? " JAAGA has been notified to review your refund." : ""}</p>)}
+        {b.status === "no_show" && <p className="text-xs text-muted-foreground">This visit finished without your pickup being recorded.</p>}
         {b.status === "booked" && <p className="text-xs text-muted-foreground">Waiting for the agent to send pickup time and trip details.</p>}
         <div className="flex gap-2 flex-wrap">
           {b.payment_status !== "paid" && ["booked", "confirmed"].includes(b.status) && (
