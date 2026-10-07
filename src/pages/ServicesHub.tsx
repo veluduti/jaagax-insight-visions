@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 type Item = { label: string; path: string; icon: any; desc?: string };
 type Group = { title: string; items: Item[] };
 
+const publicGroups: Group[] = [
+  {
     title: "Property",
     items: [
       { label: "Buy / Rent", path: "/search", icon: Home },
