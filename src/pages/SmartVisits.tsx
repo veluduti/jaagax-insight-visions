@@ -67,7 +67,7 @@ export default function SmartVisits() {
       <Navigation />
       <div className="container mx-auto px-4 pt-20 pb-24 max-w-5xl space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="outline" size="icon" aria-label="Go back" className="shrink-0 rounded-full" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}><ArrowLeft className="h-5 w-5" /></Button>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Route className="h-6 w-6 text-primary" />Smart Visits</h1>
             <p className="text-sm text-muted-foreground">Join a guided group site visit with a verified JAAGA agent — pickup, visits and drop included.</p>

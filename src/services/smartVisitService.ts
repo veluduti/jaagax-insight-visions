@@ -166,7 +166,17 @@ export async function listOpenPlans() {
   const { data, error } = await db.from("smart_visit_plans").select("*").eq("status", "approved")
     .gte("visit_date", today).order("visit_date").limit(100);
   if (error) throw error;
-  return (data ?? []) as SmartVisitPlan[];
+  const now = Date.now();
+  // Hide visits whose date + start time has already passed.
+  return ((data ?? []) as SmartVisitPlan[]).filter((p) => {
+    const t = (p.start_time || "23:59").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    let h = t ? Number(t[1]) : 23; const m = t ? Number(t[2]) : 59;
+    if (t?.[3]) h = (h % 12) + (t[3].toUpperCase() === "PM" ? 12 : 0);
+    const d = new Date(`${p.visit_date?.slice(0, 10)}T00:00:00`);
+    if (isNaN(d.getTime())) return true;
+    d.setHours(h, m, 0, 0);
+    return d.getTime() > now;
+  });
 }
 
 export async function listMyBookings(userId: string) {
