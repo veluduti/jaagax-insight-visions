@@ -202,21 +202,6 @@ const PartnerBookingEngine = lazy(() => import("./pages/partners/PartnerBookingE
 const BookingEngine = lazy(() => import("./pages/public/BookingEngine"));
 const GuestPortal = lazy(() => import("./pages/public/GuestPortal"));
 const MyTrips = lazy(() => import("./pages/MyTrips"));
-const TravelHome = lazy(() => import("./pages/Travel"));
-const TravelExplore = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelExplore })));
-const TravelDestinationDetail = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelDestinationDetail })));
-const TravelExperienceDetail = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelExperienceDetail })));
-const TravelPlanner = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPlanner })));
-const TravelPlans = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPlans })));
-const TravelPlanDetail = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPlanDetail })));
-const TravelSaved = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelSaved })));
-const TravelProfile = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelProfile })));
-const TravelInspire = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelInspire })));
-const TravelJourneys = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelJourneys })));
-const TravelMemories = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelMemories })));
-const TravelCommunities = lazy(() => import("./pages/TravelWorld").then(m => ({ default: m.TravelCommunities })));
-const TravelPartner = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelPartner })));
-const TravelAdmin = lazy(() => import("./pages/Travel").then(m => ({ default: m.TravelAdmin })));
 
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
@@ -595,21 +580,6 @@ const App = () => (
                   <Route path="/book/:hotelId" element={<BookingEngine />} />
                   <Route path="/stay/:token" element={<GuestPortal />} />
                   <Route path="/my-trips" element={<MyTrips />} />
-                  <Route path="/travel" element={<TravelHome />} />
-                  <Route path="/travel/explore" element={<TravelExplore />} />
-                  <Route path="/travel/destinations/:slug" element={<TravelDestinationDetail />} />
-                  <Route path="/travel/experiences/:slug" element={<TravelExperienceDetail />} />
-                  <Route path="/travel/plan" element={<TravelPlanner />} />
-                  <Route path="/travel/plans" element={<TravelPlans />} />
-                  <Route path="/travel/plans/:id" element={<TravelPlanDetail />} />
-                  <Route path="/travel/saved" element={<TravelSaved />} />
-                  <Route path="/travel/profile" element={<TravelProfile />} />
-                  <Route path="/travel/inspire" element={<TravelInspire />} />
-                 <Route path="/travel/journeys" element={<TravelJourneys />} />
-                 <Route path="/travel/memories" element={<TravelMemories />} />
-                 <Route path="/travel/communities" element={<TravelCommunities />} />
-                 <Route path="/travel/partner" element={<TravelPartner />} />
-                  <Route path="/admin/travel" element={<ProtectedRoute allowedRole="admin"><TravelAdmin /></ProtectedRoute>} />
                   <Route path="/smart-visits" element={<SmartVisits />} />
                   <Route path="/dashboard/agent/smart-visits" element={<ProtectedRoute allowedRole="agent"><AgentSmartVisits /></ProtectedRoute>} />
 

@@ -179,21 +179,6 @@ const Navigation = () => {
                       </Link>
                     </NavigationMenuItem>
 
-                    <NavigationMenuItem>
-                      <Link to="/travel">
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "px-4 py-2.5 text-[15px] font-medium h-auto",
-                            isActive("/travel") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          <Plane className="h-[18px] w-[18px] mr-2" />
-                          Travel
-                        </Button>
-                      </Link>
-                    </NavigationMenuItem>
-
                     {/* Explore Dropdown */}
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
