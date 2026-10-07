@@ -157,8 +157,8 @@ const Navigation = () => {
                             isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
                           )}
                         >
-                          <DollarSign className="h-[18px] w-[18px] mr-2" />
-                          Properties
+                          {/*<DollarSign className="h-[18px] w-[18px] mr-2" />*/}
+                          Post Jaaga
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
