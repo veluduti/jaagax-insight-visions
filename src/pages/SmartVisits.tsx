@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Route, Calendar, Clock, MapPin, Users, Star, Car, Home as HomeIcon, ArrowLeft, Building2, ChevronDown, ArrowRight } from "lucide-react";
+import { Route, Calendar, Clock, MapPin, Users, Star, Car, Home as HomeIcon, ArrowLeft, Building2, ChevronDown, ArrowRight, Trash2 } from "lucide-react";
 import { visitDateLabel, visitTimeLabel } from "@/lib/smartVisitDate";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
