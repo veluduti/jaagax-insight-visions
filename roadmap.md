@@ -1,7 +1,8 @@
 # Active roadmap — JAAGA Travel
-- [ ] Improve Smart Visit cards and validate time labels
-- [ ] Navigate notifications to their linked records
-- [ ] Keep Explore above Stays search controls
+- [x] Improve Smart Visit cards and validate time labels
+- [x] Navigate notifications to their linked pages; correct legacy dashboard URLs
+- [x] Keep Explore above Stays search controls
+- [ ] Verify linked agent-dashboard content — blocked by its existing persistent loading state
 - [x] Keep Travel hotel browsing and room previews on the plan page
 - [x] Correct right-aligned secondary navigation on narrow screens and verify the layout
 - [x] Align the second Travel header links to the right without changing the main header
