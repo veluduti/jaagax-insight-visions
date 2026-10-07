@@ -9,6 +9,7 @@ import { Bell, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { notificationDestination } from "@/lib/notificationDestination";
 
 interface Notif {
   id: string;
@@ -58,14 +59,15 @@ export default function NotificationCenter({ userId }: { userId: string }) {
 
   const markOne = async (n: Notif) => {
     const sb: any = supabase;
-    await sb.from("notifications").update({ read: true }).eq("id", n.id);
+    await sb.from("notifications").update({ read: true, is_read: true }).eq("id", n.id).eq("user_id", userId);
     setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
-    if (n.link) { setOpen(false); navigate(n.link); }
+    const destination = notificationDestination(n);
+    if (destination) { setOpen(false); navigate(destination); }
   };
 
   const markAll = async () => {
     const sb: any = supabase;
-    await sb.from("notifications").update({ read: true }).eq("user_id", userId).eq("read", false);
+    await sb.from("notifications").update({ read: true, is_read: true }).eq("user_id", userId);
     setItems((prev) => prev.map((x) => ({ ...x, read: true })));
     toast.success("All notifications marked read");
   };
