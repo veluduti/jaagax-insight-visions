@@ -4377,7 +4377,7 @@ export default function SellProperty() {
                     id: uid(),
                     role: "ai",
                     kind: "text",
-                    text: "👋 Hi! I'll help you list your property.",
+                    text: "👋 Hi! I’ll help you with your property journey — whether you want to **sell, rent, or invest**. Let’s get started!.",
                   },
                   {
                     id: uid(),
