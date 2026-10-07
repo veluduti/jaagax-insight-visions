@@ -12,11 +12,13 @@ import PredictivePriceAlerts from "@/components/alerts/PredictivePriceAlerts";
 import SmartVisitCluster from "@/components/visit/SmartVisitCluster";
 import VoiceSearch from "@/components/search/VoiceSearch";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const InnovationHub = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("pulse");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "pulse";
+  const setActiveTab = (t: string) => { const p = new URLSearchParams(searchParams); p.set("tab", t); setSearchParams(p, { replace: true }); };
 
   const handleVoiceSearch = (query: string, filters?: any) => {
     toast.success(`Searching: "${query}"`);
