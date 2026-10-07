@@ -16,17 +16,6 @@ type Group = { title: string; items: Item[] };
 
 const publicGroups: Group[] = [
   {
-    title: "Travel",
-    items: [
-      { label: "Discover Travel", path: "/travel", icon: Plane },
-      { label: "Explore", path: "/travel/explore", icon: Map },
-      { label: "Plan with JAAGA", path: "/travel/plan", icon: Sparkles },
-      { label: "My Plans", path: "/travel/plans", icon: CalendarDays },
-      { label: "Saved", path: "/travel/saved", icon: Star },
-      { label: "Travel Partner", path: "/travel/partner", icon: Briefcase },
-    ],
-  },
-  {
     title: "Property",
     items: [
       { label: "Buy / Rent", path: "/search", icon: Home },

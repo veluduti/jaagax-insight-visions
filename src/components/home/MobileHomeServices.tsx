@@ -12,11 +12,9 @@ const quick = [
   { label: "Agents", path: "/agents", icon: Users },
   { label: "AI Advisor", path: "/ai-advisor", icon: Sparkles },
   { label: "Loans", path: "/smart-financing", icon: Landmark },
-  { label: "Travel", path: "/travel", icon: Plane },
 ];
 
 const more = [
-  { label: "Travel", path: "/travel", icon: Plane },
   { label: "Market Index", path: "/transactions", icon: TrendingUp },
   { label: "Events", path: "/events", icon: Calendar },
   { label: "Offers", path: "/promotions", icon: Megaphone },

@@ -13,7 +13,6 @@ const MobileNav = () => {
     { icon: Home, label: "Home", path: "/", match: ["/"] },
     { icon: Hotel, label: "Hotels", path: "/hotels", match: ["/hotels", "/plan-visit-stay"] },
     { icon: DollarSign, label: "Sell", path: "/sell-property", match: ["/sell-property"] },
-    { icon: Plane, label: "Travel", path: "/travel", match: ["/travel"] },
     { icon: LayoutGrid, label: "Services", path: "/services", match: ["/services"] },
     { icon: User, label: "Profile", path: session ? "/select-profile" : "/auth", match: ["/select-profile", "/auth", "/dashboard", "/partners/dashboard", "/admin"] },
   ];
@@ -30,7 +29,7 @@ const MobileNav = () => {
         className="fixed bottom-0 left-0 right-0 z-50 xl:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 pb-[env(safe-area-inset-bottom)]"
         aria-label="Main"
       >
-        <div className="grid grid-cols-6 px-1 pt-1.5 pb-1.5">
+        <div className="grid grid-cols-5 px-1 pt-1.5 pb-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.match);
