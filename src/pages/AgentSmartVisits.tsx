@@ -143,7 +143,7 @@ export default function AgentSmartVisits() {
               )}
               {p.admin_notes && <p className="text-xs text-muted-foreground">Admin note: {p.admin_notes}</p>}
               <div className="flex flex-wrap gap-2">
-                {(p.status === "pending_review" || p.status === "rejected") && (
+                {(p.status === "pending_review" || p.status === "pending_state_review" || p.status === "rejected") && (
                   <Button size="sm" variant="outline" onClick={() => openEdit(p)}>{p.status === "rejected" ? "Edit & resubmit" : "Edit"}</Button>
                 )}
                 {p.status === "approved" && (

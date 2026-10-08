@@ -219,6 +219,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           items: [
             { value: "review-queue", label: "Review Queue", icon: Timer },
             { value: "workflow-rules", label: "Workflow Rules", icon: Settings2 },
+            { value: "smart-visits", label: "Smart Visits", icon: Zap },
           ],
         },
         {
