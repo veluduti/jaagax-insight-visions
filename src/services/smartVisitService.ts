@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const db = supabase as any;
 
-export type PlanStatus = "pending_review" | "approved" | "rejected" | "completed" | "cancelled";
+export type PlanStatus = "pending_state_review" | "pending_review" | "approved" | "rejected" | "completed" | "cancelled";
 export type PickupType = "meeting_point" | "home";
 
 export interface SmartVisitPlan {
@@ -23,6 +23,9 @@ export interface SmartVisitPlan {
   rejection_reason: string | null;
   admin_notes: string | null;
   trip_details: string | null;
+  state_name?: string | null;
+  state_reviewed_at?: string | null;
+  rejected_by_level?: string | null;
   created_at: string;
 }
 
@@ -63,7 +66,8 @@ export interface PlanProperty {
 const PROPERTY_COLS = "id, title, city, locality, price, images, slug";
 
 export const statusLabel: Record<string, string> = {
-  pending_review: "Waiting for approval",
+  pending_state_review: "Waiting for state admin",
+  pending_review: "Waiting for final approval",
   approved: "Live for customers",
   rejected: "Rejected",
   completed: "Completed",
@@ -240,7 +244,7 @@ export async function listPlansForAdmin(status: string) {
 }
 
 export async function reviewPlan(id: string, decision: {
-  status: "approved" | "rejected"; price_meeting_point?: number; price_home_pickup?: number;
+  status: "approved" | "rejected" | "pending_review"; price_meeting_point?: number; price_home_pickup?: number;
   rejection_reason?: string; admin_notes?: string;
 }) {
   const { error } = await db.from("smart_visit_plans").update(decision).eq("id", id);

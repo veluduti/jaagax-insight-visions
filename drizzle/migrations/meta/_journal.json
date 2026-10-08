@@ -134,6 +134,13 @@
       "when": 1791372023669,
       "tag": "0018_smart_visit_lifecycle_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791436168383,
+      "tag": "0019_smart_visit_state_approval",
+      "breakpoints": true
     }
   ]
 }

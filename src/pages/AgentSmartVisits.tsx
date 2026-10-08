@@ -139,11 +139,11 @@ export default function AgentSmartVisits() {
             <CardContent className="space-y-3">
               <p className="text-sm">Meeting point: <b>{inr(p.price_meeting_point)}</b>/person · Home pickup: <b>{inr(p.price_home_pickup)}</b>/person</p>
               {p.status === "rejected" && p.rejection_reason && (
-                <p className="text-sm text-destructive">Rejected by admin: {p.rejection_reason}</p>
+                <p className="text-sm text-destructive">Rejected by {p.rejected_by_level === "state" ? `${p.state_name || "state"} admin` : "JAAGA X admin"}: {p.rejection_reason}</p>
               )}
               {p.admin_notes && <p className="text-xs text-muted-foreground">Admin note: {p.admin_notes}</p>}
               <div className="flex flex-wrap gap-2">
-                {(p.status === "pending_review" || p.status === "rejected") && (
+                {(p.status === "pending_review" || p.status === "pending_state_review" || p.status === "rejected") && (
                   <Button size="sm" variant="outline" onClick={() => openEdit(p)}>{p.status === "rejected" ? "Edit & resubmit" : "Edit"}</Button>
                 )}
                 {p.status === "approved" && (

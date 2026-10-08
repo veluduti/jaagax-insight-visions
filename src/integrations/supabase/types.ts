@@ -12371,10 +12371,16 @@ export type Database = {
           price_home_pickup: number
           price_meeting_point: number
           property_ids: string[]
+          rejected_by_level: string | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           start_time: string
+          state_id: string | null
+          state_name: string | null
+          state_notes: string | null
+          state_reviewed_at: string | null
+          state_reviewed_by: string | null
           status: string
           title: string
           trip_details: string | null
@@ -12396,10 +12402,16 @@ export type Database = {
           price_home_pickup?: number
           price_meeting_point?: number
           property_ids?: string[]
+          rejected_by_level?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_time: string
+          state_id?: string | null
+          state_name?: string | null
+          state_notes?: string | null
+          state_reviewed_at?: string | null
+          state_reviewed_by?: string | null
           status?: string
           title: string
           trip_details?: string | null
@@ -12421,10 +12433,16 @@ export type Database = {
           price_home_pickup?: number
           price_meeting_point?: number
           property_ids?: string[]
+          rejected_by_level?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_time?: string
+          state_id?: string | null
+          state_name?: string | null
+          state_notes?: string | null
+          state_reviewed_at?: string | null
+          state_reviewed_by?: string | null
           status?: string
           title?: string
           trip_details?: string | null
@@ -14404,6 +14422,7 @@ export type Database = {
         Args: { _application_id: string }
         Returns: boolean
       }
+      is_global_admin: { Args: { _uid: string }; Returns: boolean }
       is_hierarchy_admin: { Args: { _user_id: string }; Returns: boolean }
       is_hotel_member: {
         Args: { _hotel_id: string; _user_id: string }
@@ -14420,6 +14439,10 @@ export type Database = {
       }
       is_smart_plan_agent: {
         Args: { _plan: string; _uid: string }
+        Returns: boolean
+      }
+      is_smart_visit_state_admin: {
+        Args: { _state: string; _state_id: string; _uid: string }
         Returns: boolean
       }
       is_valid_property_transition: {
@@ -14713,7 +14736,19 @@ export type Database = {
           rating_count: number
         }[]
       }
+      smart_visit_global_admin_ids: { Args: never; Returns: string[] }
+      smart_visit_route_for_review: {
+        Args: {
+          _p: Database["public"]["Tables"]["smart_visit_plans"]["Row"]
+          _resubmit: boolean
+        }
+        Returns: string
+      }
       smart_visit_seats_taken: { Args: { _plan: string }; Returns: number }
+      smart_visit_state_admin_ids: {
+        Args: { _state: string; _state_id: string }
+        Returns: string[]
+      }
       submit_kyc: {
         Args: { _aadhaar: string; _pan: string; _selfie: string }
         Returns: undefined
