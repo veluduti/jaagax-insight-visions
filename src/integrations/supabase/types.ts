@@ -12267,6 +12267,7 @@ export type Database = {
           is_vip: boolean
           lunch_amount: number
           lunch_opted: boolean
+          lunch_type: string | null
           paid_at: string | null
           payment_status: string
           pickup_address: string | null
@@ -12301,6 +12302,7 @@ export type Database = {
           is_vip?: boolean
           lunch_amount?: number
           lunch_opted?: boolean
+          lunch_type?: string | null
           paid_at?: string | null
           payment_status?: string
           pickup_address?: string | null
@@ -12335,6 +12337,7 @@ export type Database = {
           is_vip?: boolean
           lunch_amount?: number
           lunch_opted?: boolean
+          lunch_type?: string | null
           paid_at?: string | null
           payment_status?: string
           pickup_address?: string | null
@@ -12367,6 +12370,7 @@ export type Database = {
       smart_visit_plans: {
         Row: {
           admin_notes: string | null
+          agent_hidden: boolean
           agent_id: string
           agent_user_id: string
           city: string | null
@@ -12381,6 +12385,8 @@ export type Database = {
           meeting_point: string | null
           price_home_pickup: number
           price_lunch: number
+          price_lunch_nonveg: number
+          price_lunch_veg: number
           price_meeting_point: number
           price_vip: number
           property_ids: string[]
@@ -12405,6 +12411,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          agent_hidden?: boolean
           agent_id: string
           agent_user_id: string
           city?: string | null
@@ -12419,6 +12426,8 @@ export type Database = {
           meeting_point?: string | null
           price_home_pickup?: number
           price_lunch?: number
+          price_lunch_nonveg?: number
+          price_lunch_veg?: number
           price_meeting_point?: number
           price_vip?: number
           property_ids?: string[]
@@ -12443,6 +12452,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          agent_hidden?: boolean
           agent_id?: string
           agent_user_id?: string
           city?: string | null
@@ -12457,6 +12467,8 @@ export type Database = {
           meeting_point?: string | null
           price_home_pickup?: number
           price_lunch?: number
+          price_lunch_nonveg?: number
+          price_lunch_veg?: number
           price_meeting_point?: number
           price_vip?: number
           property_ids?: string[]

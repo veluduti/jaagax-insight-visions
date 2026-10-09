@@ -23,9 +23,9 @@ export default function PlanPropertyList({ ids, schedule }: { ids: string[]; sch
               {slot(p.id) && <><Clock className="h-3 w-3 ml-1" />{fmt12(slot(p.id)!.start)}–{fmt12(slot(p.id)!.end)}</>}</p>
             <p className="text-sm font-medium truncate">{p.title || "Property"}</p>
             <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-              <MapPin className="h-3 w-3" />{[p.locality, p.city].filter(Boolean).join(", ") || "N/A"}
+              <MapPin className="h-3 w-3" />{[p.locality, p.city].filter(Boolean).join(", ") || ""}
             </p>
-            <p className="text-xs font-semibold">{inr(p.price)}</p>
+            {p.price ? <p className="text-xs font-semibold">{inr(p.price)}</p> : null}
           </div>
         </a>
       ))}

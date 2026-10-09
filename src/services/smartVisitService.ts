@@ -28,6 +28,9 @@ export interface SmartVisitPlan {
   vip_max_people?: number;
   lunch_available?: boolean;
   price_lunch?: number;
+  price_lunch_veg?: number;
+  price_lunch_nonveg?: number;
+  agent_hidden?: boolean;
   lunch_details?: string | null;
   property_schedule?: ScheduleSlot[];
   state_name?: string | null;
@@ -42,6 +45,7 @@ export interface SmartVisitBooking {
   is_vip?: boolean;
   lunch_opted?: boolean;
   lunch_amount?: number;
+  lunch_type?: "veg" | "nonveg" | null;
   id: string;
   plan_id: string;
   customer_id: string;
@@ -108,7 +112,7 @@ export async function getMyAgent(userId: string) {
 }
 
 export async function listMyPlans(userId: string) {
-  const { data, error } = await db.from("smart_visit_plans").select("*").eq("agent_user_id", userId)
+  const { data, error } = await db.from("smart_visit_plans").select("*").eq("agent_user_id", userId).eq("agent_hidden", false)
     .order("visit_date", { ascending: false }).limit(100);
   if (error) throw error;
   return (data ?? []) as SmartVisitPlan[];
@@ -205,7 +209,7 @@ export async function listMyBookings(userId: string) {
 export async function createBooking(b: {
   plan_id: string; customer_id: string; customer_name: string; contact_phone: string;
   seats: number; pickup_type: PickupType; pickup_address?: string; drop_address?: string;
-  is_vip?: boolean; lunch_opted?: boolean;
+  is_vip?: boolean; lunch_opted?: boolean; lunch_type?: "veg" | "nonveg" | null;
 }) {
   const { data, error } = await db.from("smart_visit_bookings").insert(b).select("id").single();
   if (error) throw error;
