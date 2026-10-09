@@ -1,3 +1,4 @@
+import { template as smartVisitInvoice } from './smart-visit-invoice.tsx'
 import type { ComponentType } from 'npm:react@18.3.1'
 
 export interface TemplateEntry {
@@ -18,6 +19,7 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'smart-visit-invoice': smartVisitInvoice,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }

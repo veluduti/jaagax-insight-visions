@@ -1,5 +1,6 @@
 // Smart Visit online payment: action "create" makes a Razorpay order for a booking,
 // action "verify" checks the signature and marks the booking paid.
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
     if (!/^[0-9a-f-]{36}$/i.test(bookingId)) return json({ error: "Invalid booking" }, 400);
 
     const { data: b } = await admin.from("smart_visit_bookings")
-      .select("id, customer_id, total_amount, status, payment_status, razorpay_order_id, plan:smart_visit_plans(title, agent_user_id)")
+      .select("*, plan:smart_visit_plans(title, agent_user_id, visit_date, start_time, meeting_point, price_meeting_point, price_home_pickup, price_vip)")
       .eq("id", bookingId).maybeSingle();
     if (!b || b.customer_id !== uid) return json({ error: "Booking not found" }, 404);
     if (b.payment_status === "paid") return json({ success: true, already: true });
@@ -74,6 +75,31 @@ Deno.serve(async (req) => {
           link: "/dashboard/agent/smart-visits", metadata: { booking_id: bookingId },
         });
       }
+      await admin.from("notifications").insert({
+        user_id: uid, type: "smart_visit_payment", title: "Smart Visit booked",
+        message: `Payment of ₹${Number(b.total_amount).toLocaleString("en-IN")} received for "${plan?.title}". Invoice sent to your email.`,
+        link: "/smart-visits", metadata: { booking_id: bookingId },
+      });
+      try {
+        const email = u.user?.email;
+        if (email) {
+          const seats = Number(b.seats) || 1;
+          const lunch = Number(b.lunch_amount) || 0;
+          const base = Number(b.total_amount) - lunch;
+          const lines = [{ label: b.is_vip ? "VIP private car" : `${b.pickup_type === "home_pickup" ? "Home pickup" : "Meeting point"} × ${seats}`, amount: base }];
+          if (lunch > 0) lines.push({ label: `${b.lunch_type === "nonveg" ? "Non-veg" : "Veg"} lunch`, amount: lunch });
+          await sendTemplateEmail("smart-visit-invoice", email, {
+            idempotencyKey: `smart-visit-invoice-${bookingId}`,
+            templateData: {
+              name: u.user?.user_metadata?.full_name || b.customer_name || "",
+              invoiceNo: `SV-${bookingId.slice(0, 8).toUpperCase()}`,
+              paidOn: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }),
+              planTitle: plan?.title, visitDate: plan?.visit_date, startTime: plan?.start_time, meetingPoint: plan?.meeting_point,
+              lines, total: Number(b.total_amount), paymentId: razorpay_payment_id,
+            },
+          });
+        }
+      } catch (e) { console.error("invoice email failed", e); }
       return json({ success: true });
     }
     return json({ error: "Unknown action" }, 400);
