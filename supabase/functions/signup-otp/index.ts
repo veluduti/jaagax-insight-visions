@@ -73,6 +73,15 @@ function isWeakPasswordError(message: string) {
   return /weak|easy to guess|password/i.test(message)
 }
 
+function passwordStrengthError(pw: string): string | null {
+  if (pw.length < 8) return 'Use at least 8 characters.'
+  if (!/[A-Z]/.test(pw)) return 'Add at least one uppercase letter.'
+  if (!/[a-z]/.test(pw)) return 'Add at least one lowercase letter.'
+  if (!/[0-9]/.test(pw)) return 'Add at least one number.'
+  if (!/[^A-Za-z0-9]/.test(pw)) return 'Add at least one special character.'
+  return null
+}
+
 async function enqueueOtpEmail(
   supabase: ReturnType<typeof createClient>,
   toEmail: string,
@@ -127,6 +136,8 @@ Deno.serve(async (req) => {
       if (action === 'init') {
         password = body.password ? String(body.password) : null
         if (!password) return json({ error: 'Password required' }, 400)
+        const weakPwError = passwordStrengthError(password)
+        if (weakPwError) return json({ error: `Please use a stronger password. ${weakPwError}` }, 400)
 
         // Capture phone for profile only — NOT verified via OTP
         phone = String(body.phone || '').trim()

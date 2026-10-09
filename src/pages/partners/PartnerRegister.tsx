@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -118,8 +118,12 @@ function GoogleIcon() {
 
 export default function PartnerRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormData>(initialForm);
+  const [form, setForm] = useState<FormData>(() => {
+    const returnEmail = (location.state as { email?: string } | null)?.email;
+    return returnEmail ? { ...initialForm, email: returnEmail } : initialForm;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
