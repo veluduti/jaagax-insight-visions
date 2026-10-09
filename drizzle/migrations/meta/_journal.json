@@ -141,6 +141,13 @@
       "when": 1791436168383,
       "tag": "0019_smart_visit_state_approval",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791518077235,
+      "tag": "0020_smart_visit_vip_lunch_schedule",
+      "breakpoints": true
     }
   ]
 }
