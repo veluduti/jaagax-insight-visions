@@ -7,6 +7,7 @@ import { NotificationBell } from "./notifications/NotificationBell";
 import {
   Sparkles,
   Home,
+  HousePlus,
   Building2,
   Compass,
   Users,
@@ -150,16 +151,19 @@ const Navigation = () => {
                     {/* Properties (Sell Your Property) - Direct Link (all roles) */}
                     <NavigationMenuItem>
                       <NavigationMenuLink asChild>
-                        <Link
-                          to="/sell-property"
+                        <Button
+                          asChild
+                          variant="outline"
                           className={cn(
-                            "inline-flex items-center whitespace-nowrap rounded-md px-4 py-2.5 text-[15px] font-medium transition-colors hover:bg-accent hover:text-foreground",
-                            isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
+                            "h-11 gap-2 rounded-lg border-primary/35 bg-primary/10 px-4 text-[15px] font-semibold text-primary shadow-sm hover:border-primary hover:bg-primary/15 hover:text-primary",
+                            isActive("/sell-property") && "border-primary bg-primary/15 ring-1 ring-primary/20",
                           )}
                         >
-                          {/*<DollarSign className="h-[18px] w-[18px] mr-2" />*/}
-                          Post Jaaga
-                        </Link>
+                          <Link to="/sell-property">
+                            <HousePlus className="!h-[18px] !w-[18px]" />
+                            Post Jaaga
+                          </Link>
+                        </Button>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
 
