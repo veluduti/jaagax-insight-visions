@@ -155,6 +155,13 @@
       "when": 1791538953090,
       "tag": "0021_smart_visit_veg_lunch_edit_hide",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791540346171,
+      "tag": "0022_smart_visit_complete_after_date",
+      "breakpoints": true
     }
   ]
 }

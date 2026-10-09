@@ -129,6 +129,23 @@ export async function savePlan(plan: Partial<SmartVisitPlan> & { id?: string }) 
   }
 }
 
+/** True once the visit date and its last scheduled time (or start time) have passed. */
+export function planTripEnded(p: Pick<SmartVisitPlan, "visit_date" | "start_time" | "property_schedule">) {
+  const toMin = (t?: string | null) => {
+    const m = (t || "").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!m) return null;
+    let h = +m[1]; const ap = m[3]?.toUpperCase();
+    if (ap === "PM" && h < 12) h += 12; if (ap === "AM" && h === 12) h = 0;
+    return h * 60 + +m[2];
+  };
+  const ends = (p.property_schedule || []).map((s) => toMin(s.end)).filter((x): x is number => x != null);
+  const end = ends.length ? Math.max(...ends) : toMin(p.start_time) ?? 0;
+  const d = new Date(`${String(p.visit_date).slice(0, 10)}T00:00:00`);
+  if (isNaN(d.getTime())) return false;
+  d.setMinutes(end);
+  return Date.now() >= d.getTime();
+}
+
 export async function setPlanStatus(id: string, status: PlanStatus) {
   const { error } = await db.from("smart_visit_plans").update({ status }).eq("id", id);
   if (error) throw error;
