@@ -33,7 +33,13 @@ const step1Schema = z.object({
     .trim()
     .regex(/^\+?[0-9]{10,14}$/, "Enter a valid phone number"),
   email: z.string().trim().email("Enter a valid email").max(255),
-  password: z.string().min(8, "At least 8 characters"),
+  password: z
+    .string()
+    .min(8, "At least 8 characters")
+    .regex(/[A-Z]/, "Add at least one uppercase letter")
+    .regex(/[a-z]/, "Add at least one lowercase letter")
+    .regex(/[0-9]/, "Add at least one number")
+    .regex(/[^A-Za-z0-9]/, "Add at least one special character"),
 });
 const step1SchemaLoggedIn = step1Schema.omit({ password: true });
 
@@ -387,13 +393,16 @@ export default function PartnerRegister() {
                     <Field label="Mobile" type="tel" value={form.phone} onChange={set("phone")} />
                     <Field label="Email" type="email" value={form.email} onChange={set("email")} />
                     {!usingAccount && (
-                      <Field
-                        label="Password"
-                        type="password"
-                        value={form.password}
-                        onChange={set("password")}
-                        hint="Minimum 8 characters"
-                      />
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label>Password</Label>
+                        <Input
+                          type="password"
+                          value={form.password}
+                          onChange={(e) => set("password")(e.target.value)}
+                          autoComplete="new-password"
+                        />
+                        <PasswordStrengthMeter password={form.password} />
+                      </div>
                     )}
                     <div className="sm:col-span-2 space-y-3 pt-2">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -529,6 +538,51 @@ export default function PartnerRegister() {
             </div>
           </CardContent>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+function PasswordStrengthMeter({ password }: { password: string }) {
+  const checks = [
+    { label: "8+ characters", ok: password.length >= 8 },
+    { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
+    { label: "Lowercase letter", ok: /[a-z]/.test(password) },
+    { label: "Number", ok: /[0-9]/.test(password) },
+    { label: "Special character (!@#…)", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passed = checks.filter((c) => c.ok).length;
+  const barColors = ["bg-red-500", "bg-red-500", "bg-amber-500", "bg-lime-500", "bg-emerald-500"];
+  const strengthLabels = ["Too weak", "Weak", "Fair", "Good", "Strong"];
+  const color = barColors[Math.max(0, passed - 1)];
+  const isStrong = passed === checks.length;
+
+  return (
+    <div className="space-y-2 rounded-md border border-border/60 bg-muted/30 p-3">
+      <div className="flex gap-1" aria-hidden>
+        {checks.map((_, i) => (
+          <div key={i} className={`h-1 flex-1 rounded-full ${i < passed ? color : "bg-border"}`} />
+        ))}
+      </div>
+      <p className={`text-xs font-medium ${isStrong ? "text-emerald-400" : "text-foreground"}`}>
+        {isStrong ? (
+          <span className="inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Strong password
+          </span>
+        ) : (
+          `Password strength: ${strengthLabels[Math.max(0, passed - 1)]} — use a strong password`
+        )}
+      </p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
+        {checks.map((c) => (
+          <span
+            key={c.label}
+            className={`inline-flex items-center gap-1 text-xs ${c.ok ? "text-emerald-400" : "text-muted-foreground"}`}
+          >
+            <CheckCircle2 className={`h-3 w-3 ${c.ok ? "" : "opacity-30"}`} />
+            {c.label}
+          </span>
+        ))}
       </div>
     </div>
   );
