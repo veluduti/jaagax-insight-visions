@@ -113,7 +113,7 @@ export default function SmartVisits() {
                         <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />Meeting point</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_meeting_point)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
                         <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><Car className="h-3.5 w-3.5" />Home pickup</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_home_pickup)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
                         {p.vip_available && <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />VIP private car</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_vip)}</span><span className="text-xs text-muted-foreground"> / car · up to {p.vip_max_people}</span></p></div>}
-                        {p.lunch_available && <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><UtensilsCrossed className="h-3.5 w-3.5" />Lunch (optional)</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_lunch)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>}
+                        {p.lunch_available && <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><UtensilsCrossed className="h-3.5 w-3.5" />Lunch (optional)</p><p className="mt-1"><span className="text-sm font-semibold">{[Number(p.price_lunch_veg) > 0 && `Veg ${inr(p.price_lunch_veg)}`, Number(p.price_lunch_nonveg) > 0 && `Non-veg ${inr(p.price_lunch_nonveg)}`].filter(Boolean).join(" · ") || inr(p.price_lunch)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>}
                       </div>
                       {bookedPlanIds.has(p.id) ? <Badge>Booked</Badge> : <Button disabled={left <= 0} onClick={() => startBooking(p)} className="gap-2 w-full sm:w-auto">Book visit<ArrowRight className="h-4 w-4" /></Button>}
                     </div>
@@ -139,7 +139,10 @@ export default function SmartVisits() {
 function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; left: number; onClose: () => void; onDone: () => void }) {
   const { user } = useAuth();
   const [pickup, setPickup] = useState<PickupType | "vip">("meeting_point");
-  const [lunch, setLunch] = useState(false);
+  const [lunch, setLunch] = useState<"" | "veg" | "nonveg">("");
+  const vegP = Number(plan.price_lunch_veg ?? plan.price_lunch) || 0;
+  const nonvegP = Number(plan.price_lunch_nonveg ?? plan.price_lunch) || 0;
+  const lunchPrice = lunch === "veg" ? vegP : lunch === "nonveg" ? nonvegP : 0;
   const vip = pickup === "vip";
   const maxPeople = vip ? Math.min(left, plan.vip_max_people || 4) : left;
   const [seats, setSeats] = useState(1);
@@ -150,7 +153,7 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
   const [saving, setSaving] = useState(false);
   const per = vip ? 0 : priceFor(plan, pickup as PickupType);
   const base = vip ? Number(plan.price_vip) : per * seats;
-  const lunchTotal = lunch ? Number(plan.price_lunch) * seats : 0;
+  const lunchTotal = lunchPrice * seats;
   const total = base + lunchTotal;
 
   const submit = async () => {
@@ -164,7 +167,7 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
     try {
       id = await createBooking({ plan_id: plan.id, customer_id: user.id, customer_name: name.trim(), contact_phone: phone.trim(),
         seats, pickup_type: vip ? "home" : pickup, pickup_address: pickup !== "meeting_point" ? address.trim() : undefined, drop_address: drop.trim() || undefined,
-        is_vip: vip, lunch_opted: lunch });
+        is_vip: vip, lunch_opted: !!lunch, lunch_type: lunch || null });
       await payForBooking(id, { name: name.trim(), email: user.email ?? undefined, contact: phone.trim() }, plan.title);
       toast.success("Paid and booked! The agent will send your pickup time and trip details.");
       onDone();
@@ -198,11 +201,18 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
             ))}
           </div>
           {plan.lunch_available && (
-            <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm cursor-pointer">
-              <input type="checkbox" className="mt-1" checked={lunch} onChange={(e) => setLunch(e.target.checked)} />
-              <span><span className="font-medium flex items-center gap-1"><UtensilsCrossed className="h-4 w-4 text-primary" />Add lunch break · {inr(plan.price_lunch)}/person</span>
-                {plan.lunch_details && <span className="text-xs text-muted-foreground">{plan.lunch_details}</span>}</span>
-            </label>
+            <div className="rounded-lg border border-border p-3 text-sm space-y-2">
+              <p className="font-medium flex items-center gap-1"><UtensilsCrossed className="h-4 w-4 text-primary" />Lunch break (optional)</p>
+              {plan.lunch_details && <p className="text-xs text-muted-foreground">{plan.lunch_details}</p>}
+              <div className="flex flex-wrap gap-2">
+                {([["", "No lunch", null], ...(vegP > 0 ? [["veg", "Veg", vegP]] : []), ...(nonvegP > 0 ? [["nonveg", "Non-veg", nonvegP]] : [])] as [string, string, number | null][]).map(([k, l, pr]) => (
+                  <button key={k || "none"} type="button" onClick={() => setLunch(k as any)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${lunch === k ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>
+                    {l}{pr != null ? ` · ${inr(pr)}/person` : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           {pickup !== "meeting_point" && <div><Label>Pickup address</Label><Textarea value={address} onChange={(e) => setAddress(e.target.value)} /></div>}
           <div><Label>Drop location (optional)</Label><Input value={drop} onChange={(e) => setDrop(e.target.value)} placeholder="Same as pickup if empty" /></div>
@@ -213,7 +223,7 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
           <div><Label>People ({vip ? `VIP car fits ${maxPeople}` : `${left} seats left`})</Label><Input type="number" min={1} max={maxPeople} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
           <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
             <div className="flex justify-between"><span>{vip ? "VIP private car" : `${inr(per)} × ${seats}`}</span><span>{inr(base)}</span></div>
-            {lunch && <div className="flex justify-between"><span>Lunch {inr(plan.price_lunch)} × {seats}</span><span>{inr(lunchTotal)}</span></div>}
+            {lunch && <div className="flex justify-between"><span>{lunch === "veg" ? "Veg" : "Non-veg"} lunch {inr(lunchPrice)} × {seats}</span><span>{inr(lunchTotal)}</span></div>}
             <div className="flex justify-between border-t border-border pt-1"><span>Total</span><b>{inr(total)}</b></div>
           </div>
           <p className="text-xs text-muted-foreground">Pay securely online with UPI, card or net banking.</p>
@@ -240,7 +250,7 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
         <div className="flex justify-between gap-2 flex-wrap">
           <div>
             <h3 className="font-semibold">{p?.title || "Smart Visit"}</h3>
-            <p className="text-xs text-muted-foreground">{visitDateLabel(p?.visit_date)} · {visitTimeLabel(p?.start_time)} · {b.seats} seat(s) · {b.is_vip ? "VIP car · " : ""}{b.lunch_opted ? "Lunch included · " : ""}{b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point || "To be confirmed"}`}</p>
+            <p className="text-xs text-muted-foreground">{visitDateLabel(p?.visit_date)} · {visitTimeLabel(p?.start_time)} · {b.seats} seat(s) · {b.is_vip ? "VIP car · " : ""}{b.lunch_opted ? `${b.lunch_type === "nonveg" ? "Non-veg" : "Veg"} lunch · ` : ""}{b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point || "To be confirmed"}`}</p>
             <p className="text-sm">Total: <b>{inr(b.total_amount)}</b> <span className="text-xs text-muted-foreground">({inr(b.price_per_person)}/person)</span></p>
           </div>
           <div className="flex gap-1 flex-wrap items-start">
