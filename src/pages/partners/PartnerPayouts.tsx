@@ -192,7 +192,7 @@ export default function PartnerPayouts() {
           .order("check_out", { ascending: false }),
         supabase.from("hotel_payout_settings").select("*").eq("hotel_id", ctx.hotelId).maybeSingle(),
         supabase
-          .from("hotel_payouts")
+          .from("hotel_payout_batches" as any)
           .select("*")
           .eq("hotel_id", ctx.hotelId)
           .order("period_end", { ascending: false }),

@@ -31,9 +31,12 @@ const LocationPermissionDialog = () => {
     await requestGpsLocation();
   };
 
+  // Hotel partner workspace doesn't use customer property-near-you location.
+  const onPartnerWorkspace = typeof window !== "undefined" && window.location.pathname.startsWith("/partners");
+
   return (
     <Dialog
-      open={pendingGpsPrompt}
+      open={pendingGpsPrompt && !onPartnerWorkspace}
       onOpenChange={(open) => {
         if (!open) dismissGpsPrompt(false);
       }}
