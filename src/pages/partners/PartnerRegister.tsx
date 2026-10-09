@@ -129,39 +129,39 @@ export default function PartnerRegister() {
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
-  // Start with a blank account step. We only adopt the signed-in account when
-  // the user explicitly chooses Google (fresh click or OAuth redirect back).
+  // Adopt an existing JAAGA account (any role) and prefill the first form.
+  const adoptUser = async (user: any): Promise<boolean> => {
+    const existing = await getExistingAccount(user.id);
+    if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+      setDuplicateEmail(user.email ?? "");
+      return false;
+    }
+    const { data: profiles } = await (supabase as any)
+      .from("profiles")
+      .select("full_name, email, phone, city")
+      .eq("user_id", user.id)
+      .limit(5);
+    const pick = (k: string) => (profiles || []).map((p: any) => p?.[k]).find((v: any) => v) || "";
+    const meta = (user.user_metadata as any) || {};
+    setAccount({ id: user.id, email: user.email ?? "" });
+    setForm((f) => ({
+      ...f,
+      owner_name: f.owner_name || pick("full_name") || meta.full_name || meta.name || "",
+      email: user.email || pick("email") || f.email,
+      phone: f.phone && f.phone !== "+91" ? f.phone : pick("phone") || meta.phone || user.phone || "+91",
+      city: f.city || pick("city") || meta.city || "",
+    }));
+    return true;
+  };
+
+  // If the visitor is already signed in with any JAAGA role, prefill from that account.
   useEffect(() => {
     (async () => {
-      if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        return;
-      }
-      const existing = await getExistingAccount(user.id);
-      if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
-        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        setDuplicateEmail(user.email ?? "");
-        return;
-      }
-      const { data: profile } = await (supabase as any)
-        .from("profiles")
-        .select("full_name, email, phone, city")
-        .eq("user_id", user.id)
-        .maybeSingle();
       sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-      setAccount({ id: user.id, email: user.email ?? "" });
-      setForm((f) => ({
-        ...f,
-        owner_name: f.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
-        email: user.email || profile?.email || f.email,
-        phone: f.phone && f.phone !== "+91" ? f.phone : profile?.phone || (user.user_metadata as any)?.phone || "+91",
-        city: f.city || profile?.city || "",
-      }));
-      setStep(1);
+      if (user) await adoptUser(user);
     })();
   }, []);
 
