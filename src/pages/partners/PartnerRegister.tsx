@@ -129,39 +129,39 @@ export default function PartnerRegister() {
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
 
-  // Start with a blank account step. We only adopt the signed-in account when
-  // the user explicitly chooses Google (fresh click or OAuth redirect back).
+  // Adopt an existing JAAGA account (any role) and prefill the first form.
+  const adoptUser = async (user: any): Promise<boolean> => {
+    const existing = await getExistingAccount(user.id);
+    if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
+      setDuplicateEmail(user.email ?? "");
+      return false;
+    }
+    const { data: profiles } = await (supabase as any)
+      .from("profiles")
+      .select("full_name, email, phone, city")
+      .eq("user_id", user.id)
+      .limit(5);
+    const pick = (k: string) => (profiles || []).map((p: any) => p?.[k]).find((v: any) => v) || "";
+    const meta = (user.user_metadata as any) || {};
+    setAccount({ id: user.id, email: user.email ?? "" });
+    setForm((f) => ({
+      ...f,
+      owner_name: f.owner_name || pick("full_name") || meta.full_name || meta.name || "",
+      email: user.email || pick("email") || f.email,
+      phone: f.phone && f.phone !== "+91" ? f.phone : pick("phone") || meta.phone || user.phone || "+91",
+      city: f.city || pick("city") || meta.city || "",
+    }));
+    return true;
+  };
+
+  // If the visitor is already signed in with any JAAGA role, prefill from that account.
   useEffect(() => {
     (async () => {
-      if (sessionStorage.getItem(GOOGLE_FLOW_KEY) !== "1") return;
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        return;
-      }
-      const existing = await getExistingAccount(user.id);
-      if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
-        sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        setDuplicateEmail(user.email ?? "");
-        return;
-      }
-      const { data: profile } = await (supabase as any)
-        .from("profiles")
-        .select("full_name, email, phone, city")
-        .eq("user_id", user.id)
-        .maybeSingle();
       sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-      setAccount({ id: user.id, email: user.email ?? "" });
-      setForm((f) => ({
-        ...f,
-        owner_name: f.owner_name || profile?.full_name || (user.user_metadata as any)?.full_name || "",
-        email: user.email || profile?.email || f.email,
-        phone: f.phone && f.phone !== "+91" ? f.phone : profile?.phone || (user.user_metadata as any)?.phone || "+91",
-        city: f.city || profile?.city || "",
-      }));
-      setStep(1);
+      if (user) await adoptUser(user);
     })();
   }, []);
 
@@ -184,19 +184,8 @@ export default function PartnerRegister() {
       } = await supabase.auth.getUser();
       if (user) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        const existing = await getExistingAccount(user.id);
-        if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
-          setDuplicateEmail(user.email ?? "");
-          toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
-          return;
-        }
-        setAccount({ id: user.id, email: user.email ?? "" });
-        setForm((f) => ({
-          ...f,
-          owner_name: f.owner_name || (user.user_metadata as any)?.full_name || "",
-          email: user.email || f.email,
-        }));
-        setStep(1);
+        const ok = await adoptUser(user);
+        if (!ok) toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
       }
     } catch (e: any) {
       sessionStorage.removeItem(GOOGLE_FLOW_KEY);
@@ -211,8 +200,23 @@ export default function PartnerRegister() {
 
   const set = (k: keyof FormData) => (v: any) => setForm((f) => ({ ...f, [k]: v }));
 
-  const next = () => {
+  const next = async () => {
     try {
+      // Email already registered under another role? Sign in with its password and reuse it.
+      if (step === 0 && !usingAccount && form.email.includes("@") && form.password) {
+        const { data: signIn } = await supabase.auth.signInWithPassword({
+          email: form.email.trim(),
+          password: form.password,
+        });
+        if (signIn?.user) {
+          const ok = await adoptUser(signIn.user);
+          if (ok) {
+            toast.success("Existing JAAGA account found — your details are filled in");
+            setStep(1);
+          }
+          return;
+        }
+      }
       if (step === 0 && !usingAccount) {
         const emailLocal = form.email.split("@")[0]?.toLowerCase() || "";
         if (emailLocal && form.password.toLowerCase().includes(emailLocal)) {
@@ -294,7 +298,10 @@ export default function PartnerRegister() {
       navigate("/partners/verify-otp", { state: { email: form.email } });
     } catch (e: any) {
       const msg = e?.message || "Could not start signup";
-      if (/stronger password|weak password/i.test(msg)) {
+      if (/already (registered|exists)|already been registered/i.test(msg)) {
+        toast.error("This email already has a JAAGA account. Enter that account's password on the first step to continue with it.");
+        setStep(0);
+      } else if (/stronger password|weak password/i.test(msg)) {
         toast.error("Your password is too weak. Please set a stronger password.");
         setStep(0);
       } else {
