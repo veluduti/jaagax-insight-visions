@@ -148,6 +148,13 @@
       "when": 1791518077235,
       "tag": "0020_smart_visit_vip_lunch_schedule",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791538953090,
+      "tag": "0021_smart_visit_veg_lunch_edit_hide",
+      "breakpoints": true
     }
   ]
 }
