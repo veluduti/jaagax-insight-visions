@@ -322,12 +322,6 @@ export default function PartnerRegister() {
           </button>
 
           <div className="flex flex-col items-end gap-2">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/partners/login" className="text-emerald-400 hover:underline">
-                Log in
-              </Link>
-            </p>
             <Button
               type="button"
               variant="outline"
@@ -339,6 +333,12 @@ export default function PartnerRegister() {
               {googleBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
               Register with Google
             </Button>
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link to="/partners/login" className="text-emerald-400 hover:underline">
+                Log in
+              </Link>
+            </p>
           </div>
         </div>
 
