@@ -184,19 +184,8 @@ export default function PartnerRegister() {
       } = await supabase.auth.getUser();
       if (user) {
         sessionStorage.removeItem(GOOGLE_FLOW_KEY);
-        const existing = await getExistingAccount(user.id);
-        if (existing.roles.includes("hotel_manager") || existing.profileTypes.includes("hotel_manager")) {
-          setDuplicateEmail(user.email ?? "");
-          toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
-          return;
-        }
-        setAccount({ id: user.id, email: user.email ?? "" });
-        setForm((f) => ({
-          ...f,
-          owner_name: f.owner_name || (user.user_metadata as any)?.full_name || "",
-          email: user.email || f.email,
-        }));
-        setStep(1);
+        const ok = await adoptUser(user);
+        if (!ok) toast.error(GOOGLE_ALREADY_REGISTERED_MESSAGE);
       }
     } catch (e: any) {
       sessionStorage.removeItem(GOOGLE_FLOW_KEY);
@@ -211,8 +200,23 @@ export default function PartnerRegister() {
 
   const set = (k: keyof FormData) => (v: any) => setForm((f) => ({ ...f, [k]: v }));
 
-  const next = () => {
+  const next = async () => {
     try {
+      // Email already registered under another role? Sign in with its password and reuse it.
+      if (step === 0 && !usingAccount && form.email.includes("@") && form.password) {
+        const { data: signIn } = await supabase.auth.signInWithPassword({
+          email: form.email.trim(),
+          password: form.password,
+        });
+        if (signIn?.user) {
+          const ok = await adoptUser(signIn.user);
+          if (ok) {
+            toast.success("Existing JAAGA account found — your details are filled in");
+            setStep(1);
+          }
+          return;
+        }
+      }
       if (step === 0 && !usingAccount) {
         const emailLocal = form.email.split("@")[0]?.toLowerCase() || "";
         if (emailLocal && form.password.toLowerCase().includes(emailLocal)) {
