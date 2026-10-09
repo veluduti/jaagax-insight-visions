@@ -12264,6 +12264,9 @@ export type Database = {
           interest_note: string | null
           interest_property_ids: string[]
           interested_to_buy: boolean
+          is_vip: boolean
+          lunch_amount: number
+          lunch_opted: boolean
           paid_at: string | null
           payment_status: string
           pickup_address: string | null
@@ -12295,6 +12298,9 @@ export type Database = {
           interest_note?: string | null
           interest_property_ids?: string[]
           interested_to_buy?: boolean
+          is_vip?: boolean
+          lunch_amount?: number
+          lunch_opted?: boolean
           paid_at?: string | null
           payment_status?: string
           pickup_address?: string | null
@@ -12326,6 +12332,9 @@ export type Database = {
           interest_note?: string | null
           interest_property_ids?: string[]
           interested_to_buy?: boolean
+          is_vip?: boolean
+          lunch_amount?: number
+          lunch_opted?: boolean
           paid_at?: string | null
           payment_status?: string
           pickup_address?: string | null
@@ -12366,11 +12375,16 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          lunch_available: boolean
+          lunch_details: string | null
           max_seats: number
           meeting_point: string | null
           price_home_pickup: number
+          price_lunch: number
           price_meeting_point: number
+          price_vip: number
           property_ids: string[]
+          property_schedule: Json
           rejected_by_level: string | null
           rejection_reason: string | null
           reviewed_at: string | null
@@ -12385,6 +12399,8 @@ export type Database = {
           title: string
           trip_details: string | null
           updated_at: string
+          vip_available: boolean
+          vip_max_people: number
           visit_date: string
         }
         Insert: {
@@ -12397,11 +12413,16 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          lunch_available?: boolean
+          lunch_details?: string | null
           max_seats?: number
           meeting_point?: string | null
           price_home_pickup?: number
+          price_lunch?: number
           price_meeting_point?: number
+          price_vip?: number
           property_ids?: string[]
+          property_schedule?: Json
           rejected_by_level?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -12416,6 +12437,8 @@ export type Database = {
           title: string
           trip_details?: string | null
           updated_at?: string
+          vip_available?: boolean
+          vip_max_people?: number
           visit_date: string
         }
         Update: {
@@ -12428,11 +12451,16 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          lunch_available?: boolean
+          lunch_details?: string | null
           max_seats?: number
           meeting_point?: string | null
           price_home_pickup?: number
+          price_lunch?: number
           price_meeting_point?: number
+          price_vip?: number
           property_ids?: string[]
+          property_schedule?: Json
           rejected_by_level?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -12447,6 +12475,8 @@ export type Database = {
           title?: string
           trip_details?: string | null
           updated_at?: string
+          vip_available?: boolean
+          vip_max_people?: number
           visit_date?: string
         }
         Relationships: []
