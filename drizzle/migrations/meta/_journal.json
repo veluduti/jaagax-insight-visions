@@ -162,6 +162,13 @@
       "when": 1791540346171,
       "tag": "0022_smart_visit_complete_after_date",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791548325664,
+      "tag": "0023_smart_visit_customer_cancel_notify",
+      "breakpoints": true
     }
   ]
 }
