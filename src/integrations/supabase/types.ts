@@ -12254,6 +12254,7 @@ export type Database = {
       smart_visit_bookings: {
         Row: {
           agent_message: string | null
+          cancel_reason: string | null
           contact_phone: string | null
           created_at: string
           customer_hidden: boolean
@@ -12289,6 +12290,7 @@ export type Database = {
         }
         Insert: {
           agent_message?: string | null
+          cancel_reason?: string | null
           contact_phone?: string | null
           created_at?: string
           customer_hidden?: boolean
@@ -12324,6 +12326,7 @@ export type Database = {
         }
         Update: {
           agent_message?: string | null
+          cancel_reason?: string | null
           contact_phone?: string | null
           created_at?: string
           customer_hidden?: boolean

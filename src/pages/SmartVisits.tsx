@@ -287,7 +287,12 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
           )}
           <Button size="sm" variant="outline" onClick={() => setShowProps(!showProps)}>{showProps ? "Hide" : "View"} properties</Button>
           {["booked", "confirmed"].includes(b.status) && (
-            <Button size="sm" variant="ghost" onClick={() => confirm(b.payment_status === "paid" ? "Cancel this booking? For a refund, use Get help or contact the agent." : "Cancel this booking?") && act({ status: "cancelled" }, "Booking cancelled")}>Cancel booking</Button>
+            <Button size="sm" variant="ghost" onClick={() => {
+              const reason = window.prompt(`${b.payment_status === "paid" ? "Your payment will be reviewed for a refund. " : ""}Why are you cancelling? (this is shared with the agent)`);
+              if (reason === null) return;
+              if (!reason.trim()) return toast.error("Please tell us the reason for cancelling");
+              act({ status: "cancelled", cancel_reason: reason.trim() } as any, "Booking cancelled. The agent has been informed.");
+            }}>Cancel booking</Button>
           )}
         </div>
         {showProps && p && <PlanPropertyList ids={p.property_ids} schedule={p.property_schedule} />}
