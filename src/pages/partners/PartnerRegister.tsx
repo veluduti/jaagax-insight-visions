@@ -450,6 +450,12 @@ export default function PartnerRegister() {
                         {googleBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
                         {account ? "Continue with a different Google account" : "Register with Google"}
                       </Button>
+                      <p className="text-center text-sm text-muted-foreground">
+                        Already have an account?{" "}
+                        <Link to="/partners/login" className="text-emerald-400 hover:underline">
+                          Log in
+                        </Link>
+                      </p>
                     </div>
                   </div>
                 )}
