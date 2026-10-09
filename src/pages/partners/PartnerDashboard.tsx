@@ -176,11 +176,10 @@ export default function PartnerDashboard() {
       if (app.approved_hotel_id) {
         const { data: h } = await (supabase as any)
           .from("partner_hotels")
-          .select("city,status")
+          .select("city,onboarding_status")
           .eq("id", app.approved_hotel_id)
           .maybeSingle();
         if (h?.city) setHotelCity(h.city);
-        if (h?.status) setHotelStatus(h.status);
 
         const { data: rms } = await (supabase as any)
           .from("hotel_rooms")
