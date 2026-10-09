@@ -16,6 +16,7 @@ import PlanPropertyList from "@/components/smartvisit/PlanPropertyList";
 import {
   getMyAgent, listMyPlans, savePlan, setPlanStatus, listAgentSelectableProperties, listPlanBookings,
   updateBooking, statusLabel, inr, errMsg, type SmartVisitPlan, type SmartVisitBooking, type PlanProperty, type ScheduleSlot, fmt12,
+  planTripEnded,
 } from "@/services/smartVisitService";
 
 const emptyForm = {
