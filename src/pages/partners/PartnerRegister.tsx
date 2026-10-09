@@ -321,12 +321,25 @@ export default function PartnerRegister() {
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
 
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link to="/partners/login" className="text-emerald-400 hover:underline">
-              Log in
-            </Link>
-          </p>
+          <div className="flex flex-col items-end gap-2">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link to="/partners/login" className="text-emerald-400 hover:underline">
+                Log in
+              </Link>
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2"
+              disabled={googleBusy}
+              onClick={registerWithGoogle}
+            >
+              {googleBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+              Register with Google
+            </Button>
+          </div>
         </div>
 
         <div className="mb-6">
