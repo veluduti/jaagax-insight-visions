@@ -93,6 +93,15 @@ export default function VerifyOtp() {
       navigate("/auth", { replace: true });
     } catch (err: any) {
       const msg = err?.message || "";
+      if (/stronger password|weak password/i.test(msg)) {
+        toast.error("Your password is too weak. Please set a stronger password.");
+        if (location.pathname.startsWith("/partners")) {
+          navigate("/partners/register", { state: { email }, replace: true });
+        } else {
+          navigate("/auth", { replace: true });
+        }
+        return;
+      }
       if (/expired/i.test(msg)) toast.error("OTP has expired. Please request a new OTP.");
       else if (/invalid|incorrect/i.test(msg)) toast.error("Incorrect OTP entered.");
       else toast.error(msg || "Verification failed");
