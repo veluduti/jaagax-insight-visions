@@ -295,7 +295,7 @@ function PlanBookings({ plan }: { plan: SmartVisitPlan }) {
         <Badge variant="outline">Collect: {inr(revenue)}</Badge>
         {rated.length > 0 && <Badge variant="outline"><Star className="h-3 w-3 mr-1" />{(rated.reduce((s, r) => s + (r.rating || 0), 0) / rated.length).toFixed(1)} ({rated.length})</Badge>}
       </div>
-      <PlanPropertyList ids={plan.property_ids} />
+      <PlanPropertyList ids={plan.property_ids} schedule={plan.property_schedule} />
       {rows.length === 0 && <p className="text-sm text-muted-foreground">No bookings yet.</p>}
       {rows.map((b) => (
         <div key={b.id} className="rounded-lg border border-border p-3 space-y-2">

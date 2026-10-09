@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Route, Calendar, Clock, MapPin, Users, Star, Car, Home as HomeIcon, ArrowLeft, Building2, ChevronDown, ArrowRight, Trash2 } from "lucide-react";
+import { Route, Calendar, Clock, MapPin, Users, Star, Car, Home as HomeIcon, Crown, UtensilsCrossed, ArrowLeft, Building2, ChevronDown, ArrowRight, Trash2 } from "lucide-react";
 import { visitDateLabel, visitTimeLabel } from "@/lib/smartVisitDate";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -106,12 +106,14 @@ export default function SmartVisits() {
                       <Button variant="outline" onClick={() => setExpanded(expanded === p.id ? null : p.id)} className="gap-2">
                         <Building2 className="h-4 w-4" />{expanded === p.id ? "Hide properties" : `View ${p.property_ids?.length ?? 0} properties`}<ChevronDown className={`h-4 w-4 transition-transform ${expanded === p.id ? "rotate-180" : ""}`} />
                       </Button>
-                      {expanded === p.id && <PlanPropertyList ids={p.property_ids ?? []} />}
+                      {expanded === p.id && <PlanPropertyList ids={p.property_ids ?? []} schedule={p.property_schedule} />}
                     </div>
                     <div className="border-t border-border bg-muted/30 px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-4">
                       <div className="flex flex-wrap gap-x-8 gap-y-3">
                         <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />Meeting point</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_meeting_point)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
                         <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><Car className="h-3.5 w-3.5" />Home pickup</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_home_pickup)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>
+                        {p.vip_available && <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />VIP private car</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_vip)}</span><span className="text-xs text-muted-foreground"> / car · up to {p.vip_max_people}</span></p></div>}
+                        {p.lunch_available && <div><p className="text-xs text-muted-foreground flex items-center gap-1.5"><UtensilsCrossed className="h-3.5 w-3.5" />Lunch (optional)</p><p className="mt-1"><span className="text-lg font-semibold">{inr(p.price_lunch)}</span><span className="text-xs text-muted-foreground"> / person</span></p></div>}
                       </div>
                       {bookedPlanIds.has(p.id) ? <Badge>Booked</Badge> : <Button disabled={left <= 0} onClick={() => startBooking(p)} className="gap-2 w-full sm:w-auto">Book visit<ArrowRight className="h-4 w-4" /></Button>}
                     </div>
@@ -136,26 +138,33 @@ export default function SmartVisits() {
 
 function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; left: number; onClose: () => void; onDone: () => void }) {
   const { user } = useAuth();
-  const [pickup, setPickup] = useState<PickupType>("meeting_point");
+  const [pickup, setPickup] = useState<PickupType | "vip">("meeting_point");
+  const [lunch, setLunch] = useState(false);
+  const vip = pickup === "vip";
+  const maxPeople = vip ? Math.min(left, plan.vip_max_people || 4) : left;
   const [seats, setSeats] = useState(1);
   const [name, setName] = useState((user?.user_metadata as any)?.full_name || "");
   const [phone, setPhone] = useState((user as any)?.phone || "");
   const [address, setAddress] = useState("");
   const [drop, setDrop] = useState("");
   const [saving, setSaving] = useState(false);
-  const per = priceFor(plan, pickup);
+  const per = vip ? 0 : priceFor(plan, pickup as PickupType);
+  const base = vip ? Number(plan.price_vip) : per * seats;
+  const lunchTotal = lunch ? Number(plan.price_lunch) * seats : 0;
+  const total = base + lunchTotal;
 
   const submit = async () => {
     if (!user) return;
     if (!name.trim()) return toast.error("Please enter your name");
     if (!/^\+?\d[\d\s-]{8,}$/.test(phone.trim())) return toast.error("Please enter a valid phone number");
-    if (pickup === "home" && !address.trim()) return toast.error("Please enter your pickup address");
-    if (seats < 1 || seats > left) return toast.error(`Choose 1 to ${left} seats`);
+    if (pickup !== "meeting_point" && !address.trim()) return toast.error("Please enter your pickup address");
+    if (seats < 1 || seats > maxPeople) return toast.error(`Choose 1 to ${maxPeople} people`);
     setSaving(true);
     let id: string | null = null;
     try {
       id = await createBooking({ plan_id: plan.id, customer_id: user.id, customer_name: name.trim(), contact_phone: phone.trim(),
-        seats, pickup_type: pickup, pickup_address: pickup === "home" ? address.trim() : undefined, drop_address: drop.trim() || undefined });
+        seats, pickup_type: vip ? "home" : pickup, pickup_address: pickup !== "meeting_point" ? address.trim() : undefined, drop_address: drop.trim() || undefined,
+        is_vip: vip, lunch_opted: lunch });
       await payForBooking(id, { name: name.trim(), email: user.email ?? undefined, contact: phone.trim() }, plan.title);
       toast.success("Paid and booked! The agent will send your pickup time and trip details.");
       onDone();
@@ -173,28 +182,43 @@ function BookDialog({ plan, left, onClose, onDone }: { plan: SmartVisitPlan; lef
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Book: {plan.title}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            {([["meeting_point", Car, "Meeting point", plan.meeting_point], ["home", HomeIcon, "Pick me from home", "Agent comes to you"]] as const).map(([v, Icon, label, sub]) => (
+          <div className={`grid gap-2 ${plan.vip_available ? "grid-cols-3" : "grid-cols-2"}`}>
+            {([
+              ["meeting_point", Car, "Meeting point", plan.meeting_point, `${inr(priceFor(plan, "meeting_point"))}/person`],
+              ["home", HomeIcon, "Pick me from home", "Shared car, agent comes to you", `${inr(priceFor(plan, "home"))}/person`],
+              ...(plan.vip_available ? [["vip", Crown, "VIP private car", `Only your group · up to ${plan.vip_max_people}`, `${inr(plan.price_vip)}/car`]] : []),
+            ] as const).map(([v, Icon, label, sub, price]: any) => (
               <button key={v} type="button" onClick={() => setPickup(v)}
                 className={`rounded-lg border p-3 text-left transition-colors ${pickup === v ? "border-primary bg-primary/10" : "border-border"}`}>
                 <Icon className="h-4 w-4 text-primary mb-1" />
                 <p className="text-sm font-medium">{label}</p>
                 <p className="text-xs text-muted-foreground line-clamp-2">{sub}</p>
-                <p className="text-sm font-semibold mt-1">{inr(priceFor(plan, v))}/person</p>
+                <p className="text-sm font-semibold mt-1">{price}</p>
               </button>
             ))}
           </div>
-          {pickup === "home" && <div><Label>Pickup address</Label><Textarea value={address} onChange={(e) => setAddress(e.target.value)} /></div>}
+          {plan.lunch_available && (
+            <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm cursor-pointer">
+              <input type="checkbox" className="mt-1" checked={lunch} onChange={(e) => setLunch(e.target.checked)} />
+              <span><span className="font-medium flex items-center gap-1"><UtensilsCrossed className="h-4 w-4 text-primary" />Add lunch break · {inr(plan.price_lunch)}/person</span>
+                {plan.lunch_details && <span className="text-xs text-muted-foreground">{plan.lunch_details}</span>}</span>
+            </label>
+          )}
+          {pickup !== "meeting_point" && <div><Label>Pickup address</Label><Textarea value={address} onChange={(e) => setAddress(e.target.value)} /></div>}
           <div><Label>Drop location (optional)</Label><Input value={drop} onChange={(e) => setDrop(e.target.value)} placeholder="Same as pickup if empty" /></div>
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Your name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
           </div>
-          <div><Label>People ({left} seats left)</Label><Input type="number" min={1} max={left} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
-          <div className="rounded-lg bg-muted p-3 text-sm flex justify-between"><span>{inr(per)} × {seats}</span><b>{inr(per * seats)}</b></div>
+          <div><Label>People ({vip ? `VIP car fits ${maxPeople}` : `${left} seats left`})</Label><Input type="number" min={1} max={maxPeople} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
+          <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
+            <div className="flex justify-between"><span>{vip ? "VIP private car" : `${inr(per)} × ${seats}`}</span><span>{inr(base)}</span></div>
+            {lunch && <div className="flex justify-between"><span>Lunch {inr(plan.price_lunch)} × {seats}</span><span>{inr(lunchTotal)}</span></div>}
+            <div className="flex justify-between border-t border-border pt-1"><span>Total</span><b>{inr(total)}</b></div>
+          </div>
           <p className="text-xs text-muted-foreground">Pay securely online with UPI, card or net banking.</p>
         </div>
-        <DialogFooter><Button onClick={submit} disabled={saving} className="w-full">{saving ? "Processing…" : `Pay ${inr(per * seats)} & book`}</Button></DialogFooter>
+        <DialogFooter><Button onClick={submit} disabled={saving} className="w-full">{saving ? "Processing…" : `Pay ${inr(total)} & book`}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -216,7 +240,7 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
         <div className="flex justify-between gap-2 flex-wrap">
           <div>
             <h3 className="font-semibold">{p?.title || "Smart Visit"}</h3>
-            <p className="text-xs text-muted-foreground">{visitDateLabel(p?.visit_date)} · {visitTimeLabel(p?.start_time)} · {b.seats} seat(s) · {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point || "To be confirmed"}`}</p>
+            <p className="text-xs text-muted-foreground">{visitDateLabel(p?.visit_date)} · {visitTimeLabel(p?.start_time)} · {b.seats} seat(s) · {b.is_vip ? "VIP car · " : ""}{b.lunch_opted ? "Lunch included · " : ""}{b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${p?.meeting_point || "To be confirmed"}`}</p>
             <p className="text-sm">Total: <b>{inr(b.total_amount)}</b> <span className="text-xs text-muted-foreground">({inr(b.price_per_person)}/person)</span></p>
           </div>
           <div className="flex gap-1 flex-wrap items-start">
@@ -256,7 +280,7 @@ function MyBookingCard({ b, onChange }: { b: any; onChange: () => void }) {
             <Button size="sm" variant="ghost" onClick={() => confirm(b.payment_status === "paid" ? "Cancel this booking? For a refund, use Get help or contact the agent." : "Cancel this booking?") && act({ status: "cancelled" }, "Booking cancelled")}>Cancel booking</Button>
           )}
         </div>
-        {showProps && p && <PlanPropertyList ids={p.property_ids} />}
+        {showProps && p && <PlanPropertyList ids={p.property_ids} schedule={p.property_schedule} />}
         {b.status === "completed" && (
           <div className="border-t border-border pt-3 space-y-3">
             {b.rating ? <p className="text-sm flex items-center gap-1"><Star className="h-4 w-4 text-primary" />You rated {b.rating}/5</p> : (
