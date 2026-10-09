@@ -193,7 +193,7 @@ export default function AgentSmartVisits() {
                   <>
                     <Button size="sm" variant="outline" onClick={() => editApproved(p)}>Edit</Button>
                     <Button size="sm" onClick={() => setOpenPlan(openPlan === p.id ? null : p.id)}><Users className="h-4 w-4 mr-1" />Bookings</Button>
-                    <Button size="sm" variant="outline" onClick={() => changeStatus(p.id, "completed")}><CheckCircle2 className="h-4 w-4 mr-1" />Mark trip completed</Button>
+                    <Button size="sm" variant="outline" disabled={!planTripEnded(p)} title={planTripEnded(p) ? undefined : "Available after the trip date and time"} onClick={() => changeStatus(p.id, "completed")}><CheckCircle2 className="h-4 w-4 mr-1" />{planTripEnded(p) ? "Mark trip completed" : "Complete after trip ends"}</Button>
                     <Button size="sm" variant="ghost" onClick={() => confirm("Cancel this plan? All customers will be notified.") && changeStatus(p.id, "cancelled")}>Cancel plan</Button>
                   </>
                 )}
