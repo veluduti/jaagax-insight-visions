@@ -23,13 +23,25 @@ export interface SmartVisitPlan {
   rejection_reason: string | null;
   admin_notes: string | null;
   trip_details: string | null;
+  vip_available?: boolean;
+  price_vip?: number;
+  vip_max_people?: number;
+  lunch_available?: boolean;
+  price_lunch?: number;
+  lunch_details?: string | null;
+  property_schedule?: ScheduleSlot[];
   state_name?: string | null;
   state_reviewed_at?: string | null;
   rejected_by_level?: string | null;
   created_at: string;
 }
 
+export interface ScheduleSlot { property_id: string; start: string; end: string }
+
 export interface SmartVisitBooking {
+  is_vip?: boolean;
+  lunch_opted?: boolean;
+  lunch_amount?: number;
   id: string;
   plan_id: string;
   customer_id: string;
@@ -193,6 +205,7 @@ export async function listMyBookings(userId: string) {
 export async function createBooking(b: {
   plan_id: string; customer_id: string; customer_name: string; contact_phone: string;
   seats: number; pickup_type: PickupType; pickup_address?: string; drop_address?: string;
+  is_vip?: boolean; lunch_opted?: boolean;
 }) {
   const { data, error } = await db.from("smart_visit_bookings").insert(b).select("id").single();
   if (error) throw error;
@@ -253,6 +266,14 @@ export async function reviewPlan(id: string, decision: {
 
 export const priceFor = (plan: SmartVisitPlan, pickup: PickupType) =>
   Number(pickup === "home" ? plan.price_home_pickup : plan.price_meeting_point);
+
+/** "14:00" -> "2:00 PM" */
+export const fmt12 = (t?: string) => {
+  const m = (t || "").match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return t || "";
+  const h = Number(m[1]);
+  return `${h % 12 || 12}:${m[2]} ${h >= 12 ? "PM" : "AM"}`;
+};
 
 export const inr = (n: number | null | undefined) =>
   n == null ? "N/A" : `₹${Number(n).toLocaleString("en-IN")}`;

@@ -15,12 +15,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PlanPropertyList from "@/components/smartvisit/PlanPropertyList";
 import {
   getMyAgent, listMyPlans, savePlan, setPlanStatus, listAgentSelectableProperties, listPlanBookings,
-  updateBooking, statusLabel, inr, errMsg, type SmartVisitPlan, type SmartVisitBooking, type PlanProperty,
+  updateBooking, statusLabel, inr, errMsg, type SmartVisitPlan, type SmartVisitBooking, type PlanProperty, type ScheduleSlot, fmt12,
 } from "@/services/smartVisitService";
 
 const emptyForm = {
   title: "", description: "", city: "", visit_date: "", start_time: "10:00 AM", meeting_point: "",
   price_meeting_point: 600, price_home_pickup: 800, max_seats: 6, property_ids: [] as string[],
+  vip_available: false, price_vip: 2500, vip_max_people: 4,
+  lunch_available: false, price_lunch: 250, lunch_details: "",
+  property_schedule: [] as ScheduleSlot[],
 };
 
 const statusVariant = (s: string) =>
@@ -63,13 +66,25 @@ export default function AgentSmartVisits() {
       title: p.title, description: p.description || "", city: p.city || "", visit_date: p.visit_date,
       start_time: p.start_time, meeting_point: p.meeting_point || "", price_meeting_point: Number(p.price_meeting_point),
       price_home_pickup: Number(p.price_home_pickup), max_seats: p.max_seats, property_ids: p.property_ids || [],
+      vip_available: !!p.vip_available, price_vip: Number(p.price_vip) || 2500, vip_max_people: p.vip_max_people || 4,
+      lunch_available: !!p.lunch_available, price_lunch: Number(p.price_lunch) || 250, lunch_details: p.lunch_details || "",
+      property_schedule: Array.isArray(p.property_schedule) ? p.property_schedule : [],
     });
     setFormOpen(true);
   };
 
-  const toggleProp = (id: string) => setForm((f) => ({
-    ...f, property_ids: f.property_ids.includes(id) ? f.property_ids.filter((x) => x !== id) : [...f.property_ids, id],
+  const toggleProp = (id: string) => setForm((f) => {
+    const has = f.property_ids.includes(id);
+    return {
+      ...f, property_ids: has ? f.property_ids.filter((x) => x !== id) : [...f.property_ids, id],
+      property_schedule: has ? f.property_schedule.filter((s) => s.property_id !== id) : [...f.property_schedule, { property_id: id, start: "", end: "" }],
+    };
+  });
+  const slotFor = (id: string) => form.property_schedule.find((s) => s.property_id === id) || { property_id: id, start: "", end: "" };
+  const setSlot = (id: string, patch: Partial<ScheduleSlot>) => setForm((f) => ({
+    ...f, property_schedule: [...f.property_schedule.filter((s) => s.property_id !== id), { ...slotFor(id), ...patch }],
   }));
+  const propName = (id: string) => options.find((o) => o.id === id)?.title || "Property";
 
   const submit = async () => {
     if (!user || !agent) return;
@@ -80,11 +95,21 @@ export default function AgentSmartVisits() {
     if (!form.property_ids.length) return toast.error("Add at least one property to visit");
     if (form.price_meeting_point <= 0 || form.price_home_pickup <= 0) return toast.error("Prices must be more than 0");
     if (form.max_seats < 1) return toast.error("Seats must be at least 1");
+    if (form.vip_available && (form.price_vip <= 0 || form.vip_max_people < 1)) return toast.error("Add a VIP car price and how many people it fits");
+    if (form.lunch_available && form.price_lunch <= 0) return toast.error("Add the lunch price per person");
+    for (const id of form.property_ids) {
+      const s = slotFor(id);
+      if (!s.start || !s.end) return toast.error(`Add a visit time for ${propName(id)}`);
+      if (s.end <= s.start) return toast.error(`End time must be after start time for ${propName(id)}`);
+    }
+    const sorted = form.property_ids.map(slotFor).sort((a, b) => a.start.localeCompare(b.start));
+    for (let i = 1; i < sorted.length; i++) if (sorted[i].start < sorted[i - 1].end) return toast.error("Property visit times overlap");
     setSaving(true);
     try {
       await savePlan({
         ...(editId ? { id: editId, status: "pending_review" } : { agent_id: agent.id, agent_user_id: user.id }),
-        ...form, title: form.title.trim(),
+        ...form, title: form.title.trim(), lunch_details: form.lunch_details.trim() || null,
+        property_schedule: form.property_ids.map(slotFor),
       } as any);
       toast.success(editId ? "Plan updated and sent for approval" : "Plan sent to the global admin for approval");
       setFormOpen(false);
@@ -137,7 +162,9 @@ export default function AgentSmartVisits() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm">Meeting point: <b>{inr(p.price_meeting_point)}</b>/person · Home pickup: <b>{inr(p.price_home_pickup)}</b>/person</p>
+              <p className="text-sm">Meeting point: <b>{inr(p.price_meeting_point)}</b>/person · Home pickup: <b>{inr(p.price_home_pickup)}</b>/person
+                {p.vip_available ? <> · VIP car: <b>{inr(p.price_vip)}</b> (up to {p.vip_max_people})</> : null}
+                {p.lunch_available ? <> · Lunch: <b>{inr(p.price_lunch)}</b>/person</> : null}</p>
               {p.status === "rejected" && p.rejection_reason && (
                 <p className="text-sm text-destructive">Rejected by {p.rejected_by_level === "state" ? `${p.state_name || "state"} admin` : "JAAGA X admin"}: {p.rejection_reason}</p>
               )}
@@ -196,11 +223,39 @@ export default function AgentSmartVisits() {
                 ))}
               </div>
               {form.property_ids.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {form.property_ids.map((id, i) => (
-                    <Badge key={id} variant="secondary" className="gap-1">Stop {i + 1}
-                      <Trash2 className="h-3 w-3 cursor-pointer" onClick={() => toggleProp(id)} /></Badge>
-                  ))}
+                <div className="mt-3 space-y-2">
+                  <p className="text-sm font-medium">Visit time for each property</p>
+                  {form.property_ids.map((id, i) => {
+                    const s = slotFor(id);
+                    return (
+                      <div key={id} className="rounded-md border border-border p-2 flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">Stop {i + 1}</Badge>
+                        <span className="text-sm flex-1 min-w-[120px] truncate">{propName(id)}</span>
+                        <Input type="time" className="w-28" value={s.start} onChange={(e) => setSlot(id, { start: e.target.value })} aria-label="From" />
+                        <span className="text-xs text-muted-foreground">to</span>
+                        <Input type="time" className="w-28" value={s.end} onChange={(e) => setSlot(id, { end: e.target.value })} aria-label="To" />
+                        <Button type="button" size="icon" variant="ghost" onClick={() => toggleProp(id)} aria-label="Remove"><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.vip_available} onChange={(e) => setForm({ ...form, vip_available: e.target.checked })} />Offer VIP plan (private car for one customer)</label>
+              {form.vip_available && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>VIP car price – whole car (₹)</Label><Input type="number" value={form.price_vip} onChange={(e) => setForm({ ...form, price_vip: Number(e.target.value) })} /></div>
+                  <div><Label>People per car</Label><Input type="number" min={1} value={form.vip_max_people} onChange={(e) => setForm({ ...form, vip_max_people: Number(e.target.value) })} /></div>
+                </div>
+              )}
+            </div>
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.lunch_available} onChange={(e) => setForm({ ...form, lunch_available: e.target.checked })} />Lunch break available</label>
+              {form.lunch_available && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Lunch price per person (₹)</Label><Input type="number" value={form.price_lunch} onChange={(e) => setForm({ ...form, price_lunch: Number(e.target.value) })} /></div>
+                  <div><Label>Lunch details</Label><Input value={form.lunch_details} onChange={(e) => setForm({ ...form, lunch_details: e.target.value })} placeholder="1–2 PM, veg/non-veg meals" /></div>
                 </div>
               )}
             </div>
@@ -249,9 +304,9 @@ function PlanBookings({ plan }: { plan: SmartVisitPlan }) {
               <p className="font-medium text-sm">{b.customer_name || "Customer"} · {b.seats} seat(s)</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" />{b.contact_phone || "N/A"}</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />
-                {b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${plan.meeting_point}`}
+                {b.is_vip ? "VIP car · " : ""}{b.pickup_type === "home" ? `Home pickup: ${b.pickup_address}` : `Meeting point: ${plan.meeting_point}`}
                 {b.drop_address ? ` · Drop: ${b.drop_address}` : ""}</p>
-              <p className="text-xs">{inr(b.price_per_person)} × {b.seats} = <b>{inr(b.total_amount)}</b> · <span className={b.payment_status === "paid" ? "text-primary font-medium" : "text-muted-foreground"}>{b.payment_status === "paid" ? "Paid online" : "Not paid"}</span></p>
+              <p className="text-xs">{b.is_vip ? `VIP car ${inr(b.price_per_person)}` : `${inr(b.price_per_person)} × ${b.seats}`}{b.lunch_opted ? ` + lunch ${inr(b.lunch_amount)}` : ""} = <b>{inr(b.total_amount)}</b> · <span className={b.payment_status === "paid" ? "text-primary font-medium" : "text-muted-foreground"}>{b.payment_status === "paid" ? "Paid online" : "Not paid"}</span></p>
             </div>
             <Badge variant={statusVariant(b.status) as any}>{statusLabel[b.status] || b.status}</Badge>
           </div>
