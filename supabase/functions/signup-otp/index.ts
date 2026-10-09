@@ -277,7 +277,8 @@ Deno.serve(async (req) => {
 
         if (createErr) {
           const message = createErr.message || 'Failed to create account'
-          return json({ error: isWeakPasswordError(message) ? 'This password is known from data leaks. Please sign up again with a different, unique password.' : message }, isWeakPasswordError(message) ? 400 : 500)
+          console.error('signup-otp createUser failed:', message)
+          return json({ error: isWeakPasswordError(message) ? `Please sign up again with a different password. ${message}` : message }, 400)
         }
       }
 
