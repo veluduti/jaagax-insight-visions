@@ -213,6 +213,13 @@ export default function PartnerRegister() {
 
   const next = () => {
     try {
+      if (step === 0 && !usingAccount) {
+        const emailLocal = form.email.split("@")[0]?.toLowerCase() || "";
+        if (emailLocal && form.password.toLowerCase().includes(emailLocal)) {
+          toast.error("Password must not contain your email or name");
+          return;
+        }
+      }
       if (step === 0) (usingAccount ? step1SchemaLoggedIn : step1Schema).parse(form);
       if (step === 1) step2Schema.parse(form);
       if (step === 2) step3Schema.parse(form);
@@ -286,8 +293,14 @@ export default function PartnerRegister() {
       toast.success("Verification code sent to your email");
       navigate("/partners/verify-otp", { state: { email: form.email } });
     } catch (e: any) {
-      toast.error(e.message || "Could not start signup");
-      setStep(2);
+      const msg = e?.message || "Could not start signup";
+      if (/stronger password|weak password/i.test(msg)) {
+        toast.error("Your password is too weak. Please set a stronger password.");
+        setStep(0);
+      } else {
+        toast.error(msg);
+        setStep(2);
+      }
     } finally {
       setSubmitting(false);
     }
