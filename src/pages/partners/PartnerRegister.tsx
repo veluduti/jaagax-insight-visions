@@ -298,7 +298,10 @@ export default function PartnerRegister() {
       navigate("/partners/verify-otp", { state: { email: form.email } });
     } catch (e: any) {
       const msg = e?.message || "Could not start signup";
-      if (/stronger password|weak password/i.test(msg)) {
+      if (/already (registered|exists)|already been registered/i.test(msg)) {
+        toast.error("This email already has a JAAGA account. Enter that account's password on the first step to continue with it.");
+        setStep(0);
+      } else if (/stronger password|weak password/i.test(msg)) {
         toast.error("Your password is too weak. Please set a stronger password.");
         setStep(0);
       } else {
