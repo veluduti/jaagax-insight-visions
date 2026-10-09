@@ -70,7 +70,23 @@ function buildUserMetadata(meta: any, phone: string | null) {
 }
 
 function isWeakPasswordError(message: string) {
-  return /weak|easy to guess|password/i.test(message)
+  return /weak|easy to guess|pwned|leak|known/i.test(message)
+}
+
+async function isLeakedPassword(pw: string): Promise<boolean> {
+  try {
+    const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(pw))
+    const hex = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').toUpperCase()
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${hex.slice(0, 5)}`, { headers: { 'Add-Padding': 'true' } })
+    if (!res.ok) return false
+    const suffix = hex.slice(5)
+    return (await res.text()).split('\n').some((l) => {
+      const [s, c] = l.trim().split(':')
+      return s === suffix && Number(c) > 0
+    })
+  } catch {
+    return false
+  }
 }
 
 function passwordStrengthError(pw: string): string | null {
@@ -138,6 +154,9 @@ Deno.serve(async (req) => {
         if (!password) return json({ error: 'Password required' }, 400)
         const weakPwError = passwordStrengthError(password)
         if (weakPwError) return json({ error: `Please use a stronger password. ${weakPwError}` }, 400)
+        if (await isLeakedPassword(password)) {
+          return json({ error: 'This password has appeared in a known data leak, so it is not safe. Please choose a different, unique password (avoid name + @123 patterns).' }, 400)
+        }
 
         // Capture phone for profile only — NOT verified via OTP
         phone = String(body.phone || '').trim()
@@ -258,7 +277,8 @@ Deno.serve(async (req) => {
 
         if (createErr) {
           const message = createErr.message || 'Failed to create account'
-          return json({ error: isWeakPasswordError(message) ? 'Please sign up again with a stronger password.' : message }, isWeakPasswordError(message) ? 400 : 500)
+          console.error('signup-otp createUser failed:', message)
+          return json({ error: isWeakPasswordError(message) ? `Please sign up again with a different password. ${message}` : message }, 400)
         }
       }
 
