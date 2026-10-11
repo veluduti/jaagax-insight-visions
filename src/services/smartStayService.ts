@@ -95,14 +95,10 @@ export async function listHotelReservations(hotelIds: string[]) {
 
 // ----- Customer -----
 export async function listPublished() {
-  const { data, error } = await db.from("smart_stays").select("*, revision:smart_stay_revisions!smart_stays_published_revision_fk(snapshot, selling_price)")
-    .not("published_revision_id", "is", null).neq("status", "archived").order("created_at", { ascending: false }).limit(60);
-  if (error) {
-    // Fallback without embedded join.
-    const { data: d2 } = await db.from("smart_stays").select("*").not("published_revision_id", "is", null).neq("status", "archived").limit(60);
-    return attachRevisions(d2 ?? []);
-  }
-  return data ?? [];
+  const { data, error } = await db.from("smart_stays").select("*").not("published_revision_id", "is", null).neq("status", "archived")
+    .order("created_at", { ascending: false }).limit(60);
+  if (error) throw error;
+  return attachRevisions(data ?? []);
 }
 async function attachRevisions(rows: any[]) {
   const ids = rows.map((r) => r.published_revision_id).filter(Boolean);
