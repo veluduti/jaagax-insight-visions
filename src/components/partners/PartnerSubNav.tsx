@@ -27,6 +27,7 @@ const more = [
   { to: "/partners/growth", label: "Grow Bookings", icon: TrendingUp },
   { to: "/partners/demo", label: "Demo Property", icon: PlayCircle },
   { to: "/partners/long-stays", label: "Long Stays & Waitlist", icon: CalendarRange },
+  { to: "/partners/smart-stays", label: "Smart Stays", icon: Globe },
   { to: "/partners/staff", label: "Staff", icon: UserCog },
   { to: "/partners/demand", label: "Demand & Matches", icon: Target },
   { to: "/partners/rate-plans", label: "Rate Plans", icon: Tag },

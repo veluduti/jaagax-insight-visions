@@ -166,6 +166,11 @@ const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
 const SmartVisits = lazy(() => import("./pages/SmartVisits"));
 const AgentSmartVisits = lazy(() => import("./pages/AgentSmartVisits"));
+const SmartStays = lazy(() => import("./pages/SmartStays"));
+const SmartStayDetail = lazy(() => import("./pages/SmartStayDetail"));
+const MySmartStays = lazy(() => import("./pages/MySmartStays"));
+const AgentSmartStays = lazy(() => import("./pages/AgentSmartStays"));
+const PartnerSmartStays = lazy(() => import("./pages/partners/PartnerSmartStays"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const HotelManagerDashboard = lazy(() => import("./pages/HotelManagerDashboard"));
 const CompareProperties = lazy(() => import("./pages/CompareProperties"));
@@ -581,6 +586,11 @@ const App = () => (
                   <Route path="/stay/:token" element={<GuestPortal />} />
                   <Route path="/my-trips" element={<MyTrips />} />
                   <Route path="/smart-visits" element={<SmartVisits />} />
+                  <Route path="/smart-stays" element={<SmartStays />} />
+                  <Route path="/smart-stays/:id" element={<SmartStayDetail />} />
+                  <Route path="/my-smart-stays" element={<MySmartStays />} />
+                  <Route path="/dashboard/agent/smart-stays" element={<ProtectedRoute allowedRole="agent"><AgentSmartStays /></ProtectedRoute>} />
+                  <Route path="/partners/smart-stays" element={<PartnerSmartStays />} />
                   <Route path="/dashboard/agent/smart-visits" element={<ProtectedRoute allowedRole="agent"><AgentSmartVisits /></ProtectedRoute>} />
 
                   <Route path="/promotions" element={<Promotions />} />

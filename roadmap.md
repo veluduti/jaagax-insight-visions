@@ -22,3 +22,6 @@
 - [ ] Invite-based collaborative editing and itinerary voting
 - [ ] Rich memory albums with photo uploads and privacy controls
 - [ ] Full creator analytics, moderation reports and partner verification workflows
+
+- [ ] Smart Stays Phase 3: retries, compensation, Razorpay refunds, customer cancellation
+- [ ] Smart Stays Phase 4: commission rules/ledger, admin console, settlements

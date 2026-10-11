@@ -3908,6 +3908,7 @@ export type Database = {
           id: string
           reason: string
           room_id: string
+          smart_stay_reservation_id: string | null
           start_date: string
           unit_id: string | null
           units: number
@@ -3921,6 +3922,7 @@ export type Database = {
           id?: string
           reason?: string
           room_id: string
+          smart_stay_reservation_id?: string | null
           start_date: string
           unit_id?: string | null
           units?: number
@@ -3934,6 +3936,7 @@ export type Database = {
           id?: string
           reason?: string
           room_id?: string
+          smart_stay_reservation_id?: string | null
           start_date?: string
           unit_id?: string | null
           units?: number
@@ -3958,6 +3961,13 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_availability_blocks_smart_stay_reservation_id_fkey"
+            columns: ["smart_stay_reservation_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_reservations"
             referencedColumns: ["id"]
           },
           {
@@ -12251,6 +12261,470 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_stay_approvals: {
+        Row: {
+          auto_approved: boolean
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          hotel_id: string
+          id: string
+          reason: string | null
+          revision_id: string
+          smart_stay_id: string
+          status: string
+          stays: Json
+        }
+        Insert: {
+          auto_approved?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          hotel_id: string
+          id?: string
+          reason?: string | null
+          revision_id: string
+          smart_stay_id: string
+          status?: string
+          stays: Json
+        }
+        Update: {
+          auto_approved?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          hotel_id?: string
+          id?: string
+          reason?: string | null
+          revision_id?: string
+          smart_stay_id?: string
+          status?: string
+          stays?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_approvals_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_approvals_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_approvals_smart_stay_id_fkey"
+            columns: ["smart_stay_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stay_bookings: {
+        Row: {
+          booking_ref: string
+          created_at: string
+          creator_id: string
+          currency: string
+          customer_id: string
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
+          hotel_cost: number
+          id: string
+          paid_at: string | null
+          payment_status: string
+          quote_id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          revision_id: string
+          smart_stay_id: string
+          snapshot: Json
+          status: string
+          taxes: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          booking_ref?: string
+          created_at?: string
+          creator_id: string
+          currency?: string
+          customer_id: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          hotel_cost: number
+          id?: string
+          paid_at?: string | null
+          payment_status?: string
+          quote_id: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          revision_id: string
+          smart_stay_id: string
+          snapshot: Json
+          status?: string
+          taxes: number
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          booking_ref?: string
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          customer_id?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          hotel_cost?: number
+          id?: string
+          paid_at?: string | null
+          payment_status?: string
+          quote_id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          revision_id?: string
+          smart_stay_id?: string
+          snapshot?: Json
+          status?: string
+          taxes?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_bookings_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "smart_stay_quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_bookings_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_bookings_smart_stay_id_fkey"
+            columns: ["smart_stay_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stay_events: {
+        Row: {
+          actor_id: string | null
+          booking_id: string | null
+          created_at: string
+          details: Json
+          event: string
+          id: string
+          smart_stay_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          details?: Json
+          event: string
+          id?: string
+          smart_stay_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          details?: Json
+          event?: string
+          id?: string
+          smart_stay_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_events_smart_stay_id_fkey"
+            columns: ["smart_stay_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stay_quotes: {
+        Row: {
+          all_available: boolean
+          breakdown: Json
+          created_at: string
+          customer_id: string
+          expires_at: string
+          hotel_cost: number
+          id: string
+          revision_id: string
+          smart_stay_id: string
+          taxes: number
+          total: number
+        }
+        Insert: {
+          all_available: boolean
+          breakdown: Json
+          created_at?: string
+          customer_id: string
+          expires_at: string
+          hotel_cost: number
+          id?: string
+          revision_id: string
+          smart_stay_id: string
+          taxes: number
+          total: number
+        }
+        Update: {
+          all_available?: boolean
+          breakdown?: Json
+          created_at?: string
+          customer_id?: string
+          expires_at?: string
+          hotel_cost?: number
+          id?: string
+          revision_id?: string
+          smart_stay_id?: string
+          taxes?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_quotes_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_quotes_smart_stay_id_fkey"
+            columns: ["smart_stay_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stay_reservations: {
+        Row: {
+          adults: number
+          amount: number
+          attempts: number
+          booking_id: string
+          check_in: string
+          check_out: string
+          children: number
+          confirmation_ref: string | null
+          created_at: string
+          destination: string | null
+          hotel_id: string
+          hotel_name: string | null
+          id: string
+          last_error: string | null
+          num_rooms: number
+          room_id: string
+          room_name: string | null
+          status: string
+          tax: number
+          updated_at: string
+        }
+        Insert: {
+          adults: number
+          amount: number
+          attempts?: number
+          booking_id: string
+          check_in: string
+          check_out: string
+          children?: number
+          confirmation_ref?: string | null
+          created_at?: string
+          destination?: string | null
+          hotel_id: string
+          hotel_name?: string | null
+          id?: string
+          last_error?: string | null
+          num_rooms: number
+          room_id: string
+          room_name?: string | null
+          status?: string
+          tax: number
+          updated_at?: string
+        }
+        Update: {
+          adults?: number
+          amount?: number
+          attempts?: number
+          booking_id?: string
+          check_in?: string
+          check_out?: string
+          children?: number
+          confirmation_ref?: string | null
+          created_at?: string
+          destination?: string | null
+          hotel_id?: string
+          hotel_name?: string | null
+          id?: string
+          last_error?: string | null
+          num_rooms?: number
+          room_id?: string
+          room_name?: string | null
+          status?: string
+          tax?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_reservations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stay_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_reservations_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_stay_reservations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stay_revisions: {
+        Row: {
+          created_at: string
+          hotel_cost: number
+          id: string
+          revision: number
+          selling_price: number
+          smart_stay_id: string
+          snapshot: Json
+          taxes: number
+        }
+        Insert: {
+          created_at?: string
+          hotel_cost: number
+          id?: string
+          revision: number
+          selling_price: number
+          smart_stay_id: string
+          snapshot: Json
+          taxes: number
+        }
+        Update: {
+          created_at?: string
+          hotel_cost?: number
+          id?: string
+          revision?: number
+          selling_price?: number
+          smart_stay_id?: string
+          snapshot?: Json
+          taxes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_stay_revisions_smart_stay_id_fkey"
+            columns: ["smart_stay_id"]
+            isOneToOne: false
+            referencedRelation: "smart_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_stays: {
+        Row: {
+          cancellation_policy: string | null
+          created_at: string
+          creator_id: string
+          creator_role: string
+          currency: string
+          current_revision: number
+          description: string | null
+          id: string
+          images: string[]
+          inclusions: string[]
+          is_hidden: boolean
+          itinerary: Json
+          markup: number
+          public_ref: string
+          published_revision_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          cancellation_policy?: string | null
+          created_at?: string
+          creator_id?: string
+          creator_role?: string
+          currency?: string
+          current_revision?: number
+          description?: string | null
+          id?: string
+          images?: string[]
+          inclusions?: string[]
+          is_hidden?: boolean
+          itinerary?: Json
+          markup?: number
+          public_ref?: string
+          published_revision_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          cancellation_policy?: string | null
+          created_at?: string
+          creator_id?: string
+          creator_role?: string
+          currency?: string
+          current_revision?: number
+          description?: string | null
+          id?: string
+          images?: string[]
+          inclusions?: string[]
+          is_hidden?: boolean
+          itinerary?: Json
+          markup?: number
+          public_ref?: string
+          published_revision_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
       smart_visit_bookings: {
         Row: {
           agent_message: string | null
@@ -14774,6 +15248,42 @@ export type Database = {
         Returns: string
       }
       slugify: { Args: { _input: string }; Returns: string }
+      smart_stay_book: {
+        Args: {
+          _email: string
+          _name: string
+          _phone: string
+          _quote_id: string
+        }
+        Returns: string
+      }
+      smart_stay_confirm: { Args: { _booking_id: string }; Returns: Json }
+      smart_stay_decide: {
+        Args: { _approval_id: string; _decision: string; _reason: string }
+        Returns: undefined
+      }
+      smart_stay_is_approver: {
+        Args: { _stay: string; _uid: string }
+        Returns: boolean
+      }
+      smart_stay_notify: {
+        Args: {
+          _link: string
+          _meta: Json
+          _msg: string
+          _title: string
+          _uid: string
+        }
+        Returns: undefined
+      }
+      smart_stay_price: {
+        Args: { _itinerary: Json; _valid_from: string; _valid_to: string }
+        Returns: Json
+      }
+      smart_stay_publish: { Args: { _id: string }; Returns: undefined }
+      smart_stay_quote: { Args: { _id: string }; Returns: string }
+      smart_stay_submit: { Args: { _id: string }; Returns: Json }
+      smart_stay_unpublish: { Args: { _id: string }; Returns: undefined }
       smart_visit_agent_rating: {
         Args: { _agent: string }
         Returns: {

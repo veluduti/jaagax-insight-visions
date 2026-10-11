@@ -169,6 +169,13 @@
       "when": 1791548325664,
       "tag": "0023_smart_visit_customer_cancel_notify",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791688656500,
+      "tag": "0024_smart_stays",
+      "breakpoints": true
     }
   ]
 }

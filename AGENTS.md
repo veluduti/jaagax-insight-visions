@@ -14,3 +14,4 @@
 - Travel group trips live in `travel_journeys` + `travel_journey_members` (seat limit enforced in RLS); community membership reuses `travel_saves` with item_type `community`, so no extra tables are needed for joining.
 - Smart Visit cards share guarded date/time formatters that accept legacy AM/PM text and database times, preventing invalid date displays.
 - Notification clicks resolve same-origin destinations through one shared helper; read actions update both legacy read flags for cross-dashboard consistency.
+- Smart Stays packages live in `smart_stays` (draft itinerary JSON) with frozen `smart_stay_revisions`; all status, pricing, approval and booking changes go through `smart_stay_*` security-definer RPCs and `smart-stay-pay`, so clients can never set prices or statuses. Reservations write to `hotel_availability_blocks.smart_stay_reservation_id` to share the hotel calendar.

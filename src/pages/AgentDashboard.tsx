@@ -1398,6 +1398,9 @@ export default function AgentDashboard() {
               <Button size="sm" onClick={() => navigate("/dashboard/agent/smart-visits")}>
                 <Plus className="h-4 w-4 mr-1" /> Smart Visit Plan
               </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/agent/smart-stays")}>
+                <Plus className="h-4 w-4 mr-1" /> Smart Stay Package
+              </Button>
               <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/agent/visits")}>
                 View All <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
