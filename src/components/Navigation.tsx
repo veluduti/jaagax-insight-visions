@@ -90,6 +90,7 @@ const Navigation = () => {
     },
     { key: "agents", label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
     { key: "always", label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
+    { key: "always", label: "Smart Stays", path: "/smart-stays", icon: MapPin, description: "Multi-city trips, one payment" },
     {
       key: "marketIndex",
       label: "Market Index",
