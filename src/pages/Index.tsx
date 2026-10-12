@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { CalendarDays, UsersRound, ChevronRight } from "lucide-react";
+import { CalendarDays, UsersRound, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
