@@ -39,7 +39,7 @@ export default function HyperGuestCertification() {
         <p className="text-sm text-muted-foreground mt-1">
           Mark each item only after checking it yourself. Nothing is marked Passed automatically. Use{" "}
           <Link to="/hotels" className="text-primary underline">Hotels</Link> for searching and{" "}
-          <Link to="/my-bookings" className="text-primary underline">My Bookings</Link> for history.
+          <Link to="/dashboard" className="text-primary underline">your dashboard</Link> for booking history.
         </p>
         <div className="flex gap-2 mt-3 text-xs">
           <Badge variant="secondary">Pending {counts.pending}</Badge>
