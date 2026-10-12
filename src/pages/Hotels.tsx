@@ -1335,7 +1335,30 @@ const Hotels = () => {
         <div className="container mx-auto max-w-7xl px-4 py-4">
           <MyHotelApplicationsBanner />
 
-          <StayFinder value={stayFilters} onChange={onStayFiltersChange} onAiIntent={applyAiIntent} />
+          <StayFinder
+            value={stayFilters}
+            onChange={onStayFiltersChange}
+            onAiIntent={applyAiIntent}
+            detectCity={(text) => {
+              const t = ` ${text.toLowerCase().replace(/[^a-z0-9 ]/g, " ")} `;
+              let best: { name: string; areas: { name: string; count: number }[] } | null = null;
+              locationIndex.forEach((c) => {
+                if (best) return;
+                if ([c.name, c.key].some((n) => n && t.includes(` ${n.toLowerCase()} `))) best = { name: c.name, areas: c.localities.slice(0, 12) };
+              });
+              if (!best && selectedCity !== "all") {
+                const c = Array.from(locationIndex.values()).find((x) => isSameCity(x.name, selectedCity));
+                if (c) best = { name: c.name, areas: c.localities.slice(0, 12) };
+              }
+              return best;
+            }}
+            selectedArea={selectedLocality}
+            onPickArea={(city, area) => {
+              const label = area ? `${area}, ${city}` : city;
+              setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
+              navigate(`/hotels?city=${encodeURIComponent(city)}${area ? `&locality=${encodeURIComponent(area)}` : ""}`);
+            }}
+          />
 
           {recommended.length > 0 && (
             <div className="mb-5">
