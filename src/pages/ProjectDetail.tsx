@@ -700,8 +700,6 @@ const ProjectDetail = () => {
               </Tabs>
             </motion.div>
 
-            <LinkedEvents entityId={project.id} />
-
             {/* Nearby POI */}
             <NearbyPOI
               city={project.city}
@@ -717,6 +715,9 @@ const ProjectDetail = () => {
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
               <EMICalculator propertyPrice={project.avg_price || 0} />
             </AuthGate>
+
+            {/* Upcoming Events — compact sidebar card */}
+            <LinkedEvents entityId={project.id} compact />
           </div>
         </div>
       </div>

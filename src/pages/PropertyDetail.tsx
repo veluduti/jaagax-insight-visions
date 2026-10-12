@@ -599,7 +599,6 @@ const PropertyDetail = () => {
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}
-            <LinkedEvents entityId={property.id} />
             <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} locality={property.locality} />
 
             {/* Nearby Hotels (based on property location) */}
