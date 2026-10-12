@@ -57,7 +57,8 @@ import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels
 import { matchStayRequest, type Match } from "@/services/hospitality/matchingService";
 import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
 import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
-import { buildLocationIndex, findCities, findLocalities, sameLocality } from "@/lib/locationAutocomplete";
+import { buildLocationIndex, findCities, findLocalities, sameLocality, withPopularAreas } from "@/lib/locationAutocomplete";
+import { POPULAR_AREAS } from "@/config/popularAreas";
 import { isSameCity } from "@/lib/cityNormalizer";
 
 interface RoomFeature { kind: string; text: string }
@@ -202,7 +203,7 @@ const Hotels = () => {
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
   // Generic City → Locality index built from live hotel data (works for any city)
-  const locationIndex = useMemo(() => buildLocationIndex(hotels), [hotels]);
+  const locationIndex = useMemo(() => withPopularAreas(buildLocationIndex(hotels), POPULAR_AREAS), [hotels]);
 
   // Age options for children
   const ageOptions = [
@@ -380,61 +381,88 @@ const Hotels = () => {
       return;
     }
 
-    const query = searchQuery.toLowerCase().trim();
-    setIsSearching(true);
+    // If the field shows a chosen "Area, City" label, search by the area part
+    const query = searchQuery.toLowerCase().trim().split(",")[0].trim();
+    if (!query) { setSuggestions([]); return; }
 
-    const newSuggestions: SearchSuggestion[] = [];
+    const cityItems: SearchSuggestion[] = [];
+    const areaItems: SearchSuggestion[] = [];
+    const hotelItems: SearchSuggestion[] = [];
+    const areaSeen = new Set<string>();
+    const pushArea = (cityName: string, loc: { name: string; count: number }) => {
+      const k = `${cityName}|${loc.name.toLowerCase()}`;
+      if (areaSeen.has(k)) return;
+      areaSeen.add(k);
+      areaItems.push({ type: "locality", name: loc.name, city: cityName, subtitle: cityName, count: loc.count });
+    };
 
-    // 1. Cities (alias + fuzzy), each followed by its most popular areas from real data
-    const cityMatches = findCities(locationIndex, query, 2);
+    // 1. Areas matching the text directly (e.g. "madha" → Madhapur, Hyderabad)
+    findLocalities(locationIndex, query, 6).forEach(({ city, locality }) => pushArea(city.name, locality));
+
+    // 2. Cities (alias + fuzzy) and their popular areas
+    const cityMatches = findCities(locationIndex, query, 3);
     cityMatches.forEach(({ city }, i) => {
-      newSuggestions.push({
+      cityItems.push({
         type: "city",
         name: city.name,
         count: city.count,
-        subtitle: city.count ? `${city.count} hotels available` : "City",
+        subtitle: city.count ? `All hotels in ${city.name}` : `Search all of ${city.name}`,
       });
-      if (i === 0 || city.count > 0) {
-        city.localities.slice(0, i === 0 ? 8 : 3).forEach((loc) => {
-          newSuggestions.push({
-            type: "locality",
-            name: loc.name,
-            city: city.name,
-            subtitle: `Area in ${city.name}`,
-            count: loc.count,
-          });
-        });
-      }
+      if (i === 0) city.localities.slice(0, 10).forEach((loc) => pushArea(city.name, loc));
     });
 
-    // 2. Areas matching the text directly (e.g. "madha" → Madhapur, Hyderabad)
-    findLocalities(locationIndex, query, 5).forEach(({ city, locality }) => {
-      if (newSuggestions.some((s) => s.type === "locality" && s.city === city.name && s.name === locality.name)) return;
-      newSuggestions.push({
-        type: "locality",
-        name: locality.name,
-        city: city.name,
-        subtitle: `Area in ${city.name}`,
-        count: locality.count,
-      });
-    });
+    // 3. Nothing close? Offer looser "did you mean" area matches
+    if (!cityItems.length && !areaItems.length) {
+      findLocalities(locationIndex, query, 5, 15).forEach(({ city, locality }) => pushArea(city.name, locality));
+    }
 
-    // 3. Hotel name suggestions
-    const uniqueHotelMatches = hotels
+    // 4. Hotel names
+    hotels
       .filter((hotel) => hotel.name.toLowerCase().includes(query))
-      .filter((hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name));
-    uniqueHotelMatches.slice(0, 5).forEach((hotel) => {
-      newSuggestions.push({
-        type: "hotel",
-        name: hotel.name,
-        subtitle: `${hotel.locality}, ${hotel.city}`,
-        count: 1,
-      });
-    });
+      .filter((hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name))
+      .slice(0, 4)
+      .forEach((hotel) => hotelItems.push({ type: "hotel", name: hotel.name, subtitle: `${hotel.locality}, ${hotel.city}`, count: 1 }));
 
-    setSuggestions(newSuggestions.slice(0, 14));
+    const grouped: SearchSuggestion[] = [];
+    if (cityItems.length) grouped.push({ type: "popular", name: "Cities" }, ...cityItems);
+    if (areaItems.length) grouped.push({ type: "popular", name: "Popular Areas" }, ...areaItems.slice(0, 10));
+    if (hotelItems.length) grouped.push({ type: "popular", name: "Hotels" }, ...hotelItems);
+    setSuggestions(grouped);
     setIsSearching(false);
   }, [searchQuery, hotels, recentSearches, locationIndex]);
+
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const selectableIdx = useMemo(
+    () => suggestions.map((s, i) => (s.type === "popular" ? -1 : i)).filter((i) => i >= 0),
+    [suggestions],
+  );
+  useEffect(() => setActiveSuggestion(-1), [suggestions]);
+  useEffect(() => {
+    if (activeSuggestion < 0) return;
+    document.getElementById(`hotel-sugg-${activeSuggestion}`)?.scrollIntoView({ block: "nearest" });
+  }, [activeSuggestion]);
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setShowSuggestions(true);
+      if (!selectableIdx.length) return;
+      const pos = selectableIdx.indexOf(activeSuggestion);
+      const next = e.key === "ArrowDown"
+        ? selectableIdx[(pos + 1) % selectableIdx.length]
+        : selectableIdx[pos <= 0 ? selectableIdx.length - 1 : pos - 1];
+      setActiveSuggestion(next);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (showSuggestions && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+        handleSuggestionClick(suggestions[activeSuggestion]);
+      } else {
+        setShowSuggestions(false);
+        handleAdvancedSearch();
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
 
   // Get amenity icon with colors
   const getAmenityIcon = (amenity: string) => {
