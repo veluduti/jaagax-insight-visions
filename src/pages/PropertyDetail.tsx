@@ -28,6 +28,7 @@ import EMICalculator from "@/components/property/EMICalculator";
 import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
 import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
+import LinkedEvents from "@/components/events/LinkedEvents";
 import NearbyPropertyHotels from "@/components/property/NearbyPropertyHotels";
 import PropertyActions from "@/components/property/PropertyActions";
 import Navigation from "@/components/Navigation";
@@ -598,6 +599,7 @@ const PropertyDetail = () => {
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}
+            <LinkedEvents entityId={property.id} />
             <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} locality={property.locality} />
 
             {/* Nearby Hotels (based on property location) */}
