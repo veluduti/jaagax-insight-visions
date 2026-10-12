@@ -197,6 +197,13 @@
       "when": 1791796990984,
       "tag": "0027_event_tickets_benefits_default",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791799488654,
+      "tag": "0028_events_vip_paid_organizer_roles",
+      "breakpoints": true
     }
   ]
 }
