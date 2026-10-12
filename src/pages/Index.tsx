@@ -81,7 +81,7 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <nav aria-label="Property discovery shortcuts" className="container mx-auto container-padding pt-6">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Button asChild variant="ghost" className="h-auto min-h-24 justify-start gap-4 whitespace-normal rounded-lg border border-primary/10 bg-accent px-5 py-4 text-left shadow-sm hover:border-primary/40">
                 <Link to="/agents">
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
@@ -102,6 +102,18 @@ const Index = () => {
                   <span className="min-w-0 flex-1">
                     <span className="block text-base font-semibold text-foreground">Smart Visits</span>
                     <span className="mt-1 block text-sm font-normal text-muted-foreground">Plan and book property visits</span>
+                  </span>
+                  <ChevronRight className="!h-5 !w-5 text-muted-foreground" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" className="h-auto min-h-24 justify-start gap-4 whitespace-normal rounded-lg border border-border bg-secondary px-5 py-4 text-left shadow-sm hover:border-primary/40">
+                <Link to="/smart-stays">
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
+                    <Sparkles className="!h-8 !w-8" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold text-foreground">Smart Stays</span>
+                    <span className="mt-1 block text-sm font-normal text-muted-foreground">Multi-city trips, one payment</span>
                   </span>
                   <ChevronRight className="!h-5 !w-5 text-muted-foreground" />
                 </Link>
