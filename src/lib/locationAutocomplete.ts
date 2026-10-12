@@ -111,12 +111,12 @@ export function findCities(index: Map<string, CityNode>, query: string, limit = 
 }
 
 /** Localities (across all cities) whose name matches the query. */
-export function findLocalities(index: Map<string, CityNode>, query: string, limit = 5) {
+export function findLocalities(index: Map<string, CityNode>, query: string, limit = 5, minScore = 40) {
   const out: { city: CityNode; locality: LocalityNode; score: number }[] = [];
   index.forEach((city) =>
     city.localities.forEach((locality) => {
-      const score = matchScore(query, locality.name);
-      if (score >= 40) out.push({ city, locality, score });
+      const score = Math.max(matchScore(query, locality.name), matchScore(query.replace(/\s+/g, ""), locality.key.replace(/\s+/g, "")));
+      if (score >= minScore) out.push({ city, locality, score });
     }),
   );
   return out.sort((a, b) => b.score - a.score || b.locality.count - a.locality.count).slice(0, limit);
