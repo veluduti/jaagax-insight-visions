@@ -599,7 +599,6 @@ const PropertyDetail = () => {
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}
-            <LinkedEvents entityId={property.id} />
             <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} locality={property.locality} />
 
             {/* Nearby Hotels (based on property location) */}
@@ -644,6 +643,10 @@ const PropertyDetail = () => {
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
               <EMICalculator propertyPrice={property.price} />
             </AuthGate>
+
+            {/* Upcoming Events — compact sidebar card */}
+            <LinkedEvents entityId={property.id} compact />
+
 
             
             {/* Agents Listing — strict: only the assigned agent handles this property */}
