@@ -65,6 +65,11 @@ const Guides = lazy(() => import("./pages/Guides"));
 const EventsNew = lazy(() => import("./pages/EventsNew"));
 const EventCreate = lazy(() => import("./pages/EventCreate"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
+const EventsManage = lazy(() => import("./pages/EventsManage"));
+const EventManageDetail = lazy(() => import("./pages/EventManageDetail"));
+const MyEventBookings = lazy(() => import("./pages/MyEventBookings"));
+const EventBookingDetail = lazy(() => import("./pages/MyEventBookings").then((m) => ({ default: m.EventBookingDetail })));
+const AdminEventsPage = lazy(() => import("./components/admin/EventModerationPanel"));
 const Map = lazy(() => import("./pages/Map"));
 const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard"));
 const SellerAnalytics = lazy(() => import("./pages/SellerAnalytics"));
@@ -501,6 +506,12 @@ const App = () => (
                   <Route path="/guides" element={<Guides />} />
                   <Route path="/events" element={<EventsNew />} />
                   <Route path="/events/create" element={<EventCreate />} />
+                  <Route path="/events/edit/:id" element={<EventCreate />} />
+                  <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
+                  <Route path="/events/manage/:id" element={<ProtectedRoute><EventManageDetail /></ProtectedRoute>} />
+                  <Route path="/events/my-bookings" element={<ProtectedRoute><MyEventBookings /></ProtectedRoute>} />
+                  <Route path="/events/booking/:id" element={<ProtectedRoute><EventBookingDetail /></ProtectedRoute>} />
+                  <Route path="/admin/events" element={<ProtectedRoute allowedRole="admin"><AdminEventsPage /></ProtectedRoute>} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />
                   <Route path="/sell-property" element={<SignedInRoute message="Please login to access Sell Your Property."><SellProperty /></SignedInRoute>} />
