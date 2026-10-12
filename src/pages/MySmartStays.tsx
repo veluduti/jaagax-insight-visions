@@ -8,6 +8,7 @@ import { ArrowLeft, Hotel } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyBookings, statusText, inr, payForBooking, errMsg } from "@/services/smartStayService";
 import { toast } from "sonner";
+import FamousPlaces from "@/components/smartstays/FamousPlaces";
 
 export default function MySmartStays() {
   const [rows, setRows] = useState<any[] | null>(null);
@@ -54,6 +55,7 @@ export default function MySmartStays() {
               ))}
             </div>
             {["PENDING_PAYMENT", "PAYMENT_PROCESSING"].includes(b.status) && <Button size="sm" className="mt-3" onClick={() => pay(b)}>Complete payment</Button>}
+            {b.status !== "CANCELLED" && <FamousPlaces destinations={(b.reservations ?? []).map((r: any) => r.destination)} />}
             <details className="mt-3 text-xs text-muted-foreground">
               <summary className="cursor-pointer">Timeline</summary>
               <ul className="mt-2 space-y-1">
