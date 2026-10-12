@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Loader2, X, SlidersHorizontal } from "lucide-react";
+import { Sparkles, Loader2, X, SlidersHorizontal, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,10 @@ interface Props {
   value: StayFilters;
   onChange: (f: StayFilters) => void;
   onAiIntent: (intent: AiIntent) => void;
+  /** Finds a city mentioned in the text (or the current city) with its areas. */
+  detectCity?: (text: string) => { name: string; areas: { name: string; count: number }[] } | null;
+  selectedArea?: string | null;
+  onPickArea?: (city: string, area: string | null) => void;
 }
 
 const MAX = 20000;
@@ -55,7 +59,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   );
 }
 
-export default function StayFinder({ value, onChange, onAiIntent }: Props) {
+export default function StayFinder({ value, onChange, onAiIntent, detectCity, selectedArea, onPickArea }: Props) {
   const [aiText, setAiText] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [open, setOpen] = useState(false);
@@ -88,6 +92,8 @@ export default function StayFinder({ value, onChange, onAiIntent }: Props) {
     }
   };
 
+  const cityInfo = detectCity?.(aiText) ?? null;
+
   const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0);
 
   return (
@@ -116,6 +122,29 @@ export default function StayFinder({ value, onChange, onAiIntent }: Props) {
           Stay filters{activeCount ? ` (${activeCount})` : ""}
         </Button>
       </form>
+
+      {/* Areas of the detected city + quick amenities */}
+      {cityInfo && cityInfo.areas.length > 0 && (
+        <div className="space-y-2 rounded-xl bg-muted/40 p-2.5">
+          <p className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 text-primary" /> Areas in {cityInfo.name}
+          </p>
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
+            <Chip on={!selectedArea} onClick={() => onPickArea?.(cityInfo.name, null)}>All {cityInfo.name}</Chip>
+            {cityInfo.areas.map((a) => (
+              <Chip key={a.name} on={selectedArea?.toLowerCase() === a.name.toLowerCase()} onClick={() => onPickArea?.(cityInfo.name, a.name)}>
+                {a.name}{a.count ? ` · ${a.count}` : ""}
+              </Chip>
+            ))}
+          </div>
+          <p className="text-xs font-semibold text-muted-foreground">Amenities</p>
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
+            {AMENITY_CHIPS.map((a) => (
+              <Chip key={a.key} on={value.amenities.includes(a.key)} onClick={() => toggle("amenities", a.key)}>{a.label}</Chip>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Step 2: kind of stay (always visible, compact) */}
       <div>
