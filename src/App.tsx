@@ -144,6 +144,7 @@ const NLLandDetail = lazy(() => import("./pages/natural-living/NLLandDetail"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
+const HyperGuestCertification = lazy(() => import("./pages/admin/HyperGuestCertification"));
 const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
 const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
@@ -513,6 +514,7 @@ const App = () => (
                   <Route path="/events/my-bookings" element={<RequireAuth><MyEventBookings /></RequireAuth>} />
                   <Route path="/events/booking/:id" element={<RequireAuth><EventBookingDetail /></RequireAuth>} />
                   <Route path="/admin/events" element={<ProtectedRoute allowedRole="admin"><AdminEventsPage /></ProtectedRoute>} />
+                  <Route path="/admin/hyperguest-certification" element={<ProtectedRoute allowedRole="admin"><HyperGuestCertification /></ProtectedRoute>} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />
                   <Route path="/sell-property" element={<SignedInRoute message="Please login to access Sell Your Property."><SellProperty /></SignedInRoute>} />
