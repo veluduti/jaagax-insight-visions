@@ -11,6 +11,7 @@ import {
   CheckCircle2, TrendingUp, Building2, Hash, Brain
 } from "lucide-react";
 import { toast } from "sonner";
+import { requireSignIn } from "@/lib/requireSignIn";
 import PropertyImageCarousel from "@/components/property/PropertyImageCarousel";
 import PropertyOverview from "@/components/property/PropertyOverview";
 import AIInsightsPanel from "@/components/property/AIInsightsPanel";
@@ -519,7 +520,7 @@ const PropertyDetail = () => {
               <Brain className="h-4 w-4" />
               Talk to AI Expert
             </Button>
-            <Button size="lg" variant="outline" className="gap-2 border-primary/50 text-primary hover:bg-primary/10" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
+            <Button size="lg" variant="outline" className="gap-2 border-primary/50 text-primary hover:bg-primary/10" onClick={() => requireSignIn(navigate, () => { fireLead("inquiry"); setShowBookingModal(true); })}>
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
@@ -680,7 +681,7 @@ const PropertyDetail = () => {
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
         <div className="flex gap-2">
-          <Button size="lg" className="flex-1 gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
+          <Button size="lg" className="flex-1 gap-2" onClick={() => requireSignIn(navigate, () => { fireLead("inquiry"); setShowBookingModal(true); })}>
             <Calendar className="h-4 w-4" />
             Book
           </Button>

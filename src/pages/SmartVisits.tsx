@@ -58,7 +58,7 @@ export default function SmartVisits() {
   const bookedPlanIds = new Set(mine.filter((b) => b.status !== "cancelled").map((b) => b.plan_id));
 
   const startBooking = (p: SmartVisitPlan) => {
-    if (!user) { toast.error("Please sign in to book a Smart Visit"); navigate("/auth"); return; }
+    if (!user) { toast.warning("Please sign in to book a Smart Visit"); const from = window.location.pathname + window.location.search; navigate(`/auth?redirect=${encodeURIComponent(from)}`, { state: { from } }); return; }
     setBooking(p);
   };
 

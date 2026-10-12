@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { requireSignIn } from "@/lib/requireSignIn";
 import { SiteVisitBookingModal } from "@/components/booking/SiteVisitBookingModal";
 import { InterestRegistrationModal } from "@/components/booking/InterestRegistrationModal";
 import { BuilderTrustProgram } from "@/components/builder/BuilderTrustProgram";
@@ -407,7 +408,7 @@ const ProjectDetail = () => {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button size="lg" className="gap-2" onClick={() => setBookingModalOpen(true)}>
+            <Button size="lg" className="gap-2" onClick={() => requireSignIn(navigate, () => setBookingModalOpen(true))}>
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
@@ -756,7 +757,7 @@ const ProjectDetail = () => {
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
         <div className="flex gap-2">
-          <Button size="lg" className="flex-1 gap-2" onClick={() => setBookingModalOpen(true)}>
+          <Button size="lg" className="flex-1 gap-2" onClick={() => requireSignIn(navigate, () => setBookingModalOpen(true))}>
             <Calendar className="h-4 w-4" />
             Book Visit
           </Button>
