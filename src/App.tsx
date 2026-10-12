@@ -65,6 +65,12 @@ const Guides = lazy(() => import("./pages/Guides"));
 const EventsNew = lazy(() => import("./pages/EventsNew"));
 const EventCreate = lazy(() => import("./pages/EventCreate"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
+import RequireAuth from "./components/RequireAuth";
+const EventsManage = lazy(() => import("./pages/EventsManage"));
+const EventManageDetail = lazy(() => import("./pages/EventManageDetail"));
+const MyEventBookings = lazy(() => import("./pages/MyEventBookings"));
+const EventBookingDetail = lazy(() => import("./pages/MyEventBookings").then((m) => ({ default: m.EventBookingDetail })));
+const AdminEventsPage = lazy(() => import("./components/admin/EventModerationPanel"));
 const Map = lazy(() => import("./pages/Map"));
 const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard"));
 const SellerAnalytics = lazy(() => import("./pages/SellerAnalytics"));
@@ -501,6 +507,12 @@ const App = () => (
                   <Route path="/guides" element={<Guides />} />
                   <Route path="/events" element={<EventsNew />} />
                   <Route path="/events/create" element={<EventCreate />} />
+                  <Route path="/events/edit/:id" element={<EventCreate />} />
+                  <Route path="/events/manage" element={<RequireAuth><EventsManage /></RequireAuth>} />
+                  <Route path="/events/manage/:id" element={<RequireAuth><EventManageDetail /></RequireAuth>} />
+                  <Route path="/events/my-bookings" element={<RequireAuth><MyEventBookings /></RequireAuth>} />
+                  <Route path="/events/booking/:id" element={<RequireAuth><EventBookingDetail /></RequireAuth>} />
+                  <Route path="/admin/events" element={<ProtectedRoute allowedRole="admin"><AdminEventsPage /></ProtectedRoute>} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />
                   <Route path="/sell-property" element={<SignedInRoute message="Please login to access Sell Your Property."><SellProperty /></SignedInRoute>} />
