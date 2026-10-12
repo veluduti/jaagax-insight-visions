@@ -123,3 +123,22 @@ export function findLocalities(index: Map<string, CityNode>, query: string, limi
 }
 
 export const sameLocality = (a?: string | null, b?: string | null) => !!norm(a) && norm(a) === norm(b);
+
+/** Merge well-known areas (count 0) into the index after real data so they appear as suggestions. */
+export function withPopularAreas(index: Map<string, CityNode>, areas: Record<string, string[]>) {
+  const out = new Map(index);
+  for (const [cityName, list] of Object.entries(areas)) {
+    const key = canonicalizeCity(cityName);
+    if (!key) continue;
+    const existing = out.get(key);
+    const node: CityNode = existing
+      ? { ...existing, localities: [...existing.localities] }
+      : { name: cityName, key, count: 0, localities: [] };
+    for (const a of list) {
+      const lk = norm(a);
+      if (!node.localities.some((l) => l.key === lk)) node.localities.push({ name: a, key: lk, count: 0 });
+    }
+    out.set(key, node);
+  }
+  return out;
+}
