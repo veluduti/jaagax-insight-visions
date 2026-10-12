@@ -42,10 +42,9 @@ export default function EventDetail() {
   useEffect(() => { load(); }, [id]);
   useEffect(() => {
     if (!user) return;
-    const fromAuth = user.phone || user.user_metadata?.phone || "";
-    if (fromAuth) { setPhone(fromAuth.startsWith("+") || fromAuth.length !== 12 ? fromAuth : `+${fromAuth}`); return; }
-    (supabase as any).from("profiles").select("phone").eq("user_id", user.id).maybeSingle()
-      .then(({ data }: any) => { if (data?.phone) setPhone(data.phone); });
+    const m = user.user_metadata || {};
+    const raw = String(user.phone || m.phone || m.phone_number || m.mobile || "");
+    if (raw) setPhone(raw.startsWith("+") ? raw : raw.length === 10 ? `+91${raw}` : `+${raw}`);
   }, [user]);
   useEffect(() => {
     if (!user || !id) { setMine(null); return; }
