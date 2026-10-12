@@ -2754,6 +2754,233 @@ export type Database = {
         }
         Relationships: []
       }
+      event_bookings: {
+        Row: {
+          booking_reference: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          checked_in_at: string | null
+          checked_in_count: number
+          confirmed_at: string | null
+          created_at: string
+          customer_email: string | null
+          customer_id: string
+          customer_name: string | null
+          customer_phone: string | null
+          event_id: string
+          id: string
+          paid_at: string | null
+          payment_status: string
+          quantity: number
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string
+          ticket_type_id: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          booking_reference?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          checked_in_at?: string | null
+          checked_in_count?: number
+          confirmed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_id: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          event_id: string
+          id?: string
+          paid_at?: string | null
+          payment_status?: string
+          quantity: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          ticket_type_id: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          booking_reference?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          checked_in_at?: string | null
+          checked_in_count?: number
+          confirmed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_id?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          event_id?: string
+          id?: string
+          paid_at?: string | null
+          payment_status?: string
+          quantity?: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          ticket_type_id?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_bookings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_bookings_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "event_ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_ticket_types: {
+        Row: {
+          benefits: string[]
+          created_at: string
+          event_id: string
+          id: string
+          kind: string
+          max_per_booking: number
+          name: string
+          price: number
+          quantity: number
+          requires_payment: boolean
+          sales_end: string | null
+          sales_start: string | null
+          sold: number
+        }
+        Insert: {
+          benefits?: string[]
+          created_at?: string
+          event_id: string
+          id?: string
+          kind: string
+          max_per_booking?: number
+          name: string
+          price?: number
+          quantity: number
+          requires_payment?: boolean
+          sales_end?: string | null
+          sales_start?: string | null
+          sold?: number
+        }
+        Update: {
+          benefits?: string[]
+          created_at?: string
+          event_id?: string
+          id?: string
+          kind?: string
+          max_per_booking?: number
+          name?: string
+          price?: number
+          quantity?: number
+          requires_payment?: boolean
+          sales_end?: string | null
+          sales_start?: string | null
+          sold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_ticket_types_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          image_urls: string[]
+          latitude: number | null
+          longitude: number | null
+          organizer_id: string
+          organizer_name: string | null
+          property_ids: string[]
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_time: string
+          status: string
+          submitted_at: string | null
+          title: string
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          image_urls?: string[]
+          latitude?: number | null
+          longitude?: number | null
+          organizer_id: string
+          organizer_name?: string | null
+          property_ids?: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time: string
+          status?: string
+          submitted_at?: string | null
+          title: string
+          updated_at?: string
+          venue: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          image_urls?: string[]
+          latitude?: number | null
+          longitude?: number | null
+          organizer_id?: string
+          organizer_name?: string | null
+          property_ids?: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -14761,6 +14988,7 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      can_organize_events: { Args: { _uid: string }; Returns: boolean }
       can_remind_admin: { Args: { _target_user_id: string }; Returns: boolean }
       can_review_scope: {
         Args: {
@@ -14826,6 +15054,85 @@ export type Database = {
       drop_property_price: {
         Args: { _new_price: number; _property_id: string }
         Returns: undefined
+      }
+      event_check_in: {
+        Args: { _booking_id: string; _count: number }
+        Returns: {
+          booking_reference: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          checked_in_at: string | null
+          checked_in_count: number
+          confirmed_at: string | null
+          created_at: string
+          customer_email: string | null
+          customer_id: string
+          customer_name: string | null
+          customer_phone: string | null
+          event_id: string
+          id: string
+          paid_at: string | null
+          payment_status: string
+          quantity: number
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string
+          ticket_type_id: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "event_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      event_release_stale_holds: {
+        Args: { _ticket_id: string }
+        Returns: undefined
+      }
+      event_reserve: {
+        Args: {
+          _email: string
+          _name: string
+          _phone: string
+          _qty: number
+          _ticket_id: string
+          _uid: string
+        }
+        Returns: {
+          booking_reference: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          checked_in_at: string | null
+          checked_in_count: number
+          confirmed_at: string | null
+          created_at: string
+          customer_email: string | null
+          customer_id: string
+          customer_name: string | null
+          customer_phone: string | null
+          event_id: string
+          id: string
+          paid_at: string | null
+          payment_status: string
+          quantity: number
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string
+          ticket_type_id: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "event_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       expire_due_property_listings: {
         Args: never
@@ -14931,6 +15238,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_booking_participant: {
         Args: { _booking_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_event_organizer: {
+        Args: { _event_id: string; _uid: string }
         Returns: boolean
       }
       is_financial_buyer: {
