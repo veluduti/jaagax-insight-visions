@@ -41,6 +41,13 @@ export default function EventDetail() {
   };
   useEffect(() => { load(); }, [id]);
   useEffect(() => {
+    if (!user) return;
+    const fromAuth = user.phone || user.user_metadata?.phone || "";
+    if (fromAuth) { setPhone(fromAuth.startsWith("+") || fromAuth.length !== 12 ? fromAuth : `+${fromAuth}`); return; }
+    (supabase as any).from("profiles").select("phone").eq("user_id", user.id).maybeSingle()
+      .then(({ data }: any) => { if (data?.phone) setPhone(data.phone); });
+  }, [user]);
+  useEffect(() => {
     if (!user || !id) { setMine(null); return; }
     (supabase as any).from("event_bookings").select("*").eq("event_id", id).eq("customer_id", user.id)
       .in("status", ["confirmed", "pending_payment"]).maybeSingle().then(({ data }: any) => setMine(data));
@@ -151,10 +158,10 @@ export default function EventDetail() {
                         </div>
                       </div>
                     )}
-                    <div className="space-y-1"><Label htmlFor="ph">Phone (optional)</Label>
+                    <div className="space-y-1"><Label htmlFor="ph">Phone</Label>
                       <Input id="ph" value={phone} maxLength={15} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98xxxxxxx" /></div>
                     <div className="flex justify-between text-sm font-semibold"><span>Total</span><span>{payable > 0 ? inr(payable) : "Free"}</span></div>
-                    <Button className="w-full" disabled={busy || !sel} onClick={book}>
+                    <Button className="w-full" disabled={busy || (!!user && !sel)} onClick={() => (user ? book() : requireSignIn(navigate, () => {}, "Please sign in to register for this event"))}>
                       {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       {payable > 0 ? `Pay ${inr(payable)} & book` : "Confirm registration"}
                     </Button>

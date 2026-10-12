@@ -105,9 +105,12 @@ export default function EventCreate() {
       if (!t.name.trim()) return "Every ticket type needs a name";
       if (!(t.quantity >= 1)) return `"${t.name}" needs at least 1 seat`;
       if (t.kind === "paid" && !(t.price >= 1)) return `"${t.name}" is a paid ticket — set a price`;
-      if (t.kind === "vip" && t.requires_payment && !(t.price >= 1)) return `"${t.name}" requires payment — set a price`;
+      if (t.kind === "vip" && !(t.price >= 1)) return `"${t.name}" is a VIP ticket — set a price`;
       if (t.sales_start && t.sales_end && t.sales_end <= t.sales_start) return `"${t.name}": sales end must be after sales start`;
     }
+    const maxPaid = Math.max(0, ...tickets.filter((t) => t.kind === "paid").map((t) => Number(t.price)));
+    const lowVip = tickets.find((t) => t.kind === "vip" && Number(t.price) <= maxPaid);
+    if (lowVip) return `"${lowVip.name}" must cost more than the General ticket (₹${maxPaid})`;
     return null;
   };
 
@@ -117,7 +120,7 @@ export default function EventCreate() {
     if (err) { toast.error(err); return; }
     setBusy(true);
     try {
-      const clean = tickets.map((t) => ({ ...t, name: t.name.trim(), price: t.kind === "free" || (t.kind === "vip" && !t.requires_payment) ? 0 : Number(t.price) }));
+      const clean = tickets.map((t) => ({ ...t, name: t.name.trim(), price: t.kind === "free" ? 0 : Number(t.price), requires_payment: t.kind !== "free" }));
       const eid = await saveEvent(user.id, {
         ...f, title: f.title.trim(), description: f.description.trim(), venue: f.venue.trim(), address: f.address.trim(),
         city: f.city.trim(), end_time: f.end_time || null,
@@ -217,16 +220,13 @@ export default function EventCreate() {
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <Field label="Name"><Input value={t.name} maxLength={60} onChange={(e) => setT(i, { name: e.target.value })} /></Field>
-                  <Field label="Price (₹)"><Input type="number" min={0} disabled={t.kind === "free" || (t.kind === "vip" && !t.requires_payment)} value={t.kind === "free" ? 0 : t.price} onChange={(e) => setT(i, { price: Number(e.target.value) })} /></Field>
+                  <Field label="Price (₹)"><Input type="number" min={0} disabled={t.kind === "free"} value={t.kind === "free" ? 0 : t.price} onChange={(e) => setT(i, { price: Number(e.target.value) })} /></Field>
                   <Field label="Seats"><Input type="number" min={1} value={t.quantity} onChange={(e) => setT(i, { quantity: Number(e.target.value) })} /></Field>
                   <Field label="Sales open"><Input type="datetime-local" value={toLocal(t.sales_start)} onChange={(e) => setT(i, { sales_start: fromLocal(e.target.value) })} /></Field>
                   <Field label="Sales close"><Input type="datetime-local" value={toLocal(t.sales_end)} onChange={(e) => setT(i, { sales_end: fromLocal(e.target.value) })} /></Field>
                   <Field label="Max per booking"><Input type="number" min={1} max={50} value={t.max_per_booking} onChange={(e) => setT(i, { max_per_booking: Math.min(50, Math.max(1, Number(e.target.value))) })} /></Field>
                 </div>
-                {t.kind === "vip" && (
-                  <div className="flex items-center gap-2"><Switch checked={t.requires_payment} onCheckedChange={(v) => setT(i, { requires_payment: v, price: v ? t.price || 999 : 0 })} />
-                    <Label>VIP requires payment</Label></div>
-                )}
+                {t.kind === "vip" && <p className="text-xs text-muted-foreground">VIP is always paid and must cost more than the General ticket.</p>}
                 {t.kind !== "free" && (
                   <div className="space-y-2"><Label>Benefits</Label>
                     <div className="flex flex-wrap gap-2">{t.benefits.map((b) => <Badge key={b} variant="secondary" className="gap-1">{b}
