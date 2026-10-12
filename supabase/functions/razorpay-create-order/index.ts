@@ -129,6 +129,19 @@ Deno.serve(async (req) => {
     }
 
 
+    // Retry/refresh after a timeout: if this exact stay was already paid in the
+    // last 30 minutes, return that booking instead of creating a second one.
+    const { data: alreadyPaid } = await supabase.from("hotel_bookings")
+      .select("id, booking_reference")
+      .eq("hotel_id", hotel_id).eq("room_id", room_id)
+      .eq("check_in", check_in).eq("check_out", check_out)
+      .eq("guest_email", guest_email).eq("payment_status", "paid")
+      .gte("created_at", new Date(Date.now() - 30 * 60 * 1000).toISOString())
+      .limit(1).maybeSingle();
+    if (alreadyPaid?.id) {
+      return json({ already_booked: true, booking_id: alreadyPaid.id, booking_reference: alreadyPaid.booking_reference });
+    }
+
     // Prevent duplicate pending payment attempts for the same selection.
     const { data: existingPending } = await supabase.from("hotel_bookings")
       .select("id, razorpay_order_id, total_amount, booking_reference")
