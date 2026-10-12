@@ -65,6 +65,7 @@ const Guides = lazy(() => import("./pages/Guides"));
 const EventsNew = lazy(() => import("./pages/EventsNew"));
 const EventCreate = lazy(() => import("./pages/EventCreate"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
+import RequireAuth from "./components/RequireAuth";
 const EventsManage = lazy(() => import("./pages/EventsManage"));
 const EventManageDetail = lazy(() => import("./pages/EventManageDetail"));
 const MyEventBookings = lazy(() => import("./pages/MyEventBookings"));
@@ -507,10 +508,10 @@ const App = () => (
                   <Route path="/events" element={<EventsNew />} />
                   <Route path="/events/create" element={<EventCreate />} />
                   <Route path="/events/edit/:id" element={<EventCreate />} />
-                  <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
-                  <Route path="/events/manage/:id" element={<ProtectedRoute><EventManageDetail /></ProtectedRoute>} />
-                  <Route path="/events/my-bookings" element={<ProtectedRoute><MyEventBookings /></ProtectedRoute>} />
-                  <Route path="/events/booking/:id" element={<ProtectedRoute><EventBookingDetail /></ProtectedRoute>} />
+                  <Route path="/events/manage" element={<RequireAuth><EventsManage /></RequireAuth>} />
+                  <Route path="/events/manage/:id" element={<RequireAuth><EventManageDetail /></RequireAuth>} />
+                  <Route path="/events/my-bookings" element={<RequireAuth><MyEventBookings /></RequireAuth>} />
+                  <Route path="/events/booking/:id" element={<RequireAuth><EventBookingDetail /></RequireAuth>} />
                   <Route path="/admin/events" element={<ProtectedRoute allowedRole="admin"><AdminEventsPage /></ProtectedRoute>} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />
