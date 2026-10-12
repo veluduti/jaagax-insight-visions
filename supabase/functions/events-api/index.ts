@@ -86,11 +86,10 @@ Deno.serve(async (req) => {
       const phone = typeof body.phone === "string" ? body.phone.replace(/[^\d+]/g, "").slice(0, 15) : "";
       const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
       if (!UUID.test(ticketId) || !Number.isInteger(qty) || qty < 1 || qty > 50) return json({ error: "Invalid ticket selection" }, 400);
-      const { data: prof } = await admin.from("profiles").select("full_name, phone").eq("user_id", user.id).maybeSingle();
       const { data: b, error } = await admin.rpc("event_reserve", {
         _uid: user.id, _ticket_id: ticketId, _qty: qty,
-        _name: name || prof?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Guest",
-        _email: user.email || "", _phone: phone || prof?.phone || user.phone || "",
+        _name: name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Guest",
+        _email: user.email || "", _phone: phone || user.phone || "",
       });
       if (error) {
         const msg = error.code === "23505" ? "You already have a booking for this event" : error.message;
