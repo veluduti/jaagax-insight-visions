@@ -644,6 +644,10 @@ const PropertyDetail = () => {
               <EMICalculator propertyPrice={property.price} />
             </AuthGate>
 
+            {/* Upcoming Events — compact sidebar card */}
+            <LinkedEvents entityId={property.id} compact />
+
+
             
             {/* Agents Listing — strict: only the assigned agent handles this property */}
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact your agent">
