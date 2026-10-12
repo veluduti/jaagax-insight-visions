@@ -964,7 +964,7 @@ const Hotels = () => {
                 <div ref={searchRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <MapPin className="h-3 w-3 inline mr-1 text-gray-600" />
-                    City, Property Name Or Location
+                    City, Area Or Hotel Name
                   </label>
                   <div className="relative">
                     <Input
@@ -977,24 +977,30 @@ const Hotels = () => {
                         setShowSuggestions(true);
                       }}
                       onFocus={() => setShowSuggestions(true)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAdvancedSearch()}
+                      onKeyDown={handleSearchKeyDown}
+                      role="combobox"
+                      aria-expanded={showSuggestions}
+                      autoComplete="off"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     />
 
                     {/* Suggestions Dropdown - IMPROVED to match image 1 */}
                     {showSuggestions && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] max-h-80 overflow-y-auto">
+                      <div role="listbox" className="absolute top-full left-0 right-0 md:min-w-[340px] mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] max-h-[60vh] md:max-h-96 overflow-y-auto overscroll-contain">
                         {isSearching ? (
                           <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
                             Searching...
                           </div>
                         ) : suggestions.length === 0 ? (
-                          <div className="px-4 py-3 text-sm text-gray-500">No results found for "{searchQuery}"</div>
+                          <div className="px-4 py-4 text-sm text-gray-500 flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            No locations found for "{searchQuery}". Try a city like Hyderabad or an area like Madhapur.
+                          </div>
                         ) : (
                           suggestions.map((suggestion, index) => {
                             // Skip rendering "SUGGESTIONS" as a separate item, we'll render it as a header
-                            if (suggestion.type === "popular" && suggestion.name === "SUGGESTIONS") {
+                            if (suggestion.type === "popular") {
                               return (
                                 <div
                                   key={`header-${index}`}
@@ -1031,8 +1037,12 @@ const Hotels = () => {
                             return (
                               <button
                                 key={`${suggestion.type}-${suggestion.name}-${index}`}
+                                id={`hotel-sugg-${index}`}
+                                role="option"
+                                aria-selected={activeSuggestion === index}
+                                onMouseEnter={() => setActiveSuggestion(index)}
                                 onClick={() => handleSuggestionClick(suggestion)}
-                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0 group"
+                                className={`w-full px-4 py-3 min-h-[48px] text-left hover:bg-gray-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0 group ${activeSuggestion === index ? "bg-green-50" : ""}`}
                               >
                                 <div
                                   className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
