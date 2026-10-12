@@ -6706,6 +6706,30 @@ export type Database = {
           },
         ]
       }
+      hyperguest_cert_checks: {
+        Row: {
+          item_key: string
+          notes: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          item_key: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          item_key?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       kyc_documents: {
         Row: {
           created_at: string

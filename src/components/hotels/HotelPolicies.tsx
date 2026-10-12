@@ -28,10 +28,8 @@ const HotelPolicies = ({ hotel }: HotelPoliciesProps) => {
       title: "Cancellation Policy",
       icon: <AlertTriangle className="h-5 w-5" />,
       items: [
-        "Free cancellation up to 48 hours before check-in",
-        "50% charge for cancellation within 24-48 hours",
-        "Full charge for no-show or same-day cancellation",
-        "Refund processed within 5-7 business days",
+        "Each room rate has its own cancellation policy",
+        "Deadlines, charges and refundability are shown for your chosen rate before you pay",
       ],
     },
     {

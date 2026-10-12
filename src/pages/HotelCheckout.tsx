@@ -17,6 +17,17 @@ import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
 import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
 import type { MealType } from "@/lib/hotelPricing";
 import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
+import RateDetailsPanel from "@/components/hotels/RateDetailsPanel";
+
+/** Turn backend booking errors into clear guest-facing messages. */
+function friendlyBookingError(raw?: string | null) {
+  const m = (raw || "").toLowerCase();
+  if (/just booked|not available|no availability|sold out|stop.?sell|inventory/.test(m)) return "Sorry, this room is no longer available for your dates. Please pick another room or dates.";
+  if (/price.*chang|expired|rate.*(no longer|invalid)/.test(m)) return "The price for this room has changed or expired. Please go back and review the latest price.";
+  if (/timeout|timed out|network|fetch/.test(m)) return "The hotel took too long to respond. Please try again — you won't be charged twice.";
+  if (/min.*night/.test(m)) return raw!;
+  return raw || "Could not start payment. Please try again.";
+}
 
 
 declare global {
@@ -113,6 +124,7 @@ const HotelCheckout = () => {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [rateIssue, setRateIssue] = useState<string | null>(null);
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -276,8 +288,15 @@ const HotelCheckout = () => {
           booked_by_agent_id: bookedByAgentId,
         },
       });
+      if (data?.already_booked && data?.booking_id) {
+        toast.info("You already have a confirmed booking for this stay.");
+        navigate(`/hotels/booking/${data.booking_id}/confirmed`);
+        return;
+      }
       if (error || !data?.order_id) {
-        toast.error(data?.error || error?.message || "Could not start payment");
+        let msg = data?.error || "";
+        if (!msg && (error as any)?.context?.json) { try { msg = (await (error as any).context.json())?.error || ""; } catch { /* ignore */ } }
+        toast.error(friendlyBookingError(msg || error?.message));
         return;
       }
 
@@ -363,9 +382,10 @@ const HotelCheckout = () => {
                     <Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
                   <div className="sm:col-span-2"><Label>Email *</Label>
                     <Input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
-                  <div className="sm:col-span-2"><Label>Special requests</Label>
-                    <Textarea rows={3} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
-                      placeholder="Early check-in, high floor, etc. (subject to availability)" /></div>
+                  <div className="sm:col-span-2"><Label>Special requests (optional)</Label>
+                    <Textarea rows={3} maxLength={500} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="High floor, twin beds, late arrival…" />
+                    <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to hotel confirmation.</p></div>
                 </div>
 
                 {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
@@ -399,11 +419,17 @@ const HotelCheckout = () => {
                   <div className="text-sm">
                     <div className="text-muted-foreground">Special requests</div>
                     <div>{specialRequests}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Special requests are subject to hotel confirmation.</div>
                   </div>
                 )}
+                <RateDetailsPanel
+                  hotelId={hotelId!} roomId={roomId} ratePlanId={ratePlanId}
+                  checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} rooms={numRooms}
+                  onResolved={({ error }) => setRateIssue(error)}
+                />
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep("guest")}>Back</Button>
-                  <Button className="flex-1" onClick={() => setStep("pay")}>Continue to payment</Button>
+                  <Button className="flex-1" disabled={!!rateIssue} onClick={() => setStep("pay")}>Continue to payment</Button>
                 </div>
               </CardContent></Card>
             )}
@@ -418,11 +444,11 @@ const HotelCheckout = () => {
                 </p>
                 <div className="rounded-lg bg-muted p-4 text-sm">
                   You'll be charged <b>₹{total.toLocaleString()}</b> for {nights} night{nights>1?"s":""} × {numRooms} room{numRooms>1?"s":""}.
-                  Free cancellation policies (if any) apply per hotel rules.
+                  The cancellation policy shown in the review step applies to this rate.
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep("summary")} disabled={submitting}>Back</Button>
-                  <Button className="flex-1" onClick={handlePay} disabled={submitting}>
+                  <Button className="flex-1" onClick={handlePay} disabled={submitting || !!rateIssue}>
                     {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : `Pay ₹${total.toLocaleString()}`}
                   </Button>
                 </div>
