@@ -184,7 +184,21 @@ const Navigation = () => {
                       </Link>
                     </NavigationMenuItem>
 
-                    {/* Explore Dropdown */}
+                    {/* Smart Stays - Direct Link */}
+                    <NavigationMenuItem>
+                      <Link to="/smart-stays">
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "px-4 py-2.5 text-[15px] font-medium h-auto",
+                            isActive("/smart-stays") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          <Sparkles className="h-[18px] w-[18px] mr-2" />
+                          Smart Stays
+                        </Button>
+                      </Link>
+                    </NavigationMenuItem>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
                         className={cn(
