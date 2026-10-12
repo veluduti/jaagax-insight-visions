@@ -15,3 +15,4 @@
 - Smart Visit cards share guarded date/time formatters that accept legacy AM/PM text and database times, preventing invalid date displays.
 - Notification clicks resolve same-origin destinations through one shared helper; read actions update both legacy read flags for cross-dashboard consistency.
 - Smart Stays packages live in `smart_stays` (draft itinerary JSON) with frozen `smart_stay_revisions`; all status, pricing, approval and booking changes go through `smart_stay_*` security-definer RPCs and `smart-stay-pay`, so clients can never set prices or statuses. Reservations write to `hotel_availability_blocks.smart_stay_reservation_id` to share the hotel calendar.
+- Events live in `events` / `event_ticket_types` / `event_bookings`; seats are reserved only by the `event_reserve` RPC and all booking, payment, review and broadcast writes go through the `events-api` function, so clients can never confirm bookings or change sold counts.
