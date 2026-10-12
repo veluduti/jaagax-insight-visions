@@ -159,7 +159,7 @@ export async function deleteEvent(id: string) {
 
 export async function uploadEventImage(uid: string, file: File): Promise<string> {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const path = `events/${uid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const path = `${uid}/events/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { error } = await supabase.storage.from("property-media").upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw error;
   return supabase.storage.from("property-media").getPublicUrl(path).data.publicUrl;
