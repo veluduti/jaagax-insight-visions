@@ -41,6 +41,7 @@ import PropertyStats from "@/components/property/PropertyStats";
 import EMICalculator from "@/components/property/EMICalculator";
 import PaymentPlans from "@/components/property/PaymentPlans";
 import NearbyPOI from "@/components/property/NearbyPOI";
+import LinkedEvents from "@/components/events/LinkedEvents";
 import AuthGate from "@/components/property/AuthGate";
 import { useAuth } from "@/hooks/useAuth";
 import SEO from "@/components/SEO";
@@ -698,6 +699,8 @@ const ProjectDetail = () => {
                 </TabsContent>
               </Tabs>
             </motion.div>
+
+            <LinkedEvents entityId={project.id} />
 
             {/* Nearby POI */}
             <NearbyPOI
