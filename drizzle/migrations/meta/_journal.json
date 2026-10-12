@@ -176,6 +176,13 @@
       "when": 1791688656500,
       "tag": "0024_smart_stays",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791781485285,
+      "tag": "0025_fix_smart_stay_booking_read_recursion",
+      "breakpoints": true
     }
   ]
 }

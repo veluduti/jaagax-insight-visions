@@ -15257,6 +15257,10 @@ export type Database = {
         }
         Returns: string
       }
+      smart_stay_booking_visible: {
+        Args: { _booking_id: string; _uid: string }
+        Returns: boolean
+      }
       smart_stay_confirm: { Args: { _booking_id: string }; Returns: Json }
       smart_stay_decide: {
         Args: { _approval_id: string; _decision: string; _reason: string }
