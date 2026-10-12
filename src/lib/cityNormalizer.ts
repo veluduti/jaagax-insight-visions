@@ -13,7 +13,7 @@ const CITY_ALIASES: Record<string, string[]> = {
   chennai: ["chennai", "madras"],
   kolkata: ["kolkata", "calcutta"],
   pune: ["pune", "poona"],
-  hyderabad: ["hyderabad", "hyd", "secunderabad"],
+  hyderabad: ["hyderabad", "hyd", "secunderabad", "hyderbad", "hydrabad", "hyderabd", "hiderabad", "haidarabad"],
   delhi: ["delhi", "new delhi", "ncr"],
   gurugram: ["gurugram", "gurgaon"],
   vijayawada: ["vijayawada", "bezawada"],

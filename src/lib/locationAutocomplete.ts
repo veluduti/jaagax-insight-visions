@@ -111,15 +111,34 @@ export function findCities(index: Map<string, CityNode>, query: string, limit = 
 }
 
 /** Localities (across all cities) whose name matches the query. */
-export function findLocalities(index: Map<string, CityNode>, query: string, limit = 5) {
+export function findLocalities(index: Map<string, CityNode>, query: string, limit = 5, minScore = 40) {
   const out: { city: CityNode; locality: LocalityNode; score: number }[] = [];
   index.forEach((city) =>
     city.localities.forEach((locality) => {
-      const score = matchScore(query, locality.name);
-      if (score >= 40) out.push({ city, locality, score });
+      const score = Math.max(matchScore(query, locality.name), matchScore(query.replace(/\s+/g, ""), locality.key.replace(/\s+/g, "")));
+      if (score >= minScore) out.push({ city, locality, score });
     }),
   );
   return out.sort((a, b) => b.score - a.score || b.locality.count - a.locality.count).slice(0, limit);
 }
 
 export const sameLocality = (a?: string | null, b?: string | null) => !!norm(a) && norm(a) === norm(b);
+
+/** Merge well-known areas (count 0) into the index after real data so they appear as suggestions. */
+export function withPopularAreas(index: Map<string, CityNode>, areas: Record<string, string[]>) {
+  const out = new Map(index);
+  for (const [cityName, list] of Object.entries(areas)) {
+    const key = canonicalizeCity(cityName);
+    if (!key) continue;
+    const existing = out.get(key);
+    const node: CityNode = existing
+      ? { ...existing, localities: [...existing.localities] }
+      : { name: cityName, key, count: 0, localities: [] };
+    for (const a of list) {
+      const lk = norm(a);
+      if (!node.localities.some((l) => l.key === lk)) node.localities.push({ name: a, key: lk, count: 0 });
+    }
+    out.set(key, node);
+  }
+  return out;
+}
