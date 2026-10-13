@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Download, Pencil, Send, XCircle, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Download, Pencil, Send, XCircle, Trash2, ExternalLink, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { STATUS_VARIANT } from "./EventsManage";
 import {
-  EventRow, EventBooking, getEvent, listEventBookings, checkIn, cancelEvent, notifyAttendees, deleteEvent, saveEvent,
+  EventRow, EventBooking, getEvent, listEventBookings, checkIn, cancelEvent, notifyAttendees, deleteEvent, rescheduleEvent, saveEvent,
   fmtDate, hhmm, inr, seatsLeft,
 } from "@/services/eventService";
 
@@ -29,6 +29,7 @@ export default function EventManageDetail() {
   const [msg, setMsg] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [rs, setRs] = useState({ date: "", start: "", end: "", reason: "" });
 
   const load = async () => {
     if (!id) return;
@@ -96,7 +97,11 @@ export default function EventManageDetail() {
                 city: e.city || "", latitude: e.latitude, longitude: e.longitude, image_urls: e.image_urls, property_ids: e.property_ids,
               }, (e.tickets || []).map(({ event_id, sold, ...t }) => t), true, e.id);
             }, "Submitted for approval")}>Submit for approval</Button>}
-            {editable && bookings.length === 0 && <Button variant="ghost" size="sm" onClick={() => run(async () => { await deleteEvent(e.id); navigate("/events/manage"); }, "Event deleted")}><Trash2 className="h-4 w-4" /></Button>}
+            <Button variant="ghost" size="sm" className="text-destructive" disabled={busy} onClick={() => {
+              const n = bookings.filter((b) => b.status === "confirmed").length;
+              if (!confirm(n ? `Delete this event? ${n} booking(s) will be cancelled and attendees emailed.` : "Delete this event?")) return;
+              run(async () => { await deleteEvent(e.id); navigate("/events/manage"); }, "Event deleted");
+            }}><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
           </div>
         </div>
 
@@ -151,6 +156,21 @@ export default function EventManageDetail() {
                 <Button variant="outline" disabled={busy || stats.attended === 0} onClick={() => run(async () => { const r = await notifyAttendees(e.id, msg, "attended"); setMsg(""); toast.message(`Sent to ${r.sent} attendee(s)`); }, "Follow-up sent")}>Follow up attended buyers</Button>
               </div>
             </CardContent></Card>
+            {active && e.status !== "rejected" && (
+              <Card><CardHeader><CardTitle className="text-base flex items-center gap-2"><CalendarClock className="h-4 w-4" />Reschedule event</CardTitle></CardHeader><CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">Bookings stay valid. Every registered attendee gets an email and a notification with the new date and time.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Input type="date" value={rs.date} onChange={(ev) => setRs({ ...rs, date: ev.target.value })} aria-label="New date" />
+                  <Input type="time" value={rs.start} onChange={(ev) => setRs({ ...rs, start: ev.target.value })} aria-label="New start time" />
+                  <Input type="time" value={rs.end} onChange={(ev) => setRs({ ...rs, end: ev.target.value })} aria-label="New end time (optional)" />
+                </div>
+                <Input value={rs.reason} maxLength={500} onChange={(ev) => setRs({ ...rs, reason: ev.target.value })} placeholder="Reason (optional, shared with attendees)" />
+                <Button disabled={busy || !rs.date || !rs.start} onClick={() => run(async () => {
+                  const r = await rescheduleEvent(e.id, { event_date: rs.date, start_time: rs.start, end_time: rs.end || null, reason: rs.reason });
+                  setRs({ date: "", start: "", end: "", reason: "" }); toast.message(`${r.notified} attendee booking(s) notified`);
+                }, "Event rescheduled")}><CalendarClock className="h-4 w-4 mr-1" />Reschedule</Button>
+              </CardContent></Card>
+            )}
             {active && e.status !== "draft" && (
               <Card className="border-destructive/40"><CardHeader><CardTitle className="text-base">Cancel event</CardTitle></CardHeader><CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">All registrations will be cancelled and attendees notified. Paid tickets are marked for refund.</p>

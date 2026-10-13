@@ -1,6 +1,7 @@
 import { template as smartVisitInvoice } from './smart-visit-invoice.tsx'
 import { template as eventBookingConfirmation } from './event-booking-confirmation.tsx'
 import { template as eventRejected } from './event-rejected.tsx'
+import { template as eventChanged } from './event-changed.tsx'
 import type { ComponentType } from 'npm:react@18.3.1'
 
 export interface TemplateEntry {
@@ -24,6 +25,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'smart-visit-invoice': smartVisitInvoice,
   'event-booking-confirmation': eventBookingConfirmation,
   'event-rejected': eventRejected,
+  'event-changed': eventChanged,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }

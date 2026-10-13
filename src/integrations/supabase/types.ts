@@ -2908,6 +2908,7 @@ export type Database = {
           address: string | null
           city: string | null
           created_at: string
+          deleted_at: string | null
           description: string | null
           end_time: string | null
           event_date: string
@@ -2920,6 +2921,7 @@ export type Database = {
           organizer_name: string | null
           property_ids: string[]
           rejection_reason: string | null
+          rescheduled_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           start_time: string
@@ -2933,6 +2935,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           end_time?: string | null
           event_date: string
@@ -2945,6 +2948,7 @@ export type Database = {
           organizer_name?: string | null
           property_ids?: string[]
           rejection_reason?: string | null
+          rescheduled_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_time: string
@@ -2958,6 +2962,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           end_time?: string | null
           event_date?: string
@@ -2970,6 +2975,7 @@ export type Database = {
           organizer_name?: string | null
           property_ids?: string[]
           rejection_reason?: string | null
+          rescheduled_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_time?: string

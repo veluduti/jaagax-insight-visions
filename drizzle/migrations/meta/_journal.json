@@ -211,6 +211,13 @@
       "when": 1791803129115,
       "tag": "0029_hyperguest_cert_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791863830275,
+      "tag": "0030_events_delete_reschedule",
+      "breakpoints": true
     }
   ]
 }

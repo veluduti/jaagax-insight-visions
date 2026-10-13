@@ -18,7 +18,7 @@ export interface EventRow {
   event_type: string; event_date: string; start_time: string; end_time: string | null; venue: string;
   address: string | null; city: string | null; latitude: number | null; longitude: number | null;
   image_urls: string[]; property_ids: string[]; status: EventStatus; rejection_reason: string | null;
-  submitted_at: string | null; reviewed_at: string | null; created_at: string;
+  submitted_at: string | null; deleted_at?: string | null; rescheduled_at?: string | null; reviewed_at: string | null; created_at: string;
   tickets?: TicketType[];
 }
 export interface EventBooking {
@@ -80,18 +80,19 @@ const SELECT_EVENT = "*, tickets:event_ticket_types(*)";
 
 export async function listPublicEvents(): Promise<EventRow[]> {
   const today = new Date().toISOString().slice(0, 10);
-  const { data, error } = await db.from("events").select(SELECT_EVENT).eq("status", "approved").gte("event_date", today).order("event_date");
+  const { data, error } = await db.from("events").select(SELECT_EVENT).eq("status", "approved").is("deleted_at", null).gte("event_date", today).order("event_date");
   if (error) throw error;
   return data || [];
 }
 export async function getEvent(id: string): Promise<EventRow | null> {
   const { data, error } = await db.from("events").select(SELECT_EVENT).eq("id", id).maybeSingle();
   if (error) throw error;
+  if (data?.deleted_at) return null;
   if (data?.tickets) data.tickets.sort((a: TicketType, b: TicketType) => a.price - b.price);
   return data;
 }
 export async function listMyEvents(uid: string): Promise<EventRow[]> {
-  const { data, error } = await db.from("events").select(SELECT_EVENT).eq("organizer_id", uid).order("event_date", { ascending: false });
+  const { data, error } = await db.from("events").select(SELECT_EVENT).eq("organizer_id", uid).is("deleted_at", null).order("event_date", { ascending: false });
   if (error) throw error;
   return data || [];
 }
@@ -152,10 +153,10 @@ export async function saveEvent(uid: string, input: EventInput, tickets: TicketI
   return id!;
 }
 
-export async function deleteEvent(id: string) {
-  const { error } = await db.from("events").delete().eq("id", id);
-  if (error) throw error;
-}
+/** Soft-deletes: hides the event everywhere, cancels bookings and emails/notifies attendees. */
+export const deleteEvent = (event_id: string, reason?: string) => call({ action: "delete_event", event_id, reason });
+export const rescheduleEvent = (event_id: string, v: { event_date: string; start_time: string; end_time: string | null; reason?: string }) =>
+  call<{ notified: number }>({ action: "reschedule_event", event_id, ...v });
 
 export async function uploadEventImage(uid: string, file: File): Promise<string> {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
