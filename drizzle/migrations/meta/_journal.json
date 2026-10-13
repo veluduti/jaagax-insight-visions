@@ -218,6 +218,13 @@
       "when": 1791863830275,
       "tag": "0030_events_delete_reschedule",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791882736735,
+      "tag": "0031_hyperguest_bookings",
+      "breakpoints": true
     }
   ]
 }

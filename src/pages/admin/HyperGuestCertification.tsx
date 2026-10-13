@@ -44,12 +44,26 @@ const HyperGuestCertification = () => {
     if (error) toast.error("Couldn't save: " + error.message);
   };
 
+  const downloadLogs = async () => {
+    const [{ data: logs, error }, { data: bookings }] = await Promise.all([
+      (supabase as any).from("channel_api_payloads").select("created_at,operation,endpoint,http_status,request_id,error_message,request_payload,response_payload").eq("channel", "hyperguest").order("created_at", { ascending: true }).limit(1000),
+      (supabase as any).from("hyperguest_bookings").select("agency_reference,hg_booking_id,test_label,status,check_in,check_out,rooms,total_amount,total_currency,created_at,cancelled_at").order("created_at"),
+    ]);
+    if (error) return toast.error("Couldn't load logs: " + error.message);
+    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), bookings, logs }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `hyperguest-cert-logs-${Date.now()}.json`; a.click();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 pt-24 pb-12 max-w-3xl space-y-4">
         <h1 className="text-2xl font-bold">HyperGuest Stage 2 checklist</h1>
         <p className="text-sm text-muted-foreground">Each item stays Pending until a tester checks it by hand and marks it.</p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline"><a href="/hotels/hyperguest/19912" target="_blank" rel="noreferrer">Open certification property 19912</a></Button>
+          <Button variant="outline" onClick={downloadLogs}>Download booking logs (search → cancel)</Button>
+        </div>
         {ITEMS.map((it) => {
           const r = rows[it.key] ?? { status: "pending" as Status, notes: "" };
           return (

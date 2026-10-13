@@ -1334,6 +1334,9 @@ const Hotels = () => {
 
         <div className="container mx-auto max-w-7xl px-4 py-4">
           <MyHotelApplicationsBanner />
+          <a href="/hotels/hyperguest/19912" className="block mb-4 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm hover:bg-primary/20 transition-colors">
+            <span className="font-semibold">Certification Property (Test only)</span> · Haifa · HyperGuest test hotel — tap to search and book
+          </a>
 
           <StayFinder
             value={stayFilters}
