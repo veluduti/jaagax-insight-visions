@@ -124,9 +124,7 @@ export async function searchProperties(term: string) {
     db.from("projects").select("id, slug, name, city, locality").ilike("name", q).limit(8),
     db.from("properties").select("id, slug, title, city, locality").ilike("title", q).not("title", "is", null).limit(8),
   ]);
-  return [...(b.data || []).map(asProject), ...(a.data || []).map(asProject)].length
-    ? [...(a.data || []).map(asProject), ...(b.data || []).map(asProperty)]
-    : [];
+  return [...(a.data || []).map(asProject), ...(b.data || []).map(asProperty)];
 }
 
 export interface TicketInput {

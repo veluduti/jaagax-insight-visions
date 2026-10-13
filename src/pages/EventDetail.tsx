@@ -116,7 +116,7 @@ export default function EventDetail() {
                 <h2 className="font-semibold flex items-center gap-2"><Home className="h-4 w-4" />Featured properties</h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {props.map((p) => (
-                    <a key={p.id} href={`/property/${p.slug || p.id}`} target="_blank" rel="noopener noreferrer">
+                    <a key={p.id} href={p.href || `/property/${p.slug || p.id}`} target="_blank" rel="noopener noreferrer">
                       <Card className="hover:border-primary/50"><CardContent className="p-3 flex gap-3">
                         <img src={(Array.isArray(p.images) ? p.images[0] : null) || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"} alt="" className="h-14 w-16 rounded object-cover"
                           onError={(ev) => { (ev.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"; }} />
