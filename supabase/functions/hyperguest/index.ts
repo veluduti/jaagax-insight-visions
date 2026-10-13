@@ -180,7 +180,10 @@ Deno.serve(async (req) => {
 
     // Work out the current cancellation charge from HyperGuest's own policy windows.
     const { data: cur } = await sb.from("hyperguest_bookings").select("*").eq("id", bk.id).single();
-    const now = Date.now();
+    // Policy windows are in the hotel's local time; convert with its UTC offset.
+    const st = await hg("detail", `${STATIC}/${cur.property_id}/property-static.json`);
+    const offMin = Number(st.data?.settings?.utcOffset ?? 0);
+    const now = Date.now() + offMin * 60_000;
     let charge = 0, roomTotal = 0, currency = cur.total_currency;
     for (const room of cur.raw?.rooms ?? []) {
       roomTotal += Number(room?.prices?.net?.price ?? room?.payment?.chargeAmount?.price ?? 0);
