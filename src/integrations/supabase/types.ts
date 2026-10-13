@@ -6712,6 +6712,75 @@ export type Database = {
           },
         ]
       }
+      hyperguest_bookings: {
+        Row: {
+          agency_reference: string
+          cancellation: Json | null
+          cancelled_at: string | null
+          check_in: string
+          check_out: string
+          created_at: string
+          currency: string | null
+          hg_booking_id: number | null
+          id: string
+          nationality: string | null
+          property_id: number
+          raw: Json | null
+          rooms: Json
+          special_requests: string | null
+          status: string
+          test_label: string | null
+          total_amount: number | null
+          total_currency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_reference: string
+          cancellation?: Json | null
+          cancelled_at?: string | null
+          check_in: string
+          check_out: string
+          created_at?: string
+          currency?: string | null
+          hg_booking_id?: number | null
+          id?: string
+          nationality?: string | null
+          property_id: number
+          raw?: Json | null
+          rooms?: Json
+          special_requests?: string | null
+          status?: string
+          test_label?: string | null
+          total_amount?: number | null
+          total_currency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_reference?: string
+          cancellation?: Json | null
+          cancelled_at?: string | null
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          currency?: string | null
+          hg_booking_id?: number | null
+          id?: string
+          nationality?: string | null
+          property_id?: number
+          raw?: Json | null
+          rooms?: Json
+          special_requests?: string | null
+          status?: string
+          test_label?: string | null
+          total_amount?: number | null
+          total_currency?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hyperguest_cert_checks: {
         Row: {
           item_key: string
