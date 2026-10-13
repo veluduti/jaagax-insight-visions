@@ -13,7 +13,7 @@ export default function LinkedEvents({ entityId, compact }: { entityId: string; 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     (supabase as any).from("events").select("*, tickets:event_ticket_types(*)")
-      .eq("status", "approved").contains("property_ids", [entityId]).gte("event_date", today).order("event_date")
+      .eq("status", "approved").is("deleted_at", null).contains("property_ids", [entityId]).gte("event_date", today).order("event_date")
       .then(({ data }: any) => setEvents(data || []));
   }, [entityId]);
 
