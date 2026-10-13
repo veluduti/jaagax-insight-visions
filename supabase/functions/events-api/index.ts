@@ -228,15 +228,34 @@ Deno.serve(async (req) => {
       return json({ success: true });
     }
 
-    // ---------- Organizer: cancel whole event ----------
-    if (action === "cancel_event") {
+    const whenOf = (d: string, s: string, en?: string | null) => `${fmtDate(d)}, ${hhmm(s)}${en ? `–${hhmm(en)}` : ""}`;
+    const tellAdmins = async (rows: { title: string; message: string; event_id: string }) => {
+      const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "admin");
+      await notify(admin, (admins || []).filter((a: any) => a.user_id !== user.id).map((a: any) => ({
+        user_id: a.user_id, type: "event_update", title: rows.title, message: rows.message, link: "/admin/events", metadata: { event_id: rows.event_id },
+      })));
+    };
+    const emailAttendee = async (b: any, key: string, data: Record<string, unknown>) => {
+      if (!b.customer_email) return;
+      try {
+        await sendTemplateEmail("event-changed", b.customer_email, {
+          idempotencyKey: key, templateData: { name: b.customer_name, link: `${APP}/events/booking/${b.id}`, ...data },
+        });
+      } catch (err) { console.error("event-changed email failed", (err as Error).message); }
+    };
+
+    // ---------- Organizer: cancel or delete whole event ----------
+    if (action === "cancel_event" || action === "delete_event") {
+      const del = action === "delete_event";
       const owned = await loadOwnedEvent(String(body.event_id || ""));
-      if (!owned) return json({ error: "Event not found" }, 404);
+      if (!owned || owned.e.deleted_at) return json({ error: "Event not found" }, 404);
       const { e } = owned;
-      if (["cancelled", "completed"].includes(e.status)) return json({ error: "Event already closed" }, 400);
-      const reason = String(body.reason || "").trim().slice(0, 500) || "The organizer cancelled this event";
+      if (!del && ["cancelled", "completed"].includes(e.status)) return json({ error: "Event already closed" }, 400);
+      const reason = String(body.reason || "").trim().slice(0, 500) || (del ? "The organizer removed this event" : "The organizer cancelled this event");
       const now = new Date().toISOString();
-      await admin.from("events").update({ status: "cancelled", updated_at: now }).eq("id", e.id);
+      await admin.from("events").update({
+        status: e.status === "completed" ? "completed" : "cancelled", updated_at: now, ...(del ? { deleted_at: now } : {}),
+      }).eq("id", e.id);
       const { data: bookings } = await admin.from("event_bookings").select("*").eq("event_id", e.id).in("status", ["confirmed", "pending_payment"]);
       for (const b of bookings || []) {
         await admin.from("event_bookings").update({
@@ -245,12 +264,55 @@ Deno.serve(async (req) => {
         }).eq("id", b.id);
         await releaseSeats(admin, b);
       }
-      await notify(admin, (bookings || []).filter((b: any) => b.status === "confirmed").map((b: any) => ({
-        user_id: b.customer_id, type: "event_cancelled", title: "Event cancelled",
-        message: `"${e.title}" on ${fmtDate(e.event_date)} was cancelled. ${reason}${b.payment_status === "paid" ? " Your refund will be processed by our team." : ""}`,
-        link: `/events/booking/${b.id}`,
+      const confirmed = (bookings || []).filter((b: any) => b.status === "confirmed");
+      const title = del ? "Event removed" : "Event cancelled";
+      await notify(admin, confirmed.map((b: any) => ({
+        user_id: b.customer_id, type: "event_cancelled", title,
+        message: `"${e.title}" on ${fmtDate(e.event_date)} was ${del ? "removed" : "cancelled"}. ${reason}${b.payment_status === "paid" ? " Your refund will be processed by our team." : ""}`,
+        link: `/events/booking/${b.id}`, metadata: { event_id: e.id, booking_id: b.id },
       })));
+      for (const b of confirmed) {
+        await emailAttendee(b, `event-${del ? "deleted" : "cancelled"}-${b.id}`, {
+          eventTitle: e.title, kind: del ? "deleted" : "cancelled", oldWhen: whenOf(e.event_date, e.start_time, e.end_time),
+          reason, refund: b.payment_status === "paid",
+        });
+      }
+      await notify(admin, [{ user_id: e.organizer_id, type: "event_update", title, message: `"${e.title}" was ${del ? "deleted" : "cancelled"}. ${confirmed.length} attendee(s) notified.`, link: "/events/manage", metadata: { event_id: e.id } }]);
+      if (e.status !== "draft") await tellAdmins({ title, message: `"${e.title}" was ${del ? "deleted" : "cancelled"} by the organizer.`, event_id: e.id });
       return json({ success: true, cancelled: bookings?.length || 0 });
+    }
+
+    // ---------- Organizer: reschedule ----------
+    if (action === "reschedule_event") {
+      const owned = await loadOwnedEvent(String(body.event_id || ""));
+      if (!owned || owned.e.deleted_at) return json({ error: "Event not found" }, 404);
+      const { e } = owned;
+      if (["cancelled", "completed", "rejected"].includes(e.status)) return json({ error: "This event can't be rescheduled" }, 400);
+      const date = String(body.event_date || ""), start = String(body.start_time || "").slice(0, 5);
+      const end = body.end_time ? String(body.end_time).slice(0, 5) : null;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(start)) return json({ error: "Pick a valid date and start time" }, 400);
+      const todayIst = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+      if (date < todayIst) return json({ error: "New date must be today or later" }, 400);
+      if (end && end <= start) return json({ error: "End time must be after start time" }, 400);
+      if (date === e.event_date && start === hhmm(e.start_time) && end === (e.end_time ? hhmm(e.end_time) : null)) return json({ error: "Nothing changed" }, 400);
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      const now = new Date().toISOString();
+      const oldWhen = whenOf(e.event_date, e.start_time, e.end_time), newWhen = whenOf(date, start, end);
+      const { error } = await admin.from("events").update({ event_date: date, start_time: start, end_time: end, rescheduled_at: now, updated_at: now }).eq("id", e.id);
+      if (error) return json({ error: "Could not reschedule" }, 400);
+      if (e.status !== "approved") return json({ success: true, notified: 0 });
+      const { data: bookings } = await admin.from("event_bookings").select("*").eq("event_id", e.id).eq("status", "confirmed");
+      await notify(admin, (bookings || []).map((b: any) => ({
+        user_id: b.customer_id, type: "event_update", title: "Event rescheduled",
+        message: `"${e.title}" moved from ${oldWhen} to ${newWhen}.${reason ? ` ${reason}` : ""} Your booking stays valid.`,
+        link: `/events/booking/${b.id}`, metadata: { event_id: e.id, booking_id: b.id },
+      })));
+      for (const b of bookings || []) {
+        await emailAttendee(b, `event-rescheduled-${b.id}-${now}`, { eventTitle: e.title, kind: "rescheduled", oldWhen, newWhen, venue: e.venue, reason });
+      }
+      await notify(admin, [{ user_id: e.organizer_id, type: "event_update", title: "Event rescheduled", message: `"${e.title}" is now on ${newWhen}. ${bookings?.length || 0} attendee(s) notified.`, link: `/events/manage/${e.id}`, metadata: { event_id: e.id } }]);
+      await tellAdmins({ title: "Event rescheduled", message: `"${e.title}" moved from ${oldWhen} to ${newWhen}.`, event_id: e.id });
+      return json({ success: true, notified: bookings?.length || 0 });
     }
 
     // ---------- Organizer: send update / follow-up to attendees ----------
