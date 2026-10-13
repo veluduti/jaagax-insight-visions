@@ -195,18 +195,18 @@ export default function EventCreate() {
             </div>
           </CardContent></Card>
 
-        <Card><CardHeader><CardTitle>Associated properties</CardTitle></CardHeader>
+        <Card><CardHeader><CardTitle>Associated projects & properties</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex flex-wrap gap-2">{props.map((p) => (
               <Badge key={p.id} variant="secondary" className="gap-1">{p.title}
                 <button type="button" onClick={() => { setProps(props.filter((x) => x.id !== p.id)); set("property_ids", f.property_ids.filter((x) => x !== p.id)); }}><X className="h-3 w-3" /></button></Badge>
             ))}</div>
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-9" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search property by title" /></div>
+              <Input className="pl-9" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search a project or property by name" /></div>
             {results.length > 0 && <div className="border rounded-md divide-y max-h-56 overflow-auto">{results.filter((r) => !f.property_ids.includes(r.id)).map((r) => (
               <button key={r.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted"
                 onClick={() => { if (f.property_ids.length >= 10) return toast.error("Up to 10 properties"); setProps([...props, r]); set("property_ids", [...f.property_ids, r.id]); setTerm(""); }}>
-                {r.title} <span className="text-muted-foreground">· {[r.locality, r.city].filter(Boolean).join(", ")}</span></button>
+                <Badge variant="outline" className="mr-2 text-[10px] capitalize">{r.kind}</Badge>{r.title} <span className="text-muted-foreground">· {[r.locality, r.city].filter(Boolean).join(", ")}</span></button>
             ))}</div>}
           </CardContent></Card>
 

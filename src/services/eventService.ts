@@ -107,15 +107,24 @@ export async function canOrganize(uid: string): Promise<boolean> {
   const { data } = await db.rpc("can_organize_events", { _uid: uid });
   return !!data;
 }
+// property_ids holds both property and project ids; results carry `kind` and a ready `href`.
+const asProject = (p: any) => ({ ...p, title: p.name, kind: "project", href: `/project/${p.slug || p.id}` });
+const asProperty = (p: any) => ({ ...p, kind: "property", href: `/property/${p.slug || p.id}` });
 export async function getLinkedProperties(ids: string[]) {
   if (!ids?.length) return [];
-  const { data } = await db.from("properties").select("id, slug, title, city, locality, price, images").in("id", ids);
-  return data || [];
+  const [a, b] = await Promise.all([
+    db.from("properties").select("id, slug, title, city, locality, price, images").in("id", ids),
+    db.from("projects").select("id, slug, name, city, locality, images").in("id", ids),
+  ]);
+  return [...(a.data || []).map(asProperty), ...(b.data || []).map(asProject)];
 }
 export async function searchProperties(term: string) {
-  const { data } = await db.from("properties").select("id, title, city, locality")
-    .ilike("title", `%${term.replace(/[%_,()]/g, " ")}%`).not("title", "is", null).limit(10);
-  return data || [];
+  const q = `%${term.replace(/[%_,()]/g, " ")}%`;
+  const [a, b] = await Promise.all([
+    db.from("projects").select("id, slug, name, city, locality").ilike("name", q).limit(8),
+    db.from("properties").select("id, slug, title, city, locality").ilike("title", q).not("title", "is", null).limit(8),
+  ]);
+  return [...(a.data || []).map(asProject), ...(b.data || []).map(asProperty)];
 }
 
 export interface TicketInput {
