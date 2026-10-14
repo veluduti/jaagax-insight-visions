@@ -15254,6 +15254,10 @@ export type Database = {
         Returns: Json
       }
       approve_profile: { Args: { _profile_id: string }; Returns: undefined }
+      assert_property_pricing_shape: {
+        Args: { _content: Json }
+        Returns: undefined
+      }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
         Returns: undefined
