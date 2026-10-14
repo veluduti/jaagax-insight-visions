@@ -288,7 +288,6 @@ const Navigation = () => {
               )}
             </div>
           </div>
-          )}
         </div>
       </motion.nav>
 
@@ -348,7 +347,6 @@ const Navigation = () => {
               )}
             </div>
           </div>
-          )}
         </div>
       </motion.nav>
 
