@@ -376,9 +376,8 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       setFloorPlanFiles([]);
       onSuccess?.();
 
-      // Navigate to the matching tier page
-      if (tier === "featured") navigate("/featured-properties");
-      else if (tier === "basic") navigate("/partial-properties");
+      // Configure pricing only after ownership has been saved on the listing.
+      if (inserted?.id && tier !== "draft") navigate(`/property-pricing/${inserted.id}`);
     } catch (error: any) {
       console.error("Error submitting property:", error);
       toast.error(error?.message || "Failed to submit property");
