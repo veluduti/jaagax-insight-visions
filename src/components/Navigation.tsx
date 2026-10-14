@@ -151,6 +151,7 @@ const Navigation = () => {
                 decoding="async"
               />
             </Link>
+            </div>
 
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu className="[&>div:last-child]:left-auto [&>div:last-child]:right-0">
