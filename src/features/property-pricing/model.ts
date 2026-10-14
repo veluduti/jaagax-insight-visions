@@ -33,8 +33,8 @@ const today=()=>new Date().toISOString().slice(0,10);
 export const offerActive=(o:Offer,on=today())=>!o.valid_until||o.valid_until>=on;
 /** Rupee value of one offer; percentages apply to the total base price only (not taxes/charges). */
 export const offerAmount=(o:Offer,base:number)=>o.type==='percent'?Math.round(base*o.value/100):o.value;
-export function fullPaymentSavings(p:Pick<Pricing,'base_price'|'upfront_discount'>,plan:{kind:string;offers?:Offer[]},on=today()){ if(plan.kind!=='full') return 0; return p.upfront_discount+(plan.offers??[]).filter(o=>offerActive(o,on)).reduce((s,o)=>s+offerAmount(o,p.base_price),0); }
-export function planTotal(p: Pick<Pricing,'base_price'|'charges'|'upfront_discount'>,plan:{kind:string;extra_charge:number;offers?:Offer[]},on=today()) {return priceTotal(p)+plan.extra_charge-fullPaymentSavings(p,plan,on);}
+export function fullPaymentSavings(p:Pick<Pricing,'base_price'|'upfront_discount'>,plan:Pick<Plan,'kind'|'offers'>,on=today()){ if(plan.kind!=='full') return 0; return p.upfront_discount+(plan.offers??[]).filter(o=>offerActive(o,on)).reduce((s,o)=>s+offerAmount(o,p.base_price),0); }
+export function planTotal(p: Pick<Pricing,'base_price'|'charges'|'upfront_discount'>,plan:Pick<Plan,'kind'|'extra_charge'|'offers'>,on=today()) {return priceTotal(p)+plan.extra_charge-fullPaymentSavings(p,plan,on);}
 export function emi(amount:number,rate:number,months:number) { if(!Number.isFinite(amount)||amount<=0||months<=0) return 0; const r=rate/1200;return r===0?amount/months:amount*r/(1-Math.pow(1+r,-months)); }
 export const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
 export function newPlan(kind:(typeof selectableMethods)[number],total:number):Plan {return {kind,offers:[],name:methodLabels[kind],terms:'',extra_charge:0,interest_rate:0,loan_amount:kind==='loan'?Math.round(total*.8):0,down_payment:kind==='loan'?total-Math.round(total*.8):0,tenure_months:240,milestones:[]};}
