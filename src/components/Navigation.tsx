@@ -137,11 +137,6 @@ const Navigation = () => {
           <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
             <div className="flex items-center gap-2 shrink-0">
-            {location.pathname !== "/" && (
-              <Button variant="ghost" size="icon" onClick={goBack} aria-label="Go back" className="h-10 w-10 rounded-full">
-                <ArrowLeft className="h-5 w-5 text-foreground" />
-              </Button>
-            )}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
               <img
                 src={jaagaxLogo}
@@ -305,17 +300,6 @@ const Navigation = () => {
         <div className="container-padding py-3 max-[399px]:px-2">
           <div className="flex items-center justify-between gap-1 sm:gap-2 min-w-0 h-10">
             <div className="flex items-center gap-0.5 sm:gap-1 min-w-0 shrink">
-              {location.pathname !== "/" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={goBack}
-                  aria-label="Go back"
-                  className="h-10 w-10 shrink-0 rounded-full active:scale-90 transition-transform"
-                >
-                  <ArrowLeft className="h-5 w-5 text-foreground" />
-                </Button>
-              )}
               <Link to="/" className="flex items-center min-w-0 shrink" aria-label="JAAGA X - Home">
                 <img
                   src={jaagaxLogo}
