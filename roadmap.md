@@ -33,6 +33,6 @@
 - [ ] Smart Stays Phase 3: retries, compensation, Razorpay refunds, customer cancellation
 - [ ] Smart Stays Phase 4: commission rules/ledger, admin console, settlements
 
-- [ ] Back button on every page that navigates correctly
-- [ ] Finish pricing workflow test (3 BHK Flat Chanda Nagar)
+- [x] Back button on every page
+- [x] Pricing workflow test (Chanda Nagar)
 - [ ] HyperGuest Stage 3 live booking (awaiting payment method answer)
