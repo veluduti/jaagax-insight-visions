@@ -19,8 +19,8 @@ export const pricingSchema = z.object({
  v.plans.forEach(p=>{
   if(p.kind!=='full'&&p.offers.length) error('Offers and discounts apply only to Full Payment.');
   if(p.offers.some(o=>o.type==='percent'&&o.value>50)) error('A percentage offer cannot exceed 50%.');
-  if(p.kind==='full'&&expected<=0) error('Full Payment discounts and offers must leave a price above ₹0.');
   const expected=planTotal(v,p);
+  if(p.kind==='full'&&expected<=0) error('Full Payment discounts and offers must leave a price above ₹0.');
   if(p.kind==='loan' && (p.loan_amount<=0 || Math.abs(p.loan_amount+p.down_payment-expected)>1)) error('Loan amount and down payment must equal the plan total.');
   if(p.kind==='installment' && (!p.milestones.length||Math.abs(p.milestones.reduce((s,m)=>s+m.amount,0)-expected)>1)) error(`${p.name}: schedule must total ${inr(expected)}, including the booking amount.`);
   if(p.kind==='installment'&&p.milestones.some(m=>!m.due_date)) error('Every fixed installment requires a due date.');
