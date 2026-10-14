@@ -356,18 +356,18 @@ const Navigation = () => {
       {/* Spacer to offset fixed navbar so content isn't hidden underneath */}
       <div aria-hidden className="h-16 xl:h-[68px]" />
 
-      {/* Back symbol — hidden on dashboards; centered below the nav bar elsewhere */}
+      {/* Back symbol — hidden on dashboards; sits tight below the nav bar, aligned to the content's left edge */}
       {location.pathname !== "/" && !isDashboardRoute && (
-        <div className="container-padding">
-          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex justify-center">
+        <div className="container-padding -mt-1 mb-1">
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={goBack}
               aria-label="Go back"
-              className="h-9 w-9 rounded-full border-border/60 bg-background/70 shadow-sm text-muted-foreground hover:text-foreground hover:bg-accent hover:border-primary/40"
+              className="h-8 w-8 rounded-full -ml-2 text-muted-foreground hover:text-foreground hover:bg-accent"
             >
-              <ArrowLeft className="h-[18px] w-[18px]" />
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </div>
         </div>
