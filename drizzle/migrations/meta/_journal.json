@@ -225,6 +225,20 @@
       "when": 1791882736735,
       "tag": "0031_hyperguest_bookings",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791972450882,
+      "tag": "0032_property_pricing_payment_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791972746798,
+      "tag": "0033_harden_property_pricing_validation",
+      "breakpoints": true
     }
   ]
 }

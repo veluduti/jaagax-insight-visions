@@ -11584,6 +11584,177 @@ export type Database = {
           },
         ]
       }
+      property_pricing_enquiries: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          customer_user_id: string
+          id: string
+          message: string
+          notes: string
+          plan_snapshot: Json
+          property_id: string
+          revision_id: string
+          selected_plan: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          customer_user_id: string
+          id?: string
+          message?: string
+          notes?: string
+          plan_snapshot: Json
+          property_id: string
+          revision_id: string
+          selected_plan: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          customer_user_id?: string
+          id?: string
+          message?: string
+          notes?: string
+          plan_snapshot?: Json
+          property_id?: string
+          revision_id?: string
+          selected_plan?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_pricing_enquiries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_pricing_enquiries_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "property_pricing_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_pricing_history: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          details: Json
+          enquiry_id: string | null
+          id: string
+          property_id: string
+          revision_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          details?: Json
+          enquiry_id?: string | null
+          id?: string
+          property_id: string
+          revision_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          details?: Json
+          enquiry_id?: string | null
+          id?: string
+          property_id?: string
+          revision_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_pricing_history_enquiry_id_fkey"
+            columns: ["enquiry_id"]
+            isOneToOne: false
+            referencedRelation: "property_pricing_enquiries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_pricing_history_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_pricing_history_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "property_pricing_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_pricing_revisions: {
+        Row: {
+          content: Json
+          created_at: string
+          creator_user_id: string
+          id: string
+          property_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_by: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          creator_user_id: string
+          id?: string
+          property_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          creator_user_id?: string
+          id?: string
+          property_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_pricing_revisions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_reports: {
         Row: {
           admin_notes: string | null
@@ -15083,9 +15254,17 @@ export type Database = {
         Returns: Json
       }
       approve_profile: { Args: { _profile_id: string }; Returns: undefined }
+      assert_property_pricing_shape: {
+        Args: { _content: Json }
+        Returns: undefined
+      }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
         Returns: undefined
+      }
+      can_edit_property_pricing: {
+        Args: { _property: string; _user: string }
+        Returns: boolean
       }
       can_organize_events: { Args: { _uid: string }; Returns: boolean }
       can_remind_admin: { Args: { _target_user_id: string }; Returns: boolean }
@@ -15117,6 +15296,17 @@ export type Database = {
         Returns: number
       }
       compute_hotel_quality: { Args: { _hotel_id: string }; Returns: Json }
+      create_property_pricing_enquiry: {
+        Args: {
+          _email: string
+          _message?: string
+          _name: string
+          _phone: string
+          _plan: string
+          _revision: string
+        }
+        Returns: string
+      }
       create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
       credit_wallet_from_razorpay: {
         Args: {
@@ -15381,6 +15571,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_pricing_properties: {
+        Args: never
+        Returns: {
+          area_sqft: number
+          city: string
+          creator_user_id: string
+          id: string
+          price: number
+          title: string
+          type: string
+        }[]
+      }
       list_reminder_targets: {
         Args: never
         Returns: {
@@ -15470,6 +15672,8 @@ export type Database = {
         Args: { _approve: boolean; _property_id: string; _reason?: string }
         Returns: Json
       }
+      property_pricing_creator: { Args: { _property: string }; Returns: string }
+      property_pricing_public: { Args: { _property: string }; Returns: boolean }
       property_reject_review: {
         Args: { _property_id: string; _reason: string }
         Returns: Json
@@ -15575,6 +15779,15 @@ export type Database = {
       }
       review_price_drop: {
         Args: { _decision: string; _property_id: string; _reason?: string }
+        Returns: undefined
+      }
+      review_property_pricing: {
+        Args: {
+          _content?: Json
+          _decision: string
+          _reason?: string
+          _revision: string
+        }
         Returns: undefined
       }
       review_signup_request: {
@@ -15722,6 +15935,10 @@ export type Database = {
         Args: { _aadhaar: string; _pan: string; _selfie: string }
         Returns: undefined
       }
+      submit_property_pricing: {
+        Args: { _content: Json; _property: string }
+        Returns: string
+      }
       submit_signup_request: {
         Args: {
           _city: string
@@ -15736,6 +15953,10 @@ export type Database = {
         Args: { _document_id: string; _notes?: string; _status: string }
         Returns: undefined
       }
+      update_property_pricing_enquiry: {
+        Args: { _enquiry: string; _notes?: string; _status: string }
+        Returns: undefined
+      }
       user_has_hotel_access: {
         Args: { _hotel_id: string; _min_role?: string }
         Returns: boolean
@@ -15748,6 +15969,10 @@ export type Database = {
       user_owns_profile: {
         Args: { _profile_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_property_pricing: {
+        Args: { _content: Json }
+        Returns: undefined
       }
       workflow_admin_level: { Args: { _user_id: string }; Returns: string }
       workflow_e2e_agent_assignment_test: { Args: never; Returns: Json }

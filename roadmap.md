@@ -1,4 +1,11 @@
 # Active roadmap — JAAGA Travel
+## Property pricing and payment plans
+- [x] Replace Comparable Listings with approved price breakdown and selectable payment plans
+- [x] Add owner/builder and assigned-agent pricing editor, revisions and enquiry management
+- [x] Add secure Global Admin approval, amendment and rejection with notifications
+- [x] Validate pricing calculations, owner submission/readback, ownership, rejected unauthorized review and signed-out redirects
+- [ ] Verify Global Admin amendment/approval and customer enquiry/creator readback end to end — blocked: current signed-in account is a customer, and no approved live property exists; requires an authorized admin account and approved test listing
+
 - [x] Add Find My Agent and Smart Visits shortcuts directly above homepage Featured Properties
 - [x] Improve Smart Visit cards and validate time labels
 - [x] Navigate notifications to their linked pages; correct legacy dashboard URLs

@@ -33,12 +33,11 @@ import NearbyPropertyHotels from "@/components/property/NearbyPropertyHotels";
 import PropertyActions from "@/components/property/PropertyActions";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import PaymentPlans from "@/components/property/PaymentPlans";
 
 import PropertyHeroGallery from "@/components/property/PropertyHeroGallery";
 import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";
 import NearbyAgents from "@/components/property/NearbyAgents";
-import MicroComparables from "@/components/property/MicroComparables";
+import PropertyPricingCard from "@/features/property-pricing/PropertyPricingCard";
 import AIDecisionPanel from "@/components/property/AIDecisionPanel";
 import AIPreCallContext from "@/components/property/AIPreCallContext";
 import AuthGate from "@/components/property/AuthGate";
@@ -628,13 +627,7 @@ const PropertyDetail = () => {
               />
             </AuthGate>
 
-            {/* Micro-Comparables & TAP */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view comparables">
-              <MicroComparables
-                property={property}
-                propertyId={property.id}
-              />
-            </AuthGate>
+            <PropertyPricingCard propertyId={property.id} />
 
             {/* Loan Assistance */}
             <LoanAssistanceButtonWrapper property={property} />

@@ -70,6 +70,7 @@ const BuilderAnalyticsPanel = lazy(() => import("@/components/builder/BuilderAna
 const BuilderMyProfileCard = lazy(() => import("@/components/builder/BuilderMyProfileCard"));
 const SamplePropertiesPreviewDialog = lazy(() => import("@/components/builder/SamplePropertiesPreviewDialog"));
 import { OwnerPropertyStatusPanel } from "@/components/property/OwnerPropertyStatusPanel";
+import { PricingDashboardSection } from "@/features/property-pricing/PricingWorkspace";
 
 interface Project {
   id: string;
@@ -559,6 +560,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
         </div>
 
         {/* Main Content Tabs */}
+        <PricingDashboardSection />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
