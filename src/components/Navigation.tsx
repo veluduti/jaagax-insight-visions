@@ -122,6 +122,9 @@ const Navigation = () => {
 
   // Pages opened in a new tab have no in-app history, so fall back to Home.
   const goBack = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate("/"));
+  const isDashboardRoute = ["/dashboard", "/admin", "/partners", "/agent", "/builder"].some((p) =>
+    location.pathname.startsWith(p),
+  );
   const isPropertiesActive = propertiesItems.some((item) => isActive(item.path));
   const isExploreActive = exploreItems.some((item) => isActive(item.path));
 
