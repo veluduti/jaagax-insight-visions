@@ -360,6 +360,19 @@ const Navigation = () => {
               )}
             </div>
           </div>
+          {location.pathname !== "/" && (
+            <div className="flex -mt-1 pb-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goBack}
+                aria-label="Go back"
+                className="h-7 gap-1 px-1.5 text-[12px] text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Back
+              </Button>
+            </div>
+          )}
         </div>
       </motion.nav>
 
