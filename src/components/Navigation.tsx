@@ -355,6 +355,23 @@ const Navigation = () => {
       {/* Spacer to offset fixed navbar so content isn't hidden underneath */}
       <div aria-hidden className="h-16 xl:h-[68px]" />
 
+      {/* Back symbol only — sits below the nav bar at the left edge of the content area */}
+      {location.pathname !== "/" && (
+        <div className="container-padding" >
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goBack}
+              aria-label="Go back"
+              className="h-9 w-9 rounded-full -ml-2 text-muted-foreground hover:text-foreground hover:bg-accent"
+            >
+              <ArrowLeft className="h-[18px] w-[18px]" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Bottom Nav - hidden on xl+ */}
       <div className="xl:hidden">
         <MobileNav />
