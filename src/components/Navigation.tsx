@@ -356,9 +356,9 @@ const Navigation = () => {
       {/* Spacer to offset fixed navbar so content isn't hidden underneath */}
       <div aria-hidden className="h-16 xl:h-[68px]" />
 
-      {/* Back symbol — hidden on dashboards; sits at the left edge of the content, just below the nav bar */}
+      {/* Back symbol — hidden on dashboards; left edge of the content, level with the page heading */}
       {location.pathname !== "/" && !isDashboardRoute && (
-        <div className="container-padding">
+        <div className="container-padding mt-4">
           <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex">
             <Button
               variant="ghost"
