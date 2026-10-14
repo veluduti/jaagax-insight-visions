@@ -97,7 +97,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
   const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0) + (selectedArea ? 1 : 0);
 
   return (
-    <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3 shadow-sm md:p-4">
+    <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3 text-card-foreground shadow-sm md:p-4">
       {/* AI intent search */}
       <form
         onSubmit={(e) => { e.preventDefault(); runAi(); }}
@@ -110,7 +110,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
             aria-label="Describe your stay"
             onChange={(e) => setAiText(e.target.value)}
             placeholder='Describe your stay — e.g. "Pool villa in Delhi for 4 people, preferably with breakfast"'
-            className="h-11 pl-9"
+            className="h-11 pl-9 text-foreground"
             maxLength={500}
           />
         </div>
@@ -118,7 +118,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
           {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           AI Search
         </Button>
-        <Button type="button" variant={open ? "secondary" : "outline"} className="h-11 gap-2" aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
+        <Button type="button" variant={open ? "secondary" : "outline"} className={`h-11 gap-2 ${open ? "text-secondary-foreground" : "text-foreground"}`} aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
           <SlidersHorizontal className="h-4 w-4" />
           Filters{activeCount ? ` (${activeCount})` : ""}
         </Button>
