@@ -49,6 +49,7 @@ const AdminPricingSettings = lazy(() => import("./pages/admin/PricingSettings"))
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const PropertyPricingWorkspace = lazy(() => import("./features/property-pricing/PricingWorkspace"));
 const Transactions = lazy(() => import("./pages/Transactions"));
 const TransactionsCity = lazy(() => import("./pages/TransactionsCity"));
 const TransactionsLocality = lazy(() => import("./pages/TransactionsLocality"));
@@ -515,6 +516,8 @@ const App = () => (
                   <Route path="/events/my-bookings" element={<RequireAuth><MyEventBookings /></RequireAuth>} />
                   <Route path="/events/booking/:id" element={<RequireAuth><EventBookingDetail /></RequireAuth>} />
                   <Route path="/admin/events" element={<ProtectedRoute allowedRole="admin"><AdminEventsPage /></ProtectedRoute>} />
+                  <Route path="/property-pricing/:propertyId" element={<RequireAuth><PropertyPricingWorkspace /></RequireAuth>} />
+                  <Route path="/admin/property-pricing" element={<ProtectedRoute allowedRole="admin"><PropertyPricingWorkspace admin /></ProtectedRoute>} />
                   <Route path="/admin/hyperguest-certification" element={<ProtectedRoute allowedRole="admin"><HyperGuestCertification /></ProtectedRoute>} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/map" element={<Map />} />

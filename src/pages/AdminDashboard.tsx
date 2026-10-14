@@ -849,6 +849,7 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab("reports")}
           />
           <QuickActionCard title="Export Data" description="Download" icon={Download} color="orange" />
+          <QuickActionCard title="Property Pricing" description="Review payment plans" icon={Landmark} color="green" onClick={() => navigate("/admin/property-pricing")} />
           <QuickActionCard
             title="Refresh"
             description="Update stats"

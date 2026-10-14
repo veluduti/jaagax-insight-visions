@@ -26,6 +26,7 @@ import { usePostingEntitlement } from "@/hooks/usePostingEntitlement";
 import { useVisitEntitlement } from "@/hooks/useVisitEntitlement";
 import Navigation from "@/components/Navigation";
 import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
+import { PricingDashboardSection } from "@/features/property-pricing/PricingWorkspace";
 
 import {
   Users,
@@ -988,6 +989,7 @@ export default function AgentDashboard() {
         </div>
 
         {/* ===== Assigned Properties ===== */}
+        <PricingDashboardSection />
         {agentProfile.id && user?.id && (
           <SectionErrorBoundary
             title="Assigned properties unavailable"
