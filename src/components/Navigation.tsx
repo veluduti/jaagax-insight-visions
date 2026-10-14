@@ -120,6 +120,8 @@ const Navigation = () => {
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
+  // Pages opened in a new tab have no in-app history, so fall back to Home.
+  const goBack = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate("/"));
   const isPropertiesActive = propertiesItems.some((item) => isActive(item.path));
   const isExploreActive = exploreItems.some((item) => isActive(item.path));
 
@@ -134,6 +136,12 @@ const Navigation = () => {
         <div className="container-padding py-3">
           <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
+            <div className="flex items-center gap-2 shrink-0">
+            {location.pathname !== "/" && (
+              <Button variant="ghost" size="icon" onClick={goBack} aria-label="Go back" className="h-10 w-10 rounded-full">
+                <ArrowLeft className="h-5 w-5 text-foreground" />
+              </Button>
+            )}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
               <img
                 src={jaagaxLogo}
@@ -143,6 +151,7 @@ const Navigation = () => {
                 decoding="async"
               />
             </Link>
+            </div>
 
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu className="[&>div:last-child]:left-auto [&>div:last-child]:right-0">
@@ -300,7 +309,7 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+                  onClick={goBack}
                   aria-label="Go back"
                   className="h-10 w-10 shrink-0 rounded-full active:scale-90 transition-transform"
                 >
