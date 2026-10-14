@@ -1333,11 +1333,6 @@ const Hotels = () => {
         </div>
 
         <div className="container mx-auto max-w-7xl px-4 py-4">
-          <MyHotelApplicationsBanner />
-          <a href="/hotels/hyperguest/19912" className="block mb-4 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm hover:bg-primary/20 transition-colors">
-            <span className="font-semibold">Certification Property (Test only)</span> · Haifa · HyperGuest test hotel — tap to search and book
-          </a>
-
           <StayFinder
             value={stayFilters}
             onChange={onStayFiltersChange}
@@ -1359,9 +1354,17 @@ const Hotels = () => {
             onPickArea={(city, area) => {
               const label = area ? `${area}, ${city}` : city;
               setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
-              navigate(`/hotels?city=${encodeURIComponent(city)}${area ? `&locality=${encodeURIComponent(area)}` : ""}`);
+              const next = new URLSearchParams(searchParams);
+              next.set("city", city);
+              if (area) next.set("locality", area); else next.delete("locality");
+              setSearchParams(next, { replace: true });
             }}
           />
+
+          <MyHotelApplicationsBanner />
+          <a href="/hotels/hyperguest/19912" className="block mb-4 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm hover:bg-primary/20 transition-colors">
+            <span className="font-semibold">Certification Property (Test only)</span> · Haifa · HyperGuest test hotel — tap to search and book
+          </a>
 
           {recommended.length > 0 && (
             <div className="mb-5">

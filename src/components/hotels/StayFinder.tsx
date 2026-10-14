@@ -46,16 +46,17 @@ const MAX = 20000;
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       aria-pressed={on}
       onClick={onClick}
-      className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+      className={`h-auto whitespace-normal rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
         on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/60"
       }`}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -84,7 +85,6 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
       }
       if (data?.error) throw new Error(data.error);
       onAiIntent(data.intent as AiIntent);
-      setOpen(true);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -94,19 +94,20 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
 
   const cityInfo = detectCity?.(aiText) ?? null;
 
-  const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0);
+  const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0) + (selectedArea ? 1 : 0);
 
   return (
-    <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-3 shadow-sm md:p-4">
+    <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3 shadow-sm md:p-4">
       {/* AI intent search */}
       <form
         onSubmit={(e) => { e.preventDefault(); runAi(); }}
         className="flex flex-col gap-2 sm:flex-row"
       >
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
           <Input
             value={aiText}
+            aria-label="Describe your stay"
             onChange={(e) => setAiText(e.target.value)}
             placeholder='Describe your stay — e.g. "Pool villa in Delhi for 4 people, preferably with breakfast"'
             className="h-11 pl-9"
@@ -117,19 +118,21 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
           {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           AI Search
         </Button>
-        <Button type="button" variant="outline" className="h-11 gap-2" onClick={() => setOpen((o) => !o)}>
+        <Button type="button" variant={open ? "secondary" : "outline"} className="h-11 gap-2" aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
           <SlidersHorizontal className="h-4 w-4" />
-          Stay filters{activeCount ? ` (${activeCount})` : ""}
+          Filters{activeCount ? ` (${activeCount})` : ""}
         </Button>
       </form>
 
-      {/* Areas of the detected city + quick amenities */}
+      {open && (
+      <div id="stay-filter-options" className="space-y-4 border-t border-border pt-3">
+      {/* Areas of the detected city */}
       {cityInfo && cityInfo.areas.length > 0 && (
         <div className="space-y-2 rounded-xl bg-muted/40 p-2.5">
           <p className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
             <MapPin className="h-3.5 w-3.5 text-primary" /> Areas in {cityInfo.name}
           </p>
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
+          <div className="flex flex-wrap gap-1.5">
             <Chip on={!selectedArea} onClick={() => onPickArea?.(cityInfo.name, null)}>All {cityInfo.name}</Chip>
             {cityInfo.areas.map((a) => (
               <Chip key={a.name} on={selectedArea?.toLowerCase() === a.name.toLowerCase()} onClick={() => onPickArea?.(cityInfo.name, a.name)}>
@@ -137,16 +140,10 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
               </Chip>
             ))}
           </div>
-          <p className="text-xs font-semibold text-muted-foreground">Amenities</p>
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
-            {AMENITY_CHIPS.map((a) => (
-              <Chip key={a.key} on={value.amenities.includes(a.key)} onClick={() => toggle("amenities", a.key)}>{a.label}</Chip>
-            ))}
-          </div>
         </div>
       )}
 
-      {/* Step 2: kind of stay (always visible, compact) */}
+      {/* Kind of stay */}
       <div>
         <p className="mb-1.5 text-xs font-semibold text-muted-foreground">What kind of stay?</p>
         <div className="flex flex-wrap gap-1.5">
@@ -159,8 +156,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
       </div>
 
       {/* Step 3: what are you looking for */}
-      {open && (
-        <div className="space-y-3 border-t border-border pt-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="mb-1.5 text-xs font-semibold text-muted-foreground">What are you looking for?</p>
             <div className="flex flex-wrap gap-1.5">
@@ -190,10 +186,16 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
             />
           </div>
         </div>
+      </div>
       )}
 
       {activeCount > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
+          {selectedArea && (
+            <Button type="button" variant="secondary" size="sm" className="h-auto gap-1 rounded-full px-2 py-1 text-xs" onClick={() => cityInfo && onPickArea?.(cityInfo.name, null)} aria-label={`Remove area ${selectedArea}`}>
+              <MapPin className="h-3 w-3" />{selectedArea}<X className="h-3 w-3" />
+            </Button>
+          )}
           {value.types.map((t) => (
             <span key={t} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
               {CATEGORY_BY_KEY[t]?.label ?? t}
@@ -218,13 +220,18 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
               <X className="h-3 w-3 cursor-pointer" onClick={() => onChange({ ...value, maxPrice: null })} />
             </span>
           )}
-          <button
+          <Button
             type="button"
-            className="ml-auto text-xs font-medium text-muted-foreground underline"
-            onClick={() => onChange({ types: [], prefs: [], amenities: [], maxPrice: null })}
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-xs font-medium text-muted-foreground"
+            onClick={() => {
+              if (selectedArea && cityInfo) onPickArea?.(cityInfo.name, null);
+              onChange({ types: [], prefs: [], amenities: [], maxPrice: null });
+            }}
           >
             Clear all
-          </button>
+          </Button>
         </div>
       )}
     </div>
