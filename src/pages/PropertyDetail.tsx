@@ -33,7 +33,6 @@ import NearbyPropertyHotels from "@/components/property/NearbyPropertyHotels";
 import PropertyActions from "@/components/property/PropertyActions";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import PaymentPlans from "@/components/property/PaymentPlans";
 
 import PropertyHeroGallery from "@/components/property/PropertyHeroGallery";
 import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";

@@ -5,7 +5,7 @@ const money = z.number().finite().min(0).max(1_000_000_000_000);
 export const pricingSchema = z.object({
  base_price: money.positive(), booking_amount: money, upfront_discount: money,
  charges: z.array(z.object({ label: z.string().trim().min(1).max(100), amount: money })).max(30),
- plans: z.array(z.object({ kind: z.enum(['full','loan','construction','installment','custom']), name: z.string().trim().min(1).max(100), terms: z.string().max(5000), extra_charge: money, interest_rate: z.number().min(0).max(100), loan_amount: money, down_payment: money, tenure_months: z.number().int().min(1).max(480), milestones: z.array(z.object({label:z.string().trim().min(1).max(100),amount:money.positive(),due_date:z.string().refine(s=>s===''||(/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))), 'Invalid due date')})).max(120) })).min(1).max(5)
+ plans: z.array(z.object({ kind: z.enum(['full','loan','construction','installment','custom']), name: z.string().trim().min(1).max(100), terms: z.string().max(5000), extra_charge: money, interest_rate: z.number().min(0).max(100), loan_amount: money, down_payment: money, tenure_months: z.number().int().min(1).max(480), milestones: z.array(z.object({label:z.string().trim().min(1).max(100),amount:money.positive(),due_date:z.string().refine(s=>s===''||(/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s), 'Invalid due date')})).max(120) })).min(1).max(5)
 }).superRefine((v,ctx)=>{
  const total = priceTotal(v);
  const error=(message:string)=>ctx.addIssue({code:z.ZodIssueCode.custom,message});
