@@ -1,0 +1,12 @@
+import {describe,it,expect} from 'vitest';
+import {emptyPricing,newPlan,pricingSchema,priceTotal,planTotal,emi} from '../model';
+describe('Property pricing rules',()=>{
+ it('includes every additional charge in the transparent total',()=>{const p=emptyPricing(1000000);p.charges=[{label:'GST',amount:50000},{label:'Parking',amount:100000}];expect(priceTotal(p)).toBe(1150000);});
+ it('applies optional upfront discount only to Full Payment',()=>{const p=emptyPricing(1000000);p.upfront_discount=50000;expect(planTotal(p,newPlan('full',1000000))).toBe(950000);expect(planTotal(p,newPlan('loan',1000000))).toBe(1000000);});
+ it('rejects booking amounts above total property price',()=>{const p=emptyPricing(1000000);p.booking_amount=1000001;expect(pricingSchema.safeParse(p).success).toBe(false);});
+ it('requires construction milestones to cover the entire plan total',()=>{const p=emptyPricing(1000000);const plan=newPlan('construction',1000000);plan.milestones=[{label:'Booking',amount:100000,due_date:''},{label:'Possession',amount:900000,due_date:''}];p.plans=[plan];expect(pricingSchema.safeParse(p).success).toBe(true);plan.milestones[1].amount=899000;expect(pricingSchema.safeParse(p).success).toBe(false);});
+ it('requires due dates for fixed installments',()=>{const p=emptyPricing(1000000);const plan=newPlan('installment',1000000);plan.milestones=[{label:'First payment',amount:1000000,due_date:''}];p.plans=[plan];expect(pricingSchema.safeParse(p).success).toBe(false);plan.milestones[0].due_date='2027-01-01';expect(pricingSchema.safeParse(p).success).toBe(true);});
+ it('requires loan plus down payment to equal total',()=>{const p=emptyPricing(1000000);const plan=newPlan('loan',1000000);p.plans=[plan];expect(pricingSchema.safeParse(p).success).toBe(true);plan.loan_amount=900000;expect(pricingSchema.safeParse(p).success).toBe(false);});
+ it('computes estimated EMI including zero interest',()=>{expect(emi(120000,0,12)).toBe(10000);expect(emi(1000000,9,240)).toBeCloseTo(8997.26,2);});
+ it('supports five configured payment methods without duplicates',()=>{const p=emptyPricing(1000000);p.plans.push(newPlan('full',1000000));expect(pricingSchema.safeParse(p).success).toBe(false);});
+});
