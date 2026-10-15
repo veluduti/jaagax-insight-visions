@@ -20,7 +20,8 @@ export interface LongStayDetailRoom {
 export default function LongStayDetails({ room, businessTypes, compact = false }: {
   room: LongStayDetailRoom; businessTypes?: string[]; compact?: boolean;
 }) {
-  const { kind } = customerView(room, businessTypes);
+  const assignedType = room.attributes?.business_type;
+  const { kind } = customerView(room, typeof assignedType === "string" ? [assignedType] : businessTypes);
   const attrs = room.attributes || {};
   const groups = new Map<string, { label: string; value: string }[]>();
   for (const field of kind.fields) {
