@@ -88,6 +88,7 @@ const HotelDetail = () => {
 
   const [liked, setLiked] = useState(false);
   const [hotel, setHotel] = useState<HotelData | null>(null);
+  const [hasNightlyRooms, setHasNightlyRooms] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
@@ -106,6 +107,7 @@ const HotelDetail = () => {
     if (!id) return;
     const fetchHotel = async () => {
       setLoading(true);
+      setHasNightlyRooms(null);
       const { data, error } = await supabase.from("partner_hotels").select("*").eq("id", id).single();
       if (error || !data) {
         console.error("Error fetching hotel:", error);
@@ -194,7 +196,9 @@ const HotelDetail = () => {
     );
   }
 
-  const onlyLongStay = !!hotel.business_types?.length && hotel.business_types.every((t) => ["hostel", "pg", "coliving"].includes(normalizeCategory(t)));
+  const onlyLongStay = hasNightlyRooms === null
+    ? !!hotel.business_types?.length && hotel.business_types.every((t) => ["hostel", "pg", "coliving"].includes(normalizeCategory(t)))
+    : !hasNightlyRooms;
   const discountPct = Number(hotel.discount_percentage) || 0;
   const hasDiscount = discountPct > 0;
   const starCount = Math.max(0, Math.min(5, Math.round(Number(hotel.star_rating) || 0)));
@@ -438,8 +442,9 @@ const HotelDetail = () => {
             <h2 className="text-sm font-semibold mb-3">Check availability</h2>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
               <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
+                <label htmlFor="availability-check-in" className="text-[11px] text-muted-foreground mb-1">Check-in</label>
                 <input
+                  id="availability-check-in"
                   type="date"
                   value={checkIn}
                   min={todayISO()}
@@ -452,8 +457,9 @@ const HotelDetail = () => {
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
+                <label htmlFor="availability-check-out" className="text-[11px] text-muted-foreground mb-1">Check-out</label>
                 <input
+                  id="availability-check-out"
                   type="date"
                   value={checkOut}
                   min={nextDayISO(checkIn) || todayISO()}
@@ -533,6 +539,7 @@ const HotelDetail = () => {
               adults={onlyLongStay ? 1 : adults}
               children={onlyLongStay ? 0 : childrenCount}
               roomsWanted={roomsWanted}
+              onNightlyRoomsChange={setHasNightlyRooms}
             />
           </section>
 

@@ -18,3 +18,4 @@
 - Pricing revisions, snapshot enquiries and history use authenticated pricing RPCs; shared `src/features/property-pricing` views preserve creator routing and separate pricing approval from property verification.
 
 - Customer long-stay details render the accommodation field configuration through `LongStayDetails` in listing previews and booking dialogs, so partner fields and customer policies stay aligned.
+- Hotel detail date controls follow the active rooms' accommodation kinds, not only the property's business types, so mixed nightly and long-stay inventory keeps both booking paths usable.
