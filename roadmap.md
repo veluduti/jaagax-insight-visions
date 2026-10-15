@@ -1,6 +1,6 @@
 # Active roadmap — JAAGA Travel
 ## Long-stay booking details
-- [ ] Restore date selection for mixed hotel and long-stay inventory on Jaagax---Durga and verify both booking paths
+- [x] Restore date selection for mixed inventory on Jaagax---Durga — verified hotel date inputs and long-stay popup on desktop/mobile; no payment made
 - [x] Show configured Hostel, PG and Co-living accommodation details and rental policies throughout customer booking
 - [x] Remove remaining nightly fields on long-stay detail pages and verify weekly/monthly date selection — signed-in existing legacy Hostel, PG and Co-living rooms; no payment made
 
