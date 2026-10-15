@@ -14,7 +14,7 @@ const monthStart = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()
 
 export async function loadLongStays(hotelId: string) {
   const [s, d, w] = await Promise.all([
-    sb.from("hotel_long_stays").select("*").eq("hotel_id", hotelId).order("move_in", { ascending: false }).limit(500),
+    sb.from("hotel_long_stays").select("*").eq("hotel_id", hotelId).neq("status", "expired").order("move_in", { ascending: false }).limit(500),
     sb.from("hotel_rent_dues").select("*").eq("hotel_id", hotelId).order("due_date", { ascending: false }).limit(1000),
     sb.from("hotel_waitlist").select("id,hotel_id,room_id,check_in,check_out,guests,status,created_at").eq("hotel_id", hotelId).order("created_at", { ascending: false }).limit(200),
   ]);
