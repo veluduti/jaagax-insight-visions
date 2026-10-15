@@ -777,7 +777,7 @@ export default function PartnerRooms() {
                     </div>
                     )}
                     <div>
-                      <Label>Max guests</Label>
+                      <Label>{editKind.longStay ? (editKind.unit === "bed" ? "Persons per bed" : "Max residents") : "Max guests"}</Label>
                       <Input
                         type="number"
                         value={editing.max_occupancy ?? 2}
@@ -785,7 +785,7 @@ export default function PartnerRooms() {
                       />
                     </div>
                     <div>
-                      <Label>Total units</Label>
+                      <Label>{editKind.longStay ? `Total ${editKind.noun.toLowerCase()}s` : "Total units"}</Label>
                       <Input
                         type="number"
                         value={editing.total_units ?? 1}
@@ -793,7 +793,7 @@ export default function PartnerRooms() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  {!editKind.longStay && <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Maximum adults</Label>
                       <Input
@@ -812,7 +812,7 @@ export default function PartnerRooms() {
                         onChange={(e) => setEditing({ ...editing, max_children: Number(e.target.value) })}
                       />
                     </div>
-                  </div>
+                  </div>}
                   <div className="flex items-center justify-between rounded-md border border-border/60 p-3">
                     <div>
                       <p className="text-sm font-semibold">Active</p>

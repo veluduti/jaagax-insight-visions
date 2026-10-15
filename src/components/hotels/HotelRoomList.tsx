@@ -523,6 +523,14 @@ export default function HotelRoomList({
 
                 {/* Price / CTA */}
                 <div className="sm:col-span-2 xl:col-span-1 p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-border bg-muted/20 flex flex-row xl:flex-col items-end xl:items-stretch justify-between gap-3">
+                  {(() => { const ls = cv.kind.longStay && (cv.monthly || cv.weekly); return ls ? (
+                  <div>
+                    <div className="text-[11px] text-muted-foreground">Rent</div>
+                    {cv.monthly && <div className="text-2xl font-bold text-foreground mt-1">₹{cv.monthly.toLocaleString()} <span className="text-xs font-medium text-muted-foreground">/ month</span></div>}
+                    {cv.weekly && <div className="text-xs font-medium mt-1">₹{cv.weekly.toLocaleString()} / week</div>}
+                    <div className="text-[11px] text-muted-foreground">Pick a move-in date and plan</div>
+                  </div>
+                  ) : (
                   <div>
                     {hasDates && q && !q.loading ? (
                       <>
@@ -552,6 +560,7 @@ export default function HotelRoomList({
                       </>
                     )}
                   </div>
+                  ); })()}
                   {soldOut && checkIn && checkOut && (
                     <Button variant="outline" className="min-w-[140px] xl:w-full"
                       onClick={() => joinWaitlist({ hotel_id: hotelId, room_id: room.id, check_in: checkIn, check_out: checkOut, guests: adults + children })
@@ -566,7 +575,7 @@ export default function HotelRoomList({
                       Book long stay
                     </Button>
                   )}
-                  <Button
+                  {!(cv.kind.longStay && (cv.monthly || cv.weekly)) && <Button
                     className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}
                     onClick={() =>
@@ -578,7 +587,7 @@ export default function HotelRoomList({
                     }
                   >
                     {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
-                  </Button>
+                  </Button>}
 
                 </div>
               </div>
