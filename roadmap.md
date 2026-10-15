@@ -1,7 +1,7 @@
 # Active roadmap — JAAGA Travel
 ## Long-stay booking details
-- [ ] Show configured Hostel, PG and Co-living accommodation details and rental policies throughout customer booking
-- [ ] Remove remaining nightly fields on long-stay detail pages and verify weekly/monthly date selection
+- [x] Show configured Hostel, PG and Co-living accommodation details and rental policies throughout customer booking
+- [x] Remove remaining nightly fields on long-stay detail pages and verify weekly/monthly date selection — signed-in existing legacy Hostel, PG and Co-living rooms; no payment made
 
 ## Property pricing and payment plans
 - [x] Replace Comparable Listings with approved price breakdown and selectable payment plans
