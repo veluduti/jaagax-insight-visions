@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePartnerBusinessTypes } from "@/hooks/usePartnerBusinessTypes";
+import LongStayDashboardStats, { hasLongStayStats } from "./LongStayDashboardStats";
 import { CATEGORY_BY_KEY, type PartnerModule } from "@/config/hospitalityCategories";
 
 const MODULE_INFO: Record<PartnerModule, { label: string; desc: string; to: string; cta: string }> = {
@@ -16,7 +17,7 @@ const MODULE_INFO: Record<PartnerModule, { label: string; desc: string; to: stri
 /** One dashboard section per business type the partner selected. */
 export default function BusinessTypePanels() {
   const nav = useNavigate();
-  const { types, activeType, setActiveType } = usePartnerBusinessTypes();
+  const { types, activeType, setActiveType, hotelId } = usePartnerBusinessTypes();
   const shown = activeType === "all" ? types : types.filter((t) => t === activeType);
   if (!shown.length) return null;
 
@@ -40,6 +41,12 @@ export default function BusinessTypePanels() {
                     <Button size="sm" variant="ghost" onClick={() => setActiveType(t)}>Open</Button>
                   )}
                 </div>
+                {hasLongStayStats(t) && <LongStayDashboardStats type={t} hotelId={hotelId} />}
+                {hasLongStayStats(t) && (
+                  <Button size="sm" variant="secondary" className="w-full" onClick={() => { setActiveType(t); nav("/partners/long-stays"); }}>
+                    {t === "coliving" ? "Residents & rent" : "Tenants & rent"}
+                  </Button>
+                )}
                 <div className="space-y-2">
                   {c.modules.map((m) => {
                     const info = MODULE_INFO[m];
