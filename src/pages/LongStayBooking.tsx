@@ -49,7 +49,7 @@ export default function LongStayBooking() {
     (async () => {
       if (!hotelId) return;
       const [{ data: h }, { data: rs }] = await Promise.all([
-        supabase.from("partner_hotels").select("name, city, locality, business_types, photos").eq("id", hotelId).maybeSingle(),
+        supabase.from("partner_hotels").select("name, city, locality, images, business_types").eq("id", hotelId).maybeSingle(),
         supabase.from("hotel_rooms").select("*").eq("hotel_id", hotelId).eq("is_active", true).order("base_price", { ascending: true }),
       ]);
       setHotel(h);
@@ -140,7 +140,7 @@ export default function LongStayBooking() {
     return <div className="mx-auto max-w-3xl px-4 py-24 text-center text-muted-foreground">This property could not be found.</div>;
   }
 
-  const cover = Array.isArray(hotel.photos) && hotel.photos.length ? hotel.photos[0] : null;
+  const cover = Array.isArray(hotel.images) && hotel.images.length ? hotel.images[0] : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 pb-16 pt-6">
