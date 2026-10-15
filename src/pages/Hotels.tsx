@@ -1506,7 +1506,7 @@ const Hotels = () => {
                       {l.highlights.length > 0 && <p className="mb-2 line-clamp-2 text-[11px] text-muted-foreground">{l.highlights.slice(0, 3).join(" · ")}</p>}
                       <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
                         <div><span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span><span className="text-[10px] text-muted-foreground">/{l.pricePeriod || "night"}</span></div>
-                        <Button size="sm" className="h-8 rounded-xl px-4 text-xs" onClick={(e) => { e.stopPropagation(); bookListing(l); }}>Book</Button>
+                        <Button size="sm" className="h-8 rounded-xl px-4 text-xs" onClick={(e) => { e.stopPropagation(); if (l.longStay) window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer"); else bookListing(l); }}>{l.longStay ? "View & Book" : "Book"}</Button>
                       </div>
                     </CardContent>
                   </Card>
