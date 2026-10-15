@@ -1,3 +1,5 @@
+import LongStayDetails from "@/components/hotels/LongStayDetails";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import LongStayBreakdown from "@/components/hotels/LongStayBreakdown";
 import { longStayQuote } from "@/lib/longStayPricing";
@@ -77,6 +79,7 @@ export default function HotelRoomList({
   hotelId, hotelName, hotelCity,
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
 }: Props) {
+  const [detailRoom, setDetailRoom] = useState<Room | null>(null);
   const [longStayRoom, setLongStayRoom] = useState<{ room: any; isBed: boolean } | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [meals, setMeals] = useState<any[]>([]);
@@ -159,7 +162,7 @@ export default function HotelRoomList({
       (+new Date(checkOut) - +new Date(checkIn)) / 86400000
     ));
 
-    rooms.forEach((room) => {
+    rooms.filter((room) => !customerView(room, room.attributes?.business_type ? [room.attributes.business_type] : bizTypes).kind.longStay).forEach((room) => {
       setQuotes((prev) => ({
         ...prev,
         [room.id]: { loading: true, available: 0, perNight: room.base_price, nights, roomTotal: 0, taxes: 0, total: 0 },
@@ -199,20 +202,20 @@ export default function HotelRoomList({
         }
       })();
     });
-  }, [rooms, checkIn, checkOut, adults, children, roomsWanted, hotelId]);
+  }, [rooms, checkIn, checkOut, adults, children, roomsWanted, hotelId, bizTypes]);
 
   const hasDates = !!(checkIn && checkOut);
   const guests = Math.max(1, (Number(adults) || 0) + (Number(children) || 0));
 
   // Every room quoted (availability + price resolved)?
-  const quotesReady = hasDates && rooms.length > 0 && rooms.every((r) => quotes[r.id] && !quotes[r.id].loading);
+  const quotesReady = hasDates && rooms.length > 0 && rooms.filter((r) => !customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay).every((r) => quotes[r.id] && !quotes[r.id].loading);
 
   const occupancyPool: OccupancyRoom[] = useMemo(
-    () => rooms.map((r) => toOccupancyRoom(r, {
+    () => rooms.filter((r) => !customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay).map((r) => toOccupancyRoom(r, {
       available: quotesReady ? Number(quotes[r.id]?.available ?? 0) : Number(r.total_units) || 0,
       perNight: Number(quotes[r.id]?.perNight ?? r.base_price) || 0,
     })),
-    [rooms, quotes, quotesReady],
+    [rooms, quotes, quotesReady, bizTypes],
   );
 
   // Rooms whose configured occupancy can host the whole party on their own
@@ -241,7 +244,8 @@ export default function HotelRoomList({
     return buildRoomCombinations(occupancyPool, adults, children);
   }, [quotesReady, bookableRooms.length, occupancyPool, adults, children]);
 
-  const displayRooms = quotesReady ? bookableRooms : fittingRooms;
+  const longStayRooms = rooms.filter((r) => customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay);
+  const displayRooms = [...longStayRooms, ...(quotesReady ? bookableRooms : fittingRooms)];
 
   if (loading) {
     return (
@@ -261,11 +265,11 @@ export default function HotelRoomList({
   }
 
   const goCheckout = (roomId: string, qty: number, ratePlanId?: string) => {
-    if (!hasDates) { toast.info("Please select check-in and check-out dates first"); return; }
+    if (!checkIn || !checkOut) { toast.info("Please select check-in and check-out dates first"); return; }
     const params = new URLSearchParams({
       room: roomId,
-      checkin: checkIn!,
-      checkout: checkOut!,
+      checkin: checkIn,
+      checkout: checkOut,
       adults: String(adults ?? 2),
       children: String(children ?? 0),
       rooms: String(qty),
@@ -277,7 +281,7 @@ export default function HotelRoomList({
 
   return (
     <div className="space-y-4">
-      {!hasDates && (
+      {!hasDates && longStayRooms.length !== rooms.length && (
         <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
           <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
           <span>Pick check-in and check-out dates above to see live prices, taxes and availability.</span>
@@ -338,7 +342,7 @@ export default function HotelRoomList({
       )}
 
       {/* Nothing works */}
-      {quotesReady && bookableRooms.length === 0 && combinations.length === 0 && (
+      {quotesReady && displayRooms.length === 0 && combinations.length === 0 && (
         <Card className="p-8 text-center">
           <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-muted-foreground">
@@ -347,7 +351,7 @@ export default function HotelRoomList({
         </Card>
       )}
 
-      {!quotesReady && fittingRooms.length === 0 && (
+      {!quotesReady && displayRooms.length === 0 && (
         <Card className="p-8 text-center">
           <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-muted-foreground">
@@ -359,14 +363,14 @@ export default function HotelRoomList({
       {displayRooms.map((room) => {
 
         const q = quotes[room.id];
-        const cv = customerView(room, bizTypes);
+        const cv = customerView(room, room.attributes?.business_type ? [room.attributes.business_type] : bizTypes);
         const photos = (room.photos && room.photos.length > 0) ? room.photos : [FALLBACK_IMG];
         const idx = galleryIdx[room.id] ?? 0;
         const amenityList: string[] = Array.isArray(room.amenities)
           ? room.amenities
           : (typeof room.amenities === "object" && room.amenities ? Object.keys(room.amenities) : []);
-        const soldOut = hasDates && q && !q.loading && q.available < roomsWanted;
-        const lowStock = hasDates && q && !q.loading && q.available > 0 && q.available <= 3;
+        const soldOut = !cv.kind.longStay && hasDates && q && !q.loading && q.available < roomsWanted;
+        const lowStock = !cv.kind.longStay && hasDates && q && !q.loading && q.available > 0 && q.available <= 3;
 
         return (
           <Card key={room.id} className="overflow-hidden">
@@ -470,13 +474,13 @@ export default function HotelRoomList({
                         <ShieldCheck className="h-3.5 w-3.5" /> {room.cancellation_policy}
                       </span>
                     )}
-                    {room.min_nights > 1 && (
+                    {!cv.kind.longStay && room.min_nights > 1 && (
                       <span className="text-muted-foreground">Min {room.min_nights} nights</span>
                     )}
                   </div>
 
 
-                  {plansForRoom(room.id).length > 0 && (
+                  {!cv.kind.longStay && plansForRoom(room.id).length > 0 && (
                     <div className="space-y-1.5 pt-1">
                       <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
                         <Tag className="h-3 w-3" /> Choose a rate
@@ -506,7 +510,7 @@ export default function HotelRoomList({
                     </div>
                   )}
 
-                  {hasDates && q && !q.loading && (
+                  {!cv.kind.longStay && hasDates && q && !q.loading && (
                     <div className="pt-1">
                       {soldOut ? (
                         <Badge variant="destructive" className="text-[10px]">Sold out for these dates</Badge>
@@ -523,9 +527,10 @@ export default function HotelRoomList({
 
                 {/* Price / CTA */}
                 <div className="sm:col-span-2 xl:col-span-1 p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-border bg-muted/20 flex flex-row xl:flex-col items-end xl:items-stretch justify-between gap-3">
-                  {(() => { const ls = cv.kind.longStay && (cv.monthly || cv.weekly); return ls ? (
+                  {(() => { const ls = cv.kind.longStay; return ls ? (
                   <div>
-                    <div className="text-[11px] text-muted-foreground">Rent</div>
+                    <div className="text-[11px] text-muted-foreground">Rent per {cv.noun}</div>
+                    {!cv.monthly && !cv.weekly && <p className="text-sm text-muted-foreground">Rent not provided</p>}
                     {cv.monthly && <div className="text-2xl font-bold text-foreground mt-1">₹{cv.monthly.toLocaleString()} <span className="text-xs font-medium text-muted-foreground">/ month</span></div>}
                     {cv.weekly && <div className="text-xs font-medium mt-1">₹{cv.weekly.toLocaleString()} / week</div>}
                     <div className="text-[11px] text-muted-foreground">Pick a move-in date and plan</div>
@@ -575,7 +580,8 @@ export default function HotelRoomList({
                       Book long stay
                     </Button>
                   )}
-                  {!(cv.kind.longStay && (cv.monthly || cv.weekly)) && <Button
+                  {cv.kind.longStay && <Button variant="outline" className="xl:w-full" onClick={() => setDetailRoom(room)}>View all details</Button>}
+                  {!cv.kind.longStay && <Button
                     className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}
                     onClick={() =>
@@ -595,9 +601,19 @@ export default function HotelRoomList({
           </Card>
         );
       })}
+      {detailRoom && <Dialog open onOpenChange={(v) => !v && setDetailRoom(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>{detailRoom.room_type}</DialogTitle></DialogHeader>
+          <LongStayDetails room={detailRoom} businessTypes={bizTypes} />
+          {(Number(detailRoom.monthly_price) > 0 || Number(detailRoom.weekly_price) > 0) && <>
+            <LongStayBreakdown quote={longStayQuote(detailRoom)} />
+            <Button onClick={() => { setLongStayRoom({ room: detailRoom, isBed: customerView(detailRoom, bizTypes).kind.unit === "bed" }); setDetailRoom(null); }}>Choose dates & book</Button>
+          </>}
+        </DialogContent>
+      </Dialog>}
       {longStayRoom && (
         <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayRoom(null)} room={longStayRoom.room}
-          hotelName={hotelName} isBed={longStayRoom.isBed} />
+          hotelName={hotelName} isBed={longStayRoom.isBed} businessTypes={bizTypes} />
       )}
     </div>
   );

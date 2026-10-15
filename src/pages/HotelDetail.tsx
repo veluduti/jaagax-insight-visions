@@ -1,3 +1,4 @@
+import { normalizeCategory } from "@/config/hospitalityCategories";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 
 interface HotelData {
+  business_types?: string[] | null;
   id: string;
   name: string;
   city: string;
@@ -192,6 +194,7 @@ const HotelDetail = () => {
     );
   }
 
+  const onlyLongStay = !!hotel.business_types?.length && hotel.business_types.every((t) => ["hostel", "pg", "coliving"].includes(normalizeCategory(t)));
   const discountPct = Number(hotel.discount_percentage) || 0;
   const hasDiscount = discountPct > 0;
   const starCount = Math.max(0, Math.min(5, Math.round(Number(hotel.star_rating) || 0)));
@@ -431,7 +434,7 @@ const HotelDetail = () => {
 
 
           {/* 3 — AVAILABILITY */}
-          <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
+          {!onlyLongStay && <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
             <h2 className="text-sm font-semibold mb-3">Check availability</h2>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
               <div className="flex flex-col">
@@ -512,23 +515,23 @@ const HotelDetail = () => {
                 Search Rooms
               </Button>
             </div>
-          </section>
+          </section>}
 
           {/* 4 — ROOMS */}
           <section id="rooms" className="scroll-mt-24">
             <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
               <BedDouble className="h-5 w-5 text-primary" />
-              Rooms
+              {onlyLongStay ? "Rooms & beds · Weekly / monthly stays" : "Rooms"}
             </h2>
             <HotelRoomTypes
               key={searchNonce}
               hotelId={hotel.id}
               hotelName={hotel.name}
               hotelCity={hotel.city}
-              checkIn={checkIn}
-              checkOut={checkOut}
-              adults={adults}
-              children={childrenCount}
+              checkIn={onlyLongStay ? undefined : checkIn}
+              checkOut={onlyLongStay ? undefined : checkOut}
+              adults={onlyLongStay ? 1 : adults}
+              children={onlyLongStay ? 0 : childrenCount}
               roomsWanted={roomsWanted}
             />
           </section>
@@ -566,6 +569,10 @@ const HotelDetail = () => {
           {/* Book your stay */}
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
             <h3 className="font-semibold">Book your stay</h3>
+            {onlyLongStay ? <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Weekly and monthly rental plans</p>
+              <Button className="w-full" onClick={() => scrollToId("rooms")}>Choose a room or bed</Button>
+            </div> : <>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col">
                 <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
@@ -647,6 +654,7 @@ const HotelDetail = () => {
             >
               Search Rooms
             </Button>
+            </>}
           </div>
 
           {/* Events & Facilities (extra services) */}

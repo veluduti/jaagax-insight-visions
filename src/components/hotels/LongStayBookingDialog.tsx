@@ -1,3 +1,4 @@
+import LongStayDetails, { type LongStayDetailRoom } from "@/components/hotels/LongStayDetails";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,9 +32,9 @@ export function longStayMoveOut(moveIn: string, plan: "weekly" | "monthly", dura
 }
 const fmtDate = (s: string) => s ? new Date(s + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
-export default function LongStayBookingDialog({ open, onOpenChange, room, hotelName, isBed }: {
+export default function LongStayBookingDialog({ open, onOpenChange, room, hotelName, isBed, businessTypes }: {
   open: boolean; onOpenChange: (v: boolean) => void; hotelName: string; isBed: boolean;
-  room: { id: string; room_type: string; weekly_price?: number | null; monthly_price?: number | null; attributes?: any; max_occupancy?: number | null };
+  room: LongStayDetailRoom; businessTypes?: string[];
 }) {
   const nav = useNavigate();
   const hasMonthly = Number(room.monthly_price) > 0 || Number(room.weekly_price) > 0;
@@ -96,17 +97,17 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
   };
 
   const per = plan === "monthly" ? "month" : "week";
-  const chip = (a: boolean) => `rounded-full border px-3 py-1.5 text-xs font-medium ${a ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`;
+
 
   return (
     <Dialog open={open} onOpenChange={(v) => !busy && onOpenChange(v)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader><DialogTitle>Book long stay · {room.room_type}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Book long stay · {room.room_type}</DialogTitle><p className="text-sm text-muted-foreground">{hotelName} · Rent per {isBed ? "bed" : "room"}</p></DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Move-in date</Label>
-              <Input type="date" min={today()} value={moveIn} onChange={(e) => setMoveIn(e.target.value)} />
+              <Label htmlFor="long-stay-movein">Move-in date</Label>
+              <Input id="long-stay-movein" type="date" min={today()} value={moveIn} onChange={(e) => setMoveIn(e.target.value)} />
             </div>
             <div>
               <Label>{isBed ? "Beds needed" : "Occupants"}</Label>
@@ -117,13 +118,13 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
           <div>
             <Label>Rental plan</Label>
             <div className="mt-1 flex gap-2">
-              {hasMonthly && <button type="button" className={chip(plan === "monthly")} onClick={() => { setPlan("monthly"); setDuration(minMonths); }}>Monthly</button>}
-              {hasWeekly && <button type="button" className={chip(plan === "weekly")} onClick={() => { setPlan("weekly"); setDuration(1); }}>Weekly</button>}
+              {hasMonthly && <Button type="button" size="sm" variant={plan === "monthly" ? "default" : "outline"} aria-pressed={plan === "monthly"} onClick={() => { setPlan("monthly"); setDuration(minMonths); }}>Monthly</Button>}
+              {hasWeekly && <Button type="button" size="sm" variant={plan === "weekly" ? "default" : "outline"} aria-pressed={plan === "weekly"} onClick={() => { setPlan("weekly"); setDuration(1); }}>Weekly</Button>}
             </div>
           </div>
           <div>
-            <Label>Duration ({per}s)</Label>
-            <Input type="number" min={plan === "monthly" ? minMonths : 1} max={60} value={duration}
+            <Label htmlFor="long-stay-duration">Duration ({per}s)</Label>
+            <Input id="long-stay-duration" type="number" min={plan === "monthly" ? minMonths : 1} max={60} value={duration}
               onChange={(e) => setDuration(Math.max(1, Number(e.target.value) || 1))} />
             {plan === "monthly" && minMonths > 1 && <p className="mt-1 text-xs text-muted-foreground">Minimum {minMonths} months.</p>}
           </div>
@@ -148,7 +149,7 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
                 {quote.one_time_fees > 0 && <Row l="One-time fees" v={quote.one_time_fees} />}
                 {quote.tax > 0 && <Row l={`Tax (${quote.tax_percent}%)`} v={quote.tax} />}
                 {quote.advance > 0 && <Row l="Advance rent (adjusted later)" v={quote.advance} />}
-                {quote.deposit > 0 && <Row l="Security deposit (refundable)" v={quote.deposit} />}
+                {quote.deposit > 0 && <Row l={room.attributes?.deposit_refundable === false ? "Security deposit" : "Security deposit (refundable)"} v={quote.deposit} />}
                 <div className="flex justify-between border-t border-border/60 pt-1 font-semibold"><span>Pay now</span><span>{inr(quote.due_at_booking)}</span></div>
                 {quote.duration > 1 && (
                   <p className="text-xs text-muted-foreground">
@@ -159,6 +160,10 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
             )}
           </div>
 
+          <details className="border-y border-border py-3" open>
+            <summary className="cursor-pointer text-sm font-semibold">Accommodation details & rental policies</summary>
+            <div className="mt-3"><LongStayDetails room={room} businessTypes={businessTypes} compact /></div>
+          </details>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2"><Label>Tenant name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
@@ -169,7 +174,7 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
             <Textarea rows={2} maxLength={1000} value={requests} onChange={(e) => setRequests(e.target.value)} placeholder="e.g. lower bunk, vegetarian food" />
             <p className="mt-1 text-xs text-muted-foreground">The property will confirm requests; they aren't guaranteed.</p>
           </div>
-          <Button className="w-full" disabled={busy || !quote || !!qErr} onClick={submit}>
+          <Button className="w-full" disabled={busy || !quote || !!qErr || unavailable || !moveIn} onClick={submit}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay ${quote ? inr(quote.due_at_booking) : ""} & book`}
           </Button>
           <p className="text-center text-[11px] text-muted-foreground">Your bed/room is held for 20 minutes while you pay.</p>

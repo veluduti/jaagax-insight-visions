@@ -1,3 +1,6 @@
+import LongStayDetails, { type LongStayDetailRoom } from "./LongStayDetails";
+import LongStayBreakdown from "./LongStayBreakdown";
+import { longStayQuote } from "@/lib/longStayPricing";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +20,7 @@ export interface StayListing {
   maxAdults: number | null;
   maxOccupancy: number | null;
   units: number | null;
+  longStay?: boolean; pricePeriod?: "month" | "week" | "night"; room?: LongStayDetailRoom; businessTypes?: string[];
 }
 
 /** Shows only the partner-entered data for one listing — nothing invented. */
@@ -62,12 +66,16 @@ export default function StayListingDetail({ listing, onClose, onBook }: {
             </div>
           )}
 
+          {listing.longStay && listing.room && <>
+            <LongStayDetails room={listing.room} businessTypes={listing.businessTypes} />
+            {listing.price > 0 && <LongStayBreakdown quote={longStayQuote(listing.room)} />}
+          </>}
           <div className="flex items-center justify-between gap-4 rounded-xl bg-muted p-4">
             <div>
-              <p className="text-xs text-muted-foreground">Price per night</p>
+              <p className="text-xs text-muted-foreground">{listing.longStay ? `Rent per ${listing.pricePeriod}` : "Price per night"}</p>
               <p className="text-2xl font-bold">₹{listing.price.toLocaleString("en-IN")}</p>
             </div>
-            <Button size="lg" onClick={() => onBook(listing)}>Book</Button>
+            <Button size="lg" disabled={listing.longStay && !listing.price} onClick={() => onBook(listing)}>{listing.longStay ? "Choose dates" : "Book"}</Button>
           </div>
         </div>
       </DialogContent>
