@@ -162,7 +162,7 @@ export default function HotelRoomList({
       (+new Date(checkOut) - +new Date(checkIn)) / 86400000
     ));
 
-    rooms.filter((room) => !customerView(room, bizTypes).kind.longStay).forEach((room) => {
+    rooms.filter((room) => !customerView(room, room.attributes?.business_type ? [room.attributes.business_type] : bizTypes).kind.longStay).forEach((room) => {
       setQuotes((prev) => ({
         ...prev,
         [room.id]: { loading: true, available: 0, perNight: room.base_price, nights, roomTotal: 0, taxes: 0, total: 0 },
@@ -208,10 +208,10 @@ export default function HotelRoomList({
   const guests = Math.max(1, (Number(adults) || 0) + (Number(children) || 0));
 
   // Every room quoted (availability + price resolved)?
-  const quotesReady = hasDates && rooms.length > 0 && rooms.filter((r) => !customerView(r, bizTypes).kind.longStay).every((r) => quotes[r.id] && !quotes[r.id].loading);
+  const quotesReady = hasDates && rooms.length > 0 && rooms.filter((r) => !customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay).every((r) => quotes[r.id] && !quotes[r.id].loading);
 
   const occupancyPool: OccupancyRoom[] = useMemo(
-    () => rooms.filter((r) => !customerView(r, bizTypes).kind.longStay).map((r) => toOccupancyRoom(r, {
+    () => rooms.filter((r) => !customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay).map((r) => toOccupancyRoom(r, {
       available: quotesReady ? Number(quotes[r.id]?.available ?? 0) : Number(r.total_units) || 0,
       perNight: Number(quotes[r.id]?.perNight ?? r.base_price) || 0,
     })),
@@ -244,7 +244,7 @@ export default function HotelRoomList({
     return buildRoomCombinations(occupancyPool, adults, children);
   }, [quotesReady, bookableRooms.length, occupancyPool, adults, children]);
 
-  const longStayRooms = rooms.filter((r) => customerView(r, bizTypes).kind.longStay);
+  const longStayRooms = rooms.filter((r) => customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay);
   const displayRooms = [...longStayRooms, ...(quotesReady ? bookableRooms : fittingRooms)];
 
   if (loading) {
@@ -363,7 +363,7 @@ export default function HotelRoomList({
       {displayRooms.map((room) => {
 
         const q = quotes[room.id];
-        const cv = customerView(room, bizTypes);
+        const cv = customerView(room, room.attributes?.business_type ? [room.attributes.business_type] : bizTypes);
         const photos = (room.photos && room.photos.length > 0) ? room.photos : [FALLBACK_IMG];
         const idx = galleryIdx[room.id] ?? 0;
         const amenityList: string[] = Array.isArray(room.amenities)

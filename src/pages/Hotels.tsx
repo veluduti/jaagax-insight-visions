@@ -1,3 +1,6 @@
+import { customerView } from "@/config/accommodationTypes";
+import { longStayQuote } from "@/lib/longStayPricing";
+import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "@/contexts/LocationContext";
@@ -145,6 +148,7 @@ const Hotels = () => {
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
   const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [rawRooms, setRawRooms] = useState<any[]>([]);
+  const [longStayListing, setLongStayListing] = useState<StayListing | null>(null);
   const [openListing, setOpenListing] = useState<StayListing | null>(null);
   const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
@@ -295,7 +299,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities, room_name, description, photos")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities, room_name, description, photos, weekly_price, monthly_price, cancellation_policy")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -668,10 +672,13 @@ const Hotels = () => {
       if (seen.has(key)) return;
       seen.add(key);
       const t = roomType || kind;
+      const cv = customerView(r, bt ? [bt] : h.business_types);
+      const rent = longStayQuote(r);
       out.push({
         id: r.id, hotelId: h.id, name, area, city: r.attributes?.area ? "" : h.city,
         typeLabel: t.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        roomType: r.room_type || "", price: Number(r.base_price) || 0,
+        roomType: r.room_type || "", price: cv.kind.longStay ? rent.monthly || rent.weekly : Number(r.base_price) || 0,
+        longStay: !!cv.kind.longStay, pricePeriod: cv.kind.longStay ? (rent.monthly ? "month" : "week") : "night", room: r, businessTypes: bt ? [bt] : h.business_types,
         photos: Array.isArray(r.photos) ? r.photos.filter(Boolean) : [],
         highlights: String(r.description || "").split(/[;\n]/).map((x: string) => x.trim()).filter(Boolean),
         maxAdults: r.max_adults ?? null, maxOccupancy: r.max_occupancy ?? null, units: r.total_units ?? null,
@@ -684,6 +691,7 @@ const Hotels = () => {
     const h = hotels.find((x) => x.id === l.hotelId);
     if (!h) return;
     setOpenListing(null);
+    if (l.longStay) { setLongStayListing(l); return; }
     setBookRoomIds([l.id]);
     setSelectedHotel({ ...h, name: l.name, price_per_night: l.price });
     setShowHotelOnlyModal(true);
@@ -1496,7 +1504,7 @@ const Hotels = () => {
                       <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3 text-primary" /><span className="line-clamp-1">{[l.area, l.city].filter(Boolean).join(", ")}</span></p>
                       {l.highlights.length > 0 && <p className="mb-2 line-clamp-2 text-[11px] text-muted-foreground">{l.highlights.slice(0, 3).join(" · ")}</p>}
                       <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
-                        <div><span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span><span className="text-[10px] text-muted-foreground">/night</span></div>
+                        <div><span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span><span className="text-[10px] text-muted-foreground">/{l.pricePeriod || "night"}</span></div>
                         <Button size="sm" className="h-8 rounded-xl px-4 text-xs" onClick={(e) => { e.stopPropagation(); bookListing(l); }}>Book</Button>
                       </div>
                     </CardContent>
@@ -1680,6 +1688,7 @@ const Hotels = () => {
           onlyRoomIds={bookRoomIds}
         />
       )}
+      {longStayListing?.room && <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayListing(null)} room={longStayListing.room} hotelName={longStayListing.name} isBed={customerView(longStayListing.room, longStayListing.businessTypes).kind.unit === "bed"} businessTypes={longStayListing.businessTypes} />}
       <StayListingDetail listing={openListing} onClose={() => setOpenListing(null)} onBook={bookListing} />
 
       {/* Weekend Property Explorer Wizard */}
