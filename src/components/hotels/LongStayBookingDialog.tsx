@@ -52,7 +52,7 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
 
   const submit = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { requireSignIn(nav, "Please sign in to book a long stay"); return; }
+    if (!user) { requireSignIn(nav, () => {}, "Please sign in to book a long stay"); return; }
     if (!moveIn) return toast.error("Choose your move-in date");
     if (!name.trim()) return toast.error("Enter the tenant's name");
     if (phone && !/^\+?[0-9 ]{10,15}$/.test(phone.trim())) return toast.error("Enter a valid phone number");
