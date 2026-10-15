@@ -131,7 +131,7 @@ export async function listMyBookings(uid: string) {
 }
 
 let rzp: Promise<void> | null = null;
-const loadRazorpay = () => {
+export const loadRazorpay = () => {
   if ((window as any).Razorpay) return Promise.resolve();
   rzp ??= new Promise<void>((res, rej) => {
     const s = document.createElement("script");

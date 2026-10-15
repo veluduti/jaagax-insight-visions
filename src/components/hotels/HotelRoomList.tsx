@@ -1,3 +1,4 @@
+import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import LongStayBreakdown from "@/components/hotels/LongStayBreakdown";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useEffect, useMemo, useState } from "react";
@@ -76,6 +77,7 @@ export default function HotelRoomList({
   hotelId, hotelName, hotelCity,
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
 }: Props) {
+  const [longStayRoom, setLongStayRoom] = useState<{ room: any; isBed: boolean } | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [meals, setMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -553,6 +555,12 @@ export default function HotelRoomList({
                       Notify me if free
                     </Button>
                   )}
+                  {cv.kind.longStay && (cv.monthly || cv.weekly) && (
+                    <Button variant="secondary" className="min-w-[140px] xl:w-full"
+                      onClick={() => setLongStayRoom({ room, isBed: cv.kind.unit === "bed" })}>
+                      Book long stay
+                    </Button>
+                  )}
                   <Button
                     className="min-w-[140px] xl:w-full"
                     disabled={!!soldOut}
@@ -573,6 +581,10 @@ export default function HotelRoomList({
           </Card>
         );
       })}
+      {longStayRoom && (
+        <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayRoom(null)} room={longStayRoom.room}
+          hotelName={hotelName} isBed={longStayRoom.isBed} />
+      )}
     </div>
   );
 }

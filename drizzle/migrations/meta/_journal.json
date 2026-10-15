@@ -239,6 +239,13 @@
       "when": 1791972746798,
       "tag": "0033_harden_property_pricing_validation",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792032103757,
+      "tag": "0034_long_stay_booking",
+      "breakpoints": true
     }
   ]
 }
