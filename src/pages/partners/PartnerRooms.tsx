@@ -1,3 +1,4 @@
+import LongStayRentEditor from "@/components/partners/LongStayRentEditor";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
@@ -395,6 +396,10 @@ export default function PartnerRooms() {
         stay_unit: editKind.unit,
         accommodation_kind: editKind.key,
         attributes: editing.attributes || {},
+        ...(editKind.longStay ? {
+          weekly_price: (editing as any).weekly_price ? Math.max(0, Number((editing as any).weekly_price)) : null,
+          monthly_price: (editing as any).monthly_price ? Math.max(0, Number((editing as any).monthly_price)) : null,
+        } : {}),
         amenities: editing.amenities || [],
         photos: editing.photos || [],
         is_active: editing.is_active ?? true,
@@ -731,6 +736,9 @@ export default function PartnerRooms() {
                       ))}
                     </div>
                   </div>
+                  {editKind.longStay && (
+                    <LongStayRentEditor value={editing} onChange={(patch) => setEditing({ ...editing, ...patch })} noun={editKind.noun} />
+                  )}
                   <AccommodationFields kind={editKind} value={editing.attributes || {}} onChange={(attributes) => setEditing({ ...editing, attributes })} />
                   <div className="grid grid-cols-2 gap-3">
                     <div>

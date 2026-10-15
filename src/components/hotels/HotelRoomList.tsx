@@ -1,3 +1,5 @@
+import LongStayBreakdown from "@/components/hotels/LongStayBreakdown";
+import { longStayQuote } from "@/lib/longStayPricing";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -412,6 +414,9 @@ export default function HotelRoomList({
                     <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{cv.kind.unit === "bed" ? "1 guest per bed" : `Sleeps ${room.max_occupancy}`}</span>
                     {room.view_type && <span>{room.view_type}</span>}
                   </div>
+                  {cv.kind.longStay && (cv.monthly || cv.weekly) && (
+                    <LongStayBreakdown quote={longStayQuote({ weekly_price: room.weekly_price, monthly_price: room.monthly_price, attributes: room.attributes })} />
+                  )}
                   {cv.highlights.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {cv.highlights.slice(0, 8).map((h) => (
