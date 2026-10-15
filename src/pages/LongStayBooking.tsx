@@ -49,7 +49,7 @@ export default function LongStayBooking() {
     (async () => {
       if (!hotelId) return;
       const [{ data: h }, { data: rs }] = await Promise.all([
-        supabase.from("partner_hotels").select("name, city, area, business_types, photos").eq("id", hotelId).maybeSingle(),
+        supabase.from("partner_hotels").select("name, city, locality, business_types, photos").eq("id", hotelId).maybeSingle(),
         supabase.from("hotel_rooms").select("*").eq("hotel_id", hotelId).eq("is_active", true).order("base_price", { ascending: true }),
       ]);
       setHotel(h);
@@ -155,7 +155,7 @@ export default function LongStayBooking() {
           <h1 className="text-xl font-bold sm:text-2xl">{room ? room.room_type : hotel.name}</h1>
           <p className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-primary" />
-            {[hotel.area, hotel.city].filter(Boolean).join(", ") || hotel.name}
+            {[hotel.locality, hotel.city].filter(Boolean).join(", ") || hotel.name}
           </p>
         </div>
       </div>
