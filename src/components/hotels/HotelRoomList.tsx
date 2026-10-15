@@ -61,6 +61,7 @@ interface Props {
   adults?: number;
   children?: number;
   roomsWanted?: number;
+  onNightlyRoomsChange?: (hasNightlyRooms: boolean) => void;
 }
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800";
@@ -78,6 +79,7 @@ interface RoomQuote {
 export default function HotelRoomList({
   hotelId, hotelName, hotelCity,
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
+  onNightlyRoomsChange,
 }: Props) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
   const [longStayRoom, setLongStayRoom] = useState<{ room: any; isBed: boolean } | null>(null);
@@ -94,6 +96,13 @@ export default function HotelRoomList({
     (supabase as any).from("partner_hotels").select("business_types").eq("id", hotelId).maybeSingle()
       .then(({ data }: any) => setBizTypes(data?.business_types || []));
   }, [hotelId]);
+
+  useEffect(() => {
+    if (loading || rooms.length === 0) return;
+    onNightlyRoomsChange?.(rooms.some((room) =>
+      !customerView(room, room.attributes?.business_type ? [room.attributes.business_type] : bizTypes).kind.longStay
+    ));
+  }, [loading, rooms, bizTypes, onNightlyRoomsChange]);
 
   // Load rooms
   useEffect(() => {
