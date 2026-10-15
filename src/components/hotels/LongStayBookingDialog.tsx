@@ -10,9 +10,26 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { requireSignIn } from "@/lib/requireSignIn";
 import { quoteLongStay, reserveLongStay, payLongStay, type ServerQuote } from "@/services/hospitality/longStayBookingService";
+import { freeUnits } from "@/services/hospitality/availabilityService";
 
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+
+/** Move-out (exclusive). Monthly = calendar months, clamped to month end (Jan 31 → Feb 28/29), same as the server. Weekly = 7 days × n. */
+export function longStayMoveOut(moveIn: string, plan: "weekly" | "monthly", duration: number): string {
+  if (!moveIn) return "";
+  const [y, m, d] = moveIn.split("-").map(Number);
+  let out: Date;
+  if (plan === "monthly") {
+    const tm = m - 1 + duration;
+    const last = new Date(Date.UTC(y, tm + 1, 0)).getUTCDate();
+    out = new Date(Date.UTC(y, tm, Math.min(d, last)));
+  } else {
+    out = new Date(Date.UTC(y, m - 1, d + 7 * duration));
+  }
+  return out.toISOString().slice(0, 10);
+}
+const fmtDate = (s: string) => s ? new Date(s + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 export default function LongStayBookingDialog({ open, onOpenChange, room, hotelName, isBed }: {
   open: boolean; onOpenChange: (v: boolean) => void; hotelName: string; isBed: boolean;
@@ -49,6 +66,16 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
     quoteLongStay(room.id, plan, duration, occupants).then((q) => alive && setQuote(q)).catch((e) => { if (alive) { setQuote(null); setQErr(e.message); } });
     return () => { alive = false; };
   }, [open, room.id, plan, duration, occupants]);
+
+  const moveOut = longStayMoveOut(moveIn, plan, duration);
+  const [free, setFree] = useState<number | null>(null);
+  useEffect(() => {
+    if (!open || !moveIn || !moveOut) { setFree(null); return; }
+    let alive = true;
+    freeUnits(room.id, moveIn, moveOut).then((n) => alive && setFree(n)).catch(() => alive && setFree(null));
+    return () => { alive = false; };
+  }, [open, room.id, moveIn, moveOut]);
+  const unavailable = free !== null && free < occupants;
 
   const submit = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -100,6 +127,18 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
               onChange={(e) => setDuration(Math.max(1, Number(e.target.value) || 1))} />
             {plan === "monthly" && minMonths > 1 && <p className="mt-1 text-xs text-muted-foreground">Minimum {minMonths} months.</p>}
           </div>
+
+          <div className="grid grid-cols-2 gap-3 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+            <div><p className="text-xs text-muted-foreground">From (move-in)</p><p className="font-semibold">{fmtDate(moveIn)}</p></div>
+            <div><p className="text-xs text-muted-foreground">To (move-out)</p><p className="font-semibold">{fmtDate(moveOut)}</p></div>
+            <p className="col-span-2 text-xs text-muted-foreground">
+              {duration} {per}{duration > 1 ? "s" : ""}{moveIn ? " · move-out date is set automatically" : " · pick a move-in date"}
+            </p>
+            {unavailable && <p className="col-span-2 text-xs font-medium text-destructive">
+              {free === 0 ? "Not available for these dates." : `Only ${free} available for these dates.`} Try another move-in date.
+            </p>}
+          </div>
+
 
           <div className="rounded-md border border-border/60 p-3 text-sm">
             {qErr ? <p className="text-destructive">{qErr}</p> : !quote ? <Loader2 className="h-4 w-4 animate-spin" /> : (

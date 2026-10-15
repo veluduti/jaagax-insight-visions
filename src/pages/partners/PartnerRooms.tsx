@@ -740,6 +740,7 @@ export default function PartnerRooms() {
                     <LongStayRentEditor value={editing} onChange={(patch) => setEditing({ ...editing, ...patch })} noun={editKind.noun} />
                   )}
                   <AccommodationFields kind={editKind} value={editing.attributes || {}} onChange={(attributes) => setEditing({ ...editing, attributes })} />
+                  {!editKind.longStay && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Sold as</Label>
@@ -755,6 +756,7 @@ export default function PartnerRooms() {
                       />
                     </div>
                   </div>
+                  )}
                   <div>
                     <Label>Description</Label>
                     <Textarea
@@ -763,7 +765,8 @@ export default function PartnerRooms() {
                       onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className={`grid gap-3 ${editKind.longStay ? "grid-cols-2" : "grid-cols-3"}`}>
+                    {!editKind.longStay && (
                     <div>
                       <Label>Base price ₹</Label>
                       <Input
@@ -772,6 +775,7 @@ export default function PartnerRooms() {
                         onChange={(e) => setEditing({ ...editing, base_price: Number(e.target.value) })}
                       />
                     </div>
+                    )}
                     <div>
                       <Label>Max guests</Label>
                       <Input
