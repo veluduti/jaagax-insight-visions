@@ -144,18 +144,29 @@ export function addCtaFor(types: string[]): string {
   return types.length === 1 ? typeDef(types[0]).cta : "Add Accommodation";
 }
 
-/** Fallback kind for legacy rows without accommodation_kind. */
-export function kindFor(key: string | null | undefined, unit?: string | null): AccommodationKind {
-  if (key && ACCOMMODATION_KINDS[key]) return ACCOMMODATION_KINDS[key];
-  return unit === "bed" ? ACCOMMODATION_KINDS.dorm : unit === "unit" ? ACCOMMODATION_KINDS.apartment : ACCOMMODATION_KINDS.room;
+/** Fallback kind for legacy rows without accommodation_kind.
+ *  When the property's business types are given and the saved kind isn't allowed for any of them
+ *  (e.g. an old hotel "room" inside a PG/Hostel/Co-living), map it to the matching allowed kind so
+ *  long-stay rooms get monthly/weekly booking instead of nightly dates. */
+export function kindFor(key: string | null | undefined, unit?: string | null, bizTypes?: string[] | null): AccommodationKind {
+  const base = key && ACCOMMODATION_KINDS[key]
+    ? ACCOMMODATION_KINDS[key]
+    : unit === "bed" ? ACCOMMODATION_KINDS.dorm : unit === "unit" ? ACCOMMODATION_KINDS.apartment : ACCOMMODATION_KINDS.room;
+  if (!bizTypes?.length || base.longStay) return base;
+  const allowed = allowedKinds(bizTypes);
+  if (allowed.some((k) => k.key === base.key)) return base;
+  const longStay = allowed.filter((k) => k.longStay);
+  if (!longStay.length) return base;
+  const wantBed = (unit || base.unit) === "bed";
+  return longStay.find((k) => (k.unit === "bed") === wantBed) ?? longStay[0];
 }
 
 /** Customer-facing wording for one accommodation listing. */
 export function customerView(room: {
   room_type: string; accommodation_kind?: string | null; stay_unit?: string | null;
   attributes?: Record<string, any> | null; monthly_price?: number | null; weekly_price?: number | null;
-}) {
-  const kind = kindFor(room.accommodation_kind, room.stay_unit);
+}, bizTypes?: string[] | null) {
+  const kind = kindFor(room.accommodation_kind, room.stay_unit, bizTypes);
   const noun = kind.noun.toLowerCase();
   const title = kind.unit === "bed" && !/bed\b/i.test(room.room_type) ? `${room.room_type} — Bed` : room.room_type;
   const a = room.attributes || {};
