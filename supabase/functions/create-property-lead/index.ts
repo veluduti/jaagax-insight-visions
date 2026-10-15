@@ -47,6 +47,15 @@ Deno.serve(async (req) => {
     }).select().single();
     if (lErr) throw lErr;
 
+    // assigned_agent_id stores agents.id; resolve the agent's login user id for alerts/email.
+    let agentUserId: string | null = null;
+    if (prop.assigned_agent_id) {
+      const { data: ag } = await admin.from("agents").select("user_id")
+        .or(`id.eq.${prop.assigned_agent_id},user_id.eq.${prop.assigned_agent_id}`)
+        .limit(1).maybeSingle();
+      agentUserId = ag?.user_id ?? null;
+    }
+
     const notifs = [];
     if (prop.submitted_by) notifs.push({
       user_id: prop.submitted_by,
@@ -54,8 +63,8 @@ Deno.serve(async (req) => {
       message: `A buyer reached out about "${prop.title}".`,
       type: "info", link: "/dashboard/seller",
     });
-    if (prop.assigned_agent_id) notifs.push({
-      user_id: prop.assigned_agent_id,
+    if (agentUserId && agentUserId !== prop.submitted_by) notifs.push({
+      user_id: agentUserId,
       title: `New ${source} lead`,
       message: `A buyer reached out about "${prop.title}".`,
       type: "info", link: "/dashboard/agent",
@@ -76,8 +85,8 @@ Deno.serve(async (req) => {
       extra: { source, lead_name, lead_phone, bucket_key: lead.id },
     };
     await sendLifecycleEmail(admin, prop.submitted_by, "new_lead", emailCtx);
-    if (prop.assigned_agent_id) {
-      await sendLifecycleEmail(admin, prop.assigned_agent_id, "new_lead", {
+    if (agentUserId && agentUserId !== prop.submitted_by) {
+      await sendLifecycleEmail(admin, agentUserId, "new_lead", {
         ...emailCtx, ctaLink: "/dashboard/agent",
       });
     }
