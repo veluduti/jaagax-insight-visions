@@ -397,8 +397,8 @@ export default function PartnerRooms() {
         accommodation_kind: editKind.key,
         attributes: editing.attributes || {},
         ...(editKind.longStay ? {
-          weekly_price: editing.weekly_price ? Math.max(0, Number(editing.weekly_price)) : null,
-          monthly_price: editing.monthly_price ? Math.max(0, Number(editing.monthly_price)) : null,
+          weekly_price: (editing as any).weekly_price ? Math.max(0, Number((editing as any).weekly_price)) : null,
+          monthly_price: (editing as any).monthly_price ? Math.max(0, Number((editing as any).monthly_price)) : null,
         } : {}),
         amenities: editing.amenities || [],
         photos: editing.photos || [],
