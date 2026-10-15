@@ -19,9 +19,6 @@ import { toast } from "sonner";
 import { joinWaitlist } from "@/services/hospitality/longStayService";
 import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { boardLabel } from "@/types/hotelCanonical";
-import { nextDayISO, isValidDateRangeISO, CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
@@ -82,7 +79,6 @@ export default function HotelRoomList({
   hotelId, hotelName, hotelCity,
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
 }: Props) {
-  const [datePrompt, setDatePrompt] = useState<{ roomId: string; qty: number; ratePlanId?: string; ci: string; co: string } | null>(null);
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
   const [longStayRoom, setLongStayRoom] = useState<{ room: any; isBed: boolean } | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -268,13 +264,12 @@ export default function HotelRoomList({
     );
   }
 
-  const goCheckout = (roomId: string, qty: number, ratePlanId?: string, ci = checkIn, co = checkOut) => {
-    if (!ci || !co) { setDatePrompt({ roomId, qty, ratePlanId, ci: ci || "", co: co || "" }); return; }
-    if (!isValidDateRangeISO(ci, co)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; }
+  const goCheckout = (roomId: string, qty: number, ratePlanId?: string) => {
+    if (!checkIn || !checkOut) { toast.info("Please select check-in and check-out dates first"); return; }
     const params = new URLSearchParams({
       room: roomId,
-      checkin: ci,
-      checkout: co,
+      checkin: checkIn,
+      checkout: checkOut,
       adults: String(adults ?? 2),
       children: String(children ?? 0),
       rooms: String(qty),
@@ -616,25 +611,6 @@ export default function HotelRoomList({
           </>}
         </DialogContent>
       </Dialog>}
-      {datePrompt && (
-        <Dialog open onOpenChange={(o) => !o && setDatePrompt(null)}>
-          <DialogContent className="max-w-sm">
-            <DialogHeader><DialogTitle>Select your stay dates</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-xs">Check-in</Label>
-                <Input type="date" min={new Date().toISOString().split("T")[0]} value={datePrompt.ci}
-                  onChange={(e) => { const v = e.target.value; setDatePrompt((d) => d && ({ ...d, ci: v, co: d.co && d.co > v ? d.co : nextDayISO(v) })); }} /></div>
-              <div><Label className="text-xs">Check-out</Label>
-                <Input type="date" min={nextDayISO(datePrompt.ci) || new Date().toISOString().split("T")[0]} value={datePrompt.co}
-                  onChange={(e) => setDatePrompt((d) => d && ({ ...d, co: e.target.value }))} /></div>
-            </div>
-            <Button disabled={!isValidDateRangeISO(datePrompt.ci, datePrompt.co)}
-              onClick={() => { const d = datePrompt; setDatePrompt(null); goCheckout(d.roomId, d.qty, d.ratePlanId, d.ci, d.co); }}>
-              Continue to book
-            </Button>
-          </DialogContent>
-        </Dialog>
-      )}
       {longStayRoom && (
         <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayRoom(null)} room={longStayRoom.room}
           hotelName={hotelName} isBed={longStayRoom.isBed} businessTypes={bizTypes} />
