@@ -1,4 +1,4 @@
-import { customerView } from "@/config/accommodationTypes";
+import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import { useState, useMemo, useEffect, useRef } from "react";
