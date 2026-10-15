@@ -1,6 +1,5 @@
 import LongStayDetails from "@/components/hotels/LongStayDetails";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import LongStayBreakdown from "@/components/hotels/LongStayBreakdown";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useEffect, useMemo, useState } from "react";
@@ -82,7 +81,6 @@ export default function HotelRoomList({
   onNightlyRoomsChange,
 }: Props) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
-  const [longStayRoom, setLongStayRoom] = useState<{ room: any; isBed: boolean } | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [meals, setMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -585,7 +583,7 @@ export default function HotelRoomList({
                   )}
                   {cv.kind.longStay && (cv.monthly || cv.weekly) && (
                     <Button variant="secondary" className="min-w-[140px] xl:w-full"
-                      onClick={() => setLongStayRoom({ room, isBed: cv.kind.unit === "bed" })}>
+                      onClick={() => navigate(`/hotels/${hotelId}/long-stay?room=${room.id}`)}>
                       Book long stay
                     </Button>
                   )}
@@ -616,14 +614,10 @@ export default function HotelRoomList({
           <LongStayDetails room={detailRoom} businessTypes={bizTypes} />
           {(Number(detailRoom.monthly_price) > 0 || Number(detailRoom.weekly_price) > 0) && <>
             <LongStayBreakdown quote={longStayQuote(detailRoom)} />
-            <Button onClick={() => { setLongStayRoom({ room: detailRoom, isBed: customerView(detailRoom, bizTypes).kind.unit === "bed" }); setDetailRoom(null); }}>Choose dates & book</Button>
+            <Button onClick={() => { setDetailRoom(null); navigate(`/hotels/${hotelId}/long-stay?room=${detailRoom.id}`); }}>Choose dates & book</Button>
           </>}
         </DialogContent>
       </Dialog>}
-      {longStayRoom && (
-        <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayRoom(null)} room={longStayRoom.room}
-          hotelName={hotelName} isBed={longStayRoom.isBed} businessTypes={bizTypes} />
-      )}
     </div>
   );
 }
