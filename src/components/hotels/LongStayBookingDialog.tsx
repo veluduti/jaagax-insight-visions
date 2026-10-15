@@ -10,9 +10,26 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { requireSignIn } from "@/lib/requireSignIn";
 import { quoteLongStay, reserveLongStay, payLongStay, type ServerQuote } from "@/services/hospitality/longStayBookingService";
+import { freeUnits } from "@/services/hospitality/availabilityService";
 
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+
+/** Move-out (exclusive). Monthly = calendar months, clamped to month end (Jan 31 → Feb 28/29), same as the server. Weekly = 7 days × n. */
+export function longStayMoveOut(moveIn: string, plan: "weekly" | "monthly", duration: number): string {
+  if (!moveIn) return "";
+  const [y, m, d] = moveIn.split("-").map(Number);
+  let out: Date;
+  if (plan === "monthly") {
+    const tm = m - 1 + duration;
+    const last = new Date(Date.UTC(y, tm + 1, 0)).getUTCDate();
+    out = new Date(Date.UTC(y, tm, Math.min(d, last)));
+  } else {
+    out = new Date(Date.UTC(y, m - 1, d + 7 * duration));
+  }
+  return out.toISOString().slice(0, 10);
+}
+const fmtDate = (s: string) => s ? new Date(s + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 export default function LongStayBookingDialog({ open, onOpenChange, room, hotelName, isBed }: {
   open: boolean; onOpenChange: (v: boolean) => void; hotelName: string; isBed: boolean;
@@ -49,6 +66,16 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
     quoteLongStay(room.id, plan, duration, occupants).then((q) => alive && setQuote(q)).catch((e) => { if (alive) { setQuote(null); setQErr(e.message); } });
     return () => { alive = false; };
   }, [open, room.id, plan, duration, occupants]);
+
+  const moveOut = longStayMoveOut(moveIn, plan, duration);
+  const [free, setFree] = useState<number | null>(null);
+  useEffect(() => {
+    if (!open || !moveIn || !moveOut) { setFree(null); return; }
+    let alive = true;
+    freeUnits(room.id, moveIn, moveOut).then((n) => alive && setFree(n)).catch(() => alive && setFree(null));
+    return () => { alive = false; };
+  }, [open, room.id, moveIn, moveOut]);
+  const unavailable = free !== null && free < occupants;
 
   const submit = async () => {
     const { data: { user } } = await supabase.auth.getUser();
