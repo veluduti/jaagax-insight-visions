@@ -128,6 +128,18 @@ export default function LongStayBookingDialog({ open, onOpenChange, room, hotelN
             {plan === "monthly" && minMonths > 1 && <p className="mt-1 text-xs text-muted-foreground">Minimum {minMonths} months.</p>}
           </div>
 
+          <div className="grid grid-cols-2 gap-3 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+            <div><p className="text-xs text-muted-foreground">From (move-in)</p><p className="font-semibold">{fmtDate(moveIn)}</p></div>
+            <div><p className="text-xs text-muted-foreground">To (move-out)</p><p className="font-semibold">{fmtDate(moveOut)}</p></div>
+            <p className="col-span-2 text-xs text-muted-foreground">
+              {duration} {per}{duration > 1 ? "s" : ""}{moveIn ? " · move-out date is set automatically" : " · pick a move-in date"}
+            </p>
+            {unavailable && <p className="col-span-2 text-xs font-medium text-destructive">
+              {free === 0 ? "Not available for these dates." : `Only ${free} available for these dates.`} Try another move-in date.
+            </p>}
+          </div>
+
+
           <div className="rounded-md border border-border/60 p-3 text-sm">
             {qErr ? <p className="text-destructive">{qErr}</p> : !quote ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <div className="space-y-1">
