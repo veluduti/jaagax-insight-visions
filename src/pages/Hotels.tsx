@@ -1,4 +1,4 @@
-import { customerView } from "@/config/accommodationTypes";
+import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -315,7 +315,8 @@ const Hotels = () => {
             text: JSON.stringify([r.room_type, r.amenities, r.attributes]).toLowerCase(),
           });
           const cur = minByHotel.get(r.hotel_id);
-          const p = Number(r.base_price) || 0;
+          // Long-stay rooms (PG/Hostel/Co-living) may only have weekly/monthly rent.
+          const p = Number(r.base_price) || Math.round(Number(r.monthly_price) / 30) || Math.round(Number(r.weekly_price) / 7) || 0;
           (occByHotel[r.hotel_id] ||= []).push(
             toOccupancyRoom(
               { ...r, room_type: r.room_type || "Room" },
@@ -659,13 +660,13 @@ const Hotels = () => {
     rawRooms.forEach((r) => {
       const h = byId.get(r.hotel_id);
       if (!h) return;
-      const bt = r.attributes?.business_type ? normalizeCategory(r.attributes.business_type) : null;
       const kind = r.accommodation_kind || "room";
+      const bt = r.attributes?.business_type ? normalizeCategory(r.attributes.business_type) : businessTypeForKind(kind);
       const roomType = bt ?? (h.business_types?.length === 1 ? normalizeCategory(h.business_types[0]) : null);
       if (!want.some((w) => w === roomType || (kind !== "room" && w === kind))) return;
       const text = JSON.stringify([r.room_type, r.amenities, r.attributes, r.description]).toLowerCase();
       if (!stayFilters.amenities.every((a) => amenityMatch(text, a))) return;
-      if (stayFilters.maxPrice && Number(r.base_price) > stayFilters.maxPrice) return;
+      if (stayFilters.maxPrice && Number(r.base_price) > 0 && Number(r.base_price) > stayFilters.maxPrice) return;
       const name = r.room_name || h.name;
       const area = r.attributes?.area || h.locality || "";
       const key = `${name}|${area}`.toLowerCase();
