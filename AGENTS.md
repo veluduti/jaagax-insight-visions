@@ -16,3 +16,5 @@
 - Events live in `events` / `event_ticket_types` / `event_bookings`; seats are reserved only by the `event_reserve` RPC and all booking, payment, review and broadcast writes go through the `events-api` function, so clients can never confirm bookings or change sold counts.
 - HyperGuest certification/live inventory runs through the `hyperguest` function (static, search, pre-book, book with Booking List fallback, cancel) and `hyperguest_bookings`; every call is logged to `channel_api_payloads` so full search-to-cancel logs can be exported.
 - Pricing revisions, snapshot enquiries and history use authenticated pricing RPCs; shared `src/features/property-pricing` views preserve creator routing and separate pricing approval from property verification.
+
+- Customer long-stay details render the accommodation field configuration through `LongStayDetails` in listing previews and booking dialogs, so partner fields and customer policies stay aligned.

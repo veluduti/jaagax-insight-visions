@@ -26,7 +26,7 @@ export default function LongStayBreakdown({ quote: q, compact }: { quote: Quote;
         <div key={l} className="flex justify-between"><span className="text-muted-foreground">{l}</span><span>{inr(v)}</span></div>
       ))}
       <div className="flex justify-between border-t border-border/60 pt-1 font-semibold">
-        <span>Due at move-in</span><span>{inr(q.dueAtBooking)}</span>
+        <span>Due at booking</span><span>{inr(q.dueAtBooking)}</span>
       </div>
       <p className="text-muted-foreground">Then {inr(q.recurring)} per {per}. Final amount is confirmed at checkout.</p>
     </div>
