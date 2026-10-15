@@ -133,6 +133,10 @@ const TYPES: Record<string, TypeDef> = {
 
 export function typeDef(type: string): TypeDef { return TYPES[normalizeCategory(type)] ?? TYPES.other; }
 
+/** Business type implied by a type-specific accommodation kind (e.g. hostel_dorm → hostel). */
+const KIND_TO_TYPE: Record<string, string> = { hostel_dorm: "hostel", hostel_private: "hostel", dorm: "hostel", pg_room: "pg", pg_shared: "pg", coliving_private: "coliving", coliving_shared: "coliving" };
+export function businessTypeForKind(kind: string | null | undefined): string | null { return (kind && KIND_TO_TYPE[kind]) || null; }
+
 /** Accommodation kinds allowed across the given property types (deduped, ordered). */
 export function allowedKinds(types: string[]): AccommodationKind[] {
   const keys = new Set<string>();
