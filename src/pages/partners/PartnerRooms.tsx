@@ -231,7 +231,7 @@ export default function PartnerRooms() {
     return Array.from(map.values()).filter((m) => m.is_available && m.is_active);
   };
 
-  const editKind = kindFor(editing?.accommodation_kind, editing?.stay_unit);
+  const editKind = kindFor(editing?.accommodation_kind, editing?.stay_unit, allBizTypes);
   const [choosingKind, setChoosingKind] = useState(false);
   const [chooserTypes, setChooserTypes] = useState<string[] | null>(null);
   const kinds = allowedKinds(chooserTypes ?? bizTypes);
