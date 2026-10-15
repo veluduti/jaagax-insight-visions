@@ -4139,6 +4139,7 @@ export type Database = {
           end_date: string
           hotel_id: string
           id: string
+          long_stay_id: string | null
           reason: string
           room_id: string
           smart_stay_reservation_id: string | null
@@ -4153,6 +4154,7 @@ export type Database = {
           end_date: string
           hotel_id: string
           id?: string
+          long_stay_id?: string | null
           reason?: string
           room_id: string
           smart_stay_reservation_id?: string | null
@@ -4167,6 +4169,7 @@ export type Database = {
           end_date?: string
           hotel_id?: string
           id?: string
+          long_stay_id?: string | null
           reason?: string
           room_id?: string
           smart_stay_reservation_id?: string | null
@@ -4187,6 +4190,13 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_availability_blocks_long_stay_id_fkey"
+            columns: ["long_stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
             referencedColumns: ["id"]
           },
           {
@@ -5277,60 +5287,99 @@ export type Database = {
       }
       hotel_long_stays: {
         Row: {
+          advance: number
+          amount_due: number | null
+          booking_ref: string | null
           created_at: string
           created_by: string | null
           deposit: number
+          duration: number | null
+          hold_expires_at: string | null
           hotel_id: string
           id: string
           monthly_rent: number
           move_in: string
           move_out: string | null
           notes: string | null
+          occupants: number
+          paid_at: string | null
+          payment_status: string
+          quote: Json | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           rent_due_day: number
+          rent_plan: string | null
           resident_email: string | null
           resident_name: string
           resident_phone: string | null
           room_id: string | null
+          special_requests: string | null
           status: string
           unit_label: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          advance?: number
+          amount_due?: number | null
+          booking_ref?: string | null
           created_at?: string
           created_by?: string | null
           deposit?: number
+          duration?: number | null
+          hold_expires_at?: string | null
           hotel_id: string
           id?: string
           monthly_rent?: number
           move_in: string
           move_out?: string | null
           notes?: string | null
+          occupants?: number
+          paid_at?: string | null
+          payment_status?: string
+          quote?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           rent_due_day?: number
+          rent_plan?: string | null
           resident_email?: string | null
           resident_name: string
           resident_phone?: string | null
           room_id?: string | null
+          special_requests?: string | null
           status?: string
           unit_label?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          advance?: number
+          amount_due?: number | null
+          booking_ref?: string | null
           created_at?: string
           created_by?: string | null
           deposit?: number
+          duration?: number | null
+          hold_expires_at?: string | null
           hotel_id?: string
           id?: string
           monthly_rent?: number
           move_in?: string
           move_out?: string | null
           notes?: string | null
+          occupants?: number
+          paid_at?: string | null
+          payment_status?: string
+          quote?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           rent_due_day?: number
+          rent_plan?: string | null
           resident_email?: string | null
           resident_name?: string
           resident_phone?: string | null
           room_id?: string | null
+          special_requests?: string | null
           status?: string
           unit_label?: string | null
           updated_at?: string
@@ -15594,6 +15643,30 @@ export type Database = {
           user_id: string
         }[]
       }
+      long_stay_confirm: { Args: { _stay_id: string }; Returns: Json }
+      long_stay_quote: {
+        Args: {
+          _duration: number
+          _occupants?: number
+          _plan: string
+          _room_id: string
+        }
+        Returns: Json
+      }
+      long_stay_reserve: {
+        Args: {
+          _duration: number
+          _email: string
+          _move_in: string
+          _name: string
+          _occupants: number
+          _phone: string
+          _plan: string
+          _requests?: string
+          _room_id: string
+        }
+        Returns: Json
+      }
       mark_property_featured: {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
         Returns: undefined
@@ -15709,6 +15782,7 @@ export type Database = {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined
       }
+      release_expired_long_stay_holds: { Args: never; Returns: number }
       release_expired_payment_holds: { Args: never; Returns: number }
       release_inventory: { Args: { _booking_id: string }; Returns: Json }
       renew_property_listing: {
