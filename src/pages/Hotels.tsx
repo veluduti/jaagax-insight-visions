@@ -1,6 +1,5 @@
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
-import LongStayBookingDialog from "@/components/hotels/LongStayBookingDialog";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "@/contexts/LocationContext";
@@ -148,7 +147,6 @@ const Hotels = () => {
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
   const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [rawRooms, setRawRooms] = useState<any[]>([]);
-  const [longStayListing, setLongStayListing] = useState<StayListing | null>(null);
   const [openListing, setOpenListing] = useState<StayListing | null>(null);
   const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
@@ -689,10 +687,10 @@ const Hotels = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredAndSortedHotels, rawRooms, searchParams]);
   const bookListing = (l: StayListing) => {
+    setOpenListing(null);
+    if (l.longStay) { window.open(`/hotels/${l.hotelId}/long-stay?room=${l.id}`, "_blank", "noopener,noreferrer"); return; }
     const h = hotels.find((x) => x.id === l.hotelId);
     if (!h) return;
-    setOpenListing(null);
-    if (l.longStay) { setLongStayListing(l); return; }
     setBookRoomIds([l.id]);
     setSelectedHotel({ ...h, name: l.name, price_per_night: l.price });
     setShowHotelOnlyModal(true);
@@ -1689,7 +1687,6 @@ const Hotels = () => {
           onlyRoomIds={bookRoomIds}
         />
       )}
-      {longStayListing?.room && <LongStayBookingDialog open onOpenChange={(v) => !v && setLongStayListing(null)} room={longStayListing.room} hotelName={longStayListing.name} isBed={customerView(longStayListing.room, longStayListing.businessTypes).kind.unit === "bed"} businessTypes={longStayListing.businessTypes} />}
       <StayListingDetail listing={openListing} onClose={() => setOpenListing(null)} onBook={bookListing} />
 
       {/* Weekend Property Explorer Wizard */}
