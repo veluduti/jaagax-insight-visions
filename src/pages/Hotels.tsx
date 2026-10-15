@@ -1493,7 +1493,7 @@ const Hotels = () => {
               ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {typeListings.map((l) => (
-                  <Card key={l.id} className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl" onClick={() => setOpenListing(l)}>
+                  <Card key={l.id} className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl" onClick={() => window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer")}>
                     <div className="h-52 w-full bg-muted">
                       {l.photos[0] ? <img src={l.photos[0]} alt={l.name} className="h-full w-full object-cover" loading="lazy" /> : (
                         <div className="flex h-full items-center justify-center"><Hotel className="h-16 w-16 text-muted-foreground" /></div>
