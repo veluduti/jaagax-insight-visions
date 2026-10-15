@@ -165,8 +165,8 @@ export function kindFor(key: string | null | undefined, unit?: string | null, bi
 export function customerView(room: {
   room_type: string; accommodation_kind?: string | null; stay_unit?: string | null;
   attributes?: Record<string, any> | null; monthly_price?: number | null; weekly_price?: number | null;
-}) {
-  const kind = kindFor(room.accommodation_kind, room.stay_unit);
+}, bizTypes?: string[] | null) {
+  const kind = kindFor(room.accommodation_kind, room.stay_unit, bizTypes);
   const noun = kind.noun.toLowerCase();
   const title = kind.unit === "bed" && !/bed\b/i.test(room.room_type) ? `${room.room_type} — Bed` : room.room_type;
   const a = room.attributes || {};

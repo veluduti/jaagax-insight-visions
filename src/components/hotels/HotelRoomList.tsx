@@ -86,6 +86,11 @@ export default function HotelRoomList({
   const [ratePlans, setRatePlans] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const [bizTypes, setBizTypes] = useState<string[]>([]);
+  useEffect(() => {
+    (supabase as any).from("partner_hotels").select("business_types").eq("id", hotelId).maybeSingle()
+      .then(({ data }: any) => setBizTypes(data?.business_types || []));
+  }, [hotelId]);
 
   // Load rooms
   useEffect(() => {
@@ -354,7 +359,7 @@ export default function HotelRoomList({
       {displayRooms.map((room) => {
 
         const q = quotes[room.id];
-        const cv = customerView(room);
+        const cv = customerView(room, bizTypes);
         const photos = (room.photos && room.photos.length > 0) ? room.photos : [FALLBACK_IMG];
         const idx = galleryIdx[room.id] ?? 0;
         const amenityList: string[] = Array.isArray(room.amenities)
