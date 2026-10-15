@@ -17,5 +17,5 @@
 - HyperGuest certification/live inventory runs through the `hyperguest` function (static, search, pre-book, book with Booking List fallback, cancel) and `hyperguest_bookings`; every call is logged to `channel_api_payloads` so full search-to-cancel logs can be exported.
 - Pricing revisions, snapshot enquiries and history use authenticated pricing RPCs; shared `src/features/property-pricing` views preserve creator routing and separate pricing approval from property verification.
 
-- Customer long-stay details render the accommodation field configuration through `LongStayDetails` in listing previews and booking dialogs, so partner fields and customer policies stay aligned.
+- Long-stay (Hostel/PG/Co-living) customer booking opens the dedicated page `/hotels/:hotelId/long-stay?room=<roomId>` (`src/pages/LongStayBooking.tsx`), never a popup; details render via `LongStayDetails` on that page and previews.
 - Hotel detail date controls follow the active rooms' accommodation kinds, not only the property's business types, so mixed nightly and long-stay inventory keeps both booking paths usable.

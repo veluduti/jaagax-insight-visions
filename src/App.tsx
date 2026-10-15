@@ -145,6 +145,7 @@ const NLLandDetail = lazy(() => import("./pages/natural-living/NLLandDetail"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
+const LongStayBooking = lazy(() => import("./pages/LongStayBooking"));
 const HyperGuestProperty = lazy(() => import("./pages/HyperGuestProperty"));
 const HyperGuestCertification = lazy(() => import("./pages/admin/HyperGuestCertification"));
 const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
@@ -567,6 +568,7 @@ const App = () => (
                   <Route path="/hotels/hyperguest/:propertyId" element={<HyperGuestProperty />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
+                  <Route path="/hotels/:id/long-stay" element={<LongStayBooking />} />
                   <Route path="/hotels/booking/:bookingId/confirmed" element={<HotelBookingConfirmed />} />
                   <Route path="/partners" element={<PartnerLanding />} />
                   <Route path="/partners/register" element={<PartnerRegister />} />
