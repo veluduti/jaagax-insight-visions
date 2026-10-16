@@ -253,6 +253,13 @@
       "when": 1792138826490,
       "tag": "0035_property_leave",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792139597738,
+      "tag": "0036_agent_assign_user_id_and_owner_notify",
+      "breakpoints": true
     }
   ]
 }
