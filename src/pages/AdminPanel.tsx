@@ -178,6 +178,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
         { value: "nl-land", label: "Land Registrations", icon: MapPinned },
         { value: "price-drops", label: "Price Drops", icon: TrendingDown },
+        { value: "property-pricing", label: "Property Pricing Approvals", icon: IndianRupee },
       ],
     },
     {
@@ -696,6 +697,15 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           </TabsContent>
 
 
+
+          {/* Property Pricing Approvals */}
+          <TabsContent value="property-pricing" className="mt-4">
+            <div className="rounded-xl border border-border/50 bg-card p-6 space-y-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2"><IndianRupee className="h-5 w-5 text-primary" />Property Pricing & Payment Plans</h2>
+              <p className="text-sm text-muted-foreground">Review pricing submitted by owners, builders and agents. Approve, amend or reject with a reason. Approved pricing becomes visible on live properties.</p>
+              <a href="/admin/property-pricing" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Open pricing approvals</a>
+            </div>
+          </TabsContent>
 
           {/* Price Drops */}
           <TabsContent value="price-drops" className="mt-4">
