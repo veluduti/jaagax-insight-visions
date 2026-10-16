@@ -32,14 +32,16 @@ Deno.serve(async (req) => {
       .select("id, assigned_agent_id, submitted_by, title, lifecycle_status")
       .eq("id", property_id).maybeSingle();
     if (!prop) return new Response(JSON.stringify({ error: "Property not found" }), { status: 404, headers: cors });
-    if (prop.assigned_agent_id !== user.id) return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
-    if (!["agent_accepted","visit_scheduled","under_verification"].includes(prop.lifecycle_status)) {
+    let agentUserId: string | null = prop.assigned_agent_id === user.id ? user.id : null;
+    if (!agentUserId && prop.assigned_agent_id) {
+      const { data: a } = await admin.from("agents").select("user_id").eq("id", prop.assigned_agent_id).maybeSingle();
+      agentUserId = (a as any)?.user_id ?? null;
+    }
+    if (agentUserId !== user.id) return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
+    if (!["visit_scheduled","visit_confirmed","under_verification"].includes(prop.lifecycle_status)) {
       return new Response(JSON.stringify({ error: `Cannot submit from ${prop.lifecycle_status}` }), { status: 400, headers: cors });
     }
 
-    if (prop.lifecycle_status === "agent_accepted") {
-      await admin.from("properties").update({ lifecycle_status: "visit_scheduled" }).eq("id", property_id);
-    }
     if (prop.lifecycle_status !== "under_verification") {
       await admin.from("properties").update({ lifecycle_status: "under_verification" }).eq("id", property_id);
     }
@@ -53,7 +55,7 @@ Deno.serve(async (req) => {
     if (vErr) throw vErr;
 
     await admin.from("properties").update({ lifecycle_status: "verification_submitted" }).eq("id", property_id);
-    await admin.from("properties").update({ lifecycle_status: "pending_final_approval" }).eq("id", property_id);
+    await admin.from("properties").update({ lifecycle_status: "pending_final_approval", verification_status: "agent_verified_pending", agent_submitted_at: new Date().toISOString() }).eq("id", property_id);
 
     const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "admin");
     if (admins?.length) {
@@ -67,6 +69,16 @@ Deno.serve(async (req) => {
         }))
       );
     }
+
+    await admin.from("property_audit_log").insert({
+      property_id, actor_id: user.id, action: "verification_submitted",
+      from_status: prop.lifecycle_status, to_status: "pending_final_approval",
+    });
+    await admin.from("notifications").insert({
+      user_id: user.id, title: "Verification report submitted",
+      message: `Your verification for "${prop.title}" was sent to admin for final approval.`,
+      type: "success", link: "/dashboard/agent",
+    });
 
     // Notify + email owner
     await admin.from("notifications").insert({
