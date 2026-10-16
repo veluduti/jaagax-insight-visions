@@ -360,9 +360,19 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
         {!readOnly && !monitorOnly && (
           <div className="flex flex-wrap gap-2 pt-1" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
             {!mine && !lockedByOther && (
-              <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
-                <Lock className="h-4 w-4 mr-1" /> Hold
-              </Button>
+              <>
+                <Button size="sm" disabled={busy === p.id} onClick={() => call("property_hold", { _property_id: p.id }, "Property held — it is locked to you")}>
+                  <Lock className="h-4 w-4 mr-1" /> Hold
+                </Button>
+                <Button size="sm" variant="outline" disabled={busy === p.id}
+                  onClick={() => {
+                    const next = lvl === "country" ? "State" : lvl === "state" ? "District" : "next level";
+                    if (!confirm(`Leave this property? It will move to the ${next} admin.`)) return;
+                    call("property_leave", { _property_id: p.id, _reason: "Left by admin" }, `Left — moved to ${next} admin`);
+                  }}>
+                  <Unlock className="h-4 w-4 mr-1" /> Leave
+                </Button>
+              </>
             )}
 
             {mine && (
