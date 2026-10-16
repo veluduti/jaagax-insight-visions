@@ -15741,6 +15741,10 @@ export type Database = {
       }
       property_escalate: { Args: { _property_id: string }; Returns: Json }
       property_hold: { Args: { _property_id: string }; Returns: Json }
+      property_leave: {
+        Args: { _property_id: string; _reason?: string }
+        Returns: Json
+      }
       property_owner_decision: {
         Args: { _approve: boolean; _property_id: string; _reason?: string }
         Returns: Json
