@@ -158,6 +158,10 @@ export default function Auth() {
         navigate("/dashboard/admin");
         return;
       }
+      if (role === "country_admin" || role === "state_admin" || role === "district_admin") {
+        redirectToDashboard();
+        return;
+      }
       // Decide redirect based on profiles count
       (async () => {
         const dashPath = (t: string) =>
@@ -315,6 +319,12 @@ export default function Auth() {
     const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
     if (roles.includes("admin")) {
       navigate("/dashboard/admin");
+      return;
+    }
+    // Country / State / District admins always land on their own admin dashboard
+    // (the /dashboard router resolves the right level and agent/admin workspace).
+    if (roles.some((r) => ["country_admin", "state_admin", "district_admin"].includes(r))) {
+      navigate("/dashboard", { replace: true });
       return;
     }
 
