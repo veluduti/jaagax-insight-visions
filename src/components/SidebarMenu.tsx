@@ -87,7 +87,7 @@ export default function SidebarMenu() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start"
-                  onClick={() => handleNavigation(`/dashboard/${role || 'buyer'}`)}
+                  onClick={() => handleNavigation("/dashboard")}
                 >
                   <LayoutDashboard className="h-5 w-5 mr-3 text-primary" />
                   Dashboard
