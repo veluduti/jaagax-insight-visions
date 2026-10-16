@@ -15596,6 +15596,10 @@ export type Database = {
         Args: { _hotel_id: string; _user_id: string }
         Returns: boolean
       }
+      is_property_agent: {
+        Args: { _assigned: string; _uid: string }
+        Returns: boolean
+      }
       is_property_operator: {
         Args: {
           _country: string
