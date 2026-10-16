@@ -60,10 +60,12 @@ export default function AgentVerificationAssignments() {
     const { data: u } = await supabase.auth.getUser();
     const me = u.user?.id;
     if (!me) { setLoading(false); return; }
+    const { data: agentRow } = await (supabase as any).from("agents").select("id").eq("user_id", me).maybeSingle();
+    const ids = [me, agentRow?.id].filter(Boolean).join(",");
     const { data } = await (supabase as any)
       .from("properties")
       .select("id, title, city, district, state, price, lifecycle_status, agent_assignment_status, agent_response_deadline, agent_visit_at, agent_notes")
-      .eq("assigned_agent_id", me)
+      .in("assigned_agent_id", ids.split(","))
       .in("lifecycle_status", ["agent_assigned", "agent_accepted", "visit_scheduled", "under_verification", "verification_submitted"])
       .order("agent_assigned_at", { ascending: false });
     setRows((data ?? []) as Assignment[]);
