@@ -18,7 +18,10 @@ describe("List Your Land category rules", () => {
       const rule = landFlow.fields[fieldId].visibleIf;
       if (!rule) throw new Error(`${fieldId} needs a visibility rule`);
       for (const intent of ["Sale", "Buy", "Rent", "Lease", "Partnership"]) {
-        const state = { answers: { listing_type: intent } } as ConversationState;
+        const state: ConversationState = {
+          category: "land", answers: { listing_type: intent }, skipped: [],
+          extracted: [], currentFieldId: null, messages: [], done: false,
+        };
         expect(engine.evaluateVisibilityRule(rule, state)).toBe(["Sale", "Buy"].includes(intent));
       }
     }
