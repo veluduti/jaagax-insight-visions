@@ -3,6 +3,7 @@
 // a Supabase session via supabase.auth.verifyOtp({ type: 'magiclink' }).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { OtpSmsError, sendOtpSms } from '../_shared/otpSms.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,34 +76,14 @@ async function findUserByPhone(supabase: ReturnType<typeof createClient>, phone:
   return null
 }
 
-async function sendSms(to: string, body: string) {
-  const sid = Deno.env.get('TWILIO_ACCOUNT_SID')
-  const token = Deno.env.get('TWILIO_AUTH_TOKEN')
-  const from = Deno.env.get('TWILIO_PHONE_NUMBER')
-  if (!sid || !token || !from) throw new Error('SMS service not configured')
-
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: 'POST',
-    headers: {
-      Authorization: 'Basic ' + btoa(`${sid}:${token}`),
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({ To: to, From: from, Body: body }),
-  })
-  if (!res.ok) {
-    const err = await res.text()
-    console.error('Twilio error', res.status, err)
-    throw new Error('Failed to send SMS')
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     const { action, phone, otp } = await req.json()
@@ -152,7 +133,13 @@ Deno.serve(async (req) => {
         return json({ error: 'Failed to prepare OTP' }, 500)
       }
 
-      await sendSms(normPhone, `Your JAAGA X login OTP is ${code}. It expires in ${OTP_TTL_MIN} minutes.`)
+      try {
+        await sendOtpSms(normPhone, `Your JAAGA X login OTP is ${code}. It expires in ${OTP_TTL_MIN} minutes.`, { sid: Deno.env.get('TWILIO_ACCOUNT_SID'), token: Deno.env.get('TWILIO_AUTH_TOKEN'), from: Deno.env.get('TWILIO_PHONE_NUMBER') })
+      } catch (error) {
+        // Failed sends must not leave a usable OTP/password or block retry.
+        await supabase.from('phone_login_otps').delete().eq('phone', normPhone).eq('otp_hash', hash)
+        throw error
+      }
       return json({ success: true, message: 'OTP sent' })
     }
 
@@ -207,6 +194,7 @@ Deno.serve(async (req) => {
 
     return json({ error: 'Unknown action' }, 400)
   } catch (e: any) {
+    if (e instanceof OtpSmsError) return json({ error: e.message, sms_reason: e.reason }, 502)
     console.error('phone-otp-login error', e)
     return json({ error: e?.message || 'Server error' }, 500)
   }
