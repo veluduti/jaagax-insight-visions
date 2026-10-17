@@ -3,6 +3,7 @@
 // Supports two providers: 'email' (full manual signup) and 'google' (name+email come from Google).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { OtpSmsError, sendOtpSms } from '../_shared/otpSms.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,26 +72,6 @@ async function phoneTaken(supabase: any, phone: string, ignoreUserId?: string | 
   return !!hit
 }
 
-async function sendSms(to: string, body: string) {
-  const sid = Deno.env.get('TWILIO_ACCOUNT_SID')
-  const token = Deno.env.get('TWILIO_AUTH_TOKEN')
-  const from = Deno.env.get('TWILIO_PHONE_NUMBER')
-  if (!sid || !token || !from) throw new Error('SMS service is not configured. Please contact support.')
-
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: 'POST',
-    headers: {
-      Authorization: 'Basic ' + btoa(`${sid}:${token}`),
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({ To: to, From: from, Body: body }),
-  })
-  if (!res.ok) {
-    const err = await res.text()
-    console.error('Twilio error', res.status, err)
-    throw new Error('Could not send the OTP to that number. Please check it and try again.')
-  }
-}
 
 /** Creates the customer profile, role and signup record for a brand-new user. */
 async function provisionCustomer(
@@ -144,8 +125,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   )
 
   try {
@@ -227,7 +208,13 @@ Deno.serve(async (req) => {
       )
       if (upErr) return json({ error: upErr.message }, 500)
 
-      await sendSms(phone, `${code} is your JAAGA X verification code. It expires in ${OTP_TTL_MIN} minutes.`)
+      try {
+        await sendOtpSms(phone, `${code} is your JAAGA X verification code. It expires in ${OTP_TTL_MIN} minutes.`, { sid: Deno.env.get('TWILIO_ACCOUNT_SID'), token: Deno.env.get('TWILIO_AUTH_TOKEN'), from: Deno.env.get('TWILIO_PHONE_NUMBER') })
+      } catch (error) {
+        // Failed sends must not leave a usable OTP/password or block retry.
+        await supabase.from('pending_registrations').delete().eq('phone', phone).eq('otp_hash', otpHash)
+        throw error
+      }
 
       return json({ success: true, phone, expiresInMinutes: OTP_TTL_MIN })
     }
@@ -328,6 +315,7 @@ Deno.serve(async (req) => {
 
     return json({ error: 'Unknown action' }, 400)
   } catch (err: any) {
+    if (err instanceof OtpSmsError) return json({ error: err.message, sms_reason: err.reason }, 502)
     console.error('register-otp error', err)
     return json({ error: err?.message ?? 'Something went wrong. Please try again.' }, 500)
   }

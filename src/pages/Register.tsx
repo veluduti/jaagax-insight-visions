@@ -161,6 +161,7 @@ export default function Register() {
       const errMsg = await readFnError(data, error);
       if (errMsg) {
         toast.error(errMsg);
+        setErrors((p) => ({ ...p, phone: errMsg }));
         if (/mobile number is already registered/i.test(errMsg)) {
           setErrors((p) => ({ ...p, phone: "This mobile number is already registered." }));
         } else if (/email is already registered/i.test(errMsg)) {

@@ -9,7 +9,7 @@
 - Hospitality support, refunds, disputes and safety reports are `hospitality_tickets` (+ `hospitality_ticket_updates`) handled in the Ops queue on `/admin/hospitality`; tickets get priority from their kind so safety is always first.
 - Role-based hospitality AI help (owner/staff/customer/admin) goes through the `hospitality-assistant` function and `AssistantPanel`; owner growth tips are computed in `growthService.ts` from real data so the AI only explains, never invents numbers.
 - The partner demo property is a `partner_hotels` row tagged `demo` with `is_active=false`, selected via localStorage in `usePartnerHotel` and created/deleted by `demoService.ts`; deleting the hotel cascades all sample data so it never reaches customers.
-- JAAGA Travel (hidden from nav) keeps data in `travel_*` (journeys, members, saves incl. communities) and links to Hospitality/Property inventory via the canonical hotel-search service.
+- Hidden Travel keeps `travel_*` data and uses canonical hotel search.
 - Smart Visit cards share guarded date/time formatters that accept legacy AM/PM text and database times, preventing invalid date displays.
 - Notification clicks resolve same-origin destinations through one shared helper; read actions update both legacy read flags for cross-dashboard consistency.
 - Smart Stays packages live in `smart_stays` (draft itinerary JSON) with frozen `smart_stay_revisions`; all status, pricing, approval and booking changes go through `smart_stay_*` security-definer RPCs and `smart-stay-pay`, so clients can never set prices or statuses. Reservations write to `hotel_availability_blocks.smart_stay_reservation_id` to share the hotel calendar.
@@ -19,3 +19,5 @@
 
 - Long-stay (Hostel/PG/Co-living) customer booking opens the dedicated page `/hotels/:hotelId/long-stay?room=<roomId>` (`src/pages/LongStayBooking.tsx`), never a popup; details render via `LongStayDetails` on that page and previews.
 - Hotel detail date controls follow the active rooms' accommodation kinds, not only the property's business types, so mixed nightly and long-stay inventory keeps both booking paths usable.
+
+- Registration/phone-login use `_shared/otpSms.ts` to classify SMS failures safely and clear failed-send records so retries work.
