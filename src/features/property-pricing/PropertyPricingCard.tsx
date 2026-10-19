@@ -10,14 +10,16 @@ import {IndianRupee,CheckCircle2} from 'lucide-react';
 import {toast} from 'sonner';
 import {useAuth} from '@/hooks/useAuth';
 import {requireSignIn} from '@/lib/requireSignIn';
-import {approvedPricing,enquire,Revision} from './service';
+import {approvedPricing,pricingEligible,enquire,Revision} from './service';
 import {inr,priceTotal,planTotal,emi,contactSchema,offerActive,offerAmount,fullPaymentSavings} from './model';
 export default function PropertyPricingCard({propertyId}:{propertyId:string}) {
  const {user}=useAuth();const navigate=useNavigate();const [revision,setRevision]=useState<Revision|null>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [selected,setSelected]=useState('');const [open,setOpen]=useState(false);const [busy,setBusy]=useState(false);const [sent,setSent]=useState(false);
  const [contact,setContact]=useState({name:'',email:'',phone:'',message:''});
+ const [eligible,setEligible]=useState(false);
  useEffect(()=>{if(user)setContact(c=>({...c,name:user.user_metadata?.full_name||user.user_metadata?.name||'',email:user.email||'',phone:user.phone||user.user_metadata?.phone||''}));},[user]);
- useEffect(()=>{let active=true;setLoading(true);setError('');if(!user){setLoading(false);return;}approvedPricing(propertyId).then(r=>{if(active){setRevision(r);setSelected(r?.content.plans[0]?.kind||'');}}).catch(e=>active&&setError(e.message)).finally(()=>active&&setLoading(false));return()=>{active=false;};},[propertyId,user?.id]);
+ useEffect(()=>{let active=true;setLoading(true);setError('');setEligible(false);setRevision(null);setOpen(false);(async()=>{const allowed=await pricingEligible(propertyId);if(!active)return;setEligible(allowed);if(!allowed||!user)return;const r=await approvedPricing(propertyId);if(active){setRevision(r);setSelected(r?.content.plans[0]?.kind||'');}})().catch(e=>active&&setError(e.message)).finally(()=>active&&setLoading(false));return()=>{active=false;};},[propertyId,user?.id]);
  const pricing=revision?.content;const plan=pricing?.plans.find(p=>p.kind===selected);
+ if (!eligible || loading || (user && !pricing && !error)) return null;
  return <section className="rounded-lg border border-primary/30 bg-card text-card-foreground p-5 space-y-4 shadow-sm">
   <h2 className="text-xl font-semibold flex items-center gap-2"><IndianRupee className="h-5 w-5 text-primary"/>Pricing & Payment Plans</h2>
   {!user?<Button variant="outline" className="w-full" onClick={()=>requireSignIn(navigate,()=>{},"Please sign in to view pricing")}>Sign in to view pricing</Button>:loading?<p className="text-sm text-muted-foreground">Loading pricing…</p>:error?<p role="alert" className="text-sm text-destructive">Pricing is temporarily unavailable.</p>:!pricing?<p className="text-sm text-muted-foreground">Approved payment plans are not available yet.</p>:<>

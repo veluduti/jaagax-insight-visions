@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -122,7 +121,6 @@ const SectionHeading = ({ icon: Icon, title, subtitle }: { icon: any; title: str
 );
 
 export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProps) {
-  const navigate = useNavigate();
   const { user, role, loading: authLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<string[]>([]);
@@ -376,8 +374,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       setFloorPlanFiles([]);
       onSuccess?.();
 
-      // Configure pricing only after ownership has been saved on the listing.
-      if (inserted?.id && tier !== "draft") navigate(`/property-pricing/${inserted.id}`);
+      // Stay in the property workspace while the listing awaits admin approval.
     } catch (error: any) {
       console.error("Error submitting property:", error);
       toast.error(error?.message || "Failed to submit property");

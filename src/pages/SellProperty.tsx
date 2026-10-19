@@ -4169,12 +4169,6 @@ export default function SellProperty() {
       localStorage.removeItem(DRAFT_PREFIX + user.id);
       draftReady.current = false;
 
-      if (propertyId) {
-        toast.success("Property submitted — configure pricing and payment plans next");
-        navigate(`/property-pricing/${propertyId}`);
-        return;
-      }
-
       if (isAgentMode && isTrustedAgent) {
         toast.success("Property submitted ✅", {
           description: "As a trusted agent, your listing goes directly to admin for approval.",

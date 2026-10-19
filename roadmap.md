@@ -5,6 +5,7 @@
 - [x] Remove remaining nightly fields on long-stay detail pages and verify weekly/monthly date selection — signed-in existing legacy Hostel, PG and Co-living rooms; no payment made
 
 ## Property pricing and payment plans
+- [x] Gate pricing entry, submission and customer visibility on property admin approval; verified signed-in pending-page denial, approved customer plans, owner permissions and 18 tests
 - [x] Replace Comparable Listings with approved price breakdown and selectable payment plans
 - [x] Add owner/builder and assigned-agent pricing editor, revisions and enquiry management
 - [x] Add secure Global Admin approval, amendment and rejection with notifications
