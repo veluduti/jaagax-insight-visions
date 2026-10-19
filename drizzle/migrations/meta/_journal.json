@@ -267,6 +267,13 @@
       "when": 1792139695863,
       "tag": "0037_agent_assignment_id_match",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792380397294,
+      "tag": "0038_gate_property_pricing_on_property_approval",
+      "breakpoints": true
     }
   ]
 }
