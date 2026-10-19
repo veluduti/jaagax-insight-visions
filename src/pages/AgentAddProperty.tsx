@@ -278,12 +278,12 @@ export default function AgentAddProperty() {
             ? `To unlock featured placement add: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "…" : ""}`
             : undefined,
         });
-        navigate(`/property-pricing/${inserted.id}`);
+        navigate('/dashboard/agent');
       } else {
         toast.success("🎉 Submitted as a featured listing!", {
           description: "Eligible for promotions and reels.",
         });
-        navigate(`/property-pricing/${inserted.id}`);
+        navigate('/dashboard/agent');
       }
     } catch (err: any) {
       console.error(err);

@@ -68,6 +68,7 @@ import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanc
 import { OwnerPropertyStatusPanel } from "@/components/property/OwnerPropertyStatusPanel";
 import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 import { Link } from "react-router-dom";
+import { canAddPropertyPricing } from '@/features/property-pricing/eligibility';
 
 interface AssignedAgent {
   id: string;
@@ -95,6 +96,7 @@ interface Property {
   description: string | null;
   verified: boolean | null;
   verification_status: string;
+  lifecycle_status?: string | null;
   rejection_reason: string | null;
   is_draft: boolean | null;
   listing_type: string | null;
@@ -539,7 +541,7 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
             )}
           </div>
           <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
-            <Button asChild variant="outline" size="sm"><Link to={`/property-pricing/${p.id}`}><IndianRupee className="h-4 w-4 mr-2" />Pricing & enquiries</Link></Button>
+            {canAddPropertyPricing(p) && <Button asChild variant="outline" size="sm"><Link to={`/property-pricing/${p.id}`}><IndianRupee className="h-4 w-4 mr-2" />Pricing & enquiries</Link></Button>}
             <div className="flex items-center justify-between">
               <p className="text-xl font-bold text-emerald-500">{formatPrice(p.price)}</p>
               <span className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
