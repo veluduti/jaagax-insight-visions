@@ -59,19 +59,44 @@ import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels
 import { matchStayRequest, type Match } from "@/services/hospitality/matchingService";
 import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
 import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
-import { buildLocationIndex, findCities, findLocalities, sameLocality, withPopularAreas } from "@/lib/locationAutocomplete";
+import {
+  buildLocationIndex,
+  findCities,
+  findLocalities,
+  sameLocality,
+  withPopularAreas,
+} from "@/lib/locationAutocomplete";
 import { POPULAR_AREAS } from "@/config/popularAreas";
 import { isSameCity } from "@/lib/cityNormalizer";
 
-interface RoomFeature { kind: string; text: string }
+interface RoomFeature {
+  kind: string;
+  text: string;
+}
 
 const KIND_LABEL: Record<string, string> = {
-  villa: "Villa", cottage: "Cottage", tent: "Tent", cabin: "Cabin", apartment: "Apartment",
-  dorm: "Dorm bed", private_room: "Private room", shared_room: "Shared room", entire_home: "Entire home", room: "Room",
+  villa: "Villa",
+  cottage: "Cottage",
+  tent: "Tent",
+  cabin: "Cabin",
+  apartment: "Apartment",
+  dorm: "Dorm bed",
+  private_room: "Private room",
+  shared_room: "Shared room",
+  entire_home: "Entire home",
+  room: "Room",
 };
 const AMENITY_LABEL: Record<string, string> = {
-  wifi: "Wi-Fi", breakfast: "Breakfast", parking: "Parking", pool: "Pool", pet_friendly: "Pet-friendly",
-  ac: "AC", gym: "Gym", restaurant: "Restaurant", kitchen: "Kitchen", laundry: "Laundry",
+  wifi: "Wi-Fi",
+  breakfast: "Breakfast",
+  parking: "Parking",
+  pool: "Pool",
+  pet_friendly: "Pet-friendly",
+  ac: "AC",
+  gym: "Gym",
+  restaurant: "Restaurant",
+  kitchen: "Kitchen",
+  laundry: "Laundry",
 };
 
 interface PartnerHotel {
@@ -141,7 +166,10 @@ const Hotels = () => {
     put("prefs", f.prefs.join(","));
     put("amen", f.amenities.join(","));
     put("maxp", f.maxPrice ? String(f.maxPrice) : "");
-    if (extra) { put("kinds", extra.kinds.join(",")); put("opt", extra.opt.join(",")); }
+    if (extra) {
+      put("kinds", extra.kinds.join(","));
+      put("opt", extra.opt.join(","));
+    }
     setSearchParams(next, { replace: true });
   };
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
@@ -150,7 +178,11 @@ const Hotels = () => {
   const [openListing, setOpenListing] = useState<StayListing | null>(null);
   const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
-  useEffect(() => { loadStayProfile().then(setProfile).catch(() => null); }, []);
+  useEffect(() => {
+    loadStayProfile()
+      .then(setProfile)
+      .catch(() => null);
+  }, []);
   const { detectedLocation } = useLocation();
   const { user, role } = useAuth();
 
@@ -297,7 +329,9 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities, room_name, description, photos, weekly_price, monthly_price, cancellation_policy")
+            .select(
+              "id, hotel_id, room_type, base_price, max_occupancy, max_adults, max_children, total_units, is_active, stay_unit, accommodation_kind, attributes, amenities, room_name, description, photos, weekly_price, monthly_price, cancellation_policy",
+            )
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -314,7 +348,11 @@ const Hotels = () => {
           });
           const cur = minByHotel.get(r.hotel_id);
           // Long-stay rooms (PG/Hostel/Co-living) may only have weekly/monthly rent.
-          const p = Number(r.base_price) || Math.round(Number(r.monthly_price) / 30) || Math.round(Number(r.weekly_price) / 7) || 0;
+          const p =
+            Number(r.base_price) ||
+            Math.round(Number(r.monthly_price) / 30) ||
+            Math.round(Number(r.weekly_price) / 7) ||
+            0;
           (occByHotel[r.hotel_id] ||= []).push(
             toOccupancyRoom(
               { ...r, room_type: r.room_type || "Room" },
@@ -328,7 +366,6 @@ const Hotels = () => {
         setUnitsByHotel(units);
         setRoomFeatures(feats);
         setRawRooms(roomsRes.data || []);
-
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
@@ -386,7 +423,10 @@ const Hotels = () => {
 
     // If the field shows a chosen "Area, City" label, search by the area part
     const query = searchQuery.toLowerCase().trim().split(",")[0].trim();
-    if (!query) { setSuggestions([]); return; }
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
 
     const cityItems: SearchSuggestion[] = [];
     const areaItems: SearchSuggestion[] = [];
@@ -424,7 +464,9 @@ const Hotels = () => {
       .filter((hotel) => hotel.name.toLowerCase().includes(query))
       .filter((hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name))
       .slice(0, 4)
-      .forEach((hotel) => hotelItems.push({ type: "hotel", name: hotel.name, subtitle: `${hotel.locality}, ${hotel.city}`, count: 1 }));
+      .forEach((hotel) =>
+        hotelItems.push({ type: "hotel", name: hotel.name, subtitle: `${hotel.locality}, ${hotel.city}`, count: 1 }),
+      );
 
     const grouped: SearchSuggestion[] = [];
     if (cityItems.length) grouped.push({ type: "popular", name: "Cities" }, ...cityItems);
@@ -450,9 +492,10 @@ const Hotels = () => {
       setShowSuggestions(true);
       if (!selectableIdx.length) return;
       const pos = selectableIdx.indexOf(activeSuggestion);
-      const next = e.key === "ArrowDown"
-        ? selectableIdx[(pos + 1) % selectableIdx.length]
-        : selectableIdx[pos <= 0 ? selectableIdx.length - 1 : pos - 1];
+      const next =
+        e.key === "ArrowDown"
+          ? selectableIdx[(pos + 1) % selectableIdx.length]
+          : selectableIdx[pos <= 0 ? selectableIdx.length - 1 : pos - 1];
       setActiveSuggestion(next);
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -490,9 +533,16 @@ const Hotels = () => {
 
   function amenityMatch(text: string, key: string) {
     const words: Record<string, string[]> = {
-      wifi: ["wifi", "wi-fi", "internet"], breakfast: ["breakfast"], parking: ["parking"], pool: ["pool", "swimming"],
-      pet_friendly: ["pet"], ac: ["ac", "air condition"], gym: ["gym", "fitness"], restaurant: ["restaurant", "dining"],
-      kitchen: ["kitchen"], laundry: ["laundry"],
+      wifi: ["wifi", "wi-fi", "internet"],
+      breakfast: ["breakfast"],
+      parking: ["parking"],
+      pool: ["pool", "swimming"],
+      pet_friendly: ["pet"],
+      ac: ["ac", "air condition"],
+      gym: ["gym", "fitness"],
+      restaurant: ["restaurant", "dining"],
+      kitchen: ["kitchen"],
+      laundry: ["laundry"],
     };
     return (words[key] ?? [key]).some((w) => text.includes(w));
   }
@@ -501,8 +551,12 @@ const Hotels = () => {
     const types = (h.business_types?.length ? h.business_types : ["hotel"]).map(normalizeCategory);
     const am = (h.amenities || []).join(" ").toLowerCase();
     let s = (profile.cities[h.city?.toLowerCase()] || 0) * 3;
-    types.forEach((t) => { s += (profile.types[t] || 0) * 2; });
-    Object.entries(profile.amenities).forEach(([k, w]) => { if (amenityMatch(am, k)) s += w; });
+    types.forEach((t) => {
+      s += (profile.types[t] || 0) * 2;
+    });
+    Object.entries(profile.amenities).forEach(([k, w]) => {
+      if (amenityMatch(am, k)) s += w;
+    });
     if (profile.avgMaxPrice && h.price_per_night <= profile.avgMaxPrice) s += 4;
     if ((profile.prefs.budget || 0) > 0 && h.price_per_night < 3000) s += profile.prefs.budget;
     if ((profile.prefs.luxury || 0) > 0 && (h.star_rating || 0) >= 4) s += profile.prefs.luxury;
@@ -526,10 +580,23 @@ const Hotels = () => {
       maxPrice: intent.max_price || null,
     };
     setStayFilters(merged, { kinds: intent.accommodation_kinds || [], opt: intent.optional_amenities || [] });
-    if (intent.location) { setSearchQuery(intent.location); setSelectedCity(intent.location); setSelectedLocality(null); }
-    if (intent.adults) { setAdults(intent.adults); setTempAdults(intent.adults); }
-    if (intent.children != null) { setChildren(intent.children); setTempChildren(intent.children); }
-    if (intent.rooms) { setRooms(intent.rooms); setTempRooms(intent.rooms); }
+    if (intent.location) {
+      setSearchQuery(intent.location);
+      setSelectedCity(intent.location);
+      setSelectedLocality(null);
+    }
+    if (intent.adults) {
+      setAdults(intent.adults);
+      setTempAdults(intent.adults);
+    }
+    if (intent.children != null) {
+      setChildren(intent.children);
+      setTempChildren(intent.children);
+    }
+    if (intent.rooms) {
+      setRooms(intent.rooms);
+      setTempRooms(intent.rooms);
+    }
     const start = intent.check_in ? new Date(intent.check_in) : checkIn;
     if (intent.check_in && !isNaN(start.getTime())) setCheckIn(start);
     if (intent.nights) {
@@ -538,17 +605,32 @@ const Hotels = () => {
       setCheckOut(out);
     }
     logHotelSignal("search", {
-      source: "ai", city: intent.location, business_types: merged.types, preferences: merged.prefs,
-      amenities: merged.amenities, max_price: merged.maxPrice, adults: intent.adults, nights: intent.nights,
+      source: "ai",
+      city: intent.location,
+      business_types: merged.types,
+      preferences: merged.prefs,
+      amenities: merged.amenities,
+      max_price: merged.maxPrice,
+      adults: intent.adults,
+      nights: intent.nights,
     });
     toast.success("AI applied your preferences");
   };
 
   const onStayFiltersChange = (f: StayFilters) => {
-    setStayFilters(f, f.types.join() !== stayFilters.types.join() || f.amenities.join() !== stayFilters.amenities.join() ? { kinds: [], opt: [] } : undefined);
+    setStayFilters(
+      f,
+      f.types.join() !== stayFilters.types.join() || f.amenities.join() !== stayFilters.amenities.join()
+        ? { kinds: [], opt: [] }
+        : undefined,
+    );
     logHotelSignal("search", {
-      source: "filters", city: selectedCity !== "all" ? selectedCity : null, business_types: f.types,
-      preferences: f.prefs, amenities: f.amenities, max_price: f.maxPrice,
+      source: "filters",
+      city: selectedCity !== "all" ? selectedCity : null,
+      business_types: f.types,
+      preferences: f.prefs,
+      amenities: f.amenities,
+      max_price: f.maxPrice,
     });
   };
 
@@ -563,11 +645,12 @@ const Hotels = () => {
         hotel.city.toLowerCase().includes(selectedCity.toLowerCase());
       const matchesLocality = !selectedLocality || sameLocality(hotel.locality, selectedLocality);
       const matchesSearch =
-        matchesLocality && (!q ||
-        hotel.name.toLowerCase().includes(q) ||
-        hotel.city.toLowerCase().includes(q) ||
-        hotel.locality.toLowerCase().includes(q) ||
-        (hotel.address || "").toLowerCase().includes(q));
+        matchesLocality &&
+        (!q ||
+          hotel.name.toLowerCase().includes(q) ||
+          hotel.city.toLowerCase().includes(q) ||
+          hotel.locality.toLowerCase().includes(q) ||
+          (hotel.address || "").toLowerCase().includes(q));
 
       let matchesPrice = true;
       if (selectedPriceRange !== "all") {
@@ -587,7 +670,8 @@ const Hotels = () => {
           ? false
           : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
             buildRoomCombinations(hotelRooms, adults, children, {
-              maxRooms: Math.max(rooms, 6), limit: 1,
+              maxRooms: Math.max(rooms, 6),
+              limit: 1,
             }).length > 0;
 
       const matchesUnit = (() => {
@@ -621,8 +705,10 @@ const Hotels = () => {
       if (aiKinds.length) {
         const kindRooms = feats.filter((f) => aiKinds.includes(f.kind));
         const typeOk = aiKinds.some((k) => hTypes.includes(k));
-        if (kindRooms.length) { scope = kindRooms; hits++; }
-        else if (typeOk) hits++;
+        if (kindRooms.length) {
+          scope = kindRooms;
+          hits++;
+        } else if (typeOk) hits++;
         else miss.push(aiKinds.map((k) => KIND_LABEL[k] || k).join("/"));
       }
       const scopeText = hotelText + scope.map((f) => f.text).join(" ");
@@ -639,12 +725,31 @@ const Hotels = () => {
     // No exact match → show the closest partial matches, clearly labelled.
     const partial = exact.length === 0 && hasRequirements;
     const pool = partial ? scored.filter((s) => s.hits > 0) : exact;
-    pool.sort((a, b) =>
-      b.hits - a.hits || b.optHits - a.optHits ||
-      relevance(b.hotel) - relevance(a.hotel) || (b.hotel.star_rating || 0) - (a.hotel.star_rating || 0));
+    pool.sort(
+      (a, b) =>
+        b.hits - a.hits ||
+        b.optHits - a.optHits ||
+        relevance(b.hotel) - relevance(a.hotel) ||
+        (b.hotel.star_rating || 0) - (a.hotel.star_rating || 0),
+    );
 
     return { list: pool.map((s) => s.hotel), missing, partial };
-  }, [hotels, selectedCity, selectedLocality, locationLabel, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms, searchParams, unitsByHotel, roomFeatures, profile]);
+  }, [
+    hotels,
+    selectedCity,
+    selectedLocality,
+    locationLabel,
+    searchQuery,
+    selectedPriceRange,
+    roomsByHotel,
+    adults,
+    children,
+    rooms,
+    searchParams,
+    unitsByHotel,
+    roomFeatures,
+    profile,
+  ]);
   const filteredAndSortedHotels = searchOutcome.list;
 
   // When a stay type is searched (e.g. "guest houses"), show each listing of that
@@ -659,7 +764,9 @@ const Hotels = () => {
       const h = byId.get(r.hotel_id);
       if (!h) return;
       const kind = r.accommodation_kind || "room";
-      const bt = r.attributes?.business_type ? normalizeCategory(r.attributes.business_type) : businessTypeForKind(kind);
+      const bt = r.attributes?.business_type
+        ? normalizeCategory(r.attributes.business_type)
+        : businessTypeForKind(kind);
       const roomType = bt ?? (h.business_types?.length === 1 ? normalizeCategory(h.business_types[0]) : null);
       if (!want.some((w) => w === roomType || (kind !== "room" && w === kind))) return;
       const text = JSON.stringify([r.room_type, r.amenities, r.attributes, r.description]).toLowerCase();
@@ -674,13 +781,26 @@ const Hotels = () => {
       const cv = customerView(r, bt ? [bt] : h.business_types);
       const rent = longStayQuote(r);
       out.push({
-        id: r.id, hotelId: h.id, name, area, city: r.attributes?.area ? "" : h.city,
+        id: r.id,
+        hotelId: h.id,
+        name,
+        area,
+        city: r.attributes?.area ? "" : h.city,
         typeLabel: t.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        roomType: r.room_type || "", price: cv.kind.longStay ? rent.monthly || rent.weekly : Number(r.base_price) || 0,
-        longStay: !!cv.kind.longStay, pricePeriod: cv.kind.longStay ? (rent.monthly ? "month" : "week") : "night", room: r, businessTypes: bt ? [bt] : h.business_types,
+        roomType: r.room_type || "",
+        price: cv.kind.longStay ? rent.monthly || rent.weekly : Number(r.base_price) || 0,
+        longStay: !!cv.kind.longStay,
+        pricePeriod: cv.kind.longStay ? (rent.monthly ? "month" : "week") : "night",
+        room: r,
+        businessTypes: bt ? [bt] : h.business_types,
         photos: Array.isArray(r.photos) ? r.photos.filter(Boolean) : [],
-        highlights: String(r.description || "").split(/[;\n]/).map((x: string) => x.trim()).filter(Boolean),
-        maxAdults: r.max_adults ?? null, maxOccupancy: r.max_occupancy ?? null, units: r.total_units ?? null,
+        highlights: String(r.description || "")
+          .split(/[;\n]/)
+          .map((x: string) => x.trim())
+          .filter(Boolean),
+        maxAdults: r.max_adults ?? null,
+        maxOccupancy: r.max_occupancy ?? null,
+        units: r.total_units ?? null,
       });
     });
     return out.sort((a, b) => a.price - b.price);
@@ -688,7 +808,10 @@ const Hotels = () => {
   }, [filteredAndSortedHotels, rawRooms, searchParams]);
   const bookListing = (l: StayListing) => {
     setOpenListing(null);
-    if (l.longStay) { window.open(`/hotels/${l.hotelId}/long-stay?room=${l.id}`, "_blank", "noopener,noreferrer"); return; }
+    if (l.longStay) {
+      window.open(`/hotels/${l.hotelId}/long-stay?room=${l.id}`, "_blank", "noopener,noreferrer");
+      return;
+    }
     const h = hotels.find((x) => x.id === l.hotelId);
     if (!h) return;
     setBookRoomIds([l.id]);
@@ -698,17 +821,35 @@ const Hotels = () => {
 
   // Shared stay request → matching engine. Reasons come only from partner-entered data.
   const [matchById, setMatchById] = useState<Record<string, Match>>({});
-  const searchKey = [selectedCity, searchQuery, checkIn?.toDateString(), checkOut?.toDateString(), adults, children, searchParams.toString()].join("|");
+  const searchKey = [
+    selectedCity,
+    searchQuery,
+    checkIn?.toDateString(),
+    checkOut?.toDateString(),
+    adults,
+    children,
+    searchParams.toString(),
+  ].join("|");
   useEffect(() => {
     const t = setTimeout(() => {
-      const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const fmt = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const loc = (selectedCity && selectedCity !== "all" ? selectedCity : searchQuery || "").trim();
       matchStayRequest({
-        source: "search", location: loc || undefined, city: loc || undefined,
-        check_in: checkIn ? fmt(checkIn) : null, check_out: checkOut ? fmt(checkOut) : null,
-        adults: Math.max(1, adults), children, business_types: stayFilters.types,
-        preferences: stayFilters.prefs, amenities: stayFilters.amenities, budget_max: stayFilters.maxPrice,
-      }).then((r) => setMatchById(Object.fromEntries((r?.matches ?? []).map((m) => [m.hotel_id, m])))).catch(() => setMatchById({}));
+        source: "search",
+        location: loc || undefined,
+        city: loc || undefined,
+        check_in: checkIn ? fmt(checkIn) : null,
+        check_out: checkOut ? fmt(checkOut) : null,
+        adults: Math.max(1, adults),
+        children,
+        business_types: stayFilters.types,
+        preferences: stayFilters.prefs,
+        amenities: stayFilters.amenities,
+        budget_max: stayFilters.maxPrice,
+      })
+        .then((r) => setMatchById(Object.fromEntries((r?.matches ?? []).map((m) => [m.hotel_id, m]))))
+        .catch(() => setMatchById({}));
     }, 700);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -732,14 +873,13 @@ const Hotels = () => {
       const hotelRooms = roomsByHotel[h.id] || [];
       if (hotelRooms.some((r) => roomFitsAlone(r, adults, children))) return;
       const combo = buildRoomCombinations(hotelRooms, adults, children, {
-        maxRooms: Math.max(rooms, 6), limit: 1,
+        maxRooms: Math.max(rooms, 6),
+        limit: 1,
       })[0];
       if (combo) map[h.id] = combo.totalRooms;
     });
     return map;
   }, [filteredAndSortedHotels, roomsByHotel, adults, children, rooms]);
-
-
 
   // After a Search click, report result count once the filter memo has resettled.
   useEffect(() => {
@@ -993,7 +1133,10 @@ const Hotels = () => {
 
                     {/* Suggestions Dropdown - IMPROVED to match image 1 */}
                     {showSuggestions && (
-                      <div role="listbox" className="absolute top-full left-0 right-0 md:min-w-[340px] mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] max-h-[60vh] md:max-h-96 overflow-y-auto overscroll-contain">
+                      <div
+                        role="listbox"
+                        className="absolute top-full left-0 right-0 md:min-w-[340px] mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] max-h-[60vh] md:max-h-96 overflow-y-auto overscroll-contain"
+                      >
                         {isSearching ? (
                           <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
@@ -1291,9 +1434,7 @@ const Hotels = () => {
 
                 {/* Search */}
                 <div>
-                  <label className="text-xs font-medium text-transparent block mb-1 select-none">
-                    Search
-                  </label>
+                  <label className="text-xs font-medium text-transparent block mb-1 select-none">Search</label>
                   <div className="flex gap-2">
                     <Button
                       onClick={handleAdvancedSearch}
@@ -1347,7 +1488,8 @@ const Hotels = () => {
                 let best: { name: string; areas: { name: string; count: number }[] } | null = null;
                 locationIndex.forEach((c) => {
                   if (best) return;
-                  if ([c.name, c.key].some((n) => n && t.includes(` ${n.toLowerCase()} `))) best = { name: c.name, areas: c.localities.slice(0, 12) };
+                  if ([c.name, c.key].some((n) => n && t.includes(` ${n.toLowerCase()} `)))
+                    best = { name: c.name, areas: c.localities.slice(0, 12) };
                 });
                 if (!best && selectedCity !== "all") {
                   const c = Array.from(locationIndex.values()).find((x) => isSameCity(x.name, selectedCity));
@@ -1358,10 +1500,14 @@ const Hotels = () => {
               selectedArea={selectedLocality}
               onPickArea={(city, area) => {
                 const label = area ? `${area}, ${city}` : city;
-                setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
+                setSelectedCity(city);
+                setSelectedLocality(area);
+                setSearchQuery(label);
+                setLocationLabel(label);
                 const next = new URLSearchParams(searchParams);
                 next.set("city", city);
-                if (area) next.set("locality", area); else next.delete("locality");
+                if (area) next.set("locality", area);
+                else next.delete("locality");
                 setSearchParams(next, { replace: true });
               }}
             />
@@ -1369,11 +1515,7 @@ const Hotels = () => {
         </div>
 
         <div className="container mx-auto max-w-7xl px-4 py-4">
-
           <MyHotelApplicationsBanner />
-          <a href="/hotels/hyperguest/19912" className="block mb-4 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm hover:bg-primary/20 transition-colors">
-            <span className="font-semibold">Certification Property (Test only)</span> · Haifa · HyperGuest test hotel — tap to search and book
-          </a>
 
           {recommended.length > 0 && (
             <div className="mb-5">
@@ -1388,11 +1530,20 @@ const Hotels = () => {
                     onClick={() => handleHotelClick(h)}
                     className="flex items-center gap-3 rounded-xl border border-border bg-card p-2 text-left shadow-sm transition hover:shadow-md"
                   >
-                    <img src={h.images?.[0]} alt={h.name} className="h-16 w-16 flex-shrink-0 rounded-lg object-cover" loading="lazy" />
+                    <img
+                      src={h.images?.[0]}
+                      alt={h.name}
+                      className="h-16 w-16 flex-shrink-0 rounded-lg object-cover"
+                      loading="lazy"
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">{h.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{h.locality}, {h.city}</p>
-                      <p className="text-xs font-semibold text-primary">from ₹{Number(h.price_per_night).toLocaleString("en-IN")}/night</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {h.locality}, {h.city}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        from ₹{Number(h.price_per_night).toLocaleString("en-IN")}/night
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -1478,192 +1629,230 @@ const Hotels = () => {
             </div>
           ) : (
             <>
-            {searchOutcome.partial && !typeListings && (
-              <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
-                No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
-              </div>
-            )}
-            {typeListings ? (
-              typeListings.length === 0 ? (
-                <p className="rounded-xl border border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
-                  No stays of this type match your search yet. Try another city or remove some requirements.
-                </p>
-              ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {typeListings.map((l) => (
-                  <Card key={l.id} className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl" onClick={() => window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer")}>
-                    <div className="h-52 w-full bg-muted">
-                      {l.photos[0] ? <img src={l.photos[0]} alt={l.name} className="h-full w-full object-cover" loading="lazy" /> : (
-                        <div className="flex h-full items-center justify-center"><Hotel className="h-16 w-16 text-muted-foreground" /></div>
-                      )}
-                    </div>
-                    <CardContent className="flex flex-1 flex-col p-3.5">
-                      <Badge variant="secondary" className="mb-1 w-fit text-[10px]">{l.typeLabel}</Badge>
-                      <h3 className="line-clamp-1 text-sm font-semibold">{l.name}</h3>
-                      <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3 text-primary" /><span className="line-clamp-1">{[l.area, l.city].filter(Boolean).join(", ")}</span></p>
-                      {l.highlights.length > 0 && <p className="mb-2 line-clamp-2 text-[11px] text-muted-foreground">{l.highlights.slice(0, 3).join(" · ")}</p>}
-                      <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
-                        <div><span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span><span className="text-[10px] text-muted-foreground">/{l.pricePeriod || "night"}</span></div>
-                        <Button size="sm" className="h-8 rounded-xl px-4 text-xs" onClick={(e) => { e.stopPropagation(); if (l.longStay) window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer"); else bookListing(l); }}>{l.longStay ? "View & Book" : "Book"}</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              )
-            ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredAndSortedHotels.map((hotel, index) => (
-                <motion.div
-                  key={hotel.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ y: -4 }}
-                  className="cursor-pointer h-full"
-                  onClick={() => handleHotelClick(hotel)}
-                >
-                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col">
-                    {/* Image Section */}
-                    <div className="relative h-52 w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex-shrink-0">
-                      {hotel.images && hotel.images[0] ? (
-                        <img
-                          src={hotel.images[0]}
-                          alt={hotel.name}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-emerald-100">
-                          <Hotel className="h-16 w-16 text-green-300" />
-                        </div>
-                      )}
-
-                      {/* Badges */}
-                      <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-                        {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
-                          <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
-                            🔥 {hotel.discount_percentage}% OFF
-                          </Badge>
-                        ) : null}
-                        {hotel.star_rating && hotel.star_rating >= 4.5 ? (
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-black border-0 text-[10px] px-2.5 py-1 shadow-lg">
-                            ⭐ Premium
-                          </Badge>
-                        ) : null}
-                      </div>
-
-                      <button
-                        onClick={(e) => toggleFavorite(hotel.id, e)}
-                        className="absolute top-2 left-2 p-1.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
+              {searchOutcome.partial && !typeListings && (
+                <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
+                  No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
+                </div>
+              )}
+              {typeListings ? (
+                typeListings.length === 0 ? (
+                  <p className="rounded-xl border border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
+                    No stays of this type match your search yet. Try another city or remove some requirements.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {typeListings.map((l) => (
+                      <Card
+                        key={l.id}
+                        className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl"
+                        onClick={() =>
+                          window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer")
+                        }
                       >
-                        <Heart
-                          className={`h-4 w-4 ${
-                            favorites.includes(hotel.id)
-                              ? "fill-red-500 text-red-500"
-                              : "text-gray-500 hover:text-red-500"
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Content */}
-                    <CardContent className="p-3.5 flex-1 flex flex-col">
-                      <div>
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
-                            {hotel.name}
-                          </h3>
-                          {renderStars(hotel.star_rating)}
+                        <div className="h-52 w-full bg-muted">
+                          {l.photos[0] ? (
+                            <img src={l.photos[0]} alt={l.name} className="h-full w-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <Hotel className="h-16 w-16 text-muted-foreground" />
+                            </div>
+                          )}
                         </div>
-
-                        {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? (
-                          <p className="mb-1 text-[11px] font-medium text-destructive">
-                            Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}
-                          </p>
-                        ) : null}
-                        {matchById[hotel.id]?.reasons?.length ? (
-                          <p className="mb-1 line-clamp-2 text-[11px] text-primary" title="Why this matched">
-                            ✓ {matchById[hotel.id].reasons.slice(0, 3).map((r) => r.label).join(" · ")}
-                          </p>
-                        ) : null}
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                          <MapPin className="h-3 w-3 flex-shrink-0 text-primary" />
-                          <span className="line-clamp-1 capitalize">
-                            {hotel.locality && hotel.city && hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
-                              ? `${hotel.locality}, ${hotel.city}`
-                              : hotel.city || hotel.locality || ""}
-                          </span>
-                        </div>
-
-                        {roomsNeededByHotel[hotel.id] ? (
-                          <Badge
-                            variant="outline"
-                            className="mb-2 text-[9px] px-2 py-0.5 rounded-full border-primary/30 bg-primary/5 text-primary"
-                          >
-                            Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests
+                        <CardContent className="flex flex-1 flex-col p-3.5">
+                          <Badge variant="secondary" className="mb-1 w-fit text-[10px]">
+                            {l.typeLabel}
                           </Badge>
-                        ) : null}
+                          <h3 className="line-clamp-1 text-sm font-semibold">{l.name}</h3>
+                          <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3 text-primary" />
+                            <span className="line-clamp-1">{[l.area, l.city].filter(Boolean).join(", ")}</span>
+                          </p>
+                          {l.highlights.length > 0 && (
+                            <p className="mb-2 line-clamp-2 text-[11px] text-muted-foreground">
+                              {l.highlights.slice(0, 3).join(" · ")}
+                            </p>
+                          )}
+                          <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
+                            <div>
+                              <span className="text-lg font-bold text-primary">₹{l.price.toLocaleString("en-IN")}</span>
+                              <span className="text-[10px] text-muted-foreground">/{l.pricePeriod || "night"}</span>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="h-8 rounded-xl px-4 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (l.longStay)
+                                  window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer");
+                                else bookListing(l);
+                              }}
+                            >
+                              {l.longStay ? "View & Book" : "Book"}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredAndSortedHotels.map((hotel, index) => (
+                    <motion.div
+                      key={hotel.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ y: -4 }}
+                      className="cursor-pointer h-full"
+                      onClick={() => handleHotelClick(hotel)}
+                    >
+                      <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col">
+                        {/* Image Section */}
+                        <div className="relative h-52 w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex-shrink-0">
+                          {hotel.images && hotel.images[0] ? (
+                            <img
+                              src={hotel.images[0]}
+                              alt={hotel.name}
+                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-emerald-100">
+                              <Hotel className="h-16 w-16 text-green-300" />
+                            </div>
+                          )}
 
+                          {/* Badges */}
+                          <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+                            {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
+                              <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
+                                🔥 {hotel.discount_percentage}% OFF
+                              </Badge>
+                            ) : null}
+                            {hotel.star_rating && hotel.star_rating >= 4.5 ? (
+                              <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-black border-0 text-[10px] px-2.5 py-1 shadow-lg">
+                                ⭐ Premium
+                              </Badge>
+                            ) : null}
+                          </div>
 
-                        {hotel.amenities && hotel.amenities.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-2.5">
-                            {hotel.amenities.slice(0, 3).map((amenity) => (
+                          <button
+                            onClick={(e) => toggleFavorite(hotel.id, e)}
+                            className="absolute top-2 left-2 p-1.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
+                          >
+                            <Heart
+                              className={`h-4 w-4 ${
+                                favorites.includes(hotel.id)
+                                  ? "fill-red-500 text-red-500"
+                                  : "text-gray-500 hover:text-red-500"
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {/* Content */}
+                        <CardContent className="p-3.5 flex-1 flex flex-col">
+                          <div>
+                            <div className="flex justify-between items-start mb-1">
+                              <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
+                                {hotel.name}
+                              </h3>
+                              {renderStars(hotel.star_rating)}
+                            </div>
+
+                            {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? (
+                              <p className="mb-1 text-[11px] font-medium text-destructive">
+                                Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}
+                              </p>
+                            ) : null}
+                            {matchById[hotel.id]?.reasons?.length ? (
+                              <p className="mb-1 line-clamp-2 text-[11px] text-primary" title="Why this matched">
+                                ✓{" "}
+                                {matchById[hotel.id].reasons
+                                  .slice(0, 3)
+                                  .map((r) => r.label)
+                                  .join(" · ")}
+                              </p>
+                            ) : null}
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                              <MapPin className="h-3 w-3 flex-shrink-0 text-primary" />
+                              <span className="line-clamp-1 capitalize">
+                                {hotel.locality &&
+                                hotel.city &&
+                                hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
+                                  ? `${hotel.locality}, ${hotel.city}`
+                                  : hotel.city || hotel.locality || ""}
+                              </span>
+                            </div>
+
+                            {roomsNeededByHotel[hotel.id] ? (
                               <Badge
-                                key={amenity}
                                 variant="outline"
-                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
+                                className="mb-2 text-[9px] px-2 py-0.5 rounded-full border-primary/30 bg-primary/5 text-primary"
                               >
-                                {getAmenityIcon(amenity)}
-                                <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
+                                Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests
                               </Badge>
-                            ))}
-                            {hotel.amenities.length > 3 && (
-                              <Badge
-                                variant="outline"
-                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 rounded-full"
-                              >
-                                +{hotel.amenities.length - 3}
-                              </Badge>
+                            ) : null}
+
+                            {hotel.amenities && hotel.amenities.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2.5">
+                                {hotel.amenities.slice(0, 3).map((amenity) => (
+                                  <Badge
+                                    key={amenity}
+                                    variant="outline"
+                                    className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
+                                  >
+                                    {getAmenityIcon(amenity)}
+                                    <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
+                                  </Badge>
+                                ))}
+                                {hotel.amenities.length > 3 && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 rounded-full"
+                                  >
+                                    +{hotel.amenities.length - 3}
+                                  </Badge>
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
 
-                      <div className="flex items-center justify-between pt-2.5 border-t border-border mt-auto">
-                        <div>
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-[10px] text-muted-foreground">Starts from</span>
-                            <span className="text-lg font-bold text-primary">
-                              ₹{hotel.price_per_night.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">/night</span>
+                          <div className="flex items-center justify-between pt-2.5 border-t border-border mt-auto">
+                            <div>
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-[10px] text-muted-foreground">Starts from</span>
+                                <span className="text-lg font-bold text-primary">
+                                  ₹{hotel.price_per_night.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">/night</span>
+                              </div>
+                              {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
+                                <span className="text-[10px] text-primary font-medium">
+                                  Save {hotel.discount_percentage}%
+                                </span>
+                              ) : null}
+                            </div>
+                            <Button
+                              size="sm"
+                              className="text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBookRoomIds(undefined);
+                                setSelectedHotel(hotel);
+                                setShowHotelOnlyModal(true);
+                              }}
+                            >
+                              Book
+                            </Button>
                           </div>
-                          {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
-                            <span className="text-[10px] text-primary font-medium">
-                              Save {hotel.discount_percentage}%
-                            </span>
-                          ) : null}
-                        </div>
-                        <Button
-                          size="sm"
-                          className="text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setBookRoomIds(undefined);
-                            setSelectedHotel(hotel);
-                            setShowHotelOnlyModal(true);
-                          }}
-                        >
-                          Book
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-            )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>
