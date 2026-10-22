@@ -371,7 +371,7 @@ const HotelBookingModal = ({
       if (msg || error) throw new Error(msg || "Could not apply coupon");
       const discount = Number((data as any)?.discount || 0);
       if (discount <= 0) throw new Error("This coupon does not apply to this booking");
-      setCoupon({ code, discount, grandTotal: Number((data as any).grand_total) + addonTotals.total * 0 });
+      setCoupon({ code, discount, grandTotal: Number((data as any).grand_total) });
       toast.success(`Coupon ${code} applied`);
     } catch (e: any) {
       setCoupon(null); setCouponError(e?.message || "Invalid coupon");
