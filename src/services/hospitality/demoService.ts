@@ -77,7 +77,6 @@ export async function createDemo(): Promise<string> {
     stay_id: s.id, hotel_id: hid, period_month: period, amount: s.monthly_rent, due_date: `${period.slice(0, 8)}05`, status: i === 0 ? "paid" : "due", paid_at: i === 0 ? new Date().toISOString() : null,
   })));
 
-  await sb.from("hotel_promo_codes").insert({ hotel_id: hid, code: "DEMO10", description: "10% off – sample offer", discount_type: "percent", discount_value: 10, valid_from: day(0), valid_until: day(30), is_active: true, uses_count: 0 });
 
   await sb.from("partner_hotels").update({ type_details: { demo_seeded: true } }).eq("id", hid);
   localStorage.setItem(DEMO_KEY, hid);
