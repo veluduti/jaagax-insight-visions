@@ -1,4 +1,6 @@
 # Active roadmap — JAAGA Travel
+## Hyderabad featured properties
+- [ ] Include approved nearby-city properties within the requested Hyderabad radius and verify real homepage cards.
 ## Final approval error
 - [x] Fix the blocked publishing transition with atomic final approval; verified Moosapet approval and persisted live status in the district-admin dashboard. Balanagar remains pending for manual review.
 ## Locality test agents

@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
+import { HYDERABAD_PROPERTY_AREA, isHyderabadDiscovery, withinHyderabadPropertyRadius } from "@/lib/hyderabadPropertyRadius";
 import type { PropertyRow } from "./types";
 
 /**
@@ -72,6 +73,20 @@ async function fetchPublicProperties(opts: ListOptions = {}): Promise<PropertyRo
  * Featured + previously "partial" listings are now unified under Featured.
  */
 export async function getFeaturedProperties(detectedCity?: string): Promise<PropertyRow[]> {
+  if (isHyderabadDiscovery(detectedCity)) {
+    const { latitude, longitude, radiusKm } = HYDERABAD_PROPERTY_AREA;
+    const [{ data: nearby, error }, legacyRows] = await Promise.all([
+      supabase.rpc("search_properties_nearby", { _lat: latitude, _lng: longitude, _radius_km: radiusKm, _page: 1, _limit: 12 }),
+      fetchPublicProperties({ orderBy: { column: "trust_score", ascending: false } }),
+    ]);
+    if (error) throw error;
+    const rows = [...((nearby as any[]) ?? []).map(toPublicRow), ...legacyRows];
+    return Array.from(new Map(rows
+      .filter(p => p.verified === true && p.is_live === true)
+      .filter(withinHyderabadPropertyRadius)
+      .filter(p => classifyProperty(p) !== "draft")
+      .map(p => [p.id, p])).values()).slice(0, 12);
+  }
   const rows = await fetchPublicProperties({
     orderBy: { column: "trust_score", ascending: false },
   });
