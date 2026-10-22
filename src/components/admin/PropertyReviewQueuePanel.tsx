@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { Lock, Unlock, XCircle, Timer, MapPin, CheckCircle2, ShieldCheck, CalendarClock, Archive, UserCheck, ClipboardCheck, Pencil } from "lucide-react";
 import { AssignAgentDialog } from "@/components/admin/AssignAgentDialog";
+import { workflowHandoffMessage } from "@/lib/workflowHandoff";
 
 const CLOSE_REASONS = ["Already Sold", "Already Rented", "Owner Cancelled"];
 
@@ -126,18 +127,28 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     setUid(me);
     if (!me) { setLoading(false); return; }
 
-    const { data: t } = await (supabase as any)
+    const { data: t, error: timerError } = await (supabase as any)
       .from("property_admin_timers")
       .select("property_id, level, status, expires_at, remaining_seconds")
       .eq("admin_id", me)
       .in("status", ["running", "paused", "held"]);
+    if (timerError) {
+      toast.error("Could not load your review queue", { description: timerError.message });
+      setLoading(false);
+      return;
+    }
 
     const ids = Array.from(new Set(((t ?? []) as TimerRow[]).map((r) => r.property_id)));
 
-    const { data: p } = await (supabase as any)
+    const { data: p, error: propertyError } = await (supabase as any)
       .from("properties")
       .select("id, title, city, district, state, price, needs_agent, lifecycle_status, queue_level, is_locked, hold_admin_id, hold_expires_at, verification_visit_at, assigned_agent_id, agent_assignment_status, agent_response_deadline, agent_visit_at")
       .or(`id.in.(${ids.length ? ids.join(",") : "00000000-0000-0000-0000-000000000000"}),hold_admin_id.eq.${me}`);
+    if (propertyError) {
+      toast.error("Could not load the properties in your queue", { description: propertyError.message });
+      setLoading(false);
+      return;
+    }
 
     // Oversight: every submission inside this admin's geography, even when the
     // active queue belongs to a lower level (district owns the operation).
@@ -193,11 +204,10 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
     try {
       const { data, error } = await (supabase as any).rpc(fn, args);
       if (error) throw error;
-      toast.success(ok, {
-        description: (data as any)?.escalated_to
-          ? "Escalated to the next admin level."
-          : undefined,
-      });
+      if (data?.error) throw new Error(data.error);
+      toast.success(fn === "property_release" || fn === "property_leave"
+        ? workflowHandoffMessage(data ?? {})
+        : ok);
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "Action failed");
@@ -368,7 +378,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                   onClick={() => {
                     const next = lvl === "country" ? "State" : lvl === "state" ? "District" : "next level";
                     if (!confirm(`Leave this property? It will move to the ${next} admin.`)) return;
-                    call("property_leave", { _property_id: p.id, _reason: "Left by admin" }, `Left — moved to ${next} admin`);
+                    call("property_leave", { _property_id: p.id, _reason: "Left by admin" }, "Property released");
                   }}>
                   <Unlock className="h-4 w-4 mr-1" /> Leave
                 </Button>
@@ -404,7 +414,7 @@ export default function PropertyReviewQueuePanel({ readOnly = false }: { readOnl
                   </Button>
                 )}
                 <Button size="sm" variant="outline" disabled={busy === p.id}
-                  onClick={() => call("property_release", { _property_id: p.id, _reason: "Released by admin" }, "Released — other admin timers resumed")}>
+                  onClick={() => call("property_release", { _property_id: p.id, _reason: "Released by admin" }, "Property released")}>
                   <Unlock className="h-4 w-4 mr-1" /> Release
                 </Button>
                 <Button size="sm" variant="destructive" disabled={busy === p.id} onClick={() => { setRejectFor(p); setRejectReason(""); }}>
