@@ -45,12 +45,31 @@ interface PendingProperty {
 const fmtPrice = (n: number | null | undefined) =>
   n == null ? "—" : n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(2)} L` : `₹${Number(n).toLocaleString("en-IN")}`;
 
-export default function AgentVerifiedReviewPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
+export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: boolean } = {}) {
   const [items, setItems] = useState<PendingProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState<PendingProperty | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PendingProperty | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  // Final approval is actionable only for the district admin (or global admin);
+  // other viewers (country/state admins) get a read-only comparison view.
+  const [approverRole, setApproverRole] = useState<string | null>(null);
+  const [roleChecked, setRoleChecked] = useState(readOnly === true);
+
+  useEffect(() => {
+    if (readOnly === true) return;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (u.user) {
+        const { data } = await (supabase as any).rpc("get_admin_role", { _user_id: u.user.id });
+        setApproverRole((data as string) ?? null);
+      }
+      setRoleChecked(true);
+    })();
+  }, [readOnly]);
+
+  const readOnlyEffective =
+    readOnly === true || !roleChecked || !["district_admin", "global_admin"].includes(approverRole ?? "");
 
   const fetchItems = useCallback(async () => {
     setLoading(true);

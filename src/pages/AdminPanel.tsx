@@ -221,6 +221,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           icon: Shield,
           items: [
             { value: "review-queue", label: "Review Queue", icon: Timer },
+            { value: "agent-verified", label: "Agent-Verified", icon: CheckCircle },
             { value: "workflow-rules", label: "Workflow Rules", icon: Settings2 },
             { value: "smart-visits", label: "Smart Visits", icon: Zap },
           ],
@@ -721,7 +722,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
 
           {/* Agent Verified */}
           <TabsContent value="agent-verified" className="mt-4">
-            <AgentVerifiedReviewPanel readOnly />
+            <AgentVerifiedReviewPanel />
           </TabsContent>
 
           {/* All Listings */}
