@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle2, Hotel, MapPin, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublished, getQuote, createBooking, payForBooking, errMsg, inr } from "@/services/smartStayService";
+import FamousPlaces from "@/components/smartstays/FamousPlaces";
 
 export default function SmartStayDetail() {
   const { id } = useParams();
@@ -100,6 +101,7 @@ export default function SmartStayDetail() {
                 </div>
               </Card>
             ))}
+            <FamousPlaces destinations={itinerary.map(s => s.destination)} />
             {snap.cancellation_policy && <Card className="p-4"><h3 className="font-semibold mb-1">Cancellation terms</h3><p className="text-sm text-muted-foreground whitespace-pre-line">{snap.cancellation_policy}</p></Card>}
           </div>
 

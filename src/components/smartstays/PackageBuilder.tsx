@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FamousPlaces from "./FamousPlaces";
 import {
   listMyPackages, savePackage, submitPackage, publishPackage, unpublishPackage, deletePackage, previewPrice,
   getApprovalsForRevision, listHotelsForBuilder, listRooms, validateItinerary, statusText, errMsg, inr,
@@ -162,6 +163,7 @@ export default function PackageBuilder({ userId }: { userId: string }) {
           <div className="flex justify-between font-semibold border-t pt-1"><span>Customer pays</span><span>{inr(Number(price.hotel_cost) + Number(price.taxes) + Number(form.markup || 0))}</span></div>
         </Card>
       )}
+      <FamousPlaces destinations={stops.map(s => s.destination)} />
       <div className="flex flex-wrap gap-2 justify-end">
         <Button variant="outline" onClick={check}>Check price</Button>
         <Button variant="secondary" disabled={busy} onClick={() => save(false)}>Save draft</Button>

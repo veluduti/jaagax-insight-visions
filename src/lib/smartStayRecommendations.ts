@@ -23,6 +23,29 @@ export const DESTINATION_GUIDES: Record<string, DestinationGuide> = {
   warangal: { center: [17.9689, 79.5941], places: highlights(["Thousand Pillar Temple", "Warangal Fort"], ["Bhadrakali Temple"]) },
 };
 
+const LOCAL_PICKS: Record<string, [string, string, string, string, string, string]> = {
+  hyderabad: ["Laad Bazaar bangle browsing", "Traditional lac bangles and old-city market culture beside Charminar.", "https://www.incredibleindia.gov.in/en/telangana/hyderabad/the-best-places-to-shop-in-hyderabad-for-every-budget", "Paigah Tombs", "Intricate marble latticework and distinctive historic architecture.", "https://www.incredibleindia.gov.in/en/telangana/hyderabad/paigah-tombs"],
+  visakhapatnam: ["Rushikonda beach stroll", "Golden sands and coastal scenery along Vizag's shoreline.", "https://www.incredibleindia.gov.in/en/andhra-pradesh/visakhapatnam/discovering-the-unspoiled-beauty-of-visakhapatnam", "Bavikonda Buddhist Complex", "Hilltop monastery remains, stupas and historic rainwater wells outside Vizag.", "https://www.incredibleindia.gov.in/en/andhra-pradesh/visakhapatnam/bavikonda-buddhist-complex"],
+  vijayawada: ["Bhavani Island boat outing", "Krishna River views and an island walk; check boat operations before visiting.", "https://www.incredibleindia.gov.in/en/andhra-pradesh/machilipatnam/bhavani-island", "Undavalli Caves", "Rock-cut architecture and a monumental reclining Vishnu sculpture near Vijayawada.", "https://www.incredibleindia.gov.in/en/andhra-pradesh/guntur/undavalli-caves"],
+  bengaluru: ["KR Market browsing", "A lively introduction to Bengaluru's wholesale market culture.", "https://karnatakatourism.org/en/destinations/bengaluru", "Kundana Betta", "A hill-fort excursion near Devanahalli, outside central Bengaluru.", "https://www.incredibleindia.gov.in/en/karnataka/bengaluru/the-garden-city"],
+  chennai: ["Mylapore temple walk", "Living neighbourhood heritage around Kapaleeshwarar Temple.", "https://www.incredibleindia.gov.in/en/trips/trip-listing/chennai-chronicles", "DakshinaChitra Heritage Museum", "Traditional South Indian houses, crafts and architecture in Muttukadu, outside Chennai.", "https://www.incredibleindia.gov.in/en/tamil-nadu/chennai/dakshinachitra-museum"],
+  mumbai: ["Mumbai street-food tasting", "Discover everyday food culture through vada pav and pav bhaji.", "https://www.incredibleindia.gov.in/en/trips/trip-listing/mumbai-cultural-safari", "Kanheri Caves", "Buddhist rock-cut halls and sculptures in Sanjay Gandhi National Park.", "https://www.incredibleindia.gov.in/en/maharashtra/mumbai/kanheri-caves"],
+  delhi: ["Chandni Chowk bazaar walk", "Explore Old Delhi's historic trading lanes and market culture.", "https://www.incredibleindia.gov.in/en/delhi/delhi/chandni-chowk", "Mehrauli Archaeological Park", "Layered historic monuments including Balban's Tomb and Jamali Kamali Mosque.", "https://www.incredibleindia.gov.in/en/delhi/delhi/mehrauli-archaeological-park"],
+  goa: ["Fontainhas neighbourhood walk", "Colourful houses, narrow lanes and galleries in Panaji.", "https://goa-tourism.com/popular-destination/experience-fontainhas/", "Arvalem Caves", "An early rock-cut cave complex with historic inscriptions.", "https://www.goa.gov.in/places/arvalem-caves/"],
+  tirupati: ["Shilparamam craft browsing", "Discover traditional pottery, textiles and artisan woodwork.", "https://tourism.ap.gov.in/assets/img/Brochures/Tirupati%20Places.pdf", "Chandragiri Fort", "A former Vijayanagara capital and historic palaces near Tirupati.", "https://tourism.ap.gov.in/assets/img/Brochures/Tirupati%20Places.pdf"],
+  warangal: ["Bhadrakali Temple visit", "Experience a living devotional landmark between Warangal and Hanumakonda.", "https://hanumakonda.telangana.gov.in/places-of-interest/", "Padmakshi Temple", "A hilltop shrine and distinctive four-faced granite pillar in Hanumakonda.", "https://tourism.telangana.gov.in/attractions/padmakshi-temple"],
+};
+
+for (const [key, [local, localReason, localSource, hidden, hiddenReason, hiddenSource]] of Object.entries(LOCAL_PICKS)) {
+  const guide = DESTINATION_GUIDES[key];
+  if (!guide) continue;
+  guide.places = guide.places.filter(p => p.name !== hidden);
+  guide.places.push(
+    { name: local, reason: localReason, source: localSource, group: "Local experiences" },
+    { name: hidden, reason: hiddenReason, source: hiddenSource, group: "Hidden gems" },
+  );
+}
+
 export function destinationKey(destination: string): string {
   const parts = destination.trim().split(/[,|]/).map(s => canonicalizeCity(s));
   return parts.find(part => DESTINATION_GUIDES[part]) ?? canonicalizeCity(destination);
