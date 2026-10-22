@@ -1,7 +1,8 @@
--- Run with: lovable supabase query "$(cat src/lib/__tests__/agentFinalApproval.sql)"
+-- Run with: lovable supabase query "$(printf '\n'; cat src/lib/__tests__/agentFinalApproval.sql)"
 -- Rollback-only regression: authorized approval follows the strict lifecycle;
 -- agent approval is denied. Uses the existing Balanagar test assignment.
 BEGIN;
+SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', 'a55ca0c1-5dd8-4561-bbb9-b3dbcdb3e7fe', true);
 DO $$
 BEGIN
