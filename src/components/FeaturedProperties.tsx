@@ -361,7 +361,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
             size="lg"
             variant="outline"
             className="border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
-            onClick={() => navigate(hyderabadArea ? "/featured-properties" : "/search?tab=properties")}
+            onClick={() => navigate("/search?tab=properties")}
           >
             View All Properties
           </Button>

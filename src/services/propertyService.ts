@@ -84,7 +84,6 @@ export async function getFeaturedProperties(detectedCity?: string): Promise<Prop
     return Array.from(new Map(rows
       .filter(p => p.verified === true && p.is_live === true)
       .filter(withinHyderabadPropertyRadius)
-      .filter(p => classifyProperty(p) !== "draft")
       .map(p => [p.id, p])).values()).slice(0, 12);
   }
   const rows = await fetchPublicProperties({
