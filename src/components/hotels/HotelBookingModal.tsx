@@ -354,6 +354,10 @@ const HotelBookingModal = ({
   const selectionKey = JSON.stringify([checkInStr, checkOutStr, groups.map((g) => [g.roomId, g.quantity, g.adults, g.children, g.extraBeds, g.meals]), addonTotals.rows.map((r) => [r.addon.id, r.quantity])]);
   useEffect(() => { setCoupon(null); }, [selectionKey]);
 
+  const finalTotal = totals
+    ? Math.round(Math.max(0, totals.grandTotal - (coupon?.discount ?? 0) * (1 + totals.gstRate / 100)) * 100) / 100
+    : 0;
+
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code || !groups.length) return;
@@ -819,6 +823,24 @@ const HotelBookingModal = ({
             </div>
 
             <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="hotel-coupon" className="text-sm font-semibold">Have a coupon?</Label>
+              <div className="flex gap-2">
+                <Input id="hotel-coupon" placeholder="Enter coupon code" value={couponInput}
+                  onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }} />
+                {coupon ? (
+                  <Button type="button" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); }}>Remove</Button>
+                ) : (
+                  <Button type="button" variant="outline" onClick={applyCoupon} disabled={applyingCoupon || !couponInput.trim() || !totals}>
+                    {applyingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                  </Button>
+                )}
+              </div>
+              {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+              {coupon && <p className="text-xs text-primary">Coupon {coupon.code} applied — you save {inr(coupon.discount)}</p>}
+            </div>
+
+            <Separator />
             {priceError && <p className="text-xs text-destructive">{priceError}</p>}
 
             {totals && (
@@ -830,11 +852,12 @@ const HotelBookingModal = ({
                   <Row key={r.addon.id} label={`${r.addon.title} × ${r.quantity}`} value={inr(r.total)} />
                 ))}
                 <Separator className="my-2" />
-                <Row label="Subtotal" value={inr(totals.taxableSubtotal)} />
-                <Row label={`GST (${totals.gstRate}%)`} value={inr(totals.taxAmount)} />
+                {coupon && <Row label={`Coupon (${coupon.code})`} value={`− ${inr(coupon.discount)}`} />}
+                <Row label="Subtotal" value={inr(totals.taxableSubtotal - (coupon?.discount ?? 0))} />
+                <Row label={`GST (${totals.gstRate}%)`} value={inr(Math.max(0, totals.taxAmount - (coupon?.discount ?? 0) * totals.gstRate / 100))} />
                 <Separator className="my-2" />
                 <div className="flex items-center justify-between text-base font-semibold">
-                  <span>Grand total</span><span>{inr(totals.grandTotal)}</span>
+                  <span>Grand total</span><span>{inr(finalTotal)}</span>
                 </div>
               </div>
             )}
@@ -843,7 +866,7 @@ const HotelBookingModal = ({
               {submitting ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing payment...</>
               ) : (
-                `Payment · ${inr(totals?.grandTotal || 0)}`
+                `Payment · ${inr(finalTotal)}`
               )}
             </Button>
             <p className="text-[11px] text-center text-muted-foreground">
