@@ -1,6 +1,6 @@
 # Active roadmap — JAAGA Travel
 ## Final approval error
-- [ ] Fix the blocked agent-verified publishing transition and verify district-admin approval.
+- [x] Fix the blocked publishing transition with atomic final approval; verified Moosapet approval and persisted live status in the district-admin dashboard. Balanagar remains pending for manual review.
 ## Locality test agents
 - [x] Created agent1 and agent2 with securely updated passwords; verified password sign-in, locality coverage, one pending assignment each, owner/agent notifications, and each property's signed-in Assigned Properties page. Acceptance and site verification remain for the agents.
 ## State-to-district property release
