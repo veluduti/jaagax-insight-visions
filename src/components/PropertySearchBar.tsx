@@ -101,9 +101,9 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
   };
 
   const navItems = useMemo(() => {
+    // "New Projects" is hidden from the search bar tabs; it remains accessible from the main navigation.
     const all = [
       { key: "buyRent", label: "Properties", value: "properties" },
-      { key: "newProjects", label: "New Projects", value: "new-projects" },
       { key: "agents", label: "Agents", value: "agents" },
     ];
     return all.filter((i) => canSee(role, i.key as any));
