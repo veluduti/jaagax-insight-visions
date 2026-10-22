@@ -213,10 +213,16 @@ export default function AgentVerificationAssignments() {
                 )}
 
                 {p.lifecycle_status === "under_verification" && (
-                  <Button size="sm" disabled={busy === p.id}
-                    onClick={() => { setReportFor(p); setRemarks(""); setVideoUrl(""); setFiles([]); }}>
-                    <Camera className="h-4 w-4 mr-1" /> Submit report
-                  </Button>
+                  <>
+                    <Button size="sm" variant="outline" disabled={busy === p.id}
+                      onClick={() => openEditForm(p.id)}>
+                      <FileCheck2 className="h-4 w-4 mr-1" /> Edit &amp; verify details
+                    </Button>
+                    <Button size="sm" disabled={busy === p.id}
+                      onClick={() => { setReportFor(p); setRemarks(""); setVideoUrl(""); setFiles([]); }}>
+                      <Camera className="h-4 w-4 mr-1" /> Submit report
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
