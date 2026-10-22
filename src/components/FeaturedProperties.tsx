@@ -27,6 +27,7 @@ import {
   useToggleFavorite,
 } from "@/hooks/queries/useProperties";
 import { useAuth } from "@/hooks/useAuth";
+import { isHyderabadDiscovery } from "@/lib/hyderabadPropertyRadius";
 
 const openProperty = (p: { slug?: string | null; id: string }) => {
   window.open(`/property/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
@@ -124,6 +125,7 @@ const pickAttributes = (p: any): Attr[] => {
 
 
 const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
+  const hyderabadArea = isHyderabadDiscovery(detectedCity);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: properties = [], isLoading } = useFeaturedProperties(detectedCity);
@@ -158,7 +160,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         <div className="container mx-auto container-padding text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Featured <span className="text-gradient">Properties</span>
-            <span className="text-foreground/60 text-xl md:text-2xl"> in {detectedCity}</span>
+            <span className="text-foreground/60 text-xl md:text-2xl"> {hyderabadArea ? "near Hyderabad" : `in ${detectedCity}`}</span>
           </h2>
           <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto mt-md">
             No properties available in this location yet.
@@ -182,12 +184,12 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
             Featured <span className="text-gradient">Properties</span>
             {detectedCity && (
               <span className="text-foreground/60 text-xl md:text-2xl">
-                {" "}in {detectedCity}
+                {" "}{hyderabadArea ? "near Hyderabad" : `in ${detectedCity}`}
               </span>
             )}
           </h2>
           <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto">
-            {detectedCity
+            {hyderabadArea ? "Hyderabad & nearby cities · Within 100 km" : detectedCity
               ? `Curated properties near your location, verified by JaagaX AI`
               : "Handpicked, AI-verified premium listings"}
           </p>
