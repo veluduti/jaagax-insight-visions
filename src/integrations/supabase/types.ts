@@ -15822,6 +15822,10 @@ export type Database = {
         }
         Returns: Json
       }
+      property_approve_agent_verified: {
+        Args: { _property_id: string }
+        Returns: Json
+      }
       property_assign_agent: {
         Args: { _agent_user_id: string; _property_id: string }
         Returns: Json
