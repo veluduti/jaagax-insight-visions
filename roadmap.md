@@ -1,6 +1,6 @@
 # Active roadmap — JAAGA Travel
 ## State-to-district property release
-- [ ] Diagnose Balanagar release history and district visibility, repair the handoff, and verify the district queue
+- [x] Confirm state release skipped an unassigned district; temporarily assign districtadmin@gmail.com to Medchal-Malkajgiri as requested, requeue Balanagar, verify signed-in district card/Hold action, and pass 14 handoff tests
 ## Hotel discovery layout
 - [x] Match the supplied hotel page structure with a photo banner, category tabs, search and AI search, sidebar filters and horizontal hotel results
 - [x] Verify city selection, successful AI search applying real criteria, filters, guest selection, sort/list/grid controls and signed-out booking entry on desktop and mobile; no payment made
