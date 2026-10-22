@@ -109,9 +109,14 @@ export default function BookingEngine() {
   });
 
   const getQuote = async () => {
+    setQuote(null);
     if (!selectedRoom || nights < 1) return;
     const { data, error } = await supabase.functions.invoke("booking-engine-quote", { body: orderPayload() });
-    if (error) return toast.error(error.message);
+    if (error) {
+      let message = error.message;
+      try { message = (await (error as any).context?.json())?.error || message; } catch { /* response unavailable */ }
+      return toast.error(message);
+    }
     if ((data as any)?.error) { setQuote(null); return toast.error((data as any).error); }
     setQuote(data);
   };
