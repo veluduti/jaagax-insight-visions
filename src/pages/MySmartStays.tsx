@@ -55,7 +55,7 @@ export default function MySmartStays() {
               ))}
             </div>
             {["PENDING_PAYMENT", "PAYMENT_PROCESSING"].includes(b.status) && <Button size="sm" className="mt-3" onClick={() => pay(b)}>Complete payment</Button>}
-            {b.status !== "CANCELLED" && <FamousPlaces destinations={(b.reservations ?? []).map((r: any) => r.destination)} />}
+            {b.status !== "CANCELLED" && <FamousPlaces destinations={[...(b.snapshot?.itinerary ?? []).map((s: any) => s.destination), ...(b.reservations ?? []).map((r: any) => r.destination)]} />}
             <details className="mt-3 text-xs text-muted-foreground">
               <summary className="cursor-pointer">Timeline</summary>
               <ul className="mt-2 space-y-1">
