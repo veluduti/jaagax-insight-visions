@@ -6,6 +6,7 @@ import { CalendarCheck, Check, Crown, Home, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { startWalletTopUp } from "@/lib/razorpayCheckout";
+import { chargeWithGst, requiredWalletTopUp } from "@/lib/platformCharges";
 import { toast } from "sonner";
 
 const COVERED_SERVICES = [
@@ -25,7 +26,7 @@ const BENEFITS = [
 ];
 
 const money = (n: number, c = "INR") =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: c, maximumFractionDigits: 0 }).format(Number(n) || 0);
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: c, maximumFractionDigits: 2 }).format(Number(n) || 0);
 
 export default function AgentSubscriptionManager() {
   const { user } = useAuth();
@@ -58,8 +59,7 @@ export default function AgentSubscriptionManager() {
 
   const price = Number(settings?.agent_subscription_price || 0);
   const gstPct = Number(settings?.agent_subscription_gst_percent || 0);
-  const gst = Math.round(price * gstPct) / 100;
-  const total = price + gst;
+  const { gst, total } = chargeWithGst(price, gstPct);
   const currency = settings?.currency || "INR";
   const cycle = settings?.agent_billing_cycle || "monthly";
   const enabled = settings?.agent_subscription_enabled !== false;
@@ -73,7 +73,7 @@ export default function AgentSubscriptionManager() {
     setSubscribing(true);
     try {
       // Direct Razorpay payment for the exact subscription amount
-      await startWalletTopUp(Math.max(Math.ceil(total), 500), {
+      await startWalletTopUp(requiredWalletTopUp(total), {
         name: (user as any)?.user_metadata?.full_name,
         email: user.email,
         contact: (user as any)?.user_metadata?.phone,

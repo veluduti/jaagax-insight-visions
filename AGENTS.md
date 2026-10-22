@@ -21,3 +21,4 @@
 - Hotel detail date controls follow the active rooms' accommodation kinds, not only the property's business types, so mixed nightly and long-stay inventory keeps both booking paths usable.
 
 - Registration/phone-login use `_shared/otpSms.ts` to classify SMS failures safely and clear failed-send records so retries work.
+- Posting/subscription amounts remain authoritative in platform pricing settings and billing RPCs; use `platformCharges.ts` for frontend GST and wallet shortfalls so display and payment preserve paise without overriding server prices.
