@@ -346,6 +346,38 @@ const HotelBookingModal = ({
 
   const priceError = groups.map((g) => groupPrices[g.roomId]?.error).find(Boolean) || null;
 
+  // --- Coupon (validated by the server quote; never trusted client-side) ---
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number; grandTotal: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const selectionKey = JSON.stringify([checkInStr, checkOutStr, groups.map((g) => [g.roomId, g.quantity, g.adults, g.children, g.extraBeds, g.meals]), addonTotals.rows.map((r) => [r.addon.id, r.quantity])]);
+  useEffect(() => { setCoupon(null); }, [selectionKey]);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code || !groups.length) return;
+    setApplyingCoupon(true); setCouponError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("booking-engine-quote", {
+        body: {
+          hotel_id: hotel.id, check_in: checkInStr, check_out: checkOutStr, promo_code: code,
+          groups: groups.map((g) => ({ room_id: g.roomId, rate_plan_id: (g as any).ratePlanId ?? null, quantity: g.quantity, adults: g.adults, children: g.children, infants: 0, extra_beds: g.extraBeds, meals: g.meals })),
+          addons: addonTotals.rows.map((r) => ({ addon_id: r.addon.id, quantity: r.quantity })),
+        },
+      });
+      let msg = (data as any)?.error as string | undefined;
+      if (error && !msg) { try { msg = (await (error as any).context?.json())?.error; } catch { /* ignore */ } }
+      if (msg || error) throw new Error(msg || "Could not apply coupon");
+      const discount = Number((data as any)?.discount || 0);
+      if (discount <= 0) throw new Error("This coupon does not apply to this booking");
+      setCoupon({ code, discount, grandTotal: Number((data as any).grand_total) + addonTotals.total * 0 });
+      toast.success(`Coupon ${code} applied`);
+    } catch (e: any) {
+      setCoupon(null); setCouponError(e?.message || "Invalid coupon");
+    } finally { setApplyingCoupon(false); }
+  };
+
   const bump = (type: "adults" | "rooms" | "children", delta: number) => {
     if (type === "adults") setAdults((v) => Math.min(20, Math.max(1, v + delta)));
     if (type === "rooms") setNumRooms((v) => Math.min(10, Math.max(1, v + delta)));
@@ -402,6 +434,7 @@ const HotelBookingModal = ({
         guest_email: guestEmail.trim(),
         guest_phone: guestPhone.trim(),
         addons: addonTotals.rows.map((r) => ({ addon_id: r.addon.id, quantity: r.quantity })),
+        promo_code: coupon?.code ?? null,
         booking_type: bookingType,
         user_id: user.id,
         booked_by_agent_id: bookedByAgentId,
