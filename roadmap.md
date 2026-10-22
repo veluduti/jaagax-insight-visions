@@ -1,6 +1,6 @@
 # Active roadmap — JAAGA Travel
 ## Locality test agents
-- [ ] Create two agent login accounts, configure Balanagar/Moosapet coverage, assign one property each through the workflow, and verify signed-in assignments — blocked: password protection rejected both supplied passwords; stronger replacements required
+- [x] Created agent1 and agent2 with securely updated passwords; verified password sign-in, locality coverage, one pending assignment each, owner/agent notifications, and each property's signed-in Assigned Properties page. Acceptance and site verification remain for the agents.
 ## State-to-district property release
 - [x] Confirm state release skipped an unassigned district; temporarily assign districtadmin@gmail.com to Medchal-Malkajgiri as requested, requeue Balanagar, verify signed-in district card/Hold action, and pass 14 handoff tests
 ## Hotel discovery layout
