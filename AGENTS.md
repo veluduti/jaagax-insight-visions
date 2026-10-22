@@ -22,3 +22,4 @@
 
 - Registration/phone-login use `_shared/otpSms.ts` to classify SMS failures safely and clear failed-send records so retries work.
 - Posting/subscription amounts remain authoritative in platform pricing settings and billing RPCs; use `platformCharges.ts` for frontend GST and wallet shortfalls so display and payment preserve paise without overriding server prices.
+- Hotel coupons use `hotel_coupons` with admin-only RLS; quotes call `validate_hotel_coupon` and booking triggers atomically reserve/release usage, keeping single- and multi-room checkout consistent and race-safe. Legacy hotel promo codes are deprecated and not redeemed.

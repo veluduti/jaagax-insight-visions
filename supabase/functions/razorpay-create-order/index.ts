@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
     /* ---------------- MULTI-ROOM (combination) booking ---------------- */
     if (isMulti) {
-      const m = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups });
+      const m = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups, addons, promo_code });
       if (m.error || !m.totals || !m.groups) return json({ error: m.error }, m.status || 400);
 
       const primary = m.groups[0];
@@ -86,6 +86,9 @@ Deno.serve(async (req) => {
         hotel_name: m.hotel?.name ?? null,
         hotel_address: [m.hotel?.address, m.hotel?.locality, m.hotel?.city].filter(Boolean).join(", "),
         payment_attempted_at: new Date().toISOString(),
+        promo_code: m.promo?.code || null,
+        coupon_id: m.promo?.id || null,
+        coupon_room_ids: groups.map((g: any) => g.room_id),
         ...multiBookingPriceColumns(m.totals, m.groups),
       }).select().single();
 
@@ -147,7 +150,8 @@ Deno.serve(async (req) => {
       .select("id, razorpay_order_id, total_amount, booking_reference")
       .eq("hotel_id", hotel_id).eq("room_id", room_id)
       .eq("check_in", check_in).eq("check_out", check_out)
-      .eq("guest_email", guest_email).eq("payment_status", "pending")
+      .eq("guest_email", guest_email).eq("payment_status", "pending").eq("status", "pending")
+      .eq("promo_code", promo_code ? String(promo_code).trim().toUpperCase() : "")
       .gte("payment_attempted_at", new Date(Date.now() - 10 * 60 * 1000).toISOString())
       .maybeSingle();
 
@@ -197,7 +201,9 @@ Deno.serve(async (req) => {
       currency: "INR",
       hotel_name: q.hotel?.name ?? null,
       hotel_address: [q.hotel?.address, q.hotel?.locality, q.hotel?.city].filter(Boolean).join(", "),
-      promo_code: promo_code || null,
+      promo_code: q.promo?.code || null,
+      coupon_id: q.promo?.id || null,
+      coupon_room_ids: [room_id],
       payment_attempted_at: new Date().toISOString(),
       ...bookingPriceColumns(result, meals),
     }).select().single();

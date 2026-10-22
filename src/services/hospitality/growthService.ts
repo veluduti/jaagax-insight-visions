@@ -26,11 +26,10 @@ function priceTip(r: any, booked: number): PriceTip | null {
 
 export async function loadGrowth(hotelId: string): Promise<GrowthData> {
   const now = new Date(); const end = new Date(now.getTime() + 30 * 864e5);
-  const [h, r, b, p, rv] = await Promise.all([
+  const [h, r, b, rv] = await Promise.all([
     sb.from("partner_hotels").select("description,images,amenities,contact_phone,check_in_time,latitude,policies").eq("id", hotelId).maybeSingle(),
     sb.from("hotel_rooms").select("id,room_name,room_type,base_price,total_units,number_of_available_rooms,photos,description,is_active").eq("hotel_id", hotelId).limit(200),
     sb.from("hotel_availability_blocks").select("room_id,start_date,end_date,units").eq("hotel_id", hotelId).lt("start_date", iso(end)).gt("end_date", iso(now)).limit(2000),
-    sb.from("hotel_promo_codes").select("id,code,description,discount_type,discount_value,valid_until,is_active,uses_count").eq("hotel_id", hotelId).order("created_at", { ascending: false }).limit(50),
     sb.from("hotel_reviews").select("rating,response").eq("hotel_id", hotelId).limit(500),
   ]);
   const hotel = h.data ?? {}; const rooms = (r.data ?? []).filter((x: any) => x.is_active !== false);
@@ -59,7 +58,7 @@ export async function loadGrowth(hotelId: string): Promise<GrowthData> {
   const reviews = rv.data ?? [];
   return {
     score: Math.round((checks.filter((c) => c.done).length / checks.length) * 100),
-    checks, tips, offers: (p.data ?? []) as Offer[],
+    checks, tips, offers: [],
     occupancy30: totalUnits ? Math.min(1, totalBooked / (totalUnits * 30)) : 0,
     avgRating: reviews.length ? reviews.reduce((a: number, x: any) => a + Number(x.rating || 0), 0) / reviews.length : null,
     reviewCount: reviews.length, unanswered: reviews.filter((x: any) => !x.response).length,
@@ -68,21 +67,6 @@ export async function loadGrowth(hotelId: string): Promise<GrowthData> {
 
 export async function applyPrice(roomId: string, price: number) {
   const { error } = await sb.from("hotel_rooms").update({ base_price: price }).eq("id", roomId);
-  if (error) throw error;
-}
-
-export async function createOffer(hotelId: string, o: { code: string; description: string; percent: number; days: number }) {
-  const today = new Date();
-  const { error } = await sb.from("hotel_promo_codes").insert({
-    hotel_id: hotelId, code: o.code.toUpperCase().replace(/[^A-Z0-9]/g, ""), description: o.description,
-    discount_type: "percent", discount_value: o.percent, valid_from: iso(today),
-    valid_until: iso(new Date(today.getTime() + o.days * 864e5)), is_active: true, uses_count: 0,
-  });
-  if (error) throw error;
-}
-
-export async function toggleOffer(id: string, active: boolean) {
-  const { error } = await sb.from("hotel_promo_codes").update({ is_active: active }).eq("id", id);
   if (error) throw error;
 }
 

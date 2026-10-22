@@ -274,6 +274,13 @@
       "when": 1792380397294,
       "tag": "0038_gate_property_pricing_on_property_approval",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792660086534,
+      "tag": "0039_admin_only_hotel_coupons",
+      "breakpoints": true
     }
   ]
 }

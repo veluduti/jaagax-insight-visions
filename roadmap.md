@@ -1,4 +1,8 @@
 # Active roadmap — JAAGA Travel
+## Admin-only hotel coupons
+- [ ] Restrict coupon management to JaagaX Admin and add global/hotel-specific management
+- [ ] Validate coupon conditions and atomic usage limits across hotel booking paths
+- [ ] Test admin management, partner denial, and customer discount validation
 ## Posting and subscription charges
 - [ ] Set authoritative posting fee to ₹300 + 18% GST and agent subscription to ₹1,999 + 18% GST monthly — blocked: Lovable Cloud is paused; saved pricing cannot be updated or read back until resumed
 - [x] Verify exact totals and preserve paise in displays and payment requests — three calculation tests passed; preview build OK

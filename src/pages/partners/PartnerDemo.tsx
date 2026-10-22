@@ -12,7 +12,7 @@ const SCENARIOS = [
   { title: "1. Morning at the front desk", steps: "Open Today → Front Desk. Check in Ravi Kumar (arriving today) and check out Arjun Reddy. A cleaning job appears automatically.", to: "/partners/operations" },
   { title: "2. Housekeeping & repairs", steps: "Open Today → Housekeeping, start and finish a cleaning job. In Maintenance, fix the urgent AC problem.", to: "/partners/operations?tab=housekeeping" },
   { title: "3. Co-living residents & rent", steps: "Open Long Stays. Mark a rent payment as paid, see Divya leaving soon and Rahul moving in next week.", to: "/partners/long-stays" },
-  { title: "4. Grow your bookings", steps: "Open Grow Bookings. Finish the listing checklist, try a price tip, and start a quick offer.", to: "/partners/growth" },
+  { title: "4. Grow your bookings", steps: "Open Grow Bookings. Finish the listing checklist and try a price tip.", to: "/partners/growth" },
   { title: "5. Ask the helper", steps: "In Grow Bookings → Helper, ask “How can I get more bookings this month?”", to: "/partners/growth" },
   { title: "6. Bookings & calendar", steps: "See all sample bookings and which dates are taken.", to: "/partners/reservations" },
 ];

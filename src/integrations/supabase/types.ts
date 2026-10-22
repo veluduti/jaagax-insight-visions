@@ -4421,6 +4421,8 @@ export type Database = {
           child_ages: Json | null
           children: number
           country: string | null
+          coupon_id: string | null
+          coupon_room_ids: string[]
           created_at: string | null
           currency: string
           discount_total: number
@@ -4506,6 +4508,8 @@ export type Database = {
           child_ages?: Json | null
           children?: number
           country?: string | null
+          coupon_id?: string | null
+          coupon_room_ids?: string[]
           created_at?: string | null
           currency?: string
           discount_total?: number
@@ -4591,6 +4595,8 @@ export type Database = {
           child_ages?: Json | null
           children?: number
           country?: string | null
+          coupon_id?: string | null
+          coupon_room_ids?: string[]
           created_at?: string | null
           currency?: string
           discount_total?: number
@@ -4665,6 +4671,13 @@ export type Database = {
             columns: ["builder_profile_id"]
             isOneToOne: false
             referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_bookings_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_coupons"
             referencedColumns: ["id"]
           },
           {
@@ -4847,6 +4860,92 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_commission_config_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_coupons: {
+        Row: {
+          applicable_room_ids: string[]
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string
+          discount_type: string
+          discount_value: number
+          eligible_hotel_ids: string[]
+          hotel_id: string | null
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          max_nights: number | null
+          max_uses: number | null
+          min_booking_amount: number
+          min_nights: number
+          scope: string
+          stay_from: string | null
+          stay_until: string | null
+          updated_at: string
+          uses_count: number
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_room_ids?: string[]
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          discount_type?: string
+          discount_value?: number
+          eligible_hotel_ids?: string[]
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          max_nights?: number | null
+          max_uses?: number | null
+          min_booking_amount?: number
+          min_nights?: number
+          scope?: string
+          stay_from?: string | null
+          stay_until?: string | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_room_ids?: string[]
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          discount_type?: string
+          discount_value?: number
+          eligible_hotel_ids?: string[]
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          max_nights?: number | null
+          max_uses?: number | null
+          min_booking_amount?: number
+          min_nights?: number
+          scope?: string
+          stay_from?: string | null
+          stay_until?: string | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_coupons_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -16051,6 +16150,17 @@ export type Database = {
       user_owns_profile: {
         Args: { _profile_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_hotel_coupon: {
+        Args: {
+          _check_in: string
+          _check_out: string
+          _code: string
+          _hotel_id: string
+          _room_ids: string[]
+          _room_total: number
+        }
+        Returns: Json
       }
       validate_property_pricing: {
         Args: { _content: Json }
