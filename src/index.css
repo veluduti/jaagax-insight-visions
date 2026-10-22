@@ -271,6 +271,14 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .hotel-banner-shade {
+    background: linear-gradient(90deg, hsl(160 60% 8% / 0.75), hsl(160 60% 8% / 0.15) 70%);
+  }
+
+  .hotel-discovery img {
+    height: 100%;
+  }
+
   /* ===== COMPONENT UTILITIES ===== */
   .glass-panel {
     background: hsl(var(--glass-bg));
