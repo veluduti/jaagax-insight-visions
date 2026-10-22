@@ -1,4 +1,8 @@
 # Active roadmap — JAAGA Travel
+## Posting and subscription charges
+- [ ] Set authoritative posting fee to ₹300 + 18% GST and agent subscription to ₹1,999 + 18% GST monthly — blocked: Lovable Cloud is paused; saved pricing cannot be updated or read back until resumed
+- [x] Verify exact totals and preserve paise in displays and payment requests — three calculation tests passed; preview build OK
+- [ ] Verify signed-in checkout against saved pricing — blocked: paused Lovable Cloud prevents sign-in and billing requests
 ## Long-stay booking details
 - [x] Restore date selection for mixed inventory on Jaagax---Durga — verified hotel date inputs and long-stay popup on desktop/mobile; no payment made
 - [x] Show configured Hostel, PG and Co-living accommodation details and rental policies throughout customer booking

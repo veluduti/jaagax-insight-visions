@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Save, Settings2, Receipt, IndianRupee } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { chargeWithGst } from "@/lib/platformCharges";
 
 interface Settings {
   id: string;
@@ -113,8 +114,8 @@ export default function PricingSettingsPanel() {
     );
   }
 
-  const postingTotal = Number(s.posting_fee) * (1 + Number(s.posting_gst_percent) / 100);
-  const subTotal = Number(s.agent_subscription_price) * (1 + Number(s.agent_subscription_gst_percent) / 100);
+  const postingTotal = chargeWithGst(Number(s.posting_fee), Number(s.posting_gst_percent)).total;
+  const subTotal = chargeWithGst(Number(s.agent_subscription_price), Number(s.agent_subscription_gst_percent)).total;
 
   return (
     <div className="space-y-6">

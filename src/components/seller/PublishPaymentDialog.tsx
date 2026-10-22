@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { startWalletTopUp } from "@/lib/razorpayCheckout";
+import { chargeWithGst, requiredWalletTopUp } from "@/lib/platformCharges";
 import { toast } from "sonner";
 import { Check, Crown, Gift, Loader2, Wallet } from "lucide-react";
 import type { PostingEntitlement } from "@/hooks/usePostingEntitlement";
@@ -61,7 +62,7 @@ export default function PublishPaymentDialog({
 
   const agentPrice = Number(settings?.agent_subscription_price || 0);
   const agentGstPct = Number(settings?.agent_subscription_gst_percent || 0);
-  const agentTotal = agentPrice + Math.round(agentPrice * agentGstPct) / 100;
+  const { total: agentTotal } = chargeWithGst(agentPrice, agentGstPct);
   const agentCycle = settings?.agent_billing_cycle || "monthly";
   const agentEnabled = settings?.agent_subscription_enabled !== false && agentTotal > 0;
   const hasAgentSub = !!entitlement?.has_agent_subscription;
@@ -72,7 +73,7 @@ export default function PublishPaymentDialog({
   /** Ensures wallet has at least `amount`; tops up via Razorpay otherwise. */
   const ensureBalance = async (amount: number) => {
     if (wallet >= amount) return true;
-    const shortfall = Math.max(Math.ceil(amount - wallet), 500);
+    const shortfall = requiredWalletTopUp(amount, wallet);
     toast.info(`Opening secure payment for ${inr(shortfall)}`);
     const res = await startWalletTopUp(shortfall, userInfo);
     setWallet(Number(res.new_balance || wallet + shortfall));
@@ -228,6 +229,7 @@ export default function PublishPaymentDialog({
               <span className="text-xs font-normal text-muted-foreground">/{agentCycle}</span>
             </div>
             <ul className="text-xs text-muted-foreground mt-1 space-y-1 flex-1">
+              <li>{inr(agentPrice)} + {agentGstPct}% GST</li>
               {(isAgent
                 ? ["Unlimited listings", "Premium visibility", "Priority leads"]
                 : ["Verify KYC (Aadhaar + PAN)", "Admin approval required", "Free trial after approval"]
