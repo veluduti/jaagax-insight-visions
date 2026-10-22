@@ -5,6 +5,7 @@ import {
   computeBookingPrice, validateBookingSelection, nightsBetween, stayDates,
   type MealType, type PricingResult, type LineItem,
 } from "./hotelPricing.ts";
+import { validateCoupon, distributeCouponDiscount } from "./hotelCoupon.ts";
 
 export interface QuoteRequest {
   hotel_id: string;
@@ -31,7 +32,7 @@ export interface ServerQuote {
   result?: PricingResult;
   room?: any;
   hotel?: any;
-  promo?: { code: string; discount: number } | null;
+  promo?: { id: string; code: string; discount: number } | null;
   lineItems?: LineItem[];
   available?: number;
   ratePlan?: any;
@@ -170,21 +171,14 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
   if (validationError) return { error: validationError, status: 400 };
 
   // Promo discount is applied against the pre-tax room+extras subtotal.
-  let promo: { code: string; discount: number } | null = null;
+  let promo: { id: string; code: string; discount: number } | null = null;
   let discount = 0;
   if (promo_code) {
-    const { data: p } = await supabase
-      .from("hotel_promo_codes").select("*")
-      .eq("hotel_id", hotel_id).eq("code", String(promo_code).toUpperCase())
-      .eq("is_active", true).maybeSingle();
-    if (p && nights >= (p.min_nights || 1) && (!p.max_uses || p.uses_count < p.max_uses)
-      && (!p.valid_from || check_in >= p.valid_from) && (!p.valid_until || check_in <= p.valid_until)) {
+    try {
       const preview = computeBookingPrice(baseInput as any);
-      discount = p.discount_type === "percent"
-        ? Math.round((preview.roomCharges * Number(p.discount_value)) / 100)
-        : Number(p.discount_value);
-      promo = { code: p.code, discount };
-    }
+      promo = await validateCoupon(supabase, promo_code, hotel_id, [room_id], check_in, check_out, preview.roomCharges);
+      discount = promo.discount;
+    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400 }; }
   }
 
   const result = computeBookingPrice({ ...baseInput, discount } as any);
@@ -225,6 +219,7 @@ export interface MultiQuote {
   error?: string;
   status?: number;
   hotel?: any;
+  promo?: { id: string; code: string; discount: number } | null;
   groups?: { group: GroupRequest; room: any; result: PricingResult }[];
   totals?: {
     nights: number;
@@ -248,6 +243,7 @@ export async function buildMultiQuote(
   body: {
     hotel_id: string; check_in: string; check_out: string; groups: GroupRequest[];
     addons?: { addon_id: string; quantity: number }[];
+    promo_code?: string | null;
   },
 ): Promise<MultiQuote> {
   const { hotel_id, check_in, check_out } = body;
@@ -282,7 +278,22 @@ export async function buildMultiQuote(
     out.push({ group: g, room: q.room, result: q.result });
   }
 
-  const sum = (fn: (r: PricingResult) => number) => out.reduce((s, x) => s + fn(x.result), 0);
+  let promo: MultiQuote["promo"] = null;
+  if (body.promo_code) {
+    try {
+      promo = await validateCoupon(supabase, body.promo_code, hotel_id, groups.map(g => g.room_id), check_in, check_out, out.reduce((s, x) => s + x.result.roomCharges, 0));
+      const discounts = distributeCouponDiscount(promo.discount, out.map(x => x.result.roomCharges));
+      out.forEach((x, i) => {
+        const r = x.result;
+        r.discount = discounts[i];
+        r.taxableSubtotal = Math.round((r.taxableSubtotal - r.discount) * 100) / 100;
+        r.taxAmount = Math.round(r.taxableSubtotal * r.gstRate) / 100;
+        r.grandTotal = Math.round((r.taxableSubtotal + r.taxAmount + Number((r as any).feeTotal || 0)) * 100) / 100;
+        if (r.discount > 0) r.lineItems.push({ item_type: "discount", item_name: promo?.code || "Coupon", quantity: 1, unit_price: -r.discount, units: 1, adult_count: 0, child_count: 0, subtotal: -r.discount, price_snapshot: {} });
+      });
+    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400 }; }
+  }
+  const sum = (fn: (r: PricingResult) => number) => Math.round(out.reduce((s, x) => s + fn(x.result), 0) * 100) / 100;
   const totals = {
     nights: out[0].result.nights,
     roomCharges: sum((r) => r.roomCharges),
@@ -299,7 +310,7 @@ export async function buildMultiQuote(
     children: groups.reduce((s, g) => s + Number(g.children || 0), 0),
   };
 
-  return { hotel, groups: out, totals };
+  return { hotel, groups: out, totals, promo };
 }
 
 /** Persists line items for every group, prefixed with its room type. */

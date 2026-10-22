@@ -85,13 +85,13 @@ Deno.serve(async (req) => {
     let multiQuote: any = null;
 
     if (multi) {
-      multiQuote = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups, addons });
+      multiQuote = await buildMultiQuote(supabase, { hotel_id, check_in, check_out, groups, addons, promo_code });
       if (multiQuote.error || !multiQuote.totals) return json({ error: multiQuote.error }, multiQuote.status || 400);
       totals = multiQuote.totals;
     } else {
       if (!room_id) return json({ error: "room_id required" }, 400);
       singleQuote = await buildServerQuote(supabase, {
-        hotel_id, room_id, check_in, check_out, adults, children,
+        hotel_id, room_id, rate_plan_id, check_in, check_out, adults, children,
         child_ages: body.child_ages, num_rooms, extra_beds, meals, addons, promo_code,
       });
       if (singleQuote.error || !singleQuote.result) return json({ error: singleQuote.error }, singleQuote.status || 400);
@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
         hotel_id, check_in, check_out, lead_guest: leadGuest, rooms: resolved,
         agency_reference: agency_reference ?? idempotency_key, idempotency_key,
         payment_details, meta,
-      } as any, connection!.channel_property_id!);
+      } as any, connection?.channel_property_id);
 
       const res = await hgCall(supabase, {
         operation: "booking_create",
@@ -203,7 +203,9 @@ Deno.serve(async (req) => {
       booked_by_agent_id: booked_by_agent_id || null,
       booking_type,
       special_requests,
-      promo_code: promo_code || null,
+      promo_code: (multi ? multiQuote.promo?.code : singleQuote.promo?.code) || null,
+      coupon_id: (multi ? multiQuote.promo?.id : singleQuote.promo?.id) || null,
+      coupon_room_ids: multi ? groups.map((g: any) => g.room_id) : [room_id],
       source,
       channel: isHyperGuest ? HG : "jaaga",
       external_booking_id: externalBookingId,
@@ -309,12 +311,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Promo usage
-    if (singleQuote?.promo?.code) {
-      const { data: p } = await supabase.from("hotel_promo_codes")
-        .select("id,uses_count").eq("hotel_id", hotel_id).eq("code", singleQuote.promo.code).maybeSingle();
-      if (p) await supabase.from("hotel_promo_codes").update({ uses_count: (p.uses_count || 0) + 1 }).eq("id", p.id);
-    }
+    // Coupon usage is reserved atomically by the booking insert trigger.
 
     const origin = req.headers.get("origin") || Deno.env.get("APP_ORIGIN") || "";
     const portal_url = `${origin}/stay/${token}`;
