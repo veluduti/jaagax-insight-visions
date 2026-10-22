@@ -11,6 +11,7 @@ import AdminHierarchyPanel from "@/components/admin/AdminHierarchyPanel";
 import AgentUpgradeRequestsPanel from "@/components/admin/AgentUpgradeRequestsPanel";
 import PricingSettingsPanel from "@/components/admin/PricingSettingsPanel";
 import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
+import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
 import {
   Shield,
   CheckCircle,
@@ -196,6 +197,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         { value: "weekend", label: "Weekend Explorer", icon: MapPinned },
         { value: "quick-visits", label: "Quick Visits", icon: Zap },
         { value: "smart-visits", label: "Smart Visits", icon: Zap },
+        { value: "hotel-coupons", label: "Hotel Coupons", icon: IndianRupee },
       ],
     },
     {
@@ -705,6 +707,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
               <p className="text-sm text-muted-foreground">Review pricing submitted by owners, builders and agents. Approve, amend or reject with a reason. Approved pricing becomes visible on live properties.</p>
               <a href="/admin/property-pricing" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Open pricing approvals</a>
             </div>
+          </TabsContent>
+
+          {/* Hotel Coupons (admin only) */}
+          <TabsContent value="hotel-coupons" className="mt-4">
+            <HotelCouponsPanel />
           </TabsContent>
 
           {/* Price Drops */}
