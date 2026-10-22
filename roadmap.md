@@ -1,4 +1,7 @@
 # Active roadmap — JAAGA Travel
+## Smart Stays location recommendations
+- [ ] Integrate itinerary-based attractions, local experiences, hidden gems and nearby approved JaagaX properties
+- [ ] Test location matching, visibility rules and the plan page
 ## Hyderabad featured properties
 - [x] Include approved nearby-city properties within 100 km of Hyderabad; four tests passed and homepage Moosapet/Dilsukhnagar cards and separate-tab details verified. Missing legacy pins use city-centre discovery estimates; pending Balanagar remains excluded.
 ## Final approval error
