@@ -11,7 +11,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CalendarClock, Camera, CheckCircle2, MapPin, ShieldCheck, Timer, XCircle } from "lucide-react";
+import { CalendarClock, Camera, CheckCircle2, FileCheck2, MapPin, ShieldCheck, Timer, XCircle } from "lucide-react";
+import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 
 type Assignment = {
   id: string;
@@ -55,12 +56,26 @@ export default function AgentVerificationAssignments() {
   const [videoUrl, setVideoUrl] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [editFor, setEditFor] = useState<any | null>(null);
+  const [agentRowId, setAgentRowId] = useState<string | null>(null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+
+  const openEditForm = async (propertyId: string) => {
+    setBusy(propertyId);
+    const { data, error } = await (supabase as any)
+      .from("properties").select("*").eq("id", propertyId).maybeSingle();
+    setBusy(null);
+    if (error || !data) { toast.error(error?.message ?? "Could not load the property"); return; }
+    setEditFor(data);
+  };
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     const me = u.user?.id;
     if (!me) { setLoading(false); return; }
+    setMyUserId(me);
     const { data: agentRow } = await (supabase as any).from("agents").select("id").eq("user_id", me).maybeSingle();
+    setAgentRowId(agentRow?.id ?? null);
     const ids = [me, agentRow?.id].filter(Boolean).join(",");
     const { data } = await (supabase as any)
       .from("properties")
