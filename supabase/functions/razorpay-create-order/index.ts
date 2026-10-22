@@ -147,11 +147,10 @@ Deno.serve(async (req) => {
 
     // Prevent duplicate pending payment attempts for the same selection.
     const { data: existingPending } = await supabase.from("hotel_bookings")
-      .select("id, razorpay_order_id, total_amount, booking_reference")
+      .select("id, razorpay_order_id, total_amount, booking_reference, promo_code")
       .eq("hotel_id", hotel_id).eq("room_id", room_id)
       .eq("check_in", check_in).eq("check_out", check_out)
       .eq("guest_email", guest_email).eq("payment_status", "pending").eq("status", "pending")
-      .eq("promo_code", promo_code ? String(promo_code).trim().toUpperCase() : "")
       .gte("payment_attempted_at", new Date(Date.now() - 10 * 60 * 1000).toISOString())
       .maybeSingle();
 
@@ -168,7 +167,8 @@ Deno.serve(async (req) => {
     let bookingId: string;
     let bookingRef: string | null = null;
 
-    if (existingPending?.id && Number(existingPending.total_amount) === grandTotal && existingPending.razorpay_order_id) {
+    if (existingPending?.id && Number(existingPending.total_amount) === grandTotal && existingPending.razorpay_order_id
+      && (existingPending.promo_code || null) === (q.promo?.code || null)) {
       // Reuse the in-flight order instead of creating a duplicate booking.
       return json({
         booking_id: existingPending.id,
