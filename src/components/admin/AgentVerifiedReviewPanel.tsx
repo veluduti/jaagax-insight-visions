@@ -263,7 +263,7 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
                       </p>
                     )}
                     <Button size="sm" className="w-full" onClick={() => setReviewTarget(p)}>
-                      {readOnly ? "View Details" : "Compare & Review"}
+                      {readOnlyEffective ? "View Details" : "Compare & Review"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -348,7 +348,7 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
             </div>
           )}
           <DialogFooter className="gap-2">
-            {readOnly ? (
+            {readOnlyEffective ? (
               <p className="text-xs text-muted-foreground italic">
                 View only — approvals handled by the District Admin.
               </p>
