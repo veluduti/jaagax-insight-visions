@@ -281,6 +281,13 @@
       "when": 1792660086534,
       "tag": "0039_admin_only_hotel_coupons",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792660541087,
+      "tag": "0040_coupon_usage_trigger_internal_updates",
+      "breakpoints": true
     }
   ]
 }
