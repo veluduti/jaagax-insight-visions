@@ -92,27 +92,8 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
   });
 
   const handleApprove = async (p: PendingProperty) => {
-    // Lock final_data from agent_data (fallback to current top-level fields if agent didn't fill JSONB).
-    const finalData = p.agent_data ?? {
-      basic_information: { title: p.title, property_type: p.type },
-      location_details: { city: p.city, locality: p.locality },
-      price: p.price,
-      area_sqft: p.area_sqft,
-      description: p.description,
-      images: p.images,
-    };
-    const { error } = await supabase
-      .from("properties")
-      .update({
-        verification_status: "approved",
-        verified: true,
-        rejection_reason: null,
-        final_data: finalData,
-        is_live: true,
-        lifecycle_status: "live_verified",
-        published_at: new Date().toISOString(),
-      } as any)
-      .eq("id", p.id);
+    // Advance both required lifecycle steps atomically, with server-side approval authorization.
+    const { error } = await supabase.rpc("property_approve_agent_verified", { _property_id: p.id });
     if (error) return toast.error(error.message);
 
     // Audit log
