@@ -1,4 +1,7 @@
 # Active roadmap — JAAGA Travel
+## Hotel discovery layout
+- [ ] Match the supplied hotel page structure with a photo banner, category tabs, search and AI search, sidebar filters and horizontal hotel results
+- [ ] Verify location, filters, guest selection and booking entry on desktop and mobile
 ## Admin-only hotel coupons
 - [x] Restrict coupon management to JaagaX Admin and add global/hotel-specific management
 - [x] Validate coupon conditions and atomic usage limits across single/multi-room hotel booking paths
