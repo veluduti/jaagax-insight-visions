@@ -178,7 +178,7 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
       const preview = computeBookingPrice(baseInput as any);
       promo = await validateCoupon(supabase, promo_code, hotel_id, [room_id], check_in, check_out, preview.roomCharges);
       discount = promo.discount;
-    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400 }; }
+    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400, coupon_error: true }; }
   }
 
   const result = computeBookingPrice({ ...baseInput, discount } as any);
@@ -291,7 +291,7 @@ export async function buildMultiQuote(
         r.grandTotal = Math.round((r.taxableSubtotal + r.taxAmount + Number((r as any).feeTotal || 0)) * 100) / 100;
         if (r.discount > 0) r.lineItems.push({ item_type: "discount", item_name: promo?.code || "Coupon", quantity: 1, unit_price: -r.discount, units: 1, adult_count: 0, child_count: 0, subtotal: -r.discount, price_snapshot: {} });
       });
-    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400 }; }
+    } catch (e) { return { error: e instanceof Error ? e.message : "Coupon is invalid", status: 400, coupon_error: true }; }
   }
   const sum = (fn: (r: PricingResult) => number) => Math.round(out.reduce((s, x) => s + fn(x.result), 0) * 100) / 100;
   const totals = {

@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
     // Multi-room (combination) quote
     if (Array.isArray(body.groups) && body.groups.length) {
       const m = await buildMultiQuote(supabase, body);
+      if ((m as any).coupon_error) return json({ error: m.error, coupon_error: true }, 200);
       if (m.error || !m.totals) return json({ error: m.error }, m.status || 400);
       return json({
         multi_room: true,
@@ -50,6 +51,7 @@ Deno.serve(async (req) => {
 
     const q = await buildServerQuote(supabase, body);
 
+    if ((q as any).coupon_error) return json({ error: q.error, coupon_error: true }, 200);
     if (q.error || !q.result) return json({ error: q.error }, q.status || 400);
     const r = q.result;
 
