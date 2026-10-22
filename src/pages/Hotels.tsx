@@ -829,6 +829,8 @@ const Hotels = () => {
         units: r.total_units ?? null,
       });
     });
+    // Hotel categories can describe the property rather than an individual room.
+    if (!out.length && want.includes("hotel")) return null;
     return out.sort((a, b) => a.price - b.price);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredAndSortedHotels, rawRooms, searchParams]);
