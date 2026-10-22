@@ -317,6 +317,19 @@ export default function AgentVerificationAssignments() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit & verify property details before submitting the report */}
+      {editFor && (
+        <AgentEditPropertyDialog
+          key={editFor.id}
+          open={!!editFor}
+          onOpenChange={(o) => !o && setEditFor(null)}
+          property={editFor}
+          agentId={agentRowId ?? undefined}
+          agentUserId={myUserId ?? undefined}
+          onSubmitted={() => { setEditFor(null); void load(); }}
+        />
+      )}
     </div>
   );
 }
