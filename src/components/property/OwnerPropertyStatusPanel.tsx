@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { visitDateLabel, visitTimeLabel } from "@/lib/smartVisitDate";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,7 @@ interface Row {
   last_verified_at: string | null;
   visit_scheduled_date?: string | null;
   visit_scheduled_time?: string | null;
+  agent_visit_at?: string | null;
   visit_scheduled_notes?: string | null;
   visit_scheduled_at?: string | null;
   visit_confirmed_at?: string | null;
@@ -97,7 +100,7 @@ export function OwnerPropertyStatusPanel() {
       if (!user) return;
       setUserId(user.id);
       const { data } = await (supabase.from as any)("properties")
-        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, verified")
+        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, agent_visit_at, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, verified")
         .eq("submitted_by", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -306,8 +309,8 @@ export function OwnerPropertyStatusPanel() {
                   )}
                 </div>
                 <div className="text-sm">
-                  <div><span className="text-muted-foreground">Date:</span> <strong>{r.visit_scheduled_date || "—"}</strong></div>
-                  <div><span className="text-muted-foreground">Time:</span> <strong>{r.visit_scheduled_time || "—"}</strong></div>
+                  <div><span className="text-muted-foreground">Date:</span> <strong>{r.visit_scheduled_date ? visitDateLabel(r.visit_scheduled_date) : r.agent_visit_at ? format(new Date(r.agent_visit_at), "EEE, d MMM yyyy") : "—"}</strong></div>
+                  <div><span className="text-muted-foreground">Time:</span> <strong>{r.visit_scheduled_time ? visitTimeLabel(r.visit_scheduled_time) : r.agent_visit_at ? format(new Date(r.agent_visit_at), "h:mm a") : "—"}</strong></div>
                   {r.visit_scheduled_notes && (
                     <div className="mt-1"><span className="text-muted-foreground">Notes:</span> {r.visit_scheduled_notes}</div>
                   )}
