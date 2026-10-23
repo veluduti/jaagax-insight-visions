@@ -498,9 +498,6 @@ export default function AgentEditPropertyDialog({
 
     if (!isAdmin) {
       baseUpdate.agent_notes = agentNotes.trim();
-      baseUpdate.verification_status = "agent_verified_pending";
-      baseUpdate.verified = false;
-      baseUpdate.agent_submitted_at = new Date().toISOString();
     } else if (agentNotes.trim()) {
       baseUpdate.agent_notes = agentNotes.trim();
     }
@@ -521,6 +518,15 @@ export default function AgentEditPropertyDialog({
       setSubmitting(false);
       toast.error("Could not submit this property. Please refresh and try again.");
       return;
+    }
+
+    if (!isAdmin) {
+      const { error: submissionError } = await supabase.rpc("property_submit_agent_review", { _property_id: property.id });
+      if (submissionError) {
+        setSubmitting(false);
+        toast.error(submissionError.message);
+        return;
+      }
     }
 
     if (!isAdmin && agentId) {

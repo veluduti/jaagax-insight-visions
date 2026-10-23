@@ -347,9 +347,6 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
         images: newImages,
         agent_notes: editAgentNotes.trim(),
         original_snapshot,
-        verification_status: "agent_verified_pending",
-        verified: false,
-        agent_submitted_at: new Date().toISOString(),
       } as any)
       .eq("id", verifyTarget.id)
       .select("id, verification_status, agent_submitted_at")
@@ -363,6 +360,13 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     if (!updatedProperty) {
       setSubmittingVerify(false);
       toast.error("Could not submit this property. Please refresh and try again.");
+      return;
+    }
+
+    const { error: submissionError } = await supabase.rpc("property_submit_agent_review", { _property_id: verifyTarget.id });
+    if (submissionError) {
+      setSubmittingVerify(false);
+      toast.error(submissionError.message);
       return;
     }
 
