@@ -2687,6 +2687,12 @@ export default function SellProperty() {
     if (typeof val === "string") {
       normalized = val.trim();
 
+      // Canonical display: always render BHK in capitals in chat
+      if (canonId(f.id) === "bhk") {
+        normalized = normalized.replace(/\s?bhk\b/i, " BHK").replace(/\s+/g, " ").trim();
+      }
+
+
       // -------------------------------------------------------
       // empty
       // -------------------------------------------------------
