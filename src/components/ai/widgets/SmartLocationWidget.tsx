@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocCountries, useLocStates, useLocDistricts, useLocCities } from "@/hooks/useLocationMaster";
 import MapLocationModal, { type MapPickedLocation } from "@/components/location/MapLocationModal";
 import { Loader2, MapPin } from "lucide-react";
+import PlaceSearchBox from "./PlaceSearchBox";
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
@@ -126,6 +127,32 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
     }
   };
 
+  // A Google place typed by the user: fill country/state/district/city automatically.
+  const pickSearchedPlace = async (place: { latitude: number; longitude: number; address: string; placeId: string }) => {
+    const id = ++requestId.current;
+    setResolving(true);
+    setError("");
+    try {
+      const { data, error: geoError } = await supabase.functions.invoke("reverse-geocode", {
+        body: { latitude: place.latitude, longitude: place.longitude },
+      });
+      if (geoError || !data || data.error) throw geoError || new Error("Location unavailable");
+      const resolved = await resolveHierarchy({
+        country: text(data.country), state_name: text(data.state), district: text(data.district),
+        city: text(data.city), locality: text(data.locality), sub_locality: text(data.sub_locality),
+        landmark: text(data.landmark), address: place.address || text(data.formattedAddress),
+        pincode: text(data.pincode), latitude: place.latitude, longitude: place.longitude, place_id: place.placeId,
+      });
+      if (id !== requestId.current) return;
+      setForm(resolved);
+      onChange?.(resolved);
+    } catch {
+      if (id === requestId.current) setError("Couldn't fill that place. Try another one or use the map.");
+    } finally {
+      if (id === requestId.current) setResolving(false);
+    }
+  };
+
   const hasCoordinates = Number.isFinite(form.latitude) && Number.isFinite(form.longitude);
   const selectLevel = (level: "country" | "state" | "district" | "city", id: string) => {
     requestId.current++;
@@ -169,6 +196,8 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
           {!hasCoordinates && !resolving && <p className="mt-1 text-xs text-muted-foreground">Select the property's exact location on the map.</p>}
         </div>
       </div>
+
+      <PlaceSearchBox bias={form.latitude != null ? form : savedLocation ?? undefined} onPick={pickSearchedPlace} />
 
       <Button type="button" variant="outline" className="w-full gap-2" onClick={() => setMapOpen(true)}>
         <MapPin className="h-4 w-4" /> {hasCoordinates ? "Change location on map" : "Select location on map"}
