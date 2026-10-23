@@ -67,6 +67,7 @@ import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
 import NearbyAgentsRail from "@/components/agents/NearbyAgentsRail";
 import { useSavedLocation } from "@/hooks/useSavedLocation";
+import { withAgentListingIdentity } from "@/lib/agentListingIdentity";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
@@ -1142,7 +1143,6 @@ export default function SellProperty() {
   const { savedLocation } = useSavedLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isAgentMode = searchParams.get("as") === "agent";
   /* Session / answers state */
   const [state, setState] = useState<Record<string, any>>({});
   const [field, setField] = useState<FieldDef | null>(null);
@@ -1160,6 +1160,8 @@ export default function SellProperty() {
   const { processPendingPayment, hasPending } = usePendingPayment();
   // Admin-configured posting entitlement (free posts / pay-per-post / agent subscription)
   const { entitlement, refresh: refreshEntitlement } = usePostingEntitlement();
+  // Agent identity comes from the account, not an entry-link parameter.
+  const isAgentMode = entitlement?.is_agent === true;
   // Pre-publish payment options (free trial / property posting / agent subscription)
   const [payOpen, setPayOpen] = useState(false);
   // Keep the review dock hidden for the entire payment transition. This is
@@ -1769,7 +1771,10 @@ export default function SellProperty() {
     const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
     engineRef.current = createConversationEngine(cat);
     const typeField = TYPE_FIELD_BY_CATEGORY[cat];
-    const initialAnswers = { property_category: cat, ...(selectedType ? { [typeField]: selectedType } : {}) };
+    const initialAnswers = withAgentListingIdentity(
+      { property_category: cat, ...(selectedType ? { [typeField]: selectedType } : {}) }, isAgentMode,
+    );
+    engineRef.current.applyExtractedFields(initialAnswers, { overwrite: true });
     setCategory(cat);
     setCategoryBlock(null);
     setState((s) => ({ ...s, ...initialAnswers }));
@@ -1795,6 +1800,21 @@ export default function SellProperty() {
     if (category) return;
     startCategory(cat);
   };
+
+  // Advance old drafts paused at the identity question once the account loads.
+  useEffect(() => {
+    if (!isAgentMode || !category || !engineRef.current?.flow.fields.listed_by) return;
+    engineRef.current.applyExtractedFields({ listed_by: "Agent" }, { overwrite: true });
+    setState((previous) => previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true));
+    setEditForm((previous) => previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true));
+    if (field?.id === "listed_by") {
+      setMessages((previous) => previous.filter((message) =>
+        !(message.role === "ai" && message.kind === "text" && message.text === field.question),
+      ));
+      lastAskedFieldIdRef.current = null;
+      void fetchNext(withAgentListingIdentity(state, true));
+    }
+  }, [isAgentMode, category, field?.id]);
 
   /* ----- Switch to a different category mid-flow (resets answers) ----- */
   const switchCategory = (cat: PropertyCategory) => {
@@ -2178,7 +2198,20 @@ export default function SellProperty() {
     }
 
     try {
-      const engine = engineRef.current!;
+      const engine = engineRef.current;
+      if (!engine) return;
+
+      // Wait for authoritative identity if the user starts before it loads.
+      let agentIdentity = isAgentMode;
+      if (!entitlement) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) agentIdentity = (await fetchPostingEntitlement(user.id))?.is_agent === true;
+      }
+      currentState = withAgentListingIdentity(currentState, agentIdentity);
+      if (agentIdentity && engine.flow.fields.listed_by) {
+        engine.applyExtractedFields({ listed_by: "Agent" }, { overwrite: true });
+        setState((previous) => withAgentListingIdentity(previous, true));
+      }
 
       // =======================================================
       // IMPORTANT
