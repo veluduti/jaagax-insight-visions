@@ -154,10 +154,9 @@ export const LISTING_TYPE_OPTIONS = ["Buy", "Rent"];
 
 // Number quick-reply chips
 export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
-  // Area questions (flat_size / built_area) show unit suggestions as the user types,
-  // so no preset chips are listed here.
+  // Area questions (flat_size / built_area / land_size) show unit suggestions as the
+  // user types, so no preset chips are listed here.
   total_plots: ["50 Plots", "100 Plots", "200 Plots", "500 Plots"],
-  land_size: ["100 sqft", "100 sqyd", "20 gunta", "30 bhega", "5 acres", "100 cents"],
   total_floors: ["Ground floor", "3 floor", "5 floor", "10 floor", "15 floor", "20+ floor"],
   floor_number: ["Ground floor", "1 floor", "2 floor", "3 floor", "5 floor", "10 floor"],
   total_towers: ["1 tower", "2 towers", "4 towers", "6 towers", "10+ towers"],
