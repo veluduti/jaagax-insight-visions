@@ -108,15 +108,8 @@ export function formatIndianNumber(value: number): string {
     return `${trim(value / 100000)} Lakh`;
   }
 
-  // ==========================================================
-  // THOUSAND
-  // ==========================================================
-
-  if (value >= 1000) {
-    return `${trim(value / 1000)} Thousand`;
-  }
-
-  return new Intl.NumberFormat("en-IN").format(value);
+  // Up to 5 digits: show the plain number exactly as typed (e.g. 10500).
+  return trim(value);
 }
 
 /** Human-readable rupees without changing the underlying numeric amount. */
