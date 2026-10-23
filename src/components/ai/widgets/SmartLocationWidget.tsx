@@ -38,13 +38,54 @@ async function resolveHierarchy(loc: LocationForm): Promise<LocationForm> {
   const country = await lookup("loc_countries", text(loc.country));
   const state = await lookup("loc_states", text(loc.state_name), "country_id", country?.id);
   const district = await lookup("loc_districts", text(loc.district), "state_id", state?.id);
-  const city = await lookup("loc_cities", text(loc.city), "district_id", district?.id);
+
+  // Take the city from the selected location automatically. First try the
+  // resolved district; if the city's name isn't registered under it (e.g.
+  // "Hyderabad" filed under another district), fall back to a global match
+  // and adopt that city's district/state so the dropdowns stay consistent.
+  let city = await lookup("loc_cities", text(loc.city), "district_id", district?.id);
+  let districtFinal = district;
+  let stateFinal = state;
+  if (!city && text(loc.city)) {
+    const { data: globalCity } = await (supabase as any)
+      .from("loc_cities")
+      .select("id,name,district_id")
+      .ilike("name", text(loc.city))
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    if (globalCity) {
+      city = { id: globalCity.id, name: globalCity.name };
+      if (globalCity.district_id && globalCity.district_id !== district?.id) {
+        const { data: cityDistrict } = await (supabase as any)
+          .from("loc_districts")
+          .select("id,name,state_id")
+          .eq("id", globalCity.district_id)
+          .maybeSingle();
+        if (cityDistrict) {
+          districtFinal = { id: cityDistrict.id, name: cityDistrict.name };
+          if (cityDistrict.state_id && cityDistrict.state_id !== state?.id) {
+            const { data: cityState } = await (supabase as any)
+              .from("loc_states")
+              .select("id,name")
+              .eq("id", cityDistrict.state_id)
+              .maybeSingle();
+            if (cityState) stateFinal = { id: cityState.id, name: cityState.name };
+          }
+        }
+      }
+    }
+  }
   const locality = await lookup("loc_localities", text(loc.locality), "city_id", city?.id);
   return {
     ...loc,
+    country: country?.name ?? loc.country,
+    state_name: stateFinal?.name ?? loc.state_name,
+    district: districtFinal?.name ?? loc.district,
+    city: city?.name ?? loc.city,
     country_id: country?.id ?? null,
-    state_id: state?.id ?? null,
-    district_id: district?.id ?? null,
+    state_id: stateFinal?.id ?? null,
+    district_id: districtFinal?.id ?? null,
     city_id: city?.id ?? null,
     locality_id: locality?.id ?? null,
   };
