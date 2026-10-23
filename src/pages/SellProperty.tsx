@@ -800,7 +800,7 @@ const getBhkSuggestions = (input: string) => {
 
   if (!num) return [];
 
-  return [`${num} bhk`];
+  return [`${num} BHK`];
 };
 
 const getPlotSuggestions = (input: string) => {
@@ -5002,7 +5002,7 @@ export default function SellProperty() {
 
                 // BHK normalize ("3 BHK" or "3")
                 const bhkRaw = pick("bhk") || pick("bedrooms") || "";
-                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? String(bhkRaw) : `${bhkRaw} BHK`) : "";
+                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? String(bhkRaw).replace(/bhk/i, "BHK") : `${bhkRaw} BHK`) : "";
                 const bathRaw = pick("bathrooms") ?? "";
                 const facingRaw = pick("facing") || "";
                 const furnishing = pick("furnishing") || "";
