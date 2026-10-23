@@ -933,14 +933,19 @@ export const residentialFlow = {
       ],
     },
 
-    /* assign_nearest_agent: {
+    assign_nearest_agent: {
       section: "basic_information",
+
       priority: 35,
+
       type: "single_select",
+
       required: false,
+
       question: "Do you want to assign the nearest agent?",
+
       options: ["Yes", "No"],
-    }, */
+    },
   },
 
   autoGeneration: {
