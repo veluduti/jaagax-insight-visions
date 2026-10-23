@@ -166,7 +166,6 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   bathroom_count: ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ Bathrooms"],
   total_acres: ["1 acres", "2 acres", "5 acres", "10 acres", "20+ acres"],
   monthly_rent: ["10000/month", "1500/week", "25000/3 months", "200/hr", "600/day"],
-  total_price: ["25 lakh", "5 cr", "10 lakh", "2 cr"],
   price_per_unit: ["3000/sqft", "4500/sqyd", "60000/cent", "1000000/acre", "10000000/acre", "100000/gunta"],
 };
 
