@@ -11,6 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 import { SECTIONS } from "@/components/agents/AgentEditPropertyDialog";
+import { isAwaitingAgentFinalApproval } from "@/lib/agentReviewEligibility";
 
 const getPath = (obj: any, path?: string) =>
   !path || obj == null ? undefined : path.split(".").reduce((a: any, k) => (a == null ? a : a[k]), obj);
@@ -40,6 +41,8 @@ interface PendingProperty {
   assigned_agent_id: string | null;
   submitted_by: string | null;
   agent_submitted_at: string | null;
+  lifecycle_status: string | null;
+  verification_status: string | null;
 }
 
 const fmtPrice = (n: number | null | undefined) =>
@@ -51,6 +54,7 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
   const [reviewTarget, setReviewTarget] = useState<PendingProperty | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PendingProperty | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [approving, setApproving] = useState(false);
   // Final approval is actionable only for the district admin (or global admin);
   // other viewers (country/state admins) get a read-only comparison view.
   const [approverRole, setApproverRole] = useState<string | null>(null);
@@ -75,11 +79,14 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
     setLoading(true);
     const { data, error } = await supabase
       .from("properties")
-      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, agent_data, field_verification, assigned_agent_id, submitted_by, agent_submitted_at")
+      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, agent_data, field_verification, assigned_agent_id, submitted_by, agent_submitted_at, lifecycle_status, verification_status")
       .eq("verification_status", "agent_verified_pending")
+      .in("lifecycle_status", ["verification_submitted", "pending_final_approval"])
       .order("agent_submitted_at", { ascending: false });
     if (error) toast.error(error.message);
-    setItems((data as any) || []);
+    const pending = ((data as unknown as PendingProperty[]) || []).filter(isAwaitingAgentFinalApproval);
+    setItems(pending);
+    setReviewTarget(current => current ? pending.find(p => p.id === current.id) ?? null : null);
     setLoading(false);
   }, []);
 
@@ -92,9 +99,25 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
   });
 
   const handleApprove = async (p: PendingProperty) => {
+    if (approving || readOnlyEffective) return;
+    setApproving(true);
+    try {
     // Advance both required lifecycle steps atomically, with server-side approval authorization.
-    const { error } = await supabase.rpc("property_approve_agent_verified", { _property_id: p.id });
-    if (error) return toast.error(error.message);
+    const { data: result, error } = await supabase.rpc("property_approve_agent_verified", { _property_id: p.id });
+    if (error) {
+      if (error.message.includes("not awaiting final approval")) {
+        setReviewTarget(null);
+        await fetchItems();
+        toast.info("This property's review status changed. The approval queue has been refreshed.");
+      } else toast.error(error.message);
+      return;
+    }
+    if (result && typeof result === "object" && !Array.isArray(result) && result.already_approved === true) {
+      setReviewTarget(null);
+      await fetchItems();
+      toast.success("Property is already approved & published");
+      return;
+    }
 
     // Audit log
     const { data: { user } } = await supabase.auth.getUser();
@@ -149,6 +172,11 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
     setItems(prev => prev.filter(x => x.id !== p.id));
     setReviewTarget(null);
     toast.success("Property approved & published");
+    } catch {
+      toast.error("Could not complete approval. Please try again.");
+    } finally {
+      setApproving(false);
+    }
   };
 
 
@@ -335,11 +363,11 @@ export default function AgentVerifiedReviewPanel({ readOnly }: { readOnly?: bool
               </p>
             ) : (
               <>
-                <Button variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
+                <Button disabled={approving} variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
                   <XCircle className="h-4 w-4 mr-1" />Reject
                 </Button>
-                <Button onClick={() => reviewTarget && handleApprove(reviewTarget)} className="bg-emerald-600 hover:bg-emerald-700">
-                  <CheckCircle className="h-4 w-4 mr-1" />Approve & Publish
+                <Button disabled={approving || !reviewTarget || !isAwaitingAgentFinalApproval(reviewTarget)} onClick={() => reviewTarget && handleApprove(reviewTarget)}>
+                  <CheckCircle className="h-4 w-4 mr-1" />{approving ? "Approving…" : "Approve & Publish"}
                 </Button>
               </>
             )}
