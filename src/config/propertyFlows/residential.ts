@@ -369,7 +369,7 @@ export const residentialFlow = {
 
       question: "What is the flat size?",
 
-      units: ["sqft"],
+      units: ["sq ft"],
     },
 
     flat_variants: {
