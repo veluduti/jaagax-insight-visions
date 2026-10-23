@@ -15870,6 +15870,10 @@ export type Database = {
         Args: { _notes?: string; _property_id: string; _visit_at: string }
         Returns: Json
       }
+      property_submit_agent_review: {
+        Args: { _property_id: string }
+        Returns: Json
+      }
       property_submit_for_review: {
         Args: { _needs_agent?: boolean; _property_id: string }
         Returns: Json
