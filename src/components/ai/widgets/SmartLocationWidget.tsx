@@ -79,9 +79,13 @@ async function resolveHierarchy(loc: LocationForm): Promise<LocationForm> {
   const locality = await lookup("loc_localities", text(loc.locality), "city_id", city?.id);
   return {
     ...loc,
+    country: country?.name ?? loc.country,
+    state_name: stateFinal?.name ?? loc.state_name,
+    district: districtFinal?.name ?? loc.district,
+    city: city?.name ?? loc.city,
     country_id: country?.id ?? null,
-    state_id: state?.id ?? null,
-    district_id: district?.id ?? null,
+    state_id: stateFinal?.id ?? null,
+    district_id: districtFinal?.id ?? null,
     city_id: city?.id ?? null,
     locality_id: locality?.id ?? null,
   };
