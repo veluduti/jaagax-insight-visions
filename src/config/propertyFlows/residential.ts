@@ -723,7 +723,7 @@ export const residentialFlow = {
 
       question: "What is the total project land area?",
 
-      units: ["acre", "sqyd", "sqft"],
+      units: ["acre", "sq yd", "sq ft"],
     },
 
     furnishing_status: {
