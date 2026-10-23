@@ -850,7 +850,7 @@ const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+(?:\.\d+)?$/.test(input.trim())) return [];
   const amount = Number(input);
   if (!Number.isFinite(amount) || amount <= 0) return [];
-  return ["sqft", "sq yd", "acre", "gunta", "cent"].map((unit) => ({
+  return ["sq ft", "sq yd", "acre", "gunta", "cent"].map((unit) => ({
     label: formatUnitPrice(amount, unit),
     value: `₹${amount} / ${unit}`,
   }));
@@ -1772,7 +1772,8 @@ export default function SellProperty() {
     engineRef.current = createConversationEngine(cat);
     const typeField = TYPE_FIELD_BY_CATEGORY[cat];
     const initialAnswers = withAgentListingIdentity(
-      { property_category: cat, ...(selectedType ? { [typeField]: selectedType } : {}) }, isAgentMode,
+      { property_category: cat, ...(selectedType ? { [typeField]: selectedType } : {}) },
+      isAgentMode,
     );
     engineRef.current.applyExtractedFields(initialAnswers, { overwrite: true });
     setCategory(cat);
@@ -1805,12 +1806,14 @@ export default function SellProperty() {
   useEffect(() => {
     if (!isAgentMode || !category || !engineRef.current?.flow.fields.listed_by) return;
     engineRef.current.applyExtractedFields({ listed_by: "Agent" }, { overwrite: true });
-    setState((previous) => previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true));
-    setEditForm((previous) => previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true));
+    setState((previous) => (previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true)));
+    setEditForm((previous) => (previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true)));
     if (field?.id === "listed_by") {
-      setMessages((previous) => previous.filter((message) =>
-        !(message.role === "ai" && message.kind === "text" && message.text === field.question),
-      ));
+      setMessages((previous) =>
+        previous.filter(
+          (message) => !(message.role === "ai" && message.kind === "text" && message.text === field.question),
+        ),
+      );
       lastAskedFieldIdRef.current = null;
       void fetchNext(withAgentListingIdentity(state, true));
     }
@@ -2204,7 +2207,9 @@ export default function SellProperty() {
       // Wait for authoritative identity if the user starts before it loads.
       let agentIdentity = isAgentMode;
       if (!entitlement) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) agentIdentity = (await fetchPostingEntitlement(user.id))?.is_agent === true;
       }
       currentState = withAgentListingIdentity(currentState, agentIdentity);
@@ -2722,9 +2727,11 @@ export default function SellProperty() {
 
       // Canonical display: always render BHK in capitals in chat
       if (canonId(f.id) === "bhk") {
-        normalized = normalized.replace(/\s?bhk\b/i, " BHK").replace(/\s+/g, " ").trim();
+        normalized = normalized
+          .replace(/\s?bhk\b/i, " BHK")
+          .replace(/\s+/g, " ")
+          .trim();
       }
-
 
       // -------------------------------------------------------
       // empty
@@ -5041,7 +5048,11 @@ export default function SellProperty() {
 
                 // BHK normalize ("3 BHK" or "3")
                 const bhkRaw = pick("bhk") || pick("bedrooms") || "";
-                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? String(bhkRaw).replace(/bhk/i, "BHK") : `${bhkRaw} BHK`) : "";
+                const bhkLabel = bhkRaw
+                  ? String(bhkRaw).match(/bhk/i)
+                    ? String(bhkRaw).replace(/bhk/i, "BHK")
+                    : `${bhkRaw} BHK`
+                  : "";
                 const bathRaw = pick("bathrooms") ?? "";
                 const facingRaw = pick("facing") || "";
                 const furnishing = pick("furnishing") || "";
