@@ -5,7 +5,7 @@
 ## Hyderabad featured properties
 - [x] Include approved nearby-city properties within 100 km of Hyderabad; four tests passed and homepage Moosapet/Dilsukhnagar cards and separate-tab details verified. Missing legacy pins use city-centre discovery estimates; pending Balanagar remains excluded.
 ## Final approval error
-- [ ] Fix edited-agent submissions leaving lifecycle at visit_confirmed, repair the affected pending listing, and verify approval and repeat-click handling.
+- [x] Fix both edited-agent submission forms with atomic lifecycle synchronization; repair Kukatpally coworking review and verify District Admin approval in the browser, safe repeated approval, four eligibility tests and build OK.
 - [x] Fix the blocked publishing transition with atomic final approval; verified Moosapet approval and persisted live status in the district-admin dashboard. Balanagar remains pending for manual review.
 ## Locality test agents
 - [x] Created agent1 and agent2 with securely updated passwords; verified password sign-in, locality coverage, one pending assignment each, owner/agent notifications, and each property's signed-in Assigned Properties page. Acceptance and site verification remain for the agents.
