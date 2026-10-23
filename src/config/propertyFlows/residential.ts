@@ -449,7 +449,7 @@ export const residentialFlow = {
 
       question: "What is the built area?",
 
-      units: ["sqft"],
+      units: ["sq ft"],
     },
 
     plot_side_measurements: {
