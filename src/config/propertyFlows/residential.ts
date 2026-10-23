@@ -489,7 +489,7 @@ export const residentialFlow = {
         equals: "Sell",
       },
 
-      question: "What is the price per sq ft / sqyd?",
+      question: "What is the price per sq ft / sq yd?",
 
       autoCalculation: {
         enabled: true,
