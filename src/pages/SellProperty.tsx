@@ -1809,7 +1809,7 @@ export default function SellProperty() {
     setEditForm((previous) => previous.listed_by === "Agent" ? previous : withAgentListingIdentity(previous, true));
     if (field?.id === "listed_by") {
       setMessages((previous) => previous.filter((message) =>
-        !(message.role === "ai" && message.text === field.question),
+        !(message.role === "ai" && message.kind === "text" && message.text === field.question),
       ));
       lastAskedFieldIdRef.current = null;
       void fetchNext(withAgentListingIdentity(state, true));
