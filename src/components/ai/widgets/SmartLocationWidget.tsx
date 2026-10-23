@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocCountries, useLocStates, useLocDistricts, useLocCities } from "@/hooks/useLocationMaster";
 import MapLocationModal, { type MapPickedLocation } from "@/components/location/MapLocationModal";
-import { MapPin } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import PlaceSearchBox from "./PlaceSearchBox";
-import { hasRequiredLocationHierarchy } from "@/lib/propertyLocationEligibility";
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
@@ -172,9 +171,9 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
   };
   const missing = ["country", "state_name", "district", "city", "address"]
     .filter((key) => !text(form[key as keyof LocationForm]));
-  const hierarchyMissing = ["country_id", "state_id", "district_id"]
+  const hierarchyMissing = ["country_id", "state_id", "district_id", "city_id"]
     .filter((key) => !text(form[key as keyof LocationForm]));
-  const canContinue = hasCoordinates && missing.length === 0 && hasRequiredLocationHierarchy(form) && !resolving && !error;
+  const canContinue = hasCoordinates && missing.length === 0 && hierarchyMissing.length === 0 && !resolving && !error;
 
   return (
     <div className="w-full border border-border bg-card p-4 sm:p-5 space-y-4">
@@ -182,6 +181,23 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
         <h3 className="text-base font-semibold text-foreground">Property Location</h3>
         <p className="text-sm text-muted-foreground mt-1">Confirm the property pin before continuing.</p>
       </div>
+
+      <div className="border-l-2 border-primary bg-muted/30 px-3 py-3 flex gap-3 items-start">
+        {resolving ? <Loader2 className="h-5 w-5 text-primary animate-spin shrink-0" /> : <MapPin className="h-5 w-5 text-primary shrink-0" />}
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">
+            {resolving ? "Finding your location…" : hasCoordinates ? (form.address || "Pinned location") : "No property pin selected"}
+          </p>
+          {hasCoordinates && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {[form.locality, form.city, form.district, form.state_name, form.country, form.pincode].filter(Boolean).join(" · ")}
+            </p>
+          )}
+          {!hasCoordinates && !resolving && <p className="mt-1 text-xs text-muted-foreground">Select the property's exact location on the map.</p>}
+        </div>
+      </div>
+
+      <PlaceSearchBox bias={form.latitude != null ? form : savedLocation ?? undefined} onPick={pickSearchedPlace} />
 
       <Button type="button" variant="outline" className="w-full gap-2" onClick={() => setMapOpen(true)}>
         <MapPin className="h-4 w-4" /> {hasCoordinates ? "Change location on map" : "Select location on map"}
@@ -194,12 +210,14 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
           The map couldn't find {missing.map((key) => key === "state_name" ? "state" : key).join(", ")}. Choose another pin or complete the required area below.
         </p>
       )}
-      {(
+      {hasCoordinates && hierarchyMissing.length > 0 && !resolving && (
         <div className="space-y-3 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">Confirm the required area for this pin to continue.</p>
           {([
             { key: "country" as const, label: "Country", value: form.country_id, options: countries.data, query: countries, enabled: true },
             { key: "state" as const, label: "State", value: form.state_id, options: states.data, query: states, enabled: !!form.country_id },
             { key: "district" as const, label: "District", value: form.district_id, options: districts.data, query: districts, enabled: !!form.state_id },
+            { key: "city" as const, label: "City", value: form.city_id, options: cities.data, query: cities, enabled: !!form.district_id },
           ]).map(({ key, label, value, options, query, enabled }) => (
             <div key={key} className="space-y-1">
               <label className="text-sm font-medium text-foreground" htmlFor={`property-${key}`}>{label} <span className="text-destructive">*</span></label>
@@ -211,8 +229,6 @@ const SmartLocationWidget = ({ value: valueProp, initialValue, onChange, onSubmi
               {enabled && !query.isLoading && !query.isError && options?.length === 0 && <p className="text-xs text-muted-foreground">No available {label.toLowerCase()} choices for this area. Choose another area or pin.</p>}
             </div>
           ))}
-          <PlaceSearchBox label="City" value={form.city || ""} context={[form.district, form.state_name, form.country].filter(Boolean).join(", ")} bias={form.latitude != null ? form : savedLocation ?? undefined} onPick={pickSearchedPlace} />
-          {resolving && <p role="status" className="text-xs text-muted-foreground">Checking location…</p>}
         </div>
       )}
       <Button type="button" className="w-full" disabled={!canContinue} onClick={() => onSubmit?.(form)}>

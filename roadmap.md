@@ -1,6 +1,4 @@
 # Active roadmap — JAAGA Travel
-## Property posting city search
-- [x] Replaced the limited City dropdown with typed Google suggestions and removed the address summary; kept map selection and required district routing. Three validation tests passed and build OK. Live Google suggestions require verification on the authorized deployed site.
 ## Smart Stays location recommendations
 - [x] Integrate destination-based attractions, popular places, local experiences, hidden gems and approved JaagaX property matches across the creator, published and booked plan views; unknown destinations retain map discovery links
 - [x] Ten tests passed; signed-in creator flow verified Hyderabad/Vijayawada recommendations, category switching, a real approved property link and mobile layout without overflow. Build OK. Published/booked customer views could not be exercised against a live package because the only current package awaits hotel approval; no package or booking created.
