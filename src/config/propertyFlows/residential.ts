@@ -430,7 +430,7 @@ export const residentialFlow = {
 
       question: "What is the land size?",
 
-      units: ["sqft", "sqyd", "cent", "gunta", "acre"],
+      units: ["sq ft", "sq yd", "cent", "gunta", "acre"],
     },
 
     built_area: {
