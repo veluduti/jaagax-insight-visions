@@ -631,17 +631,13 @@ export const agriculturalFlow: PropertyFlowConfig = {
       ],
     },
 
-    {*/media_uploads: {
+    /* media_uploads: {
       section: "finalization",
-
       priority: 20,
-
       type: "media_upload",
-
       required: false,
-
       question: "Upload farm images, land documents or videos for AI auto-fill.",
-    },*/}
+    }, */
 
     agriculture_highlights: {
       section: "finalization",
