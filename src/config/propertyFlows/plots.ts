@@ -682,7 +682,7 @@ export const plotsFlow: PropertyFlowConfig = {
       ],
     },
 
-    assign_nearest_agent: {
+    /* assign_nearest_agent: {
       section: "finalization",
 
       priority: 24,
@@ -694,7 +694,7 @@ export const plotsFlow: PropertyFlowConfig = {
       question: "Do you want to assign this property to the nearest agent? Agent commission may apply.",
 
       options: ["Yes", "No"],
-    },
+    },*/
   },
 
   autoGeneration: {
