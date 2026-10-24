@@ -695,7 +695,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
       ],
     },
 
-    assign_nearest_agent: {
+    /* assign_nearest_agent: {
       section: "finalization",
 
       priority: 22,
@@ -707,7 +707,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
       question: "Do you want to assign this property to the nearest agent? Agent commission may apply.",
 
       options: ["Yes", "No"],
-    },
+    },*/
   },
 
   autoGeneration: {
