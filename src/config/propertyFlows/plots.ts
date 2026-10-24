@@ -418,7 +418,7 @@ export const plotsFlow: PropertyFlowConfig = {
         equals: "Buy",
       },
 
-      question: "What is the price per unit in sqft?",
+      question: "What is the price per unit in sq ft?",
 
       dynamicUnitSource: {
         from: ["plot_size"],
