@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NUMBER_QUICK_REPLIES } from "../propertyFieldsConfig";
+import { NUMBER_QUICK_REPLIES } from "../../propertyFieldsConfig";
 
 // Listing chat shows suggestions only while the user types; numeric price/area
 // questions must never render a preset chip row.
