@@ -154,8 +154,8 @@ export const LISTING_TYPE_OPTIONS = ["Buy", "Rent"];
 
 // Number quick-reply chips
 export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
-  // Area questions (flat_size / built_area / land_size) show unit suggestions as the
-  // user types, so no preset chips are listed here.
+  // Area and price questions (flat_size / built_area / land_size / price_per_unit) show
+  // suggestions as the user types, so no preset chips are listed here.
   total_plots: ["50 Plots", "100 Plots", "200 Plots", "500 Plots"],
   total_floors: ["Ground floor", "3 floor", "5 floor", "10 floor", "15 floor", "20+ floor"],
   floor_number: ["Ground floor", "1 floor", "2 floor", "3 floor", "5 floor", "10 floor"],
@@ -166,7 +166,6 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   bathroom_count: ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ Bathrooms"],
   total_acres: ["1 acres", "2 acres", "5 acres", "10 acres", "20+ acres"],
   monthly_rent: ["10000/month", "1500/week", "25000/3 months", "200/hr", "600/day"],
-  price_per_unit: ["3000/sqft", "4500/sqyd", "60000/cent", "1000000/acre", "10000000/acre", "100000/gunta"],
 };
 
 // ============================================================
