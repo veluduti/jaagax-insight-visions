@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AdminHierarchyPanel from "@/components/admin/AdminHierarchyPanel";
 import AgentUpgradeRequestsPanel from "@/components/admin/AgentUpgradeRequestsPanel";
 import PricingSettingsPanel from "@/components/admin/PricingSettingsPanel";
+import AdminTestimonials from "@/pages/admin/Testimonials";
 import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
 import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
 import {
@@ -209,6 +210,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         { value: "location-master", label: "Location Master", icon: MapPin },
         { value: "activity", label: "Activity Timeline", icon: Activity },
         { value: "pricing", label: "Pricing & Payments", icon: IndianRupee },
+        { value: "reviews", label: "Homepage Reviews", icon: Sparkles },
       ],
     },
   ];
@@ -1043,6 +1045,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           {/* PRICING & PAYMENTS */}
           <TabsContent value="pricing" className="mt-4">
             <PricingSettingsPanel />
+          </TabsContent>
+
+          {/* HOMEPAGE REVIEWS */}
+          <TabsContent value="reviews" className="mt-4">
+            <AdminTestimonials embedded />
           </TabsContent>
 
           {/* ACTIVITY TIMELINE */}
