@@ -19,12 +19,12 @@ import { POPULAR_AREAS } from "@/config/popularAreas";
 import { cn } from "@/lib/utils";
 
 const INTENTS = [
-  { key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
-  { key: "invest", label: "Buy / Rent / Invest", icon: Home, path: "/search" },
-  { key: "travel", label: "Smart Travel", icon: Plane, path: "/smart-stays" },
-  { key: "agent", label: "Find an Agent", icon: Users, path: "/agents" },
-  { key: "list", label: "List a Property", icon: Plus, path: "/sell-property" },
-  { key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
+  { color: "", key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
+  { color: "text-destructive", key: "invest", label: "Buy / Rent / Invest", icon: Home, path: "/search" },
+  { color: "text-foreground", key: "travel", label: "Smart Travel", icon: Plane, path: "/smart-stays" },
+  { color: "text-primary", key: "agent", label: "Find an Agent", icon: Users, path: "/agents" },
+  { color: "text-primary", key: "list", label: "List a Property", icon: Plus, path: "/sell-property" },
+  { color: "text-primary", key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
 ];
 
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
@@ -61,7 +61,7 @@ const HeroSearchPanel = () => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto rounded-2xl bg-card shadow-xl border border-border/60 p-4 sm:p-6 text-left">
+    <div className="relative w-full max-w-6xl mx-auto rounded-2xl bg-card shadow-xl border border-border/60 p-4 sm:p-6 text-left">
       {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 className="text-lg sm:text-xl font-bold text-foreground">
@@ -77,7 +77,7 @@ const HeroSearchPanel = () => {
       </div>
 
       {/* Intent buttons */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+      <div className="flex lg:grid lg:grid-cols-6 gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
         {INTENTS.map((it) => {
           const Icon = it.icon;
           const active = intent === it.key;
@@ -86,13 +86,13 @@ const HeroSearchPanel = () => {
               key={it.key}
               onClick={() => handleIntent(it.key, it.path)}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all",
+                "flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all",
                 active
                   ? "bg-primary text-primary-foreground border-primary shadow-md"
                   : "bg-card text-foreground border-border hover:border-primary/50 hover:text-primary",
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn("h-4 w-4", !active && it.color)} />
               {it.label}
             </button>
           );
