@@ -82,19 +82,20 @@ const HeroSearchPanel = () => {
           const Icon = it.icon;
           const active = intent === it.key;
           return (
-            <button
+            <Button
               key={it.key}
+              variant="outline"
               onClick={() => handleIntent(it.key, it.path)}
               className={cn(
-                "flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-[13px] font-semibold transition-all",
+                "flex h-auto shrink-0 items-center justify-center gap-2 rounded-none border px-3 py-2 text-xs sm:text-[13px] font-semibold transition-all",
                 active
-                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  ? "bg-primary text-primary-foreground border-primary shadow-md hover:bg-primary hover:text-primary-foreground hover:border-primary"
                   : "bg-card text-foreground border-border hover:border-primary/50 hover:text-primary",
               )}
             >
               <Icon className={cn("h-4 w-4", !active && it.color)} />
               {it.label}
-            </button>
+            </Button>
           );
         })}
       </div>
