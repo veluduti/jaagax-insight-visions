@@ -43,7 +43,7 @@ const socials = [
 
 const Footer = () => {
   return (
-    <footer className="bg-[hsl(160,45%,10%)] text-white">
+    <footer className="bg-footer text-footer-foreground">
       <div className="container mx-auto container-padding py-12 sm:py-14">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
           {/* Brand */}
