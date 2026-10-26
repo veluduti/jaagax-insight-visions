@@ -104,7 +104,7 @@ const StatsStrip = () => {
   if (stats.length === 0) return null;
 
   return (
-    <section className="relative z-10 -mt-6">
+    <section className="relative z-10 mt-6">
       <div className="container mx-auto container-padding">
         <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 rounded-2xl border border-border/50 bg-card px-2 py-1 shadow-card">
           {stats.map((s) => {
