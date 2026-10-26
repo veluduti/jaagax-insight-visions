@@ -33,7 +33,7 @@ const StatsStrip = () => {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const sb = supabase as any;
         const [propsRes, agentsRes, usersRes, ratingRes] = await Promise.all([
@@ -88,9 +88,16 @@ const StatsStrip = () => {
       } catch {
         // keep whatever we have
       }
-    })();
+    };
+    load();
+    // Keep counts fresh: refresh every 60s and whenever the tab regains focus.
+    const timer = window.setInterval(load, 60_000);
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
@@ -109,7 +116,7 @@ const StatsStrip = () => {
                 </span>
                 <span>
                   <span className="block text-sm sm:text-base font-bold text-foreground leading-tight">{s.value}</span>
-                  <span className="block text-[11px] sm:text-xs text-muted-foreground">{s.label}</span>
+                  <span className="block mt-1 text-[11px] sm:text-xs text-muted-foreground leading-tight">{s.label}</span>
                 </span>
               </div>
             );
