@@ -38,31 +38,22 @@ const JourneyBanners = () => (
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="relative overflow-hidden rounded-3xl min-h-[260px] sm:min-h-[300px] flex"
+              className="flex flex-col sm:flex-row overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card"
             >
-              <img
-                src={b.image}
-                alt=""
-                loading="lazy"
-                width={944}
-                height={704}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/10" />
-              <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 max-w-md">
+              <div className="flex flex-1 flex-col justify-center p-6 sm:p-8">
                 <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg">
                   <Icon className="h-5 w-5" />
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+                <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                   {b.title}
                   {b.highlight && (
                     <>
                       {" "}
-                      <span className="text-primary-light">{b.highlight}</span>
+                      <span className="text-primary">{b.highlight}</span>
                     </>
                   )}
                 </h3>
-                <p className="mt-2 text-sm sm:text-base text-white/85">{b.desc}</p>
+                <p className="mt-2 text-sm sm:text-base text-muted-foreground">{b.desc}</p>
                 <Link
                   to={b.path}
                   className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary-dark transition-colors"
@@ -70,6 +61,16 @@ const JourneyBanners = () => (
                   {b.cta}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
+              </div>
+              <div className="relative sm:w-2/5 shrink-0 min-h-[180px] sm:min-h-0">
+                <img
+                  src={b.image}
+                  alt=""
+                  loading="lazy"
+                  width={944}
+                  height={704}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
               </div>
             </motion.div>
           );

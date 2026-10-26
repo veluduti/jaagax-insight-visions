@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BedDouble, Plane, Home, Building2, Leaf, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { BedDouble, Plane, Home, Building2, Leaf, ArrowRight, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { useRef } from "react";
 import exploreStays from "@/assets/explore-stays.jpg";
 import exploreSmartStays from "@/assets/explore-smart-stays.jpg";
@@ -114,6 +114,9 @@ const ExploreJaaga = () => {
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                    <span className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-card/90 backdrop-blur border border-border/40 shadow-sm">
+                      <Heart className="h-4 w-4 text-foreground/70" />
+                    </span>
                   </div>
                   <div className="relative p-4 pt-0">
                     <span className="relative -mt-6 mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-card shadow-md border border-border/60 text-primary">

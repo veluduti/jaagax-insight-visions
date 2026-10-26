@@ -161,10 +161,10 @@ const Navigation = () => {
                       <NavigationMenuLink asChild>
                         <Button
                           asChild
-                          variant="outline"
+                          variant="default"
                           className={cn(
-                            "h-11 gap-2 rounded-lg border-primary/35 bg-primary/10 px-4 text-[15px] font-semibold text-primary shadow-sm hover:border-primary hover:bg-primary/15 hover:text-primary",
-                            isActive("/sell-property") && "border-primary bg-primary/15 ring-1 ring-primary/20",
+                            "h-11 gap-2 rounded-lg px-4 text-[15px] font-semibold shadow-sm",
+                            isActive("/sell-property") && "ring-2 ring-primary/30",
                           )}
                         >
                           <Link to="/sell-property">

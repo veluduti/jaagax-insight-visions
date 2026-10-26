@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Star, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Star, MapPin, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Review {
@@ -60,11 +61,19 @@ const HomeReviews = () => {
   return (
     <section className="section-spacing bg-card border-y border-border/50">
       <div className="container mx-auto container-padding">
-        <div className="mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What Our Users Say</h2>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Real experiences from our community
-          </p>
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What Our Users Say</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+              Real experiences from our community
+            </p>
+          </div>
+          <Link
+            to="/hotels"
+            className="hidden sm:inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary hover:underline"
+          >
+            View All Reviews <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
