@@ -1,8 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import FeaturedProperties from "@/components/FeaturedProperties";
 import Footer from "@/components/Footer";
-import { useLocation } from "@/contexts/LocationContext";
 import PromotedListings from "@/components/home/PromotedListings";
 import StatsStrip from "@/components/home/StatsStrip";
 import ExploreJaaga from "@/components/home/ExploreJaaga";
@@ -13,7 +11,6 @@ import HomeReviews from "@/components/home/HomeReviews";
 import AppPromo from "@/components/home/AppPromo";
 import AIInsightStrip from "@/components/AIInsightStrip";
 import { useAuth } from "@/hooks/useAuth";
-import { canSee } from "@/lib/roleAccess";
 import { LazyMount, AISectionSkeleton } from "@/components/shared";
 import SEO from "@/components/SEO";
 import {
@@ -23,7 +20,6 @@ import {
 } from "@/components/home/MobileHomeServices";
 
 const Index = () => {
-  const { detectedLocation } = useLocation();
   const { role, user, loading: authLoading } = useAuth();
 
   // Avoid a flash of the consumer home page while the signed-in user's role resolves.
@@ -31,7 +27,6 @@ const Index = () => {
     return <div className="min-h-screen bg-background" />;
   }
 
-  const showBuyRent = canSee(role, "buyRent");
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,8 +68,6 @@ const Index = () => {
       {/* Promotional journey banners */}
       <JourneyBanners />
 
-      {/* Featured properties near the user's location */}
-      {showBuyRent && <FeaturedProperties detectedCity={detectedLocation?.city} />}
 
       {/* Mobile-only: Hotel Services / Property Selling sections */}
       <MobileServiceSections />
