@@ -26,11 +26,10 @@ const StatsStrip = () => {
     (async () => {
       try {
         const sb = supabase as any;
-        const [propsRes, agentsRes, usersRes, citiesRes, ratingRes] = await Promise.all([
+        const [propsRes, agentsRes, usersRes, ratingRes] = await Promise.all([
           sb.from("properties").select("id", { count: "exact", head: true }).eq("verified", true),
           sb.from("agents").select("id", { count: "exact", head: true }),
           sb.from("profiles").select("id", { count: "exact", head: true }),
-          sb.rpc("count_distinct_listing_cities").maybeSingle?.() ?? Promise.resolve({ data: null }),
           sb.from("hotel_reviews").select("rating"),
         ]);
 
