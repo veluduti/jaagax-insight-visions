@@ -10,33 +10,38 @@ All colors MUST be HSL.
   :root {
     /* ===== COLOR SYSTEM ===== */
     /* Light Mode - Modern & Vibrant */
-    --background: 220 40% 99%;
-    --foreground: 222 47% 12%;
+    /* Warm cream canvas like the Jaaga reference homepage */
+    --background: 40 33% 97%;
+    --foreground: 222 47% 14%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 12%;
+    --card-foreground: 222 47% 14%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 12%;
-    
-    /* Primary - Vibrant Emerald */
-    --primary: 152 76% 45%;
+    --popover-foreground: 222 47% 14%;
+
+    /* Primary - Jaaga Emerald (matches reference green buttons) */
+    --primary: 152 72% 32%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 152 76% 55%;
-    --primary-dark: 152 76% 35%;
-    
+    --primary-light: 152 72% 42%;
+    --primary-dark: 152 72% 24%;
+
     /* Accent - Bright Mint */
     --accent-neon: 152 90% 65%;
-    
-    --secondary: 210 45% 96%;
-    --secondary-foreground: 222 47% 12%;
-    --muted: 210 35% 94%;
-    --muted-foreground: 215 16% 46%;
-    --accent: 152 76% 96%;
-    --accent-foreground: 222 47% 12%;
+
+    --secondary: 40 25% 94%;
+    --secondary-foreground: 222 47% 14%;
+    --muted: 40 20% 93%;
+    --muted-foreground: 220 12% 42%;
+    --accent: 152 60% 94%;
+    --accent-foreground: 222 47% 14%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 88%;
-    --input: 214 32% 90%;
-    --ring: 152 76% 45%;
+    --border: 35 18% 86%;
+    --input: 35 18% 88%;
+    --ring: 152 72% 32%;
+
+    /* Deep emerald footer (reference homepage) */
+    --footer: 160 45% 10%;
+    --footer-foreground: 0 0% 100%;
 
     /* ===== SPACING SYSTEM (fluid) ===== */
     --space-xs: clamp(0.375rem, 0.3rem + 0.25vw, 0.5rem);   /* 6–8px */
@@ -54,8 +59,8 @@ All colors MUST be HSL.
     --container-padding-mobile: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
 
     /* ===== TYPOGRAPHY SYSTEM ===== */
-    --font-primary: 'Space Grotesk', -apple-system, system-ui, sans-serif;
-    --font-secondary: 'Inter', -apple-system, system-ui, sans-serif;
+    --font-primary: 'Sora', 'Space Grotesk', -apple-system, system-ui, sans-serif;
+    --font-secondary: 'Manrope', 'Inter', -apple-system, system-ui, sans-serif;
 
     /* Fluid font sizes (mobile-first, scales smoothly to ultra-wide) */
     --text-xs: clamp(0.7rem, 0.68rem + 0.1vw, 0.78rem);

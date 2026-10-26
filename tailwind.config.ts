@@ -70,6 +70,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        footer: {
+          DEFAULT: "hsl(var(--footer))",
+          foreground: "hsl(var(--footer-foreground))",
+        },
         glass: {
           DEFAULT: "hsl(var(--glass-bg))",
           border: "hsl(var(--glass-border))",
