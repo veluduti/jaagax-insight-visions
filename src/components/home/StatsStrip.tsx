@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Users, BadgeIndianRupee, Sparkles, MapPinned, Smile, Star } from "lucide-react";
+import { ShieldCheck, Users, BadgeIndianRupee, Sparkles, Building2, UsersRound, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Stat {
@@ -74,8 +74,8 @@ const StatsStrip = () => {
         } catch {
           cities = 0;
         }
-        if (cities > 0) next.push({ icon: MapPinned, value: formatCount(cities), label: "Cities in India", tone: TONES.sky });
-        if (users > 0) next.push({ icon: Smile, value: formatCount(users), label: "Happy Customers", tone: TONES.green });
+        if (cities > 0) next.push({ icon: Building2, value: formatCount(cities), label: "Cities in India", tone: TONES.sky });
+        if (users > 0) next.push({ icon: UsersRound, value: formatCount(users), label: "Happy Customers", tone: TONES.green });
 
         const ratings = (ratingRes?.data ?? []) as { rating: number | null }[];
         const valid = ratings.map((r) => r.rating).filter((r): r is number => typeof r === "number" && r > 0);
@@ -97,18 +97,18 @@ const StatsStrip = () => {
   if (stats.length === 0) return null;
 
   return (
-    <section className="border-b border-border/50 bg-card">
+    <section className="relative z-10 -mt-6">
       <div className="container mx-auto container-padding">
-        <div className="flex flex-wrap items-stretch justify-center divide-x divide-border/60">
+        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 rounded-2xl border border-border/50 bg-card px-2 py-1 shadow-card">
           {stats.map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.label} className="flex items-center gap-3 px-4 sm:px-6 py-4">
+              <div key={s.label} className="flex items-center gap-2.5 px-3 py-3">
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${s.tone}`}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className={`h-5 w-5 ${s.icon === ShieldCheck || s.icon === Star ? "fill-current [&>path:last-child]:stroke-card" : ""}`} />
                 </span>
                 <span>
-                  <span className="block text-base sm:text-lg font-bold text-foreground leading-tight">{s.value}</span>
+                  <span className="block text-sm sm:text-base font-bold text-foreground leading-tight">{s.value}</span>
                   <span className="block text-[11px] sm:text-xs text-muted-foreground">{s.label}</span>
                 </span>
               </div>
