@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Loader2, MessageSquare, Star } from "lucide-react";
@@ -36,6 +37,10 @@ async function loadReviews(): Promise<Review[]> {
 }
 
 const Reviews = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
   const { data: reviews = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["public-site-reviews"],
     queryFn: loadReviews,
