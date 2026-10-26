@@ -47,6 +47,7 @@ const AgentVerificationDashboard = lazy(() => import("./pages/AgentVerificationD
 const AdminFRMDashboard = lazy(() => import("./pages/AdminFRMDashboard"));
 const AdminPricingSettings = lazy(() => import("./pages/admin/PricingSettings"));
 const AdminTestimonials = lazy(() => import("./pages/admin/Testimonials"));
+const Reviews = lazy(() => import("./pages/Reviews"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
@@ -298,6 +299,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/reviews" element={<Reviews />} />
                   <Route path="/signup" element={<Navigate to="/register" replace />} />
                   <Route path="/verify-otp" element={<VerifyOtp />} />
                   <Route path="/select-profile" element={<SelectProfile />} />

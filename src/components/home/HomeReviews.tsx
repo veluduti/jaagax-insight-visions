@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Star, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 interface Testimonial {
   id: string;
@@ -33,14 +34,14 @@ const HomeReviews = () => {
   return (
     <section className="py-6 sm:py-8">
       <div className="container mx-auto container-padding">
-        <div className="mb-5 flex items-end justify-between gap-4">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">What Our Users Say</h2>
             <p className="text-sm text-muted-foreground mt-0.5">Real experiences from our community</p>
           </div>
-          <Link to="/hotels" className="hidden sm:inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary hover:underline">
-            View All Reviews <ArrowRight className="h-4 w-4" />
-          </Link>
+          <Button asChild variant="link" className="shrink-0 px-0 font-semibold">
+            <Link to="/reviews">View All Reviews <ArrowRight className="h-4 w-4" /></Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
