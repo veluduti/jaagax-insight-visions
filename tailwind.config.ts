@@ -130,6 +130,8 @@ export default {
       fontFamily: {
         'primary': 'var(--font-primary)',
         'secondary': 'var(--font-secondary)',
+        'hero': ['Montserrat', 'sans-serif'],
+        'script': ['"Kaushan Script"', 'cursive'],
       },
       borderRadius: {
         'sm': 'var(--radius-sm)',

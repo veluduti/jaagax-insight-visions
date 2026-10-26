@@ -15,7 +15,7 @@ interface HeroProps {
  */
 const Hero = ({ showSearchBar = true }: HeroProps) => {
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden xl:min-h-[calc(100vh-81px)] flex items-center">
       {/* Background image with overlay */}
       <div className="absolute inset-0 z-0">
         <img
@@ -26,11 +26,11 @@ const Hero = ({ showSearchBar = true }: HeroProps) => {
           height={832}
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="relative z-10 container mx-auto container-padding pt-6 sm:pt-10 lg:pt-12 pb-6">
+      <div className="relative z-10 w-full container mx-auto container-padding pt-6 sm:pt-10 lg:pt-12 pb-6">
         <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-12">
             {/* Headline */}
@@ -44,12 +44,12 @@ const Hero = ({ showSearchBar = true }: HeroProps) => {
                 <Sparkles className="h-3.5 w-3.5 text-accent-neon" />
                 India's First AI-Powered Property, Stays & Travel Platform
               </span>
-              <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-[72px] font-extrabold leading-[1.0] tracking-tight text-white drop-shadow-lg">
+              <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-[72px] font-hero font-black leading-[1.0] tracking-tight text-white drop-shadow-lg">
                 Make Every
                 <br />
                 Place <span className="text-accent-neon">Yours</span>
               </h1>
-              <p className="mt-4 text-sm sm:text-base lg:text-lg text-white/85 max-w-xl mx-auto lg:mx-0 drop-shadow">
+              <p className="mt-4 font-hero font-medium text-sm sm:text-base lg:text-xl text-white max-w-xl mx-auto lg:mx-0 drop-shadow">
                 Homes to live <span className="text-accent-neon mx-1.5">•</span> Stays to explore <span className="text-accent-neon mx-1.5">•</span> Experiences to remember
                 <br />
                 Investments for a brighter tomorrow.
@@ -61,7 +61,7 @@ const Hero = ({ showSearchBar = true }: HeroProps) => {
               initial={{ opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
-              className="hidden lg:block shrink-0 pt-2 pr-4 text-center font-secondary italic text-3xl xl:text-4xl text-white leading-tight drop-shadow -rotate-6"
+              className="hidden lg:block shrink-0 pt-2 pr-4 text-center font-script text-3xl xl:text-5xl text-white leading-tight drop-shadow -rotate-6"
             >
               More Than a Stay,
               <br />
