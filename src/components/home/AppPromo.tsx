@@ -25,7 +25,7 @@ const AppPromo = () => (
               ))}
             </div>
           </div>
-          <img src={appPhones} alt="Jaaga mobile app" loading="lazy" width={420} height={300} className="hidden md:block h-44 w-auto object-contain" />
+          <img src={appPhones} alt="Jaaga mobile app" loading="lazy" width={960} height={688} className="hidden md:block h-44 w-auto object-contain" />
           <div className="flex items-center gap-4">
             <span className="grid h-24 w-24 place-items-center rounded-xl bg-card shadow-card">
               <QrCode className="h-16 w-16 text-foreground" />
