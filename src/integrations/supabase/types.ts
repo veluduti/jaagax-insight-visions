@@ -15680,6 +15680,7 @@ export type Database = {
         }[]
       }
       get_or_create_referral_code: { Args: never; Returns: string }
+      get_platform_stats: { Args: never; Returns: Json }
       get_posting_entitlement: { Args: { _user_id: string }; Returns: Json }
       get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
       get_seller_contacts: {
