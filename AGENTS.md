@@ -11,6 +11,7 @@
 - Role-based hospitality AI help (owner/staff/customer/admin) goes through the `hospitality-assistant` function and `AssistantPanel`; owner growth tips are computed in `growthService.ts` from real data so the AI only explains, never invents numbers.
 - The partner demo property is a `partner_hotels` row tagged `demo` with `is_active=false`, selected via localStorage in `usePartnerHotel` and created/deleted by `demoService.ts`; deleting the hotel cascades all sample data so it never reaches customers.
 - Hidden Travel keeps `travel_*` data and uses canonical hotel search.
+- Public community reviews use `/reviews` and read active `site_testimonials` in ordered batches; the homepage previews only three, while the dedicated page lists all published entries without exposing hidden admin reviews.
 - Smart Visit cards share guarded date/time formatters that accept legacy AM/PM text and database times, preventing invalid date displays.
 - Notification clicks resolve same-origin destinations through one shared helper; read actions update both legacy read flags for cross-dashboard consistency.
 - Smart Stays packages live in `smart_stays` (draft itinerary JSON) with frozen `smart_stay_revisions`; all status, pricing, approval and booking changes go through `smart_stay_*` security-definer RPCs and `smart-stay-pay`, so clients can never set prices or statuses. Reservations write to `hotel_availability_blocks.smart_stay_reservation_id` to share the hotel calendar.
