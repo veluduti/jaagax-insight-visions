@@ -61,10 +61,10 @@ const HeroSearchPanel = () => {
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto rounded-2xl bg-card shadow-xl border border-border/60 p-4 sm:p-6 text-left">
+    <div className="relative w-full max-w-6xl mx-auto rounded-2xl bg-card shadow-xl border border-border/60 p-3 sm:p-4 text-left">
       {/* Header row */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <h2 className="text-lg sm:text-xl font-bold text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h2 className="text-base sm:text-lg font-bold text-foreground">
           What brings you to Jaaga today?
         </h2>
         <button
@@ -86,7 +86,7 @@ const HeroSearchPanel = () => {
               key={it.key}
               onClick={() => handleIntent(it.key, it.path)}
               className={cn(
-                "flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all",
+                "flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-[13px] font-semibold transition-all",
                 active
                   ? "bg-primary text-primary-foreground border-primary shadow-md"
                   : "bg-card text-foreground border-border hover:border-primary/50 hover:text-primary",
@@ -100,8 +100,8 @@ const HeroSearchPanel = () => {
       </div>
 
       {/* Search row */}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto] gap-2.5">
-        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3.5 py-3 focus-within:border-primary transition-colors">
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto] gap-2.5">
+        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
           <MapPin className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
             <input
@@ -120,7 +120,7 @@ const HeroSearchPanel = () => {
           </span>
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3.5 py-3 focus-within:border-primary transition-colors">
+        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
           <CalendarDays className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Check-in</span>
@@ -134,7 +134,7 @@ const HeroSearchPanel = () => {
           </span>
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3.5 py-3 focus-within:border-primary transition-colors">
+        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
           <CalendarDays className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Check-out</span>
@@ -148,7 +148,7 @@ const HeroSearchPanel = () => {
           </span>
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3.5 py-3 focus-within:border-primary transition-colors">
+        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
           <UsersRound className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Guests</span>
@@ -176,13 +176,13 @@ const HeroSearchPanel = () => {
       </div>
 
       {/* Popular chips + AI advisor */}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold text-muted-foreground mr-1">Popular:</span>
         {popularCities.map((c) => (
           <button
             key={c}
             onClick={() => search(c)}
-            className="rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
+            className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
           >
             {c}
           </button>
