@@ -173,7 +173,7 @@ const FeaturedStays = () => {
 
   if (stays.length === 0) return null;
 
-  const scrollBy = (dir: number) => scroller.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  const scrollBy = (dir: number) => scroller.current?.scrollBy({ left: dir * 290, behavior: "smooth" });
 
   return (
     <section className="section-spacing bg-card border-y border-border/50">
@@ -217,13 +217,13 @@ const FeaturedStays = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: Math.min(i * 0.06, 0.3), duration: 0.45 }}
-                className="snap-start shrink-0 w-[260px] sm:w-[300px]"
+                className="snap-start shrink-0 w-[240px] sm:w-[260px] lg:w-[280px]"
               >
                 <div
                   onClick={() => navigate(`/hotels/${s.id}`)}
                   className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-border/60 bg-background shadow-card hover:shadow-card-hover transition-all duration-300"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                  <div className="relative aspect-[3/2] overflow-hidden bg-muted">
                     {s.image ? (
                       <img
                         src={s.image}
@@ -248,13 +248,13 @@ const FeaturedStays = () => {
                         e.stopPropagation();
                         toggleFavorite(s.id);
                       }}
-                      className="absolute top-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-card/90 backdrop-blur border border-border/40 shadow-sm hover:scale-105 active:scale-95 transition-transform"
+                      className="absolute top-2.5 right-2.5 grid h-8 w-8 place-items-center rounded-full bg-card/90 backdrop-blur border border-border/40 shadow-sm hover:scale-105 active:scale-95 transition-transform"
                     >
                       <Heart className={`h-4 w-4 ${isFav ? "fill-primary text-primary" : "text-foreground/70"}`} />
                     </button>
                   </div>
 
-                  <div className="p-4">
+                  <div className="p-3">
                     {s.rating !== null && (
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -264,7 +264,7 @@ const FeaturedStays = () => {
                         )}
                       </div>
                     )}
-                    <h3 className="mt-1 text-[15px] font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                    <h3 className="mt-1 text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                       {s.name}
                     </h3>
                     {(s.city || s.state) && (
@@ -291,7 +291,7 @@ const FeaturedStays = () => {
                       </div>
                     )}
                     {s.price !== null && (
-                      <p className="mt-3 text-lg font-bold text-primary">
+                      <p className="mt-2 text-base font-bold text-primary">
                         {formatPrice(s.price)}
                         <span className="text-xs font-normal text-muted-foreground"> {s.priceUnit}</span>
                       </p>
