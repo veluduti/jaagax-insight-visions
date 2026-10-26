@@ -65,8 +65,8 @@ const StatsStrip = () => {
       }
     };
     load();
-    // Keep counts fresh: refresh every 60s and whenever the tab regains focus.
-    const timer = window.setInterval(load, 60_000);
+    // Keep counts fresh: refresh every 10s and whenever the tab regains focus.
+    const timer = window.setInterval(load, 10_000);
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
     return () => {
