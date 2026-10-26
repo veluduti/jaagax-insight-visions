@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Instagram, Linkedin, Youtube, Twitter, Heart } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, Heart, Send } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const footerGroups = [
@@ -45,7 +46,7 @@ const Footer = () => {
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="container mx-auto container-padding py-12 sm:py-14">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-2">
             <Link to="/" aria-label="JAAGA X home" className="inline-block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -90,6 +91,37 @@ const Footer = () => {
               </ul>
             </nav>
           ))}
+
+          {/* Newsletter */}
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+            <h2 className="mb-3 text-sm font-bold text-white">Subscribe to our newsletter</h2>
+            <p className="text-sm text-white/65">Get latest updates and exclusive deals.</p>
+            <form
+              className="mt-4 flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.elements.namedItem("newsletter-email") as HTMLInputElement;
+                if (!input.value.trim()) return;
+                toast({ title: "Subscribed", description: "You'll get our latest updates and deals." });
+                input.value = "";
+              }}
+            >
+              <input
+                name="newsletter-email"
+                type="email"
+                required
+                placeholder="Enter your email"
+                className="h-10 w-full min-w-0 rounded-lg border border-white/20 bg-white/5 px-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="submit"
+                aria-label="Subscribe"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground hover:bg-primary-dark transition-colors"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-center text-xs text-white/50 sm:flex-row sm:text-left">
