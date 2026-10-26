@@ -323,6 +323,13 @@
       "when": 1793012654876,
       "tag": "0045_site_testimonials",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793023812216,
+      "tag": "0046_platform_stats_function",
+      "breakpoints": true
     }
   ]
 }
