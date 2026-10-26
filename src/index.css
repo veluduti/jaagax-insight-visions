@@ -284,7 +284,12 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .hero-blue-tint {
+    background: var(--gradient-hero-blue);
+  }
+
   .hotel-banner-shade {
+
     background: linear-gradient(90deg, hsl(160 60% 8% / 0.75), hsl(160 60% 8% / 0.15) 70%);
   }
 
