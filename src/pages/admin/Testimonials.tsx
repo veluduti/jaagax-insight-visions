@@ -15,7 +15,7 @@ interface Row {
 const empty = { name: "", city: "", rating: 5, quote: "", avatar_url: "", sort_order: 0 };
 const sb = supabase as any;
 
-const AdminTestimonials = () => {
+const AdminTestimonials = ({ embedded = false }: { embedded?: boolean }) => {
   const [rows, setRows] = useState<Row[]>([]);
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
@@ -50,9 +50,9 @@ const AdminTestimonials = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <main className="container mx-auto container-padding py-8 max-w-4xl">
+    <div className={embedded ? "" : "min-h-screen bg-background"}>
+      {!embedded && <Navigation />}
+      <main className={embedded ? "max-w-4xl" : "container mx-auto container-padding py-8 max-w-4xl"}>
         <h1 className="text-2xl font-bold">Homepage Reviews</h1>
         <p className="text-sm text-muted-foreground mb-6">Active reviews appear in "What Our Users Say" on the homepage (first 3 by order).</p>
 
