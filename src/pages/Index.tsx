@@ -3,7 +3,6 @@ import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import Footer from "@/components/Footer";
 import { useLocation } from "@/contexts/LocationContext";
-import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
 import StatsStrip from "@/components/home/StatsStrip";
 import ExploreJaaga from "@/components/home/ExploreJaaga";
@@ -86,9 +85,6 @@ const Index = () => {
       {/* Real customer reviews (hidden when none exist) */}
       <HomeReviews />
       <AppPromo />
-
-      {/* Trust Statements above Footer */}
-      <TrustStatements />
       <Footer />
     </div>
   );
