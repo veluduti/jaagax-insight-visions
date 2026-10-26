@@ -26,7 +26,7 @@ const Hero = ({ showSearchBar = true }: HeroProps) => {
           height={832}
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
+        <div className="absolute inset-0 hero-blue-tint" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </div>
 

@@ -98,6 +98,14 @@ All colors MUST be HSL.
     --gradient-blue: linear-gradient(135deg, hsl(210, 100%, 58%), hsl(220, 90%, 48%));
     --gradient-accent: linear-gradient(180deg, hsl(152 76% 45% / 0.12) 0%, transparent 100%);
     --gradient-hero: linear-gradient(180deg, hsl(152 76% 45% / 0.08), hsl(152 90% 55% / 0.05));
+
+    /* ===== HERO TWILIGHT BLUE TINT (left + top of the banner) ===== */
+    --hero-blue: 208 62% 16%;
+    --hero-blue-soft: 212 54% 26%;
+    --gradient-hero-blue:
+      linear-gradient(100deg, hsl(var(--hero-blue) / 0.62) 0%, hsl(var(--hero-blue) / 0.38) 38%, hsl(var(--hero-blue-soft) / 0.16) 66%, transparent 100%),
+      linear-gradient(180deg, hsl(var(--hero-blue) / 0.30) 0%, transparent 55%);
+
     
     /* ===== SHADOW TOKENS ===== */
     --shadow-sm: 0 1px 3px 0 hsl(152 76% 45% / 0.08), 0 1px 2px 0 hsl(152 76% 45% / 0.06);
@@ -276,7 +284,12 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .hero-blue-tint {
+    background: var(--gradient-hero-blue);
+  }
+
   .hotel-banner-shade {
+
     background: linear-gradient(90deg, hsl(160 60% 8% / 0.75), hsl(160 60% 8% / 0.15) 70%);
   }
 
