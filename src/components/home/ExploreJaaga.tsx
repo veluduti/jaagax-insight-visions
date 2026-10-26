@@ -12,35 +12,35 @@ const CATEGORIES = [
   {
     title: "Jaaga Stays",
     desc: "Hotels, resorts, service apartments, PGs & co-living",
-    icon: BedDouble,
+    icon: BedDouble, tone: "text-blue-600",
     image: exploreStays,
     path: "/hotels",
   },
   {
     title: "Smart Stays",
     desc: "Multi-city trips, travel packages & smart planning",
-    icon: Plane,
+    icon: Plane, tone: "text-blue-600",
     image: exploreSmartStays,
     path: "/smart-stays",
   },
   {
     title: "Buy, Rent & Invest",
     desc: "Homes, plots, commercial spaces & investment opportunities",
-    icon: Home,
+    icon: Home, tone: "text-emerald-600",
     image: exploreInvest,
     path: "/search",
   },
   {
     title: "New Projects",
     desc: "Upcoming projects, launches & exclusive deals",
-    icon: Building2,
+    icon: Building2, tone: "text-indigo-600",
     image: exploreProjects,
     path: "/projects",
   },
   {
     title: "Experiences",
     desc: "Farm stays, wellness, nature trips & local experiences",
-    icon: Leaf,
+    icon: Leaf, tone: "text-emerald-600",
     image: exploreExperiences,
     path: "/communities",
   },
@@ -98,7 +98,7 @@ const ExploreJaaga = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: Math.min(i * 0.07, 0.35), duration: 0.45 }}
-                className="snap-start shrink-0 w-[240px] sm:w-[280px]"
+                className="snap-start shrink-0 w-[240px] sm:w-[260px] lg:w-auto lg:flex-1 lg:min-w-0"
               >
                 <Link
                   to={c.path}
@@ -118,14 +118,16 @@ const ExploreJaaga = () => {
                       <Heart className="h-4 w-4 text-foreground/70" />
                     </span>
                   </div>
-                  <div className="relative p-4 pt-0">
-                    <span className="relative -mt-6 mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-card shadow-md border border-border/60 text-primary">
-                      <Icon className="h-5 w-5" />
+                  <div className="relative flex gap-3 p-3 pt-0">
+                    <span className={`relative -mt-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-card shadow-md ${c.tone}`}>
+                      <Icon className="h-6 w-6" />
                     </span>
+                    <div className="pt-2 min-w-0">
                     <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
                       {c.title}
                     </h3>
-                    <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-snug">{c.desc}</p>
+                    <p className="mt-1 text-xs text-muted-foreground leading-snug">{c.desc}</p>
+                    </div>
                   </div>
                 </Link>
               </motion.div>
