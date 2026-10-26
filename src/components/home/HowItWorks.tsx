@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { ClipboardList, Search, GitCompareArrows, CalendarCheck, Smile, ArrowRight, MoveDownRight } from "lucide-react";
+import { Target, Search, ClipboardList, CalendarDays, Smile, ArrowRight, MoveDownRight } from "lucide-react";
 
 const STEPS = [
-  { icon: ClipboardList, title: "Tell Your Purpose", desc: "Choose what brings you to Jaaga", tone: "bg-emerald-500/10 text-emerald-600" },
+  { icon: Target, title: "Tell Your Purpose", desc: "Choose what brings you to Jaaga", tone: "bg-emerald-500/10 text-emerald-600" },
   { icon: Search, title: "Search", desc: "Find the best options based on your needs", tone: "bg-blue-500/10 text-blue-600" },
-  { icon: GitCompareArrows, title: "Compare", desc: "Explore and compare with AI insights", tone: "bg-sky-500/10 text-sky-600" },
-  { icon: CalendarCheck, title: "Connect & Book", desc: "Talk to agents or book securely", tone: "bg-purple-500/10 text-purple-600" },
+  { icon: ClipboardList, title: "Compare", desc: "Explore and compare with AI insights", tone: "bg-indigo-500/10 text-indigo-600" },
+  { icon: CalendarDays, title: "Connect & Book", desc: "Talk to agents or book securely", tone: "bg-purple-500/10 text-purple-600" },
   { icon: Smile, title: "Enjoy", desc: "Your dream place with complete support", tone: "bg-emerald-500/10 text-emerald-600" },
 ];
 
@@ -19,10 +19,10 @@ const HowItWorks = () => (
             Simple, transparent and designed for everyone
           </p>
         </div>
-        <p className="hidden md:block shrink-0 text-right font-secondary italic text-xl lg:text-2xl text-foreground/80 leading-snug">
+        <p className="hidden md:block shrink-0 text-right font-script -rotate-6 text-lg lg:text-xl text-foreground/80 leading-snug">
           From Search
           <br />
-          to a <span className="text-primary not-italic font-semibold">Better Tomorrow</span>
+          to a Better Tomorrow
           <MoveDownRight className="ml-auto mt-1 h-5 w-5 text-primary" />
         </p>
       </div>
@@ -37,17 +37,19 @@ const HowItWorks = () => (
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="relative rounded-2xl border border-border/60 bg-card p-5 shadow-card hover:shadow-card-hover transition-shadow"
+              className="relative flex items-start gap-3 pr-4"
             >
-              <span className={`flex h-12 w-12 items-center justify-center rounded-full ${s.tone}`}>
+              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${s.tone}`}>
                 <Icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-3 text-base font-bold text-foreground">
+              <div>
+              <h3 className="text-sm sm:text-base font-bold text-foreground">
                 {i + 1}. {s.title}
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-snug">{s.desc}</p>
+              </div>
               {i < STEPS.length - 1 && (
-                <ArrowRight className="hidden lg:block absolute -right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/50 z-10" />
+                <ArrowRight className="hidden lg:block absolute right-0 top-4 h-4 w-4 text-muted-foreground z-10" />
               )}
             </motion.div>
           );
