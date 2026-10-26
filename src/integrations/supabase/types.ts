@@ -12906,6 +12906,48 @@ export type Database = {
         }
         Relationships: []
       }
+      site_testimonials: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          name: string
+          quote: string
+          rating: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          quote: string
+          rating?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          quote?: string
+          rating?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       smart_stay_approvals: {
         Row: {
           auto_approved: boolean

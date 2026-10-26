@@ -1,118 +1,75 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Star, MapPin, ArrowRight } from "lucide-react";
+import { Star, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Review {
+interface Testimonial {
   id: string;
-  guest_name: string | null;
+  name: string;
+  city: string | null;
   rating: number;
-  body: string | null;
-  title: string | null;
-  hotel_name?: string | null;
+  quote: string;
+  avatar_url: string | null;
 }
 
-/**
- * Real customer reviews from hotel_reviews. Hidden when there are none —
- * never shows invented testimonials.
- */
+/** Homepage testimonials managed by global admins (site_testimonials). */
 const HomeReviews = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [reviews, setReviews] = useState<Testimonial[]>([]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const sb = supabase as any;
-        const { data, error } = await sb
-          .from("hotel_reviews")
-          .select("id, guest_name, rating, title, body, hotel_id")
-          .gte("rating", 4)
-          .not("body", "is", null)
-          .order("created_at", { ascending: false })
-          .limit(6);
-        if (error) throw error;
-        if (!data?.length) {
-          if (!cancelled) setLoaded(true);
-          return;
-        }
-        const hotelIds = [...new Set(data.map((r: any) => r.hotel_id).filter(Boolean))];
-        const { data: hotels } = await sb.from("partner_hotels").select("id, name").in("id", hotelIds);
-        const nameById = new Map((hotels ?? []).map((h: any) => [h.id, h.name]));
-        if (!cancelled) {
-          setReviews(
-            data.map((r: any) => ({ ...r, hotel_name: nameById.get(r.hotel_id) ?? null })),
-          );
-          setLoaded(true);
-        }
-      } catch {
-        if (!cancelled) setLoaded(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    (supabase as any)
+      .from("site_testimonials")
+      .select("id, name, city, rating, quote, avatar_url")
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }: any) => setReviews(data ?? []));
   }, []);
 
-  if (!loaded || reviews.length === 0) return null;
+  if (reviews.length === 0) return null;
 
   return (
-    <section className="section-spacing bg-card border-y border-border/50">
+    <section className="py-6 sm:py-8">
       <div className="container mx-auto container-padding">
-        <div className="mb-8 flex items-end justify-between gap-4">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What Our Users Say</h2>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Real experiences from our community
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">What Our Users Say</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Real experiences from our community</p>
           </div>
-          <Link
-            to="/hotels"
-            className="hidden sm:inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary hover:underline"
-          >
+          <Link to="/hotels" className="hidden sm:inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary hover:underline">
             View All Reviews <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {reviews.slice(0, 3).map((r, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {reviews.map((r, i) => (
             <motion.figure
               key={r.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="rounded-2xl border border-border/60 bg-background p-5 shadow-card"
+              className="flex gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-card"
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-                  {(r.guest_name || "G").trim().charAt(0).toUpperCase()}
+              {r.avatar_url ? (
+                <img src={r.avatar_url} alt={r.name} loading="lazy" className="h-14 w-14 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+                  {r.name.trim().charAt(0).toUpperCase()}
                 </span>
-                <div className="min-w-0">
-                  <figcaption className="text-sm font-bold text-foreground line-clamp-1">
-                    {r.guest_name || "Jaaga Guest"}
-                  </figcaption>
-                  {r.hotel_name && (
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground line-clamp-1">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      {r.hotel_name}
-                    </p>
-                  )}
+              )}
+              <div className="min-w-0">
+                <figcaption className="text-sm font-bold text-foreground">{r.name}</figcaption>
+                {r.city && <p className="text-xs text-muted-foreground">{r.city}</p>}
+                <div className="mt-1 flex gap-0.5" aria-label={`${r.rating} out of 5 stars`}>
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <Star key={s} className={`h-4 w-4 ${s < r.rating ? "fill-amber-400 text-amber-400" : "text-border"}`} />
+                  ))}
                 </div>
+                <blockquote className="mt-2 text-sm text-foreground/80 leading-snug">“{r.quote}”</blockquote>
               </div>
-              <div className="mt-3 flex gap-0.5" aria-label={`${r.rating} out of 5 stars`}>
-                {Array.from({ length: 5 }).map((_, s) => (
-                  <Star
-                    key={s}
-                    className={`h-4 w-4 ${s < Math.round(r.rating) ? "fill-amber-400 text-amber-400" : "text-border"}`}
-                  />
-                ))}
-              </div>
-              <blockquote className="mt-3 text-sm text-foreground/80 leading-relaxed line-clamp-4">
-                "{r.title ? `${r.title} — ` : ""}{r.body}"
-              </blockquote>
             </motion.figure>
           ))}
         </div>

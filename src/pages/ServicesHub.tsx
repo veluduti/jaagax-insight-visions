@@ -96,7 +96,7 @@ const dashboardsFor = (role: string | null | undefined): Item[] => {
       { label: "Leads CRM", path: "/admin/leads", icon: Users },
       { label: "Visit Analytics", path: "/visit/analytics", icon: TrendingUp },
     );
-    if (r === "admin") d.push({ label: "Pricing", path: "/dashboard/admin/pricing", icon: DollarSign }, { label: "Field Mgmt", path: "/dashboard/admin/frm", icon: Users });
+    if (r === "admin") d.push({ label: "Pricing", path: "/dashboard/admin/pricing", icon: DollarSign }, { label: "Homepage Reviews", path: "/dashboard/admin/reviews", icon: Users }, { label: "Field Mgmt", path: "/dashboard/admin/frm", icon: Users });
   } else if (r === "agent") {
     d.push(
       { label: "Agent Dashboard", path: "/dashboard/agent", icon: LayoutDashboard },
