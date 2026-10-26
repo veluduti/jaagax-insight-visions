@@ -120,6 +120,7 @@ const Navigation = () => {
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
+const navPill = (active: boolean) => cn("h-10 gap-2 rounded-full px-4 text-[14px] font-semibold transition-colors", active ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary" : "bg-transparent text-foreground hover:bg-muted hover:text-foreground");
   // Pages opened in a new tab have no in-app history, so fall back to Home.
   const goBack = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate("/"));
   const isDashboardRoute = ["/dashboard", "/admin", "/partners", "/agent", "/builder"].some((p) =>
@@ -161,11 +162,8 @@ const Navigation = () => {
                       <NavigationMenuLink asChild>
                         <Button
                           asChild
-                          variant="default"
-                          className={cn(
-                            "h-11 gap-2 rounded-lg px-4 text-[15px] font-semibold shadow-sm",
-                            isActive("/sell-property") && "ring-2 ring-primary/30",
-                          )}
+                          variant="ghost"
+                          className={navPill(isActive("/sell-property"))}
                         >
                           <Link to="/sell-property">
                             <HousePlus className="!h-[18px] !w-[18px]" />
@@ -180,12 +178,9 @@ const Navigation = () => {
                       <Link to="/hotels">
                         <Button
                           variant="ghost"
-                          className={cn(
-                            "px-4 py-2.5 text-[15px] font-medium h-auto",
-                            isActive("/hotels") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                          )}
+                          className={navPill(isActive("/hotels"))}
                         >
-                          <Hotel className="h-[18px] w-[18px] mr-2" />
+                          <Hotel className="h-[18px] w-[18px]" />
                           Jaaga Stays
                         </Button>
                       </Link>
@@ -196,22 +191,16 @@ const Navigation = () => {
                       <Link to="/smart-stays">
                         <Button
                           variant="ghost"
-                          className={cn(
-                            "px-4 py-2.5 text-[15px] font-medium h-auto",
-                            isActive("/smart-stays") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                          )}
+                          className={navPill(isActive("/smart-stays"))}
                         >
-                          <Sparkles className="h-[18px] w-[18px] mr-2" />
+                          <Sparkles className="h-[18px] w-[18px]" />
                           Smart Stays
                         </Button>
                       </Link>
                     </NavigationMenuItem>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
-                        className={cn(
-                          "bg-transparent h-auto px-4 py-2.5 text-[15px] font-medium",
-                          isExploreActive ? "text-foreground" : "text-muted-foreground",
-                        )}
+                        className={navPill(isExploreActive)}
                       >
                         <Compass className="h-[18px] w-[18px] mr-2" />
                         Explore
