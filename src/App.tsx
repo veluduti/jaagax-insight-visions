@@ -46,6 +46,7 @@ const AgentVisitsDashboard = lazy(() => import("./pages/AgentVisitsDashboard"));
 const AgentVerificationDashboard = lazy(() => import("./pages/AgentVerificationDashboard"));
 const AdminFRMDashboard = lazy(() => import("./pages/AdminFRMDashboard"));
 const AdminPricingSettings = lazy(() => import("./pages/admin/PricingSettings"));
+const AdminTestimonials = lazy(() => import("./pages/admin/Testimonials"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
@@ -763,6 +764,14 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="admin">
                         <AdminPricingSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/reviews"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminTestimonials />
                       </ProtectedRoute>
                     }
                   />
