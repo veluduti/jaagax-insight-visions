@@ -36,51 +36,26 @@ const StatsStrip = () => {
     const load = async () => {
       try {
         const sb = supabase as any;
-        const [propsRes, agentsRes, usersRes, ratingRes] = await Promise.all([
-          sb.from("properties").select("id", { count: "exact", head: true }).eq("verified", true),
-          sb.from("agents").select("id", { count: "exact", head: true }),
-          sb.from("profiles").select("id", { count: "exact", head: true }),
-          sb.from("hotel_reviews").select("rating"),
-        ]);
-
+        const { data, error } = await sb.rpc("get_platform_stats");
         if (cancelled) return;
+        if (error || !data) return;
 
         const next: Stat[] = [];
-        const props = propsRes?.count ?? 0;
-        const agents = agentsRes?.count ?? 0;
-        const users = usersRes?.count ?? 0;
+        const props = Number(data.verified_properties ?? 0);
+        const agents = Number(data.agents ?? 0);
+        const users = Number(data.users ?? 0);
+        const cities = Number(data.cities ?? 0);
 
         if (props > 0) next.push({ icon: ShieldCheck, value: formatCount(props), label: "Verified Properties", tone: TONES.green });
         if (agents > 0) next.push({ icon: Users, value: formatCount(agents), label: "Trusted Agents", tone: TONES.blue });
         next.push({ icon: BadgeIndianRupee, value: "Zero", label: "Hidden Costs", tone: TONES.amber });
         next.push({ icon: Sparkles, value: "AI-Powered", label: "Recommendations", tone: TONES.purple });
-
-        // Distinct cities across properties + partner hotels
-        let cities = 0;
-        try {
-          const { data: cityRows } = await sb
-            .from("properties")
-            .select("city")
-            .not("city", "is", null);
-          const { data: hotelCities } = await sb
-            .from("partner_hotels")
-            .select("city")
-            .not("city", "is", null);
-          const set = new Set<string>();
-          [...(cityRows ?? []), ...(hotelCities ?? [])].forEach((r: any) => {
-            if (r.city) set.add(String(r.city).trim().toLowerCase());
-          });
-          cities = set.size;
-        } catch {
-          cities = 0;
-        }
         if (cities > 0) next.push({ icon: Building2, value: formatCount(cities), label: "Cities in India", tone: TONES.sky });
         if (users > 0) next.push({ icon: UsersRound, value: formatCount(users), label: "Happy Customers", tone: TONES.green });
 
-        const ratings = (ratingRes?.data ?? []) as { rating: number | null }[];
-        const valid = ratings.map((r) => r.rating).filter((r): r is number => typeof r === "number" && r > 0);
-        if (valid.length > 0) {
-          const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+        const avg = data.avg_rating === null ? null : Number(data.avg_rating);
+        const ratingCount = Number(data.rating_count ?? 0);
+        if (avg !== null && ratingCount > 0) {
           next.push({ icon: Star, value: `${avg.toFixed(1)}/5`, label: "Average Rating", tone: TONES.amber });
         }
 
@@ -99,6 +74,7 @@ const StatsStrip = () => {
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
     };
+
   }, []);
 
   if (stats.length === 0) return null;
