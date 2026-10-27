@@ -293,9 +293,10 @@ All colors MUST be HSL.
     background: linear-gradient(90deg, hsl(160 60% 8% / 0.75), hsl(160 60% 8% / 0.15) 70%);
   }
 
-  .hotel-discovery img {
-    height: 100%;
-  }
+  .hotel-discovery { background: hsl(var(--card)); }
+  .hotel-discovery .hotel-banner-shade { background: var(--gradient-hero-blue); }
+  .hotel-discovery h1 { letter-spacing: 0; }
+  .hotel-discovery article { scroll-margin-top: 100px; }
 
   /* ===== COMPONENT UTILITIES ===== */
   .glass-panel {
