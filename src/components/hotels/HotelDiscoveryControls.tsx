@@ -23,8 +23,8 @@ export function StayCategoryTabs({ value, onChange }: FilterProps) {
     { label: "Service Apartments", subtitle: "For long stays", image: apartmentPhoto, types: ["serviced_apartment"], prefs: [] },
     { label: "PG / Hostels", subtitle: "For students & working", image: roomPhoto, types: ["pg", "hostel"], prefs: [] },
     { label: "Co-living", subtitle: "Community living", image: apartmentPhoto, types: ["coliving"], prefs: [] },
-    { label: "Luxury Stays", subtitle: "Premium experiences", image: hotelPhoto, types: [], prefs: ["luxury"] },
-    { label: "Corporate Stays", subtitle: "For business travel", image: apartmentPhoto, types: [], prefs: ["business"] },
+    { label: "Luxury Stays", subtitle: "Premium experiences", image: hotelPhoto, types: ["luxury"], prefs: [] },
+    { label: "Corporate Stays", subtitle: "For business travel", image: apartmentPhoto, types: ["corporate"], prefs: [] },
     { label: "Unique Stays", subtitle: "Villas, farm stays & more", image: uniquePhoto, types: ["villa", "farm_stay", "homestay", "boutique"], prefs: [] },
   ];
   return <div className="stay-image-categories no-scrollbar mb-5 flex gap-2 overflow-x-auto py-1" aria-label="Accommodation types">{entries.map(e => {

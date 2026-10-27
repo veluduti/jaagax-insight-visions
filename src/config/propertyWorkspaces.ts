@@ -40,6 +40,8 @@ export const WORKSPACES: Record<string, WorkspaceSection[]> = {
   guest_house: HOTEL,
   private_room: HOTEL,
   resort: [...HOTEL, S.experiences, S.meals],
+  luxury: [...HOTEL, S.experiences, S.meals],
+  corporate: [...HOTEL, S.weekly_rates, S.monthly_rates, S.meals],
   homestay: [S.room_types, S.rooms, S.rates, S.availability, S.meals, S.experiences, S.bookings],
   farm_stay: [S.room_types, S.rooms, S.rates, S.availability, S.experiences, S.bookings],
   serviced_apartment: APARTMENT,

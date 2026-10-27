@@ -22,6 +22,8 @@ export const HOSPITALITY_CATEGORIES: HospitalityCategory[] = [
   { key: "serviced_apartment", label: "Serviced Apartment", emoji: "🏢", modules: ["units", "longstay", "meals"], defaultUnit: "unit" },
   { key: "coliving", label: "Co-living", emoji: "🧑‍💻", modules: ["beds", "longstay"], defaultUnit: "bed" },
   { key: "pg", label: "PG", emoji: "🏘️", modules: ["beds", "longstay", "meals"], defaultUnit: "bed" },
+  { key: "luxury", label: "Luxury Stay", emoji: "💎", modules: ["rooms", "meals", "experiences"], defaultUnit: "room" },
+  { key: "corporate", label: "Corporate / Business Stay", emoji: "💼", modules: ["rooms", "units", "meals", "longstay"], defaultUnit: "room" },
   { key: "homestay", label: "Homestay", emoji: "🏡", modules: ["rooms", "meals", "experiences"], defaultUnit: "room" },
   { key: "farm_stay", label: "Farm Stay", emoji: "🌿", modules: ["rooms", "experiences"], defaultUnit: "room" },
   { key: "villa", label: "Villa", emoji: "🏰", modules: ["units"], defaultUnit: "unit" },
@@ -50,7 +52,8 @@ export const COLIVING_CATEGORIES = [
 const LEGACY: Record<string, string> = {
   "independent hotel": "hotel", "boutique hotel": "boutique", "chain / group": "hotel",
   "homestay / b&b": "homestay", "serviced apartments": "serviced_apartment", hotel: "hotel",
-  resort: "resort", hostel: "hostel",
+  resort: "resort", hostel: "hostel", "luxury stays": "luxury", "luxury stay": "luxury",
+  "corporate stays": "corporate", "corporate stay": "corporate", "business stay": "corporate", business: "corporate",
 };
 export function normalizeCategory(v: string): string {
   const s = (v || "").trim().toLowerCase();
@@ -107,6 +110,8 @@ export const TYPE_SETUP_FIELDS: Record<string, TypeSetupField[]> = {
   serviced_apartment: [{ key: "housekeeping", label: "Housekeeping frequency", kind: "select", options: ["Daily", "Alternate days", "Weekly"] }, { key: "kitchen", label: "Kitchenette", kind: "boolean" }, ...common],
   coliving: [{ key: "gender", label: "Residents", kind: "select", options: ["Co-ed", "Female only", "Male only"] }, { key: "workspace", label: "Co-working space", kind: "boolean" }, { key: "community_events", label: "Community events", kind: "boolean" }, { key: "min_months", label: "Minimum stay (months)", kind: "number" }, ...common],
   pg: [{ key: "gender", label: "PG for", kind: "select", options: ["Boys", "Girls", "Co-ed"] }, { key: "food", label: "Meals included", kind: "select", options: ["None", "Breakfast", "Breakfast + Dinner", "All meals"] }, { key: "deposit_months", label: "Security deposit (months)", kind: "number" }, { key: "curfew", label: "Gate closing time", kind: "text" }, ...common],
+  luxury: [{ key: "luxury_tier", label: "Luxury tier", kind: "select", options: ["Premium", "Luxury", "Ultra luxury"] }, { key: "butler", label: "Butler / personal concierge", kind: "boolean" }, { key: "spa", label: "Spa", kind: "boolean" }, { key: "fine_dining", label: "Fine dining restaurant", kind: "boolean" }, { key: "airport_transfer", label: "Airport transfer", kind: "boolean" }, ...common],
+  corporate: [{ key: "gst_invoice", label: "GST invoice available", kind: "boolean" }, { key: "meeting_rooms", label: "Meeting / conference rooms", kind: "number" }, { key: "business_center", label: "Business centre", kind: "boolean" }, { key: "airport_transfer", label: "Airport transfer", kind: "boolean" }, { key: "corporate_rates", label: "Corporate / long-stay rates", kind: "boolean" }, { key: "early_checkin", label: "Early check-in / late check-out", kind: "boolean" }, ...common],
   homestay: [{ key: "host_lives_onsite", label: "Host lives on site", kind: "boolean" }, { key: "home_food", label: "Home-cooked food", kind: "boolean" }, ...common],
   farm_stay: [{ key: "farm_activities", label: "Farm activities", kind: "text" }, { key: "organic_food", label: "Organic farm food", kind: "boolean" }, { key: "pets", label: "Pets allowed", kind: "boolean" }, ...common],
 };
@@ -126,6 +131,8 @@ export const INVENTORY_PRESETS: Record<string, InventoryPreset[]> = {
   serviced_apartment: [{ name: "Studio", unit: "unit", price: 3000, occupancy: 2 }, { name: "1 BHK Serviced", unit: "unit", price: 4000, occupancy: 3 }, { name: "2 BHK Serviced", unit: "unit", price: 6000, occupancy: 4 }],
   coliving: [{ name: "Shared Room Bed", unit: "bed", price: 500, occupancy: 1 }, { name: "Private Room", unit: "room", price: 1200, occupancy: 1 }],
   pg: [{ name: "Single Sharing", unit: "bed", price: 600, occupancy: 1 }, { name: "Double Sharing Bed", unit: "bed", price: 400, occupancy: 1 }, { name: "Triple Sharing Bed", unit: "bed", price: 300, occupancy: 1 }],
+  luxury: [{ name: "Luxury Suite", unit: "room", price: 9000, occupancy: 2 }, { name: "Presidential Suite", unit: "room", price: 20000, occupancy: 4 }, { name: "Private Pool Villa", unit: "unit", price: 18000, occupancy: 4 }],
+  corporate: [{ name: "Executive Room", unit: "room", price: 3500, occupancy: 2 }, { name: "Business Suite", unit: "room", price: 5500, occupancy: 2 }, { name: "Corporate Studio Apartment", unit: "unit", price: 4500, occupancy: 2 }],
   homestay: [{ name: "Family Room", unit: "room", price: 2000, occupancy: 4 }, { name: "Private Room", unit: "room", price: 1500, occupancy: 2 }],
   farm_stay: [{ name: "Farm Cottage", unit: "room", price: 3000, occupancy: 3 }, { name: "Mud House", unit: "room", price: 2500, occupancy: 2 }, { name: "Entire Farmhouse", unit: "unit", price: 8000, occupancy: 8 }],
   villa: [{ name: "Entire Villa", unit: "unit", price: 10000, occupancy: 8 }],
