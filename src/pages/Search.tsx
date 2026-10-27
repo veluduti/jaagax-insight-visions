@@ -326,7 +326,12 @@ const Search = () => {
     if (error) return;
 
     const all = ((data as any[]) || []).map(toPublicRow);
-    let filtered = all.filter((p) => classifyProperty(p) !== "draft");
+    // Discovery: hide only true drafts (no title or city). A missing type
+    // must not hide an otherwise complete listing from search results.
+    let filtered = all.filter((p) => {
+      if (classifyProperty(p) !== "draft") return true;
+      return Boolean(p.title?.trim?.() && p.city?.trim?.());
+    });
 
     // Nearby-first ordering when we know the user's coordinates.
     const uLat = savedLocation?.latitude;
