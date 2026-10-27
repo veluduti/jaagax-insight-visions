@@ -49,9 +49,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
     <Button size="icon" variant="outline" className="h-7 w-7 shrink-0 rounded-full border-border bg-card" aria-label={favorite ? `Unsave ${hotel.name}` : `Save ${hotel.name}`} aria-pressed={favorite} onClick={onFavorite}><Heart className={`h-3.5 w-3.5 ${favorite ? "fill-primary text-primary" : ""}`} /></Button>
   );
 
-  const priceBlock = (
+  const priceBlock = (compact = false) => (
     <div className="min-w-0">
-      <p className="whitespace-nowrap text-lg font-bold text-foreground">₹{hotel.price_per_night.toLocaleString("en-IN")}<span className="ml-0.5 text-[11px] font-normal text-muted-foreground">/ night</span></p>
+      <p className={`whitespace-nowrap font-bold text-foreground ${compact ? "text-base" : "text-lg"}`}>₹{hotel.price_per_night.toLocaleString("en-IN")}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>/ night</span></p>
       {discount && originalPrice && <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]"><span className="text-muted-foreground line-through">₹{originalPrice.toLocaleString("en-IN")}</span><Badge className="border-0 bg-accent px-1.5 py-0 text-[9px] font-semibold text-primary">{discount}% OFF</Badge></p>}
     </div>
   );
