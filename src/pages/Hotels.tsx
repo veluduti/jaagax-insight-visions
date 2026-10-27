@@ -194,7 +194,7 @@ const Hotels = () => {
   const [packages, setPackages] = useState<VisitPackage[]>([]);
   const [roomsByHotel, setRoomsByHotel] = useState<Record<string, OccupancyRoom[]>>({});
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("city") || "");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
   const [selectedLocality, setSelectedLocality] = useState<string | null>(searchParams.get("locality"));
   const [locationLabel, setLocationLabel] = useState<string>("");
