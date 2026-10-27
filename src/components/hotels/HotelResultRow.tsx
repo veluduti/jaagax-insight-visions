@@ -20,9 +20,9 @@ export interface DiscoveryHotel {
 
 const photoCounter = (photo: number, total: number) => `${photo + 1}/${total}`;
 
-export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails, children, grid = false, selected = false, onSelect }: {
+export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails, children, grid = false, selected = false, onSelect, nights = null }: {
   hotel: DiscoveryHotel; favorite: boolean; onFavorite: (event: React.MouseEvent) => void;
-  onDetails: () => void; children?: ReactNode; grid?: boolean; selected?: boolean; onSelect?: () => void;
+  onDetails: () => void; children?: ReactNode; grid?: boolean; selected?: boolean; onSelect?: () => void; nights?: number | null;
 }) {
   const [photo, setPhoto] = useState(0);
   const images = hotel.images || [];
@@ -54,6 +54,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
     <div className="min-w-0">
       <p className={`whitespace-nowrap font-bold text-foreground ${compact ? "text-base" : "text-lg"}`}>₹{hotel.price_per_night.toLocaleString("en-IN")}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>/ night</span></p>
       {discount && originalPrice && <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]"><span className="text-muted-foreground line-through">₹{originalPrice.toLocaleString("en-IN")}</span><Badge className="border-0 bg-accent px-1.5 py-0 text-[9px] font-semibold text-primary">{discount}% OFF</Badge></p>}
+      {!compact && !!nights && nights > 0 && <p className="mt-0.5 text-[11px] text-muted-foreground">{nights} {nights === 1 ? "night" : "nights"} · ₹{(hotel.price_per_night * nights).toLocaleString("en-IN")} total</p>}
     </div>
   );
 
@@ -82,15 +83,15 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""}`}>
     <div className="flex flex-col md:grid md:grid-cols-[220px_minmax(0,1fr)_190px]">
       <div className="p-2.5 md:pr-0">
-        {media("h-28 md:h-[116px]")}
+        {media("h-28 md:h-[108px]")}
         {images.length > 1 && <div className="mt-1.5 grid grid-cols-4 gap-1.5">
-          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`relative h-8 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
+          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`relative h-7 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
             <img src={src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
           </Button>)}
         </div>}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-1.5 p-2.5 md:py-2.5">
+      <div className="flex min-w-0 flex-col gap-1 p-2.5 md:py-2">
         <div className="flex items-start justify-between gap-2">
           <Button variant="link" onClick={onDetails} className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-base font-bold text-foreground line-clamp-2">{hotel.name}</Button>
           {heart}
@@ -111,7 +112,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
           <Badge variant="outline" className="border-primary/30 bg-accent px-2 py-0 text-[10px] font-medium text-primary">JaagaX Partner</Badge>
         </div>
 
-        {!!amenities.length && <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-1.5">
+        {!!amenities.length && <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-1">
           {amenities.slice(0, visibleAmenities).map(a => { const Icon = amenityIcon(a); return <span key={a} className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Icon className="h-3.5 w-3.5 shrink-0 text-primary" />{amenityLabel(a)}</span>; })}
           {amenities.length > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{amenities.length - visibleAmenities} more</Badge>}
         </div>}
