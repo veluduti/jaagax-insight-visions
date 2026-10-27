@@ -7,7 +7,7 @@ const ICONS: Record<string, typeof Briefcase> = { "": LayoutGrid, villa: Home, f
 
 export function UniqueCategoryTiles({ selected, counts, total, images, onSelect }: { selected: string[]; counts: Record<string, number>; total: number; images: Record<string, string>; onSelect: (keys: string[]) => void }) {
   const tiles = [{ key: "", label: "All Unique Stays", n: total }, ...UNIQUE_TYPES.map(t => ({ key: t.key, label: t.label, n: counts[t.key] || 0 }))];
-  return <div className="no-scrollbar mb-5 grid auto-cols-[150px] grid-flow-col gap-3 overflow-x-auto py-1 xl:grid-flow-row xl:grid-cols-9" aria-label="Unique stay categories">
+  return <div className="no-scrollbar mb-5 grid auto-cols-[120px] grid-flow-col gap-2 overflow-x-auto py-1 xl:grid-flow-row xl:grid-cols-10" aria-label="Unique stay categories">
     {tiles.map(t => {
       const active = t.key ? selected.length === 1 && selected[0] === t.key : !selected.length;
       const Icon = ICONS[t.key] || Briefcase;
