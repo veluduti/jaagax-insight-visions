@@ -100,9 +100,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
           {hasReviews && <><span className="flex items-center gap-0.5 text-xs font-bold text-primary"><Star className="h-3 w-3 fill-primary text-primary" />{(hotel.avg_rating ?? 0).toFixed(1)}</span><span className="text-xs text-muted-foreground">({formatReviewCount(hotel.review_count || 0)} reviews)</span></>}
         </div>
 
-        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3 shrink-0" />
-          <span className="line-clamp-2">{locationText}{hotel.distance_km != null && <span className="whitespace-nowrap"> • {hotel.distance_km} km from city centre</span>}</span>
+        <p className="flex items-start gap-1 text-xs text-muted-foreground">
+          <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+          <span className="min-w-0">{locationText}{hotel.distance_km != null && <span> • {hotel.distance_km} km from city centre</span>}</span>
         </p>
 
         <div className="flex flex-wrap gap-1.5">
@@ -118,7 +118,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
         {children}
       </div>
 
-      <div className="flex w-full flex-col justify-center gap-3 border-t border-border p-3 md:w-[190px] md:border-l md:border-t-0">
+      <div className="flex w-full flex-col justify-start gap-3 border-t border-border p-3 md:w-[190px] md:border-l md:border-t-0">
         <div className="space-y-1.5">
           {priceBlock}
           {(hotel.free_cancellation || hotel.breakfast_included) && <div className="space-y-1 pt-1">
