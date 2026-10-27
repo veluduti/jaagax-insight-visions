@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin, ArrowRight, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { loadGoogleMaps } from "@/lib/googleMaps";
+import { hasHotelMapCoordinates } from "@/lib/hotelMapCoordinates";
 import type { DiscoveryHotel } from "./HotelResultRow";
 
 export type MapHotel = DiscoveryHotel & { latitude?: number | null; longitude?: number | null };
@@ -15,7 +16,7 @@ export default function HotelDiscoveryMap({ hotels, selectedId, onSelect, onDeta
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [areaApplied, setAreaApplied] = useState(false);
-  const pinned = hotels.filter(h => h.latitude != null && h.longitude != null && Number.isFinite(Number(h.latitude)) && Number.isFinite(Number(h.longitude)));
+  const pinned = hotels.filter(hasHotelMapCoordinates);
   const selected = hotels.find(h => h.id === selectedId);
   useEffect(() => {
     // Maps cannot be validated from the sandbox's unauthorized localhost origin.
