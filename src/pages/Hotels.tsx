@@ -438,7 +438,7 @@ const Hotels = () => {
   }, []);
 
   // Auto-show hotels for the user's saved location before they search (once per visit)
-  const autoCityAppliedRef = React.useRef(false);
+  const autoCityAppliedRef = useRef(false);
   useEffect(() => {
     if (autoCityAppliedRef.current) return;
     const city = detectedLocation?.city?.trim();
