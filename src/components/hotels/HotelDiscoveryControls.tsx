@@ -42,8 +42,8 @@ export function StayIntentStrip({ value, onChange }: FilterProps) {
   </div>;
 }
 
-export function HotelDiscoveryFilters({ value, onChange, stars, onStarsChange, cityIndex, selectedCity, selectedArea, onPickCityArea, onClearLocation, onClear, mobile = false }: FilterProps & {
-  mobile?: boolean; stars: number[]; onStarsChange: (stars: number[]) => void;
+export function HotelDiscoveryFilters({ value, onChange, stars, onStarsChange, cityIndex, selectedCity, selectedArea, onPickCityArea, onClearLocation, onClear, mobile = false, hideTypes = false, extra }: FilterProps & {
+  mobile?: boolean; hideTypes?: boolean; extra?: React.ReactNode; stars: number[]; onStarsChange: (stars: number[]) => void;
   cityIndex: Map<string, CityNode>; selectedCity: string; selectedArea: string | null;
   onPickCityArea: (city: string, area: string | null) => void; onClearLocation: () => void; onClear: () => void;
 }) {
@@ -54,7 +54,8 @@ export function HotelDiscoveryFilters({ value, onChange, stars, onStarsChange, c
       <div><h3 className="mb-2 flex items-center gap-2 text-xs font-semibold"><MapPin className="h-3.5 w-3.5" />City / Area</h3><CityAreaSearch index={cityIndex} selectedCity={selectedCity} selectedArea={selectedArea} onPick={onPickCityArea} onClear={onClearLocation} /></div>
       <div><h3 className="mb-3 text-xs font-semibold">Price range (per night)</h3><Slider aria-label="Maximum nightly budget" min={500} max={20000} step={500} value={[value.maxPrice ?? 20000]} onValueChange={([price]) => onChange({ ...value, maxPrice: price >= 20000 ? null : price })} /><div className="mt-2 flex justify-between text-xs text-muted-foreground"><span>₹500</span><span>{value.maxPrice ? `₹${value.maxPrice.toLocaleString("en-IN")}` : "Any budget"}</span></div></div>
       <div><h3 className="mb-2 text-xs font-semibold">Star rating</h3><div className="space-y-2">{[5, 4, 3, 2, 1].map(s => <label key={s} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={stars.includes(s)} onCheckedChange={() => onStarsChange(stars.includes(s) ? stars.filter(x => x !== s) : [...stars, s])} /><span className="flex gap-0.5">{Array.from({ length: s }, (_, i) => <Star key={i} className="h-3 w-3 fill-primary text-primary" />)}</span><span>{s} Star</span></label>)}</div></div>
-      <div><h3 className="mb-2 text-xs font-semibold">Property type</h3><div><ViewMore items={HOSPITALITY_CATEGORIES.filter(c => c.key !== "other")} render={c => <label key={c.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={value.types.includes(c.key)} onCheckedChange={() => toggle("types", c.key)} /><span aria-hidden>{c.emoji}</span>{c.label}</label>} /></div></div>
+      {extra}
+      {!hideTypes &&       <div><h3 className="mb-2 text-xs font-semibold">Property type</h3><div><ViewMore items={HOSPITALITY_CATEGORIES.filter(c => c.key !== "other")} render={c => <label key={c.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={value.types.includes(c.key)} onCheckedChange={() => toggle("types", c.key)} /><span aria-hidden>{c.emoji}</span>{c.label}</label>} /></div></div>}
       <div><h3 className="mb-2 text-xs font-semibold">Amenities</h3><div><ViewMore grid items={AMENITY_CHIPS} render={a => <label key={a.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={value.amenities.includes(a.key)} onCheckedChange={() => toggle("amenities", a.key)} />{a.label}</label>} /></div></div>
     </div>
   </aside>;

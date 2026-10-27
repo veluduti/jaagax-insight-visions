@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { BadgeCheck, BadgePercent, CalendarCheck, Headphones, Heart, Palmtree, Mountain, Waves, Leaf, Users, Crown, Flower2, LayoutGrid } from "lucide-react";
 import { RESORT_TYPES } from "@/lib/resortDiscovery";
-import { resolveHotelImages } from "@/lib/hotelImage";
+import { HOTEL_IMAGE_FALLBACK } from "@/lib/hotelImage";
 import allImg from "@/assets/home-hero-resort.jpg";
 import beachImg from "@/assets/explore-stays.jpg";
 import hillImg from "@/assets/resort-hill.jpg";
@@ -66,7 +66,7 @@ export function RecentlyViewedResorts({ items, favorites, onOpen, onFavorite }: 
   return <section className="rounded-lg border border-border bg-card p-3">
     <h3 className="mb-3 text-sm font-bold">Recently Viewed</h3>
     <div className="grid grid-cols-3 gap-2">{items.slice(0, 3).map(h => <button key={h.id} type="button" onClick={() => onOpen(h.id)} className="text-left">
-      <span className="relative block"><img src={resolveHotelImages(h.images)[0]} alt={h.name} loading="lazy" className="h-16 w-full rounded-md object-cover" /><span role="button" tabIndex={0} aria-label="Save" onClick={e => onFavorite(h.id, e)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-card"><Heart className={`h-3 w-3 ${favorites.includes(h.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} /></span></span>
+      <span className="relative block"><img src={h.images?.[0] || HOTEL_IMAGE_FALLBACK} alt={h.name} loading="lazy" className="h-16 w-full rounded-md object-cover" /><span role="button" tabIndex={0} aria-label="Save" onClick={e => onFavorite(h.id, e)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-card"><Heart className={`h-3 w-3 ${favorites.includes(h.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} /></span></span>
       <span className="mt-1 block truncate text-[11px] font-semibold">{h.name}</span>
       <span className="block text-[11px] font-bold">₹{Number(h.price_per_night).toLocaleString("en-IN")}<span className="font-normal text-muted-foreground"> / night</span></span>
     </button>)}</div>
