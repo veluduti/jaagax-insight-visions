@@ -15,6 +15,8 @@ import {
   Sparkles,
   ArrowRight,
   ChevronDown,
+  Building2,
+  Map as MapIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { POPULAR_AREAS } from "@/config/popularAreas";
@@ -22,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 const INTENTS = [
   { color: "", key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
-  { color: "text-destructive", key: "invest", label: "Buy / Rent / Invest", icon: Home, path: "/search" },
+  { color: "text-destructive", key: "properties", label: "Properties", icon: Home, path: "/search" },
   { color: "text-foreground", key: "travel", label: "Smart Travel", icon: Plane, path: "/smart-stays" },
   { color: "text-primary", key: "agent", label: "Find an Agent", icon: Users, path: "/agents" },
   { color: "text-primary", key: "list", label: "List a Property", icon: Plus, path: "/sell-property" },
