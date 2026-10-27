@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { POPULAR_AREAS } from "@/config/popularAreas";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { buildPropertyKindOptions, FALLBACK_PROPERTY_KINDS } from "./propertyKindOptions";
 
 const INTENTS = [
   { color: "", key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
@@ -29,16 +31,6 @@ const INTENTS = [
   { color: "text-primary", key: "agent", label: "Find an Agent", icon: Users, path: "/agents" },
   { color: "text-primary", key: "list", label: "List a Property", icon: Plus, path: "/sell-property" },
   { color: "text-primary", key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
-];
-
-
-const PROPERTY_KINDS = [
-  { value: "any", label: "All Types" },
-  { value: "Apartment", label: "Apartment" },
-  { value: "Villa", label: "Villa" },
-  { value: "Independent House", label: "House" },
-  { value: "Plot", label: "Plot" },
-  { value: "Office Space", label: "Office" },
 ];
 
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
@@ -92,6 +84,7 @@ const HeroSearchPanel = () => {
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [propertyPurpose, setPropertyPurpose] = useState("buy");
   const [propertyKind, setPropertyKind] = useState("any");
+  const [propertyKinds, setPropertyKinds] = useState(FALLBACK_PROPERTY_KINDS);
   const [propertyLocation, setPropertyLocation] = useState("");
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +97,23 @@ const HeroSearchPanel = () => {
   });
 
   const popularCities = useMemo(() => Object.keys(POPULAR_AREAS).slice(0, 8), []);
+
+  // Property type options follow the backend: the dropdown lists the types
+  // that actually exist on saved property rows (falls back to the static list).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("properties")
+        .select("type")
+        .not("type", "is", null);
+      if (cancelled || !data) return;
+      setPropertyKinds(buildPropertyKindOptions(data as Array<{ type: string | null }>));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Close the rooms & guests popover on outside click / Escape
   useEffect(() => {
@@ -238,7 +248,7 @@ const HeroSearchPanel = () => {
                 className="bg-transparent text-sm font-medium text-foreground outline-none"
                 aria-label="Property type"
               >
-                {PROPERTY_KINDS.map((k) => (
+                {propertyKinds.map((k) => (
                   <option key={k.value} value={k.value}>{k.label}</option>
                 ))}
               </select>
