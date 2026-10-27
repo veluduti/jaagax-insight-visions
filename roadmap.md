@@ -1,7 +1,8 @@
 # Active roadmap — JAAGA Travel
 ## Hotel stays reference redesign
-- [ ] Match the hotel reference with mint search, image categories, compact results, collapsible filters and synchronized live map; preserve existing booking and search services
-- [ ] Verify real search, guest controls, wishlist, details, booking entry and desktop/mobile layout; live Google Maps requires an authorized deployed origin
+- [x] Match the hotel reference with generated resort banner, mint search, image categories, compact results, collapsible filters and saved-pin live map; retain existing booking and search services
+- [x] Verify signed-in Hyderabad search, guest controls, persisted wishlist, category selection, hotel details, real available-room booking entry, desktop/mobile layout and no runtime errors; two saved-coordinate tests passed and build OK
+- [ ] Validate Google Maps markers/area synchronization on an authorized deployed origin; sandbox Maps checks are unsupported. No payment or live HyperGuest booking was attempted.
 ## Public reviews page
 - [x] Redirect homepage View All Reviews to a dedicated page showing all published reviews; verified all three published rows, desktop/mobile navigation, no overflow or runtime errors, and build OK.
 ## Smart Stays location recommendations
