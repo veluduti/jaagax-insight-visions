@@ -74,6 +74,7 @@ import HotelDiscoveryMap, { type HotelMapBounds } from "@/components/hotels/Hote
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StayCategoryTabs, StayIntentStrip, HotelDiscoveryFilters } from "@/components/hotels/HotelDiscoveryControls";
 import HotelResultRow from "@/components/hotels/HotelResultRow";
+import { distanceFromCityCentre, hasFreeCancellation, hasBreakfast } from "@/lib/hotelDiscoveryMeta";
 import { List, LayoutGrid } from "lucide-react";
 
 interface RoomFeature {
@@ -122,6 +123,7 @@ interface PartnerHotel {
   partner_since: string | null;
   is_active: boolean | null;
   business_types?: string[] | null;
+  tags?: string[] | null;
   description?: string | null;
   latitude?: number | null;
   longitude?: number | null;
@@ -184,6 +186,7 @@ const Hotels = () => {
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
   const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [rawRooms, setRawRooms] = useState<any[]>([]);
+  const [reviewMeta, setReviewMeta] = useState<Record<string, { count: number; total: number }>>({});
   const [openListing, setOpenListing] = useState<StayListing | null>(null);
   const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
@@ -358,7 +361,7 @@ const Hotels = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [hotelsRes, roomsRes, packagesRes] = await Promise.all([
+        const [hotelsRes, roomsRes, packagesRes, reviewsRes] = await Promise.all([
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
@@ -367,6 +370,7 @@ const Hotels = () => {
             )
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
+          supabase.from("hotel_reviews").select("hotel_id, rating").gte("rating", 1).lte("rating", 5),
         ]);
 
         const minByHotel = new Map<string, number>();
@@ -399,6 +403,16 @@ const Hotels = () => {
         setUnitsByHotel(units);
         setRoomFeatures(feats);
         setRawRooms(roomsRes.data || []);
+
+        const reviewAgg: Record<string, { count: number; total: number }> = {};
+        (reviewsRes.data || []).forEach((r: any) => {
+          if (!r?.hotel_id) return;
+          const cur = reviewAgg[r.hotel_id] || { count: 0, total: 0 };
+          cur.count += 1;
+          cur.total += Number(r.rating) || 0;
+          reviewAgg[r.hotel_id] = cur;
+        });
+        setReviewMeta(reviewAgg);
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
