@@ -12,7 +12,8 @@ import { AlertTriangle } from "lucide-react";
  */
 interface State {
   error: Error | null;
-  retried: boolean;
+  /** True once a transient backend failure has already been auto-retried. */
+  retried?: boolean;
 }
 
 function isChunkError(error: Error): boolean {
