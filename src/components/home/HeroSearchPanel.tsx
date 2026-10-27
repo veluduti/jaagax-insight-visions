@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { buildPropertyKindGroups } from "./propertyKindOptions";
 import { getPropertyFlow } from "@/config/propertyFlows";
+import { PROPERTY_MAIN_TYPES } from "@/config/propertyMainTypes";
 
 const PROPERTY_KIND_CATEGORIES = [
   { label: "🏠 Residential", id: "residential", field: "property_type" },
@@ -261,12 +262,8 @@ const HeroSearchPanel = () => {
                 aria-label="Property type"
               >
                 <option value="any">All Types</option>
-                {propertyKinds.map((g) => (
-                  <optgroup key={g.label} label={g.label}>
-                    {g.options.map((k) => (
-                      <option key={`${g.label}-${k.value}`} value={k.value}>{k.label}</option>
-                    ))}
-                  </optgroup>
+                {PROPERTY_MAIN_TYPES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
             </label>
