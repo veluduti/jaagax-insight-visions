@@ -1,8 +1,9 @@
 # Active roadmap — JAAGA Travel
 ## Stay categories and Co-living reference
-- [ ] Audit partner fields and shared search, filters, rental prices and booking paths across stay categories
-- [ ] Add the missing Co-living discovery presentation using real partner data and the supplied reference
-- [ ] Verify category/search interactions, desktop/mobile layout and available booking entry; name missing live inventory explicitly
+- [x] Audit partner fields and shared search/booking; connect selected dates to canonical `room_free_units`, fix long-stay booking link, rental price/budget/sort and category state leaks
+- [x] Add Co-living reference presentation, canonical facets and partner eligibility/pet fields; no dummy listings, prices or counts
+- [x] Verify Co-living category/monthly search, women facet, desktop/mobile fit, existing hotel list/grid and signed-in real hotel checkout guest-details entry; no reservation/payment made
+- [ ] Verify live resort, serviced-apartment, PG/Hostel and Co-living results/booking — blocked: no active inventory in these categories. Map interaction remains unverified on an authorized deployed origin.
 ## PG / Hostel search controls
 - [x] Replace nightly controls with move-in, supported weekly/monthly duration and occupancy; six tests passed and browser confirmed three months/two people reach matching as Oct 27–Jan 27 with nightly search unchanged. No active PG/Hostel rental inventory exists, so real rental results/booking remain unverified.
 ## Hotel stays reference redesign
