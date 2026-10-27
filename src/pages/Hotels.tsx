@@ -74,6 +74,7 @@ import HotelDiscoveryMap, { type HotelMapBounds } from "@/components/hotels/Hote
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StayCategoryTabs, StayIntentStrip, HotelDiscoveryFilters } from "@/components/hotels/HotelDiscoveryControls";
 import HotelResultRow from "@/components/hotels/HotelResultRow";
+import { distanceFromCityCentre, hasFreeCancellation, hasBreakfast } from "@/lib/hotelDiscoveryMeta";
 import { List, LayoutGrid } from "lucide-react";
 
 interface RoomFeature {
@@ -122,6 +123,7 @@ interface PartnerHotel {
   partner_since: string | null;
   is_active: boolean | null;
   business_types?: string[] | null;
+  tags?: string[] | null;
   description?: string | null;
   latitude?: number | null;
   longitude?: number | null;
@@ -184,6 +186,7 @@ const Hotels = () => {
   const [unitsByHotel, setUnitsByHotel] = useState<Record<string, Set<string>>>({});
   const [roomFeatures, setRoomFeatures] = useState<Record<string, RoomFeature[]>>({});
   const [rawRooms, setRawRooms] = useState<any[]>([]);
+  const [reviewMeta, setReviewMeta] = useState<Record<string, { count: number; total: number }>>({});
   const [openListing, setOpenListing] = useState<StayListing | null>(null);
   const [bookRoomIds, setBookRoomIds] = useState<string[] | undefined>(undefined);
   const [profile, setProfile] = useState<StayProfile | null>(null);
@@ -358,7 +361,7 @@ const Hotels = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [hotelsRes, roomsRes, packagesRes] = await Promise.all([
+        const [hotelsRes, roomsRes, packagesRes, reviewsRes] = await Promise.all([
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
@@ -367,6 +370,7 @@ const Hotels = () => {
             )
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
+          supabase.from("hotel_reviews").select("hotel_id, rating").gte("rating", 1).lte("rating", 5),
         ]);
 
         const minByHotel = new Map<string, number>();
@@ -399,6 +403,16 @@ const Hotels = () => {
         setUnitsByHotel(units);
         setRoomFeatures(feats);
         setRawRooms(roomsRes.data || []);
+
+        const reviewAgg: Record<string, { count: number; total: number }> = {};
+        (reviewsRes.data || []).forEach((r: any) => {
+          if (!r?.hotel_id) return;
+          const cur = reviewAgg[r.hotel_id] || { count: 0, total: 0 };
+          cur.count += 1;
+          cur.total += Number(r.rating) || 0;
+          reviewAgg[r.hotel_id] = cur;
+        });
+        setReviewMeta(reviewAgg);
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
@@ -784,6 +798,24 @@ const Hotels = () => {
     roomFeatures,
     profile,
   ]);
+  // Per-hotel presentation meta. Every value is derived from data a partner or
+  // guest actually entered; missing data stays null/false and the row hides it.
+  const hotelMetaById = useMemo(() => {
+    const out: Record<string, { distance_km: number | null; free_cancellation: boolean; breakfast_included: boolean; review_count: number; avg_rating: number | null }> = {};
+    hotels.forEach((h) => {
+      const rooms = rawRooms.filter((r: any) => r.hotel_id === h.id);
+      const agg = reviewMeta[h.id];
+      out[h.id] = {
+        distance_km: distanceFromCityCentre(h),
+        free_cancellation: hasFreeCancellation(rooms),
+        breakfast_included: hasBreakfast(rooms, h.amenities),
+        review_count: agg?.count || 0,
+        avg_rating: agg && agg.count ? Math.round((agg.total / agg.count) * 10) / 10 : null,
+      };
+    });
+    return out;
+  }, [hotels, rawRooms, reviewMeta]);
+
   const filteredAndSortedHotels = useMemo(() => {
     const list = searchOutcome.list.filter(h => (!savedOnly || favorites.includes(h.id)) && (!mapBounds || (h.latitude != null && h.longitude != null && h.latitude >= mapBounds.south && h.latitude <= mapBounds.north && h.longitude >= mapBounds.west && h.longitude <= mapBounds.east)));
     if (resultSort === "price-low") list.sort((a, b) => a.price_per_night - b.price_per_night);
@@ -1576,7 +1608,7 @@ const Hotels = () => {
                 )
               ) : (
                 <div className={gridView ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
-                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={hotel} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
+                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={{ ...hotel, ...(hotelMetaById[hotel.id] || {}) }} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
                     {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? <p className="text-xs text-destructive">Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}</p> : null}
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
                     {roomsNeededByHotel[hotel.id] ? <p className="text-xs text-muted-foreground">Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests</p> : null}

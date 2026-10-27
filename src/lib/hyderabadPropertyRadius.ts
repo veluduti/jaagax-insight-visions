@@ -4,7 +4,7 @@ export const HYDERABAD_PROPERTY_AREA = { latitude: 17.385, longitude: 78.4867, r
 
 // City-centre fallback only for legacy listings without a saved map pin.
 // These are discovery estimates, never written into a property's coordinates.
-const CITY_CENTRES: Record<string, [number, number]> = {
+export const CITY_CENTRES: Record<string, [number, number]> = {
   hyderabad: [17.385, 78.4867],
   medchal: [17.6297, 78.4814],
   "medchal-malkajgiri": [17.6297, 78.4814],
