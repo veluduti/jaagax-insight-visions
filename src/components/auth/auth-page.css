@@ -71,6 +71,7 @@
 .register-note { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
 .register-note svg { flex-shrink: 0; margin-top: 1px; color: hsl(var(--muted-foreground)); }
 @media (max-width: 767px) {
+  .register-benefits { display: none; }
   .register-card { padding: 28px 22px; border-radius: 18px; }
   .register-cta .register-cta-arrow { position: static; margin-left: 10px; }
   .auth-header { padding: 22px 20px; }
