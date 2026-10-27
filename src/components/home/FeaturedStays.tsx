@@ -53,7 +53,11 @@ const FeaturedStays = () => {
 
         const ids = hotels.map((h: any) => h.id);
         const [roomsRes, reviewsRes] = await Promise.all([
-          sb.from("hotel_rooms").select("hotel_id, base_price, monthly_price, accommodation_kind").eq("is_active", true).in("hotel_id", ids),
+          sb
+            .from("hotel_rooms")
+            .select("hotel_id, base_price, monthly_price, accommodation_kind")
+            .eq("is_active", true)
+            .in("hotel_id", ids),
           sb.from("hotel_reviews").select("hotel_id, rating").in("hotel_id", ids),
         ]);
 
@@ -96,7 +100,10 @@ const FeaturedStays = () => {
             image: images[0] ?? null,
             typeLabel: h.property_type_name ?? null,
             amenities,
-            price: nightly ?? monthly ?? (typeof h.price_per_night === "number" && h.price_per_night > 0 ? h.price_per_night : null),
+            price:
+              nightly ??
+              monthly ??
+              (typeof h.price_per_night === "number" && h.price_per_night > 0 ? h.price_per_night : null),
             priceUnit: nightly || h.price_per_night ? "/ night" : monthly ? "/ month" : "",
             rating: avg ?? (typeof h.star_rating === "number" && h.star_rating > 0 ? h.star_rating : null),
             reviewCount: ratings.length,
@@ -176,7 +183,7 @@ const FeaturedStays = () => {
   const scrollBy = (dir: number) => scroller.current?.scrollBy({ left: dir * 290, behavior: "smooth" });
 
   return (
-    <section className="section-spacing bg-card border-y border-border/50">
+    <section className="relative z-10 mt-2 bg-card border-y border-border/50">
       <div className="container mx-auto container-padding">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
@@ -184,7 +191,10 @@ const FeaturedStays = () => {
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Handpicked stays for every journey</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link to="/hotels" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            <Link
+              to="/hotels"
+              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+            >
               View All Stays <ArrowRight className="h-4 w-4" />
             </Link>
             <button
