@@ -49,3 +49,4 @@ it("formats review counts without inflating them", () => {
   expect(formatReviewCount(87)).toBe("87");
   expect(formatReviewCount(1234)).toBe("1.2K");
 });
+});
