@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { Children, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Hotel, Heart, MapPin, Star, ChevronLeft, ChevronRight, ArrowRight, Check } from "lucide-react";
@@ -34,6 +34,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   const imageBadge = tags[0] || (hotel.star_rating ? `${hotel.star_rating}-Star` : null);
   const hasReviews = !!hotel.review_count && hotel.review_count > 0;
   const locationText = [hotel.locality, hotel.city].filter(Boolean).join(", ") || "Location not provided";
+  const childItems = Children.toArray(children);
 
   const media = (heightClass: string) => (
     <div className={`relative ${heightClass} shrink-0 overflow-hidden rounded-lg bg-muted`}>
@@ -68,7 +69,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
         <div className="flex flex-wrap items-center gap-1.5">{hotel.star_rating ? <span className="flex items-center gap-0.5" aria-label={`${hotel.star_rating} star hotel`}>{Array.from({ length: 5 }, (_, i) => <Star key={i} className={`h-3 w-3 ${i < hotel.star_rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}</span> : null}<Badge variant="outline" className="border-primary/30 bg-accent px-1.5 py-0 text-[10px] text-primary">JaagaX Partner</Badge></div>
         <p className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="line-clamp-1">{locationText}</span></p>
         <div className="flex flex-wrap gap-1">{amenities.slice(0, visibleAmenities).map(a => <Badge key={a} variant="secondary" className="text-[9px] font-normal">{a}</Badge>)}{(amenities.length) > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{amenities.length - visibleAmenities}</Badge>}</div>
-        {children}
+        {childItems}
       </div>
       <div className="mt-auto flex flex-col gap-1.5 border-t border-border p-2.5">
         {priceBlock(true)}
@@ -126,7 +127,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
           </div>}
         </div>
         <Button onClick={onDetails} className="w-full gap-1.5 bg-primary text-sm text-primary-foreground hover:bg-primary-dark">View Details<ArrowRight className="h-3.5 w-3.5" /></Button>
-        {children && <div className="space-y-1.5 pt-1">{children}</div>}
+        {childItems.length > 0 && <div className="space-y-1.5 pt-1">{childItems}</div>}
       </div>
     </div>
   </article>;
