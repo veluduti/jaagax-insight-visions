@@ -79,6 +79,8 @@ const HOSTEL_POLICY_EXTRA: AttrField[] = [
   { key: "cancellation_refund", label: "Cancellation & refund rule", kind: "text" },
 ];
 const COLIVING_SERVICES = sec("Community & services", [
+  { key: "eligibility", label: "Who can stay", kind: "multi", options: ["Students", "Working professionals", "Couples", "Families"] },
+  { key: "pets_allowed", label: "Pets allowed", kind: "boolean" },
   { key: "furnishing", label: "Furnishing", kind: "select", options: ["Fully furnished", "Semi furnished", "Unfurnished"] },
   { key: "facilities", label: "Services & facilities", kind: "multi", options: ["Wi-Fi", "Workspace", "Housekeeping", "Laundry", "Meals", "Shared kitchen", "Gym", "Recreation room", "Community events", "Parking"] },
 ]);
