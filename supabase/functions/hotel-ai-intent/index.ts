@@ -5,7 +5,7 @@ import { streamText } from "npm:ai";
 import { z } from "npm:zod@3";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "../_shared/run-id.ts";
 
-const CATEGORIES = ["hotel","resort","hostel","apartment","serviced_apartment","coliving","pg","homestay","farm_stay","villa","guest_house","boutique","private_room","shared_room"];
+const CATEGORIES = ["hotel","resort","luxury","corporate","hostel","apartment","serviced_apartment","coliving","pg","homestay","farm_stay","villa","guest_house","boutique","private_room","shared_room"];
 const PREFS = ["family","couple","business","budget","luxury","private_room","shared_room","entire_place","short_stay","long_stay","monthly"];
 const KINDS = ["villa","cottage","tent","cabin","apartment","dorm","private_room","shared_room","entire_home"];
 const AMENITIES = ["pet_friendly","breakfast","wifi","parking","pool","ac","gym","restaurant","kitchen","laundry"];
