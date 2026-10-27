@@ -223,9 +223,10 @@ const Hotels = () => {
   };
   const [checkIn, setCheckIn] = useState<Date>(() => parseDateParam("checkin") ?? new Date());
   const [checkOut, setCheckOut] = useState<Date>(() => {
+    const inDate = parseDateParam("checkin") ?? new Date();
     const fromUrl = parseDateParam("checkout");
-    if (fromUrl) return fromUrl;
-    const date = new Date();
+    if (fromUrl && fromUrl.getTime() > inDate.getTime()) return fromUrl;
+    const date = new Date(inDate);
     date.setDate(date.getDate() + 1);
     return date;
   });
