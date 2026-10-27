@@ -30,7 +30,7 @@ function isChunkError(error: Error): boolean {
  * A temporary backend hiccup (edge runtime overloaded / 503) is not a fault
  * in the page — it must never leave the user staring at a dead screen.
  */
-function isTransientBackendError(error: Error): boolean {
+export function isTransientBackendError(error: Error): boolean {
   const m = `${error?.message || ""}`.toLowerCase();
   return (
     m.includes("503") ||
