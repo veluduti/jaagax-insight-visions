@@ -356,25 +356,10 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
           })}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mt-xl"
-        >
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
-            onClick={() => navigate("/search?tab=properties")}
-          >
-            View All Properties
-          </Button>
-        </motion.div>
       </div>
     </section>
   );
 };
+
 
 export default FeaturedProperties;
