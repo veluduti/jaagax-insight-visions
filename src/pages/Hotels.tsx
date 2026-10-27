@@ -798,6 +798,24 @@ const Hotels = () => {
     roomFeatures,
     profile,
   ]);
+  // Per-hotel presentation meta. Every value is derived from data a partner or
+  // guest actually entered; missing data stays null/false and the row hides it.
+  const hotelMetaById = useMemo(() => {
+    const out: Record<string, { distance_km: number | null; free_cancellation: boolean; breakfast_included: boolean; review_count: number; avg_rating: number | null }> = {};
+    hotels.forEach((h) => {
+      const rooms = rawRooms.filter((r: any) => r.hotel_id === h.id);
+      const agg = reviewMeta[h.id];
+      out[h.id] = {
+        distance_km: distanceFromCityCentre(h),
+        free_cancellation: hasFreeCancellation(rooms),
+        breakfast_included: hasBreakfast(rooms, h.amenities),
+        review_count: agg?.count || 0,
+        avg_rating: agg && agg.count ? Math.round((agg.total / agg.count) * 10) / 10 : null,
+      };
+    });
+    return out;
+  }, [hotels, rawRooms, reviewMeta]);
+
   const filteredAndSortedHotels = useMemo(() => {
     const list = searchOutcome.list.filter(h => (!savedOnly || favorites.includes(h.id)) && (!mapBounds || (h.latitude != null && h.longitude != null && h.latitude >= mapBounds.south && h.latitude <= mapBounds.north && h.longitude >= mapBounds.west && h.longitude <= mapBounds.east)));
     if (resultSort === "price-low") list.sort((a, b) => a.price_per_night - b.price_per_night);
@@ -1590,7 +1608,7 @@ const Hotels = () => {
                 )
               ) : (
                 <div className={gridView ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
-                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={hotel} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
+                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={{ ...hotel, ...(hotelMetaById[hotel.id] || {}) }} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
                     {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? <p className="text-xs text-destructive">Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}</p> : null}
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
                     {roomsNeededByHotel[hotel.id] ? <p className="text-xs text-muted-foreground">Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests</p> : null}
