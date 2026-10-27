@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Heart,
@@ -7,6 +8,7 @@ import {
   Bath,
   Maximize,
   ArrowRight,
+
 
   MapPin,
   ShieldCheck,
