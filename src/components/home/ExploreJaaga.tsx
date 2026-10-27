@@ -27,7 +27,7 @@ const CATEGORIES = [
   },
   {
     title: "Buy, Rent & Invest",
-    desc: "Homes, plots, commercial spaces & investment opportunities",
+    desc: "Homes, plots, commercial spaces",
     icon: Home,
     tone: "text-emerald-600",
     image: exploreInvest,
