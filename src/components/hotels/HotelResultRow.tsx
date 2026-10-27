@@ -80,16 +80,16 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   // ---- List (wide three-column row) ----
   return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""}`}>
     <div className="flex flex-col md:grid md:grid-cols-[220px_minmax(0,1fr)_190px]">
-      <div className="p-3 md:pr-0">
-        {media("h-40 md:h-[150px]")}
-        {images.length > 1 && <div className="mt-2 grid grid-cols-4 gap-1.5">
-          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`relative h-11 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
+      <div className="p-2.5 md:pr-0">
+        {media("h-28 md:h-[116px]")}
+        {images.length > 1 && <div className="mt-1.5 grid grid-cols-4 gap-1.5">
+          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`relative h-8 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
             <img src={src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
           </Button>)}
         </div>}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-2 p-3 md:py-3">
+      <div className="flex min-w-0 flex-col gap-1.5 p-2.5 md:py-2.5">
         <div className="flex items-start justify-between gap-2">
           <Button variant="link" onClick={onDetails} className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-base font-bold text-foreground line-clamp-2">{hotel.name}</Button>
           {heart}
@@ -110,15 +110,14 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
           <Badge variant="outline" className="border-primary/30 bg-accent px-2 py-0 text-[10px] font-medium text-primary">JaagaX Partner</Badge>
         </div>
 
-        {!!amenities.length && <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border pt-2">
+        {!!amenities.length && <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-1.5">
           {amenities.slice(0, visibleAmenities).map(a => { const Icon = amenityIcon(a); return <span key={a} className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Icon className="h-3.5 w-3.5 shrink-0 text-primary" />{amenityLabel(a)}</span>; })}
           {amenities.length > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{amenities.length - visibleAmenities} more</Badge>}
         </div>}
 
-        {children}
       </div>
 
-      <div className="flex w-full flex-col justify-start gap-3 border-t border-border p-3 md:w-[190px] md:border-l md:border-t-0">
+      <div className="flex w-full flex-col justify-between gap-2 border-t border-border p-2.5 md:w-[190px] md:border-l md:border-t-0">
         <div className="space-y-1.5">
           {priceBlock(false)}
           {(hotel.free_cancellation || hotel.breakfast_included) && <div className="space-y-1 pt-1">
@@ -127,6 +126,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
           </div>}
         </div>
         <Button onClick={onDetails} className="w-full gap-1.5 bg-primary text-sm text-primary-foreground hover:bg-primary-dark">View Details<ArrowRight className="h-3.5 w-3.5" /></Button>
+        {children && <div className="space-y-1.5 pt-1">{children}</div>}
       </div>
     </div>
   </article>;
