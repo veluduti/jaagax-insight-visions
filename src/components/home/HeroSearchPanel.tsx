@@ -49,6 +49,8 @@ const PROPERTY_KINDS = [
   { value: "Office Space", label: "Office" },
 ];
 
+const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
+
 interface CounterRowProps {
   label: string;
   hint: string;
