@@ -274,7 +274,7 @@ const Search = () => {
     // Buy/Rent → listing_type
     if (searchType === "rent") qb = qb.eq("listing_type", "rent");
     else if (searchType === "buy") qb = qb.eq("listing_type", "sale");
-    if (f.propertyType !== "any") qb = qb.eq("type", f.propertyType);
+    if (f.propertyType !== "any") qb = qb.ilike("type", `${f.propertyType.split(" / ")[0].trim()}%`);
     if (f.beds !== "any") {
       if (f.beds === "5+") qb = qb.gte("bhk", 5);
       else qb = qb.eq("bhk", Number(f.beds));

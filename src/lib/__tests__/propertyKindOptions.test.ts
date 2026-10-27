@@ -34,3 +34,12 @@ describe("buildPropertyKindOptions", () => {
     expect(buildPropertyKindOptions([])).toEqual(FALLBACK_PROPERTY_KINDS);
   });
 });
+
+import { buildPropertyKindGroups } from "@/components/home/propertyKindOptions";
+describe("buildPropertyKindGroups", () => {
+  it("adds only unmatched backend types to Other", () => {
+    const g = buildPropertyKindGroups([{ label: "Res", types: ["Apartment / Flat", "Villa"] }], ["Apartment", "Villa", "Castle"]);
+    expect(g.map((x) => x.label)).toEqual(["Res", "Other"]);
+    expect(g[1].options.map((o) => o.value)).toEqual(["Castle"]);
+  });
+});

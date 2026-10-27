@@ -38,3 +38,31 @@ export function buildPropertyKindOptions(
 }
 
 export { FALLBACK_PROPERTY_KINDS };
+
+export interface PropertyKindGroup {
+  label: string;
+  options: PropertyKindOption[];
+}
+
+/**
+ * Group every listing sub-type (same lists as Sell Property) under its
+ * category. Backend types not found in any group go under "Other".
+ */
+export function buildPropertyKindGroups(
+  categories: Array<{ label: string; types: string[] }>,
+  backendTypes: string[] = [],
+): PropertyKindGroup[] {
+  const groups = categories.map((c) => ({
+    label: c.label,
+    options: c.types.map((t) => ({ value: t, label: t })),
+  }));
+  const known = new Set(categories.flatMap((c) => c.types.map((t) => t.toLowerCase())));
+  const knownBase = new Set(
+    categories.flatMap((c) => c.types.map((t) => t.split(" / ")[0].toLowerCase())),
+  );
+  const extra = Array.from(new Set(backendTypes.map((t) => t?.trim()).filter(Boolean))).filter(
+    (t) => !known.has(t.toLowerCase()) && !knownBase.has(t.toLowerCase()),
+  );
+  if (extra.length) groups.push({ label: "Other", options: extra.map((t) => ({ value: t, label: t })) });
+  return groups;
+}
