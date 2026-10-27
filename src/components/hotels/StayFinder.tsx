@@ -119,10 +119,6 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
           {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           AI Search
         </Button>
-        <Button type="button" variant={open ? "secondary" : "outline"} className={`h-10 gap-2 ${open ? "text-secondary-foreground" : "text-foreground"}`} aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
-          <SlidersHorizontal className="h-4 w-4" />
-          Filters{activeCount ? ` (${activeCount})` : ""}
-        </Button>
       </form>
 
       {open && (
