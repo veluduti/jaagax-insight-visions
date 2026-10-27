@@ -27,11 +27,7 @@ describe("buildPropertyKindOptions", () => {
 
   it("ignores empty and missing types", () => {
     const options = buildPropertyKindOptions([{ type: null }, { type: "  " }, {}]);
-    expect(options).toEqual([
-      { value: "any", label: "All Types" },
-      { value: "Apartment", label: "Apartment" },
-      { value: "Villa", label: "Villa" },
-    ]);
+    expect(options).toEqual(FALLBACK_PROPERTY_KINDS);
   });
 
   it("falls back to the static list when the backend has no types", () => {
