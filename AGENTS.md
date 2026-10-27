@@ -40,3 +40,4 @@
 - Resorts discovery is a mode of the Hotels page (`/resorts` → `/hotels?types=resort`); resort categories come only from partner-saved `partner_hotels.type_details.resort_types` via `src/lib/resortDiscovery.ts`, so filters/counts never use invented data.
 - Service Apartments discovery is a mode of the Hotels page (`/hotels?types=serviced_apartment`, categories in `rtype`); categories are derived in `src/lib/apartmentDiscovery.ts` from partner rooms/amenities/monthly prices only, so counts never use invented data.
 - PG/Hostels discovery is a Hotels page mode (`/hotels?types=pg,hostel`, categories in `rtype`) derived in `src/lib/pgDiscovery.ts` from partner-saved gender/type details and rooms only.
+- PG search stores rental plan, integer duration and occupants in URL parameters and converts them to calendar-month or weekly dates for the existing matching service; weekly choices require partner weekly pricing, and quote/reserve RPCs remain authoritative for booking.
