@@ -22,7 +22,19 @@ import { Button } from "@/components/ui/button";
 import { POPULAR_AREAS } from "@/config/popularAreas";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { buildPropertyKindOptions, FALLBACK_PROPERTY_KINDS } from "./propertyKindOptions";
+import { buildPropertyKindGroups } from "./propertyKindOptions";
+import { getPropertyFlow } from "@/config/propertyFlows";
+
+const PROPERTY_KIND_CATEGORIES = [
+  { label: "🏠 Residential", id: "residential", field: "property_type" },
+  { label: "🏢 Commercial", id: "commercial", field: "property_type" },
+  { label: "📐 Plots / Land", id: "plots", field: "plot_type" },
+  { label: "🌾 Agricultural", id: "agriculture", field: "agricultural_land_type" },
+  { label: "💼 Co-working", id: "coworking", field: "shared_space_type" },
+].map((c) => ({
+  label: c.label,
+  types: ((getPropertyFlow(c.id as any)?.fields as any)?.[c.field]?.options as string[]) || [],
+}));
 
 const INTENTS = [
   { color: "", key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
@@ -84,7 +96,7 @@ const HeroSearchPanel = () => {
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [propertyPurpose, setPropertyPurpose] = useState("buy");
   const [propertyKind, setPropertyKind] = useState("any");
-  const [propertyKinds, setPropertyKinds] = useState(FALLBACK_PROPERTY_KINDS);
+  const [propertyKinds, setPropertyKinds] = useState(() => buildPropertyKindGroups(PROPERTY_KIND_CATEGORIES));
   const [propertyLocation, setPropertyLocation] = useState("");
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
@@ -108,7 +120,7 @@ const HeroSearchPanel = () => {
         .select("type")
         .not("type", "is", null);
       if (cancelled || !data) return;
-      setPropertyKinds(buildPropertyKindOptions(data as Array<{ type: string | null }>));
+      setPropertyKinds(buildPropertyKindGroups(PROPERTY_KIND_CATEGORIES, (data as Array<{ type: string | null }>).map((r) => r.type || "")));
     })();
     return () => {
       cancelled = true;
@@ -245,11 +257,16 @@ const HeroSearchPanel = () => {
               <select
                 value={propertyKind}
                 onChange={(e) => setPropertyKind(e.target.value)}
-                className="bg-transparent text-sm font-medium text-foreground outline-none"
+                className="max-w-[11rem] bg-transparent text-sm font-medium text-foreground outline-none"
                 aria-label="Property type"
               >
-                {propertyKinds.map((k) => (
-                  <option key={k.value} value={k.value}>{k.label}</option>
+                <option value="any">All Types</option>
+                {propertyKinds.map((g) => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.options.map((k) => (
+                      <option key={`${g.label}-${k.value}`} value={k.value}>{k.label}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </label>
