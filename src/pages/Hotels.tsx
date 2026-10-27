@@ -1560,7 +1560,7 @@ const Hotels = () => {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground w-full px-3 h-12 shadow-md hover:shadow-lg transition-all flex-shrink-0"
                     >
                       <Search className="h-4 w-4 mr-2" />
-                              {colivingMode ? <span className="whitespace-normal text-xs leading-tight">Search Co-living Spaces</span> : pgMode ? "Search PGs / Hostels" : "Search Stays"}
+                              {colivingMode ? <span className="whitespace-normal text-xs leading-tight">Search Co-living Spaces</span> : pgMode ? "Search PGs / Hostels" : luxuryMode ? "Search Luxury Stays" : "Search Stays"}
                     </Button>
                   </div>
                 </div>
@@ -1572,7 +1572,7 @@ const Hotels = () => {
             {/* AI search + filters on the green hero */}
             <StayFinder
               value={stayFilters}
-              hideTypeTags={pgMode}
+              hideTypeTags={pgMode || luxuryMode}
               onChange={onStayFiltersChange}
               onAiIntent={applyAiIntent}
               detectCity={(text) => {
