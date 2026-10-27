@@ -170,6 +170,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
     );
   }
 
+  // Homepage shows a single row only; the rest are reachable via "View All Properties".
+  const visible = properties.slice(0, 4);
+
   return (
     <section className="section-spacing relative" id="properties">
       <div className="container mx-auto container-padding">
@@ -195,8 +198,8 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {properties.map((property: any, index: number) => {
+        <div className="flex snap-x gap-6 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0">
+          {visible.map((property: any, index: number) => {
             const attributes = pickAttributes(property);
             const price = formatPrice(property.price);
             const hasImage =
@@ -211,7 +214,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                 viewport={{ once: true }}
                 transition={{ delay: Math.min(index * 0.06, 0.4), duration: 0.45 }}
                 onClick={() => openProperty(property)}
-                className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card cursor-pointer shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.18)] hover:border-primary/30 transition-all duration-500"
+                className="group relative flex h-full w-[280px] min-w-[280px] snap-start flex-col overflow-hidden rounded-2xl border border-border/60 bg-card cursor-pointer shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.18)] hover:border-primary/30 transition-all duration-500 md:w-auto md:min-w-0"
               >
                 {/* HERO IMAGE — fixed aspect ratio for uniformity */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
