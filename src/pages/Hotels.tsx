@@ -1257,7 +1257,7 @@ const Hotels = () => {
 
             {/* Advanced Search Bar */}
             <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
-              <div className="mb-3 flex items-center gap-3"><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
+              <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
                 <div ref={searchRef} className="relative col-span-2 lg:col-span-1">
@@ -1550,7 +1550,7 @@ const Hotels = () => {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground w-full px-3 h-12 shadow-md hover:shadow-lg transition-all flex-shrink-0"
                     >
                       <Search className="h-4 w-4 mr-2" />
-                              {colivingMode ? "Search Co-living Spaces" : pgMode ? "Search PGs / Hostels" : "Search Stays"}
+                              {colivingMode ? <span className="whitespace-normal text-xs leading-tight">Search Co-living Spaces</span> : pgMode ? "Search PGs / Hostels" : "Search Stays"}
                     </Button>
                   </div>
                 </div>
@@ -1653,7 +1653,7 @@ const Hotels = () => {
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 {searchQuery
                   ? `No results found for "${searchQuery}"`
-                  : "We couldn't find any hotels matching your criteria."}
+                  : "No partner stays match these dates and filters."}
                 Try adjusting your filters or search for a different city.
               </p>
               <Button
@@ -1744,7 +1744,7 @@ const Hotels = () => {
             </>
           )}
             </div>
-            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{pgMode && !colivingMode && <div className="mt-4"><WhyBookPgs /></div>}{resortMode && <div className="mt-4 space-y-4"><WhyBookResorts /><RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
+            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels.map(h => ({ ...h, ...(pgMode ? { rental_price: rentalPrices[h.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }))} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{pgMode && !colivingMode && <div className="mt-4"><WhyBookPgs /></div>}{resortMode && <div className="mt-4 space-y-4"><WhyBookResorts /><RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
           </div>
         </div>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile rentalPeriod={pgMode ? (pgPlan === "weekly" ? "week" : "month") : undefined} budgetMax={pgMode ? rentalBudgetMax : 20000} value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={colivingMode ? <ColivingTypeFilter selected={resortTypes} counts={resortCounts} onSelect={setResortTypes} /> : resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : pgMode ? <PgTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} /></SheetContent></Sheet>
