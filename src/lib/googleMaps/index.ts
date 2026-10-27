@@ -1,5 +1,6 @@
 export { loadGoogleMaps } from "./loader";
 export {
+  ensurePlacesLibrary,
   createSessionToken,
   fetchAutocompleteSuggestions,
   fetchPlaceDetails,

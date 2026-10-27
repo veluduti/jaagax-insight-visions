@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import GoogleMapPicker from "@/components/location/GoogleMapPicker";
-import { loadGoogleMaps, createSessionToken, fetchAutocompleteSuggestions, fetchPlaceDetails } from "@/lib/googleMaps";
+import { ensurePlacesLibrary, createSessionToken, fetchAutocompleteSuggestions, fetchPlaceDetails } from "@/lib/googleMaps";
 import { Search } from "lucide-react";
 import { INDIAN_CITIES } from "@/data/indianCities";
 
@@ -970,7 +970,7 @@ function MapSearchBox({ onPick }: { onPick: (loc: any) => void }) {
   useEffect(() => {
     (async () => {
       try {
-        await loadGoogleMaps();
+        await ensurePlacesLibrary();
         setSessionToken(createSessionToken());
       } catch (e) {
         console.warn("[MapSearchBox] gmaps load failed", e);

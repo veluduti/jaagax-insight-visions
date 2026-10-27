@@ -9,10 +9,20 @@ import type { AutocompleteSuggestionItem, NormalizedLocation } from "./types";
 
 const detailsCache = new Map<string, NormalizedLocation>();
 
+/** Make sure the Places library is loaded before touching its classes. */
+export async function ensurePlacesLibrary(): Promise<any> {
+  const google = await loadGoogleMaps();
+  await google.maps.importLibrary("places");
+  return google;
+}
+
 /** Stable per-session token. Re-create after each Place selection. */
 export function createSessionToken(): any {
-  // Cast through any so we don't pull google.maps types into module load.
-  return new (window as any).google.maps.places.AutocompleteSessionToken();
+  // The Places library loads asynchronously. If it isn't ready yet we run
+  // without a session token instead of crashing the page.
+  const Token = (window as any).google?.maps?.places?.AutocompleteSessionToken;
+  if (typeof Token !== "function") return null;
+  return new Token();
 }
 
 export async function fetchAutocompleteSuggestions(
@@ -21,13 +31,13 @@ export async function fetchAutocompleteSuggestions(
   options?: { country?: string | string[] },
 ): Promise<AutocompleteSuggestionItem[]> {
   if (!input || input.trim().length < 2) return [];
-  await loadGoogleMaps();
+  await ensurePlacesLibrary();
   const { AutocompleteSuggestion } = (await (window as any).google.maps.importLibrary("places")) as any;
 
   const request: any = {
     input: input.trim(),
-    sessionToken,
   };
+  if (sessionToken) request.sessionToken = sessionToken;
   if (options?.country) {
     request.includedRegionCodes = Array.isArray(options.country) ? options.country : [options.country];
   }
