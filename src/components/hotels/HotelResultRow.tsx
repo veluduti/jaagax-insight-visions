@@ -83,7 +83,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
       <div className="p-3 md:pr-0">
         {media("h-40 md:h-[150px]")}
         {images.length > 1 && <div className="mt-2 grid grid-cols-4 gap-1.5">
-          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`h-11 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
+          {images.slice(0, 4).map((src, i) => <Button key={src + i} variant="ghost" onClick={() => setPhoto(i)} aria-label={`Show photo ${i + 1} of ${hotel.name}`} aria-pressed={i === photo} className={`relative h-11 min-h-0 overflow-hidden rounded-md border p-0 ${i === photo ? "border-primary ring-1 ring-primary" : "border-border"}`}>
             <img src={src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
           </Button>)}
         </div>}
