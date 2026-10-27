@@ -72,7 +72,6 @@
 @media (max-width: 767px) {
   .register-card { padding: 28px 22px; border-radius: 18px; }
   .register-cta .register-cta-arrow { position: static; margin-left: 10px; }
-}
   .auth-header { padding: 22px 20px; }
   .auth-header nav { gap: 8px; font-size: 11px; }
   .auth-header nav a + a { padding-left: 8px; }
