@@ -1,3 +1,4 @@
+import * as React from "react";
 import { HOSPITALITY_CATEGORIES, STAY_PREFERENCES, AMENITY_CHIPS } from "@/config/hospitalityCategories";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,9 +51,17 @@ export function HotelDiscoveryFilters({ value, onChange, stars, onStarsChange, a
     <div className="space-y-5">
       <div><h3 className="mb-2 flex items-center gap-2 text-xs font-semibold"><MapPin className="h-3.5 w-3.5" />City / Area</h3><select aria-label="Filter by area" className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs" value={selectedArea || ""} onChange={e => onAreaChange(e.target.value || null)}><option value="">All areas</option>{areas.map(a => <option key={a.name} value={a.name}>{a.name}{a.count ? ` (${a.count})` : ""}</option>)}</select></div>
       <div><h3 className="mb-3 text-xs font-semibold">Price range (per night)</h3><Slider aria-label="Maximum nightly budget" min={500} max={20000} step={500} value={[value.maxPrice ?? 20000]} onValueChange={([price]) => onChange({ ...value, maxPrice: price >= 20000 ? null : price })} /><div className="mt-2 flex justify-between text-xs text-muted-foreground"><span>₹500</span><span>{value.maxPrice ? `₹${value.maxPrice.toLocaleString("en-IN")}` : "Any budget"}</span></div></div>
-      <div><h3 className="mb-2 text-xs font-semibold">Star rating</h3><div className="space-y-2">{[5, 4, 3, 2, 1].map(s => <label key={s} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox checked={stars.includes(s)} onCheckedChange={() => onStarsChange(stars.includes(s) ? stars.filter(x => x !== s) : [...stars, s])} /><span className="flex gap-0.5">{Array.from({ length: s }, (_, i) => <Star key={i} className="h-3 w-3 fill-primary text-primary" />)}</span><span>{s} Star</span></label>)}</div></div>
-      <div><h3 className="mb-2 text-xs font-semibold">Property type</h3><div className="space-y-2">{HOSPITALITY_CATEGORIES.filter(c => c.key !== "other").map(c => <label key={c.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox checked={value.types.includes(c.key)} onCheckedChange={() => toggle("types", c.key)} /><span aria-hidden>{c.emoji}</span>{c.label}</label>)}</div></div>
-      <div><h3 className="mb-2 text-xs font-semibold">Amenities</h3><div className="grid grid-cols-2 gap-2">{AMENITY_CHIPS.map(a => <label key={a.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox checked={value.amenities.includes(a.key)} onCheckedChange={() => toggle("amenities", a.key)} />{a.label}</label>)}</div></div>
+      <div><h3 className="mb-2 text-xs font-semibold">Star rating</h3><div className="space-y-2">{[5, 4, 3, 2, 1].map(s => <label key={s} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={stars.includes(s)} onCheckedChange={() => onStarsChange(stars.includes(s) ? stars.filter(x => x !== s) : [...stars, s])} /><span className="flex gap-0.5">{Array.from({ length: s }, (_, i) => <Star key={i} className="h-3 w-3 fill-primary text-primary" />)}</span><span>{s} Star</span></label>)}</div></div>
+      <div><h3 className="mb-2 text-xs font-semibold">Property type</h3><div><ViewMore items={HOSPITALITY_CATEGORIES.filter(c => c.key !== "other")} render={c => <label key={c.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={value.types.includes(c.key)} onCheckedChange={() => toggle("types", c.key)} /><span aria-hidden>{c.emoji}</span>{c.label}</label>} /></div></div>
+      <div><h3 className="mb-2 text-xs font-semibold">Amenities</h3><div><ViewMore grid items={AMENITY_CHIPS} render={a => <label key={a.key} className="flex cursor-pointer items-center gap-2 text-xs"><Checkbox className="!rounded-[3px]" checked={value.amenities.includes(a.key)} onCheckedChange={() => toggle("amenities", a.key)} />{a.label}</label>} /></div></div>
     </div>
   </aside>;
+}
+function ViewMore<T extends { key: string }>({ items, render, grid = false, limit = 6 }: { items: readonly T[]; render: (item: T) => React.ReactNode; grid?: boolean; limit?: number }) {
+  const [open, setOpen] = React.useState(false);
+  const shown = open ? items : items.slice(0, limit);
+  return <>
+    <div className={grid ? "grid grid-cols-2 gap-2" : "space-y-2"}>{shown.map(i => <React.Fragment key={i.key}>{render(i)}</React.Fragment>)}</div>
+    {items.length > limit && <button type="button" className="mt-2 text-xs font-semibold text-primary hover:underline" onClick={() => setOpen(o => !o)}>{open ? "View less" : `View more (${items.length - limit})`}</button>}
+  </>;
 }
