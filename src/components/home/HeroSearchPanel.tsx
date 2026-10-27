@@ -31,16 +31,6 @@ const INTENTS = [
   { color: "text-primary", key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
 ];
 
-
-const PROPERTY_KINDS = [
-  { value: "any", label: "All Types" },
-  { value: "Apartment", label: "Apartment" },
-  { value: "Villa", label: "Villa" },
-  { value: "Independent House", label: "House" },
-  { value: "Plot", label: "Plot" },
-  { value: "Office Space", label: "Office" },
-];
-
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
 
 interface CounterRowProps {
