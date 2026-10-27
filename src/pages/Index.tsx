@@ -1,6 +1,8 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import { useLocation } from "@/contexts/LocationContext";
 import PromotedListings from "@/components/home/PromotedListings";
 import StatsStrip from "@/components/home/StatsStrip";
 import ExploreJaaga from "@/components/home/ExploreJaaga";
