@@ -44,6 +44,9 @@ export function usePlacesAutocomplete(input: string, options: Options = {}) {
         const token = await ensureSession();
         const items = await fetchAutocompleteSuggestions(trimmed, token, { country });
         if (myId === reqIdRef.current) setSuggestions(items);
+      } catch {
+        // Suggestions are an enhancement — never let a maps failure break the page.
+        if (myId === reqIdRef.current) setSuggestions([]);
       } finally {
         if (myId === reqIdRef.current) setLoading(false);
       }
