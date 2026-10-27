@@ -34,3 +34,4 @@
 - Homepage is the Jaaga reference layout: `Hero` (resort banner + `HeroSearchPanel` intent/search card) then `StatsStrip`, `ExploreJaaga`, `FeaturedStays`, `JourneyBanners`, `FeaturedProperties`, `HowItWorks`, `HomeReviews`, `TrustStatements`, dark `Footer` — all under `src/components/home/`; stats/reviews/stays render only from real DB rows (no fabricated numbers), and hero search deep-links to `/hotels?city=&checkin=&checkout=&guests=`.
 
 - Hotel discovery keeps the existing Hotels state and booking handlers, with separate date and live-map presentation components; map markers use saved coordinates only and share filtered results, preventing fabricated locations or duplicate search services.
+- Auth presentation uses scoped `auth-page.css` tokens and scenery while retaining existing authentication handlers, so sign-in styling changes cannot alter global themes or account behavior.
