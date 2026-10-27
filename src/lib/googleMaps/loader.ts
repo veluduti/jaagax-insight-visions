@@ -6,9 +6,9 @@
  * await the same promise.
  *
  * The browser key is `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` and is
- * referrer-restricted to *.lovable.app / *.lovableproject.com (and any custom
- * domain the user later configures in Google Cloud). It is only authorized
- * for Maps JS + Places API (New) browser surfaces. Server-side APIs
+ * referrer-restricted to *.lovable.app / *.lovableproject.com for managed keys.
+ * Custom domains require user-owned credentials configured in Google Cloud.
+ * It is used only for map rendering. Places and other server-side APIs
  * (Geocoding, Routes, etc.) must go through the connector gateway.
  */
 
@@ -57,7 +57,6 @@ export function loadGoogleMaps(): Promise<any> {
     const params = new URLSearchParams({
       key: browserKey,
       v: "weekly",
-      libraries: "places",
       loading: "async",
       callback: CALLBACK_NAME,
     });

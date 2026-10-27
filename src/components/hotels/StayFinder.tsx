@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Loader2, X, SlidersHorizontal, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
   const [aiText, setAiText] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [open, setOpen] = useState(false);
+  useEffect(() => { const handler = (event: Event) => { setAiText(String((event as CustomEvent).detail)); }; window.addEventListener("jaaga-stay-ai-prompt", handler); return () => window.removeEventListener("jaaga-stay-ai-prompt", handler); }, []);
 
   const toggle = (k: keyof Pick<StayFilters, "types" | "prefs" | "amenities">, v: string) => {
     const list = value[k];
@@ -97,7 +98,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
   const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0) + (selectedArea ? 1 : 0);
 
   return (
-    <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3 text-card-foreground shadow-sm md:p-4">
+    <div className="space-y-3 rounded-lg border border-primary/20 bg-accent p-2 text-card-foreground">
       {/* AI intent search */}
       <form
         onSubmit={(e) => { e.preventDefault(); runAi(); }}
@@ -110,15 +111,15 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
             aria-label="Describe your stay"
             onChange={(e) => setAiText(e.target.value)}
             placeholder='Describe your stay — e.g. "Pool villa in Delhi for 4 people, preferably with breakfast"'
-            className="h-11 pl-9 text-foreground"
+            className="h-10 bg-card pl-9 text-foreground"
             maxLength={500}
           />
         </div>
-        <Button type="submit" disabled={aiBusy} className="h-11 gap-2">
+        <Button type="submit" disabled={aiBusy} className="h-10 gap-2">
           {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           AI Search
         </Button>
-        <Button type="button" variant={open ? "secondary" : "outline"} className={`h-11 gap-2 ${open ? "text-secondary-foreground" : "text-foreground"}`} aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
+        <Button type="button" variant={open ? "secondary" : "outline"} className={`h-10 gap-2 ${open ? "text-secondary-foreground" : "text-foreground"}`} aria-expanded={open} aria-controls="stay-filter-options" onClick={() => setOpen((o) => !o)}>
           <SlidersHorizontal className="h-4 w-4" />
           Filters{activeCount ? ` (${activeCount})` : ""}
         </Button>
