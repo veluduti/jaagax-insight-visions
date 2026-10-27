@@ -437,15 +437,16 @@ const Hotels = () => {
     fetchData();
   }, []);
 
-  // Auto-set city from detected location
+  // Auto-show hotels for the user's saved location before they search (once per visit)
+  const autoCityAppliedRef = useRef(false);
   useEffect(() => {
-    if (detectedLocation?.city && !searchParams.get("city")) {
-      const matchedCity = popularLocations.find((c) => c.toLowerCase() === detectedLocation.city.toLowerCase());
-      if (matchedCity) {
-        setSelectedCity(matchedCity);
-        setSearchQuery(matchedCity);
-      }
-    }
+    if (autoCityAppliedRef.current) return;
+    const city = detectedLocation?.city?.trim();
+    if (!city || searchParams.get("city")) return;
+    autoCityAppliedRef.current = true;
+    const matchedCity = popularLocations.find((c) => c.toLowerCase() === city.toLowerCase()) || city;
+    setSelectedCity(matchedCity);
+    setSearchQuery(matchedCity);
   }, [detectedLocation]);
 
   // Get suggestions based on search query - IMPROVED to match image 1 style
