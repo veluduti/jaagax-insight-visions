@@ -81,6 +81,7 @@ import { CorporateCategoryTiles, CorporateTypeFilter, WhyBookCorporate } from "@
 import { isCorporateProperty, corporateTypesOf, matchesCorporateTypes, countCorporateTypes } from "@/lib/corporateDiscovery";
 import { LuxuryCategoryTiles, LuxuryTypeFilter, WhyBookLuxury } from "@/components/hotels/LuxuryDiscovery";
 import { isLuxuryProperty, luxuryTypesOf, matchesLuxuryTypes, countLuxuryTypes } from "@/lib/luxuryDiscovery";
+import corporateHero from "@/assets/corporate-hero.jpg";
 import luxuryHero from "@/assets/resort-luxury.jpg";
 import { ResortCategoryTiles, ResortTypeFilter, WhyBookResorts, RecentlyViewedResorts } from "@/components/hotels/ResortDiscovery";
 import resortHero from "@/assets/home-hero-resort.jpg";
@@ -1230,7 +1231,7 @@ const Hotels = () => {
 
       <main className="relative z-0 flex-1">
         <section className="relative pb-4">
-          <img src={colivingMode ? colivingHero : luxuryMode ? luxuryHero : resortMode ? resortHero : aptMode ? aptHero : pgMode ? pgHero : hotelBanner} alt={colivingMode ? "Illustrative co-living community lounge" : "Stay discovery banner"} width={1920} height={640} className="absolute inset-x-0 top-0 h-[300px] w-full object-cover" />
+          <img src={colivingMode ? colivingHero : corporateMode ? corporateHero : luxuryMode ? luxuryHero : resortMode ? resortHero : aptMode ? aptHero : pgMode ? pgHero : hotelBanner} alt={colivingMode ? "Illustrative co-living community lounge" : "Stay discovery banner"} width={1920} height={640} className="absolute inset-x-0 top-0 h-[300px] w-full object-cover" />
           <div className="hotel-banner-shade absolute inset-x-0 top-0 h-[300px]" />
           <div className="relative mx-auto w-full max-w-[1600px] px-4 pt-8 lg:px-8">
             <div className="mb-4 flex items-center justify-between gap-4 text-primary-foreground">
