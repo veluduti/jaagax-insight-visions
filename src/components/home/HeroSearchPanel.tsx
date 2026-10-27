@@ -211,29 +211,6 @@ const HeroSearchPanel = () => {
       {/* Properties card — shown when the Properties intent is active */}
       {intent === "properties" && (
         <div className="mt-1">
-          {/* Tab row */}
-          <div className="flex flex-wrap items-center gap-1 overflow-x-auto no-scrollbar">
-            {PROPERTY_TABS.map((t) => {
-              const Icon = t.icon;
-              const active = t.key === "properties";
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => (t.intent ? setIntent(t.intent) : navigate(t.path ?? "/"))}
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
 
           {/* Buy / Rent / Invest + property type */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
