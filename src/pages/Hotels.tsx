@@ -1503,6 +1503,7 @@ const Hotels = () => {
             {/* AI search + filters on the green hero */}
             <StayFinder
               value={stayFilters}
+              hideTypeTags={pgMode}
               onChange={onStayFiltersChange}
               onAiIntent={applyAiIntent}
               detectCity={(text) => {
