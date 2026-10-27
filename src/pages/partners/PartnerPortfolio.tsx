@@ -18,6 +18,7 @@ import {
   type PartnerAccount, type PartnerBusiness, type PartnerProperty, type QualityReport,
 } from "@/services/hospitality/partnerService";
 import { setupFieldsFor } from "@/config/hospitalityCategories";
+import { RESORT_TYPES, resortTypesOf } from "@/lib/resortDiscovery";
 
 const CHECK_LABELS: Record<string, string> = {
   business: "Business linked", property: "Name & description (40+ chars)", location: "Map location",
@@ -134,6 +135,22 @@ export default function PartnerPortfolio() {
                   </div>
                   <div><Label>Property types</Label><p className="pt-2 text-sm">{(p.business_types ?? []).join(", ") || "Set in Hotel Profile"}</p></div>
                 </div>
+
+                {(p.business_types ?? []).some((t) => t.toLowerCase() === "resort") && (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Resort categories <span className="font-normal text-muted-foreground">(customers filter resorts by these)</span></p>
+                    <div className="flex flex-wrap gap-2">
+                      {RESORT_TYPES.map((t) => {
+                        const cur = resortTypesOf(p);
+                        const on = cur.includes(t.key);
+                        return <Button key={t.key} type="button" size="sm" variant={on ? "default" : "outline"} className="h-8 rounded-full text-xs" aria-pressed={on} onClick={async () => {
+                          const next = on ? cur.filter((k) => k !== t.key) : [...cur, t.key];
+                          try { await saveTypeDetails(p.id, { ...details, resort_types: next }); toast.success("Resort categories saved"); load(); } catch (e: any) { toast.error(e.message); }
+                        }}>{t.label}</Button>;
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {q && (
                   <div>
