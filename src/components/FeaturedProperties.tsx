@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Heart,
   Bed,
   Bath,
   Maximize,
+  ArrowRight,
+
   MapPin,
   ShieldCheck,
   Image as ImageIcon,
