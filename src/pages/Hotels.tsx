@@ -91,6 +91,7 @@ import type { RentPlan } from "@/lib/longStayPricing";
 import colivingHero from "@/assets/coliving-hero.jpg";
 import { isColivingProperty, colivingTypesOf, rentalDiscoveryPrice } from "@/lib/colivingDiscovery";
 import { ColivingCategoryTiles, ColivingTypeFilter } from "@/components/hotels/ColivingDiscovery";
+import { loadDiscoveryAvailability } from "@/services/hospitality/discoveryAvailabilityService";
 
 interface RoomFeature {
   kind: string;
@@ -729,6 +730,21 @@ const Hotels = () => {
     });
   };
 
+  const [dateAvailability, setDateAvailability] = useState<Record<string, number> | null>(null);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [availabilityRetry, setAvailabilityRetry] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    setDateAvailability(null);
+    setAvailabilityError(false);
+    const timer = setTimeout(() => {
+      loadDiscoveryAvailability(rawRooms.map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd"))
+        .then(counts => { if (!cancelled) setDateAvailability(counts); })
+        .catch(() => { if (!cancelled) setAvailabilityError(true); });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [rawRooms, checkIn, checkOut, availabilityRetry]);
+
   // Filter and sort hotels
   const searchOutcome = useMemo(() => {
     // When the box shows a picked city/area label, the city+locality filters do the work.
@@ -759,7 +775,7 @@ const Hotels = () => {
 
       // Occupancy: hotel must have room(s) that can actually host the guests,
       // either a single fitting room or a valid multi-room combination.
-      const hotelRooms = roomsByHotel[hotel.id] || [];
+      const hotelRooms = (roomsByHotel[hotel.id] || []).map(r => ({ ...r, available: dateAvailability?.[r.id] ?? 0 }));
       const matchesOccupancy =
         hotelRooms.length === 0
           ? false
@@ -847,6 +863,7 @@ const Hotels = () => {
     roomFeatures,
     profile,
     pgMode, pgPlan, rawRooms,
+    dateAvailability,
   ]);
   // Per-hotel presentation meta. Every value is derived from data a partner or
   // guest actually entered; missing data stays null/false and the row hides it.
@@ -939,6 +956,7 @@ const Hotels = () => {
       if (!want.some((w) => w === roomType || (kind !== "room" && w === kind))) return;
       const text = JSON.stringify([r.room_type, r.amenities, r.attributes, r.description]).toLowerCase();
       if (!stayFilters.amenities.every((a) => amenityMatch(text, a))) return;
+      if (!dateAvailability?.[r.id]) return;
       if (stayFilters.maxPrice && Number(r.base_price) > 0 && Number(r.base_price) > stayFilters.maxPrice) return;
       const name = r.room_name || h.name;
       const area = r.attributes?.area || h.locality || "";
@@ -975,7 +993,7 @@ const Hotels = () => {
     if (!out.length && want.includes("hotel")) return null;
     return out.sort((a, b) => a.price - b.price);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredAndSortedHotels, rawRooms, searchParams]);
+  }, [filteredAndSortedHotels, rawRooms, searchParams, dateAvailability]);
   const bookListing = (l: StayListing) => {
     setOpenListing(null);
     if (l.longStay) {
@@ -1626,7 +1644,7 @@ const Hotels = () => {
               </div>
           <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
           {/* Hotels Grid */}
-          {filteredAndSortedHotels.length === 0 ? (
+          {availabilityError ? <div role="alert" className="py-12 text-center"><p className="text-sm text-muted-foreground">Availability could not be checked. Please try again.</p><Button variant="outline" className="mt-3" onClick={() => setAvailabilityRetry(n => n + 1)}>Try again</Button></div> : loading || dateAvailability === null ? <p role="status" className="py-12 text-center text-sm text-muted-foreground">Checking available stays…</p> : filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-card rounded-2xl shadow-sm border border-border/50">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Hotel className="h-10 w-10 text-muted-foreground" />
