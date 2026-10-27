@@ -68,7 +68,10 @@ import {
 } from "@/lib/locationAutocomplete";
 import { POPULAR_AREAS } from "@/config/popularAreas";
 import { isSameCity } from "@/lib/cityNormalizer";
-import hotelBanner from "@/assets/hotel-discovery-banner.jpg";
+import hotelBanner from "@/assets/stays-reference-hero.jpg";
+import StayDatePicker from "@/components/hotels/StayDatePicker";
+import HotelDiscoveryMap, { type HotelMapBounds } from "@/components/hotels/HotelDiscoveryMap";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StayCategoryTabs, StayIntentStrip, HotelDiscoveryFilters } from "@/components/hotels/HotelDiscoveryControls";
 import HotelResultRow from "@/components/hotels/HotelResultRow";
 import { List, LayoutGrid } from "lucide-react";
@@ -120,6 +123,8 @@ interface PartnerHotel {
   is_active: boolean | null;
   business_types?: string[] | null;
   description?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface VisitPackage {
@@ -202,7 +207,8 @@ const Hotels = () => {
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
   const [quickVisitPackage, setQuickVisitPackage] = useState<VisitPackage | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem("jaaga_saved_hotels") || "[]"); } catch { return []; } });
+  useEffect(() => { localStorage.setItem("jaaga_saved_hotels", JSON.stringify(favorites)); }, [favorites]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -236,7 +242,12 @@ const Hotels = () => {
   const [childAges, setChildAges] = useState<ChildAge[]>([]);
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [resultSort, setResultSort] = useState("recommended");
-  const [gridView, setGridView] = useState(false);
+  const [gridView, setGridView] = useState(true);
+  const [mapView, setMapView] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mapSelectedId, setMapSelectedId] = useState<string | null>(null);
+  const [mapBounds, setMapBounds] = useState<HotelMapBounds | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [showChildAgeSelector, setShowChildAgeSelector] = useState(false);
@@ -773,12 +784,12 @@ const Hotels = () => {
     profile,
   ]);
   const filteredAndSortedHotels = useMemo(() => {
-    const list = [...searchOutcome.list];
+    const list = searchOutcome.list.filter(h => (!savedOnly || favorites.includes(h.id)) && (!mapBounds || (h.latitude != null && h.longitude != null && h.latitude >= mapBounds.south && h.latitude <= mapBounds.north && h.longitude >= mapBounds.west && h.longitude <= mapBounds.east)));
     if (resultSort === "price-low") list.sort((a, b) => a.price_per_night - b.price_per_night);
     if (resultSort === "price-high") list.sort((a, b) => b.price_per_night - a.price_per_night);
     if (resultSort === "rating") list.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
     return list;
-  }, [searchOutcome.list, resultSort]);
+  }, [searchOutcome.list, resultSort, savedOnly, favorites, mapBounds]);
   const currentAreas = Array.from(locationIndex.values()).find(c => isSameCity(c.name, selectedCity))?.localities || [];
   const pickArea = (area: string | null) => {
     const label = area ? `${area}, ${selectedCity}` : selectedCity === "all" ? "" : selectedCity;
@@ -789,7 +800,7 @@ const Hotels = () => {
   };
   const clearDiscoveryFilters = () => {
     setSelectedCity("all"); setSelectedLocality(null); setLocationLabel(""); setSearchQuery("");
-    setSelectedPriceRange("all"); setSelectedStars([]); setSearchParams(new URLSearchParams(), { replace: true });
+    setMapBounds(null); setSavedOnly(false); setSelectedPriceRange("all"); setSelectedStars([]); setSearchParams(new URLSearchParams(), { replace: true });
   };
 
   // When a stay type is searched (e.g. "guest houses"), show each listing of that
@@ -949,28 +960,23 @@ const Hotels = () => {
   const handleAdvancedSearch = () => {
     setShowSuggestions(false);
     const q = searchQuery.trim();
-    const params = new URLSearchParams();
-
-    if (!q) {
-      setSelectedCity("all");
+    const params = new URLSearchParams(searchParams);
+    params.delete("search");
+    if (selectedLocality && q === locationLabel) {
+      params.set("city", selectedCity); params.set("locality", selectedLocality);
     } else {
-      const exactCityHotel = hotels.find((h) => h.city.toLowerCase() === q.toLowerCase());
-      const popularCity = popularLocations.find((c) => c.toLowerCase() === q.toLowerCase());
-      const partialCityHotel = hotels.find((h) => h.city.toLowerCase().includes(q.toLowerCase()));
-
-      const resolvedCity = exactCityHotel?.city || popularCity || partialCityHotel?.city;
-      if (resolvedCity) {
-        setSelectedCity(resolvedCity);
-        params.set("city", resolvedCity);
-      } else {
-        setSelectedCity("all");
-        params.set("search", q);
-      }
+      params.delete("locality"); setSelectedLocality(null);
+      const resolvedCity = hotels.find(h => isSameCity(h.city, q))?.city || popularLocations.find(c => isSameCity(c, q));
+      setSelectedCity(resolvedCity || "all");
+      if (resolvedCity) params.set("city", resolvedCity); else { params.delete("city"); if (q) params.set("search", q); }
     }
-
+    params.set("checkin", format(checkIn, "yyyy-MM-dd"));
+    params.set("checkout", format(checkOut, "yyyy-MM-dd"));
+    params.set("rooms", String(rooms)); params.set("adults", String(adults)); params.set("children", String(children));
     if (selectedPriceRange !== "all") params.set("price", selectedPriceRange);
-    navigate(`/hotels${params.toString() ? `?${params.toString()}` : ""}`);
-    setSearchSubmitToken((n) => n + 1);
+    setSearchParams(params, { replace: true });
+    setMapBounds(null);
+    setSearchSubmitToken(n => n + 1);
   };
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
@@ -979,14 +985,14 @@ const Hotels = () => {
       setSelectedLocality(null);
       setSearchQuery(suggestion.name);
       setLocationLabel(suggestion.name);
-      navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
+      setSearchParams(prev => { const next = new URLSearchParams(prev); next.set("city", suggestion.name); next.delete("locality"); return next; }, { replace: true });
     } else if (suggestion.type === "locality" && suggestion.city) {
       const label = `${suggestion.name}, ${suggestion.city}`;
       setSelectedCity(suggestion.city);
       setSelectedLocality(suggestion.name);
       setSearchQuery(label);
       setLocationLabel(label);
-      navigate(`/hotels?city=${encodeURIComponent(suggestion.city)}&locality=${encodeURIComponent(suggestion.name)}`);
+      setSearchParams(prev => { const next = new URLSearchParams(prev); next.set("city", suggestion.city || ""); next.set("locality", suggestion.name); return next; }, { replace: true });
     } else if (suggestion.type === "hotel" || suggestion.type === "locality") {
       setSelectedLocality(null);
       setSearchQuery(suggestion.name);
@@ -1071,25 +1077,25 @@ const Hotels = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background hotel-discovery">
-      <Navigation />
+      <Navigation hotelDiscovery onHotelWishlist={() => setSavedOnly(v => !v)} />
 
       <main className="relative z-0 flex-1">
-        <section className="relative">
-          <img src={hotelBanner} alt="Beach resort with pool and tropical villas" width={1920} height={512} className="absolute inset-x-0 top-0 h-64 w-full object-cover" />
-          <div className="hotel-banner-shade absolute inset-x-0 top-0 h-64" />
-          <div className="container relative mx-auto max-w-7xl px-4 pt-5">
+        <section className="relative pb-4">
+          <img src={hotelBanner} alt="Beach resort with pool and tropical villas" width={1920} height={640} className="absolute inset-x-0 top-0 h-[300px] w-full object-cover" />
+          <div className="hotel-banner-shade absolute inset-x-0 top-0 h-[300px]" />
+          <div className="relative mx-auto w-full max-w-[1600px] px-4 pt-8 lg:px-8">
             <div className="mb-4 flex items-center justify-between gap-4 text-primary-foreground">
               <div>
-                <Badge className="mb-2 border-0 bg-primary/80 text-primary-foreground"><Trophy className="mr-1 h-3 w-3" />Premium Partner Hotels</Badge>
-                <h1 className="text-2xl font-bold md:text-3xl">Find Your Perfect Stay</h1>
-                <p className="mt-1 text-sm">Hotels, homestays and resorts across India</p>
+                
+                <h1 className="text-3xl font-bold md:text-4xl">Find Your Perfect Stay</h1>
+                <p className="mt-1 text-sm">Hotels, Resorts, Service Apartments, PGs, Hostels, Co-living and unique stays — all on Jaaga.</p>
               </div>
               <Button variant="secondary" onClick={() => navigate("/partners")} className="hidden gap-2 sm:inline-flex"><Handshake className="h-4 w-4" />List your property</Button>
             </div>
 
             {/* Advanced Search Bar */}
-            <div className="relative z-20 rounded-lg border border-border bg-card p-3 text-card-foreground shadow-lg md:p-4">
-              <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />
+            <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
+              <div className="mb-3 flex items-center gap-3"><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
                 <div ref={searchRef} className="relative col-span-2 lg:col-span-1">
@@ -1206,54 +1212,8 @@ const Hotels = () => {
                   </div>
                 </div>
 
-                {/* Check-in */}
-                <div>
-                  <label className="text-xs font-medium text-foreground block mb-1">
-                    <Calendar className="h-3 w-3 inline mr-1 text-muted-foreground" />
-                    Check-In
-                  </label>
-                  <Input
-                    type="date"
-                    aria-label="Check-in"
-                    value={format(checkIn, "yyyy-MM-dd")}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : undefined;
-                      if (!date) return;
-                      setCheckIn(date);
-                      if (checkOut && checkOut.getTime() <= date.getTime()) {
-                        const next = new Date(date);
-                        next.setDate(next.getDate() + 1);
-                        setCheckOut(next);
-                      }
-                    }}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent h-10"
-                    min={format(new Date(), "yyyy-MM-dd")}
-                  />
-                </div>
-
-                {/* Check-out */}
-                <div>
-                  <label className="text-xs font-medium text-foreground block mb-1">
-                    <Calendar className="h-3 w-3 inline mr-1 text-muted-foreground" />
-                    Check-Out
-                  </label>
-                  <Input
-                    type="date"
-                    aria-label="Check-out"
-                    value={format(checkOut, "yyyy-MM-dd")}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : undefined;
-                      if (!date) return;
-                      if (checkIn && date.getTime() <= checkIn.getTime()) {
-                        toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                        return;
-                      }
-                      setCheckOut(date);
-                    }}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent h-10"
-                    min={format(new Date(checkIn.getTime() + 86400000), "yyyy-MM-dd")}
-                  />
-                </div>
+                <div className="flex items-end"><StayDatePicker label="Check-in" value={checkIn} min={new Date()} onChange={date => { setCheckIn(date); if (checkOut <= date) { const out = new Date(date); out.setDate(out.getDate() + 1); setCheckOut(out); } }} /></div>
+                <div className="flex items-end"><StayDatePicker label="Check-out" value={checkOut} min={new Date(checkIn.getTime() + 86400000)} onChange={setCheckOut} /></div>
 
                 {/* Rooms & Guests */}
                 <div ref={guestSelectorRef} className="relative">
@@ -1423,16 +1383,16 @@ const Hotels = () => {
                   <div className="w-full">
                     <Button
                       onClick={handleAdvancedSearch}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground w-full px-3 h-10 shadow-md hover:shadow-lg transition-all flex-shrink-0"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground w-full px-3 h-12 shadow-md hover:shadow-lg transition-all flex-shrink-0"
                     >
                       <Search className="h-4 w-4 mr-2" />
-                      Search Hotels
+                      Search Stays
                     </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-3"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
+              
             </div>
             <div className="mt-3">
             {/* AI search + filters on the green hero */}
@@ -1472,7 +1432,8 @@ const Hotels = () => {
           </div>
         </section>
 
-        <div className="container mx-auto max-w-7xl px-4 py-4">
+        <div className="mx-auto w-full max-w-[1600px] px-4 pb-8 lg:px-8">
+          <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />
           <MyHotelApplicationsBanner />
 
           {recommended.length > 0 && (
@@ -1509,13 +1470,14 @@ const Hotels = () => {
             </div>
           )}
 
-          <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+          <div className="grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[210px_minmax(0,1fr)_340px]">
             <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} />
-            <div className="min-w-0">
+            <div className={`min-w-0 ${mapView ? "hidden xl:block" : ""}`}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="text-lg font-bold">{loading ? "Finding stays…" : `${filteredAndSortedHotels.length} ${filteredAndSortedHotels.length === 1 ? "Hotel" : "Hotels"}`}{selectedCity !== "all" && <span className="font-normal"> in {selectedCity}</span>}</h2><p className="text-xs text-muted-foreground">{format(checkIn, "dd MMM yyyy")} – {format(checkOut, "dd MMM yyyy")} · {getGuestDisplayText()}</p></div>
-                <div className="flex items-center gap-2"><select aria-label="Sort hotels" value={resultSort} onChange={e => setResultSort(e.target.value)} className="h-9 rounded-md border border-input bg-card px-2 text-xs"><option value="recommended">Recommended</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="rating">Star rating</option></select><div className="flex rounded-md border border-border p-0.5"><Button size="icon" variant={!gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="List view" aria-pressed={!gridView} onClick={() => setGridView(false)}><List className="h-4 w-4" /></Button><Button size="icon" variant={gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="Grid view" aria-pressed={gridView} onClick={() => setGridView(true)}><LayoutGrid className="h-4 w-4" /></Button></div></div>
+                <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="lg:hidden" onClick={() => setFiltersOpen(true)}>Filters</Button><Button size="sm" variant={mapView ? "default" : "outline"} onClick={() => setMapView(v => !v)}>{mapView ? "List View" : "Map View"}</Button><select aria-label="Sort hotels" value={resultSort} onChange={e => setResultSort(e.target.value)} className="h-9 rounded-md border border-input bg-card px-2 text-xs"><option value="recommended">Recommended</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="rating">Star rating</option></select><div className="flex rounded-md border border-border p-0.5"><Button size="icon" variant={!gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="List view" aria-pressed={!gridView} onClick={() => setGridView(false)}><List className="h-4 w-4" /></Button><Button size="icon" variant={gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="Grid view" aria-pressed={gridView} onClick={() => setGridView(true)}><LayoutGrid className="h-4 w-4" /></Button></div></div>
               </div>
+          <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
           {/* Hotels Grid */}
           {filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-card rounded-2xl shadow-sm border border-border/50">
@@ -1550,11 +1512,11 @@ const Hotels = () => {
                     No stays of this type match your search yet. Try another city or remove some requirements.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {typeListings.map((l) => (
                       <Card
                         key={l.id}
-                        className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-0 shadow-md transition-shadow hover:shadow-2xl"
+                        className="flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-border shadow-sm transition-shadow hover:shadow-md"
                         onClick={() =>
                           window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer")
                         }
@@ -1606,8 +1568,8 @@ const Hotels = () => {
                   </div>
                 )
               ) : (
-                <div className={gridView ? "grid gap-3 sm:grid-cols-2" : "space-y-3"}>
-                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={hotel} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)} onBook={() => { setBookRoomIds(undefined); setSelectedHotel(hotel); setShowHotelOnlyModal(true); }}>
+                <div className={gridView ? "grid gap-3 sm:grid-cols-2 2xl:grid-cols-3" : "space-y-3"}>
+                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={hotel} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)} onBook={() => { setBookRoomIds(undefined); setSelectedHotel(hotel); setShowHotelOnlyModal(true); }}>
                     {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? <p className="text-xs text-destructive">Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}</p> : null}
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
                     {roomsNeededByHotel[hotel.id] ? <p className="text-xs text-muted-foreground">Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests</p> : null}
@@ -1617,8 +1579,10 @@ const Hotels = () => {
             </>
           )}
             </div>
+            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : "hidden xl:block"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => setMapView(false)}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} /></aside>
           </div>
         </div>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} /></SheetContent></Sheet>
       </main>
 
       <Footer />
