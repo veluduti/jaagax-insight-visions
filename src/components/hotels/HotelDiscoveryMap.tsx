@@ -39,7 +39,8 @@ export default function HotelDiscoveryMap({ hotels, selectedId, onSelect, onDeta
     markers.current = pinned.map(h => {
       const position = { lat: Number(h.latitude), lng: Number(h.longitude) };
       bounds.extend(position);
-      const marker = new google.maps.Marker({ map: map.current, position, title: h.name, label: { text: `₹${h.price_per_night.toLocaleString("en-IN")}`, color: `hsl(${color})`, fontWeight: "700", fontSize: "12px" }, icon: { path: "M -38,-14 L 38,-14 L 38,14 L 6,14 L 0,22 L -6,14 L -38,14 Z", fillColor: getComputedStyle(document.documentElement).getPropertyValue("--card").trim() ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue("--card").trim()})` : "transparent", fillOpacity: 1, strokeColor: `hsl(${color})`, strokeWeight: 2 } });
+      const price = h.rental_period ? h.rental_price : h.price_per_night;
+      const marker = new google.maps.Marker({ map: map.current, position, title: h.name, label: { text: price ? `₹${price.toLocaleString("en-IN")}` : "N/A", color: `hsl(${color})`, fontWeight: "700", fontSize: "12px" }, icon: { path: "M -38,-14 L 38,-14 L 38,14 L 6,14 L 0,22 L -6,14 L -38,14 Z", fillColor: getComputedStyle(document.documentElement).getPropertyValue("--card").trim() ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue("--card").trim()})` : "transparent", fillOpacity: 1, strokeColor: `hsl(${color})`, strokeWeight: 2 } });
       marker.addListener("click", () => selectRef.current(h.id));
       return marker;
     });
