@@ -85,6 +85,9 @@ import { isPgProperty, matchesPgTypes, countPgTypes } from "@/lib/pgDiscovery";
 import { PgCategoryTiles, PgTypeFilter, WhyBookPgs } from "@/components/hotels/PgDiscovery";
 import { isApartmentProperty, matchesApartmentTypes, countApartmentTypes } from "@/lib/apartmentDiscovery";
 import { ApartmentCategoryTiles, ApartmentTypeFilter, WhyBookApartments } from "@/components/hotels/ApartmentDiscovery";
+import PgSearchControls from "@/components/hotels/PgSearchControls";
+import { pgMoveOut, pgRentalPlans } from "@/lib/pgSearch";
+import type { RentPlan } from "@/lib/longStayPricing";
 
 interface RoomFeature {
   kind: string;
@@ -259,7 +262,16 @@ const Hotels = () => {
     return date;
   });
   const [rooms, setRooms] = useState(() => parseCountParam("rooms", 1, 4) ?? 1);
-  const [adults, setAdults] = useState(() => parseCountParam("adults", 1, 10) ?? parseCountParam("guests", 1, 10) ?? 2);
+  const [adults, setAdults] = useState(() => parseCountParam("occupants", 1, 10) ?? parseCountParam("adults", 1, 10) ?? parseCountParam("guests", 1, 10) ?? (pgMode ? 1 : 2));
+  const [pgPlan, setPgPlan] = useState<RentPlan>(() => searchParams.get("plan") === "weekly" ? "weekly" : "monthly");
+  const [pgDuration, setPgDuration] = useState(() => parseCountParam("duration", 1, 60) ?? 1);
+  const pgPlans = useMemo(() => pgRentalPlans(rawRooms.filter(r => customerView(r).kind.longStay)), [rawRooms]);
+  useEffect(() => {
+    if (!pgMode) return;
+    setCheckOut(pgMoveOut(checkIn, pgPlan, pgDuration));
+    setChildren(0);
+    setRooms(1);
+  }, [pgMode, checkIn, pgPlan, pgDuration]);
   const [children, setChildren] = useState(() => parseCountParam("children", 0, 6) ?? 0);
   const [childAges, setChildAges] = useState<ChildAge[]>([]);
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
@@ -1042,6 +1054,10 @@ const Hotels = () => {
     params.set("checkin", format(checkIn, "yyyy-MM-dd"));
     params.set("checkout", format(checkOut, "yyyy-MM-dd"));
     params.set("rooms", String(rooms)); params.set("adults", String(adults)); params.set("children", String(children));
+    if (pgMode) {
+      params.set("checkout", format(pgMoveOut(checkIn, pgPlan, pgDuration), "yyyy-MM-dd"));
+      params.set("plan", pgPlan); params.set("duration", String(pgDuration)); params.set("occupants", String(adults));
+    }
     if (selectedPriceRange !== "all") params.set("price", selectedPriceRange);
     setSearchParams(params, { replace: true });
     setMapBounds(null);
@@ -1299,7 +1315,8 @@ const Hotels = () => {
                   </div>
                 </div>
 
-                <div className="flex items-end"><StayDatePicker label="Check-in" value={checkIn} min={new Date()} onChange={date => { setCheckIn(date); if (checkOut <= date) { const out = new Date(date); out.setDate(out.getDate() + 1); setCheckOut(out); } }} /></div>
+                <div className="flex items-end"><StayDatePicker label={pgMode ? "Move-in Date" : "Check-in"} value={checkIn} min={new Date()} onChange={date => { setCheckIn(date); if (checkOut <= date) { const out = new Date(date); out.setDate(out.getDate() + 1); setCheckOut(out); } }} /></div>
+                {pgMode ? <PgSearchControls plan={pgPlan} plans={pgPlans} duration={pgDuration} occupants={adults} onDuration={(plan, duration) => { setPgPlan(plan); setPgDuration(duration); }} onOccupants={setAdults} /> : <>
                 <div className="flex items-end"><StayDatePicker label="Check-out" value={checkOut} min={new Date(checkIn.getTime() + 86400000)} onChange={setCheckOut} /></div>
 
                 {/* Rooms & Guests */}
@@ -1465,6 +1482,7 @@ const Hotels = () => {
                   )}
                 </div>
 
+                </>}
                 {/* Search */}
                 <div className="flex items-end">
                   <div className="w-full">
@@ -1473,7 +1491,7 @@ const Hotels = () => {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground w-full px-3 h-12 shadow-md hover:shadow-lg transition-all flex-shrink-0"
                     >
                       <Search className="h-4 w-4 mr-2" />
-                      Search Stays
+                      {pgMode ? "Search PGs / Hostels" : "Search Stays"}
                     </Button>
                   </div>
                 </div>
