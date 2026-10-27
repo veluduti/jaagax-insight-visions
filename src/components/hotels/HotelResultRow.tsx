@@ -79,7 +79,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
   // ---- List (wide three-column row) ----
   return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""}`}>
-    <div className="flex flex-col md:grid md:grid-cols-[250px_minmax(0,1fr)_auto]">
+    <div className="flex flex-col md:grid md:grid-cols-[220px_minmax(0,1fr)_190px]">
       <div className="p-3 md:pr-0">
         {media("h-40 md:h-[150px]")}
         {images.length > 1 && <div className="mt-2 grid grid-cols-4 gap-1.5">
@@ -91,7 +91,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
       <div className="flex min-w-0 flex-col gap-2 p-3 md:py-3">
         <div className="flex items-start justify-between gap-2">
-          <Button variant="link" onClick={onDetails} className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-base font-bold text-foreground line-clamp-1">{hotel.name}</Button>
+          <Button variant="link" onClick={onDetails} className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-base font-bold text-foreground line-clamp-2">{hotel.name}</Button>
           {heart}
         </div>
 
@@ -102,7 +102,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3 shrink-0" />
-          <span className="line-clamp-1">{locationText}{hotel.distance_km != null && <span className="whitespace-nowrap"> • {hotel.distance_km} km from city centre</span>}</span>
+          <span className="line-clamp-2">{locationText}{hotel.distance_km != null && <span className="whitespace-nowrap"> • {hotel.distance_km} km from city centre</span>}</span>
         </p>
 
         <div className="flex flex-wrap gap-1.5">
@@ -118,7 +118,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
         {children}
       </div>
 
-      <div className="flex w-full flex-col justify-between gap-3 border-t border-border p-3 md:w-[230px] md:border-l md:border-t-0">
+      <div className="flex w-full flex-col justify-center gap-3 border-t border-border p-3 md:w-[190px] md:border-l md:border-t-0">
         <div className="space-y-1.5">
           {priceBlock}
           {(hotel.free_cancellation || hotel.breakfast_included) && <div className="space-y-1 pt-1">
