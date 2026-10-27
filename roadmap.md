@@ -1,6 +1,6 @@
 # Active roadmap — JAAGA Travel
 ## PG / Hostel search controls
-- [ ] Replace nightly controls with move-in, supported weekly/monthly duration and occupancy; connect derived dates to existing search and verify
+- [x] Replace nightly controls with move-in, supported weekly/monthly duration and occupancy; six tests passed and browser confirmed three months/two people reach matching as Oct 27–Jan 27 with nightly search unchanged. No active PG/Hostel rental inventory exists, so real rental results/booking remain unverified.
 ## Hotel stays reference redesign
 - [x] Match the hotel reference with generated resort banner, mint search, image categories, compact results, collapsible filters and saved-pin live map; retain existing booking and search services
 - [x] Verify signed-in Hyderabad search, guest controls, persisted wishlist, category selection, hotel details, real available-room booking entry, desktop/mobile layout and no runtime errors; two saved-coordinate tests passed and build OK
