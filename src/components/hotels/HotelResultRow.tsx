@@ -70,9 +70,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
         <div className="flex flex-wrap gap-1">{amenities.slice(0, visibleAmenities).map(a => <Badge key={a} variant="secondary" className="text-[9px] font-normal">{a}</Badge>)}{(amenities.length) > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{amenities.length - visibleAmenities}</Badge>}</div>
         {children}
       </div>
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border p-2.5">
-        {priceBlock}
-        <Button variant="link" onClick={onDetails} className="h-auto shrink-0 gap-1 p-0 text-xs text-primary">View Details<ArrowRight className="h-3 w-3" /></Button>
+      <div className="mt-auto flex flex-col gap-1.5 border-t border-border p-2.5">
+        {priceBlock(true)}
+        <Button variant="link" onClick={onDetails} className="h-auto w-full justify-between gap-1 p-0 text-xs text-primary">View Details<ArrowRight className="h-3 w-3" /></Button>
       </div>
     </article>;
   }
@@ -120,7 +120,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
       <div className="flex w-full flex-col justify-start gap-3 border-t border-border p-3 md:w-[190px] md:border-l md:border-t-0">
         <div className="space-y-1.5">
-          {priceBlock}
+          {priceBlock(false)}
           {(hotel.free_cancellation || hotel.breakfast_included) && <div className="space-y-1 pt-1">
             {hotel.free_cancellation && <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-primary/40 text-primary"><Check className="h-2 w-2" /></span>Free cancellation</p>}
             {hotel.breakfast_included && <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-primary/40 text-primary"><Check className="h-2 w-2" /></span>Breakfast included</p>}
