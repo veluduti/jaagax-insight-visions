@@ -566,6 +566,7 @@ const App = () => (
                   <Route path="/natural-living/lands" element={<NLLands />} />
                   <Route path="/natural-living/lands/:id" element={<NLLandDetail />} />
                   <Route path="/hotels" element={<Hotels />} />
+                  <Route path="/resorts" element={<Navigate to="/hotels?types=resort" replace />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
                   <Route path="/hotels/hyperguest/:propertyId" element={<HyperGuestProperty />} />
