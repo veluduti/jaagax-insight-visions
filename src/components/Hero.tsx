@@ -15,7 +15,7 @@ interface HeroProps {
  */
 const Hero = ({ showSearchBar = true }: HeroProps) => {
   return (
-    <div className="relative xl:max-h-[calc(100vh-81px)] flex items-center">
+    <div className="relative z-20 xl:max-h-[calc(100vh-81px)] flex items-center">
       {/* Background image with overlay — overflow hidden here only, so
           popovers from the search panel are never clipped by the hero */}
       <div className="absolute inset-0 z-0 overflow-hidden">
