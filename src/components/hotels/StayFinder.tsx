@@ -40,6 +40,7 @@ interface Props {
   detectCity?: (text: string) => { name: string; areas: { name: string; count: number }[] } | null;
   selectedArea?: string | null;
   onPickArea?: (city: string, area: string | null) => void;
+  hideTypeTags?: boolean;
 }
 
 const MAX = 20000;
@@ -60,7 +61,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   );
 }
 
-export default function StayFinder({ value, onChange, onAiIntent, detectCity, selectedArea, onPickArea }: Props) {
+export default function StayFinder({ value, onChange, onAiIntent, detectCity, selectedArea, onPickArea, hideTypeTags = false }: Props) {
   const [aiText, setAiText] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [open, setOpen] = useState(false);
@@ -95,7 +96,8 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
 
   const cityInfo = detectCity?.(aiText) ?? null;
 
-  const activeCount = value.types.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0) + (selectedArea ? 1 : 0);
+  const visibleTypes = hideTypeTags ? [] : value.types;
+  const activeCount = visibleTypes.length + value.prefs.length + value.amenities.length + (value.maxPrice ? 1 : 0) + (selectedArea ? 1 : 0);
 
   return (
     <div className="space-y-3 rounded-lg border border-primary/20 bg-accent p-2 text-card-foreground">
@@ -193,7 +195,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
               <MapPin className="h-3 w-3" />{selectedArea}<X className="h-3 w-3" />
             </Button>
           )}
-          {value.types.map((t) => (
+          {visibleTypes.map((t) => (
             <span key={t} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
               {CATEGORY_BY_KEY[t]?.label ?? t}
               <X className="h-3 w-3 cursor-pointer" onClick={() => toggle("types", t)} />
@@ -224,7 +226,7 @@ export default function StayFinder({ value, onChange, onAiIntent, detectCity, se
             className="ml-auto text-xs font-medium text-muted-foreground"
             onClick={() => {
               if (selectedArea && cityInfo) onPickArea?.(cityInfo.name, null);
-              onChange({ types: [], prefs: [], amenities: [], maxPrice: null });
+              onChange({ types: hideTypeTags ? value.types : [], prefs: [], amenities: [], maxPrice: null });
             }}
           >
             Clear all
