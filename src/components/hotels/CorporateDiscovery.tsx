@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { BadgeCheck, FileText, CalendarRange, Headphones, Briefcase, Building2, Building, CalendarClock, Receipt, Users, Plane, BadgePercent, Clock, LayoutGrid } from "lucide-react";
 import { CORPORATE_TYPES } from "@/lib/corporateDiscovery";
-import fallbackImg from "@/assets/hotel-banner.jpg";
+import fallbackImg from "@/assets/hero-hotel.jpg";
 
 const ICONS: Record<string, typeof Briefcase> = { "": LayoutGrid, business_hotel: Building2, service_apt: Building, extended: CalendarClock, gst: Receipt, meeting: Users, airport: Plane, corporate_rates: BadgePercent, flex_checkin: Clock };
 
