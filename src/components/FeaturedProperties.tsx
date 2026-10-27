@@ -176,27 +176,30 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   return (
     <section className="section-spacing relative" id="properties">
       <div className="container mx-auto container-padding">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-xl"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-md tracking-tight">
-            Featured <span className="text-gradient">Properties</span>
-            {detectedCity && (
-              <span className="text-foreground/60 text-xl md:text-2xl">
-                {" "}{hyderabadArea ? "near Hyderabad" : `in ${detectedCity}`}
-              </span>
-            )}
-          </h2>
-          <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto">
-            {hyderabadArea ? "Hyderabad & nearby cities · Within 100 km" : detectedCity
-              ? `Curated properties near your location, verified by JaagaX AI`
-              : "Handpicked, AI-verified premium listings"}
-          </p>
-        </motion.div>
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              Featured <span className="text-gradient">Properties</span>
+              {detectedCity && (
+                <span className="text-foreground/60 text-base sm:text-xl">
+                  {" "}{hyderabadArea ? "near Hyderabad" : `in ${detectedCity}`}
+                </span>
+              )}
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+              {hyderabadArea ? "Hyderabad & nearby cities · Within 100 km" : detectedCity
+                ? "Curated properties near your location, verified by JaagaX AI"
+                : "Handpicked, AI-verified premium listings"}
+            </p>
+          </div>
+          <Link
+            to="/search?tab=properties"
+            className="hidden sm:inline-flex shrink-0 items-center gap-1 pb-1 text-sm font-semibold text-primary hover:underline"
+          >
+            View All Properties <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
 
         <div className="flex snap-x gap-6 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0">
           {visible.map((property: any, index: number) => {
