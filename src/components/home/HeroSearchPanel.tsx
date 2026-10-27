@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BedDouble,
@@ -6,6 +6,7 @@ import {
   Plane,
   Users,
   Plus,
+  Minus,
   Leaf,
   MapPin,
   CalendarDays,
@@ -13,6 +14,7 @@ import {
   Search,
   Sparkles,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { POPULAR_AREAS } from "@/config/popularAreas";
@@ -29,11 +31,54 @@ const INTENTS = [
 
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
 
+interface CounterRowProps {
+  label: string;
+  hint: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (v: number) => void;
+}
+
+const CounterRow = ({ label, hint, value, min, max, onChange }: CounterRowProps) => (
+  <div className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-b-0">
+    <div>
+      <p className="text-sm font-medium text-foreground">
+        {label} <span className="text-primary font-bold ml-1">{value}</span>
+      </p>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+    </div>
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        aria-label={`Decrease ${label}`}
+        onClick={() => onChange(Math.max(min, value - 1))}
+        className="w-8 h-8 rounded-full border border-input flex items-center justify-center hover:border-primary hover:bg-accent transition-colors"
+      >
+        <Minus className="h-4 w-4 text-muted-foreground" />
+      </button>
+      <span className="text-sm font-medium w-6 text-center">{value}</span>
+      <button
+        type="button"
+        aria-label={`Increase ${label}`}
+        onClick={() => onChange(Math.min(max, value + 1))}
+        className="w-8 h-8 rounded-full border border-input flex items-center justify-center hover:border-primary hover:bg-accent transition-colors"
+      >
+        <Plus className="h-4 w-4 text-muted-foreground" />
+      </button>
+    </div>
+  </div>
+);
+
 const HeroSearchPanel = () => {
   const navigate = useNavigate();
   const [intent, setIntent] = useState("stay");
   const [destination, setDestination] = useState("");
-  const [guests, setGuests] = useState("2");
+  const [rooms, setRooms] = useState(1);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const guestSelectorRef = useRef<HTMLDivElement>(null);
 
   const today = useMemo(() => new Date(), []);
   const [checkIn, setCheckIn] = useState(toInputDate(today));
@@ -45,9 +90,34 @@ const HeroSearchPanel = () => {
 
   const popularCities = useMemo(() => Object.keys(POPULAR_AREAS).slice(0, 8), []);
 
+  // Close the rooms & guests popover on outside click / Escape
+  useEffect(() => {
+    if (!showGuestSelector) return;
+    const onDown = (e: MouseEvent) => {
+      if (guestSelectorRef.current && !guestSelectorRef.current.contains(e.target as Node)) {
+        setShowGuestSelector(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowGuestSelector(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [showGuestSelector]);
+
   const handleIntent = (key: string, path: string) => {
     setIntent(key);
     if (key !== "stay") navigate(path);
+  };
+
+  const guestDisplayText = () => {
+    let text = `${rooms} Room${rooms > 1 ? "s" : ""}, ${adults} Adult${adults > 1 ? "s" : ""}`;
+    if (children > 0) text += `, ${children} Child${children > 1 ? "ren" : ""}`;
+    return text;
   };
 
   const search = (city?: string) => {
@@ -56,7 +126,9 @@ const HeroSearchPanel = () => {
     if (dest) params.set("city", dest);
     if (checkIn) params.set("checkin", checkIn);
     if (checkOut) params.set("checkout", checkOut);
-    if (guests) params.set("guests", guests);
+    params.set("rooms", String(rooms));
+    params.set("adults", String(adults));
+    if (children > 0) params.set("children", String(children));
     navigate(`/hotels${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
@@ -101,7 +173,7 @@ const HeroSearchPanel = () => {
       </div>
 
       {/* Search row */}
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto] gap-2.5">
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr_auto] gap-2.5">
         <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
           <MapPin className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
@@ -149,23 +221,34 @@ const HeroSearchPanel = () => {
           </span>
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
-          <UsersRound className="h-4 w-4 text-primary shrink-0" />
-          <span className="flex-1 min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Guests</span>
-            <select
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
-              className="w-full bg-transparent text-sm font-medium text-foreground outline-none"
-            >
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n}>
-                  {n} Guest{n > 1 ? "s" : ""}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
+        {/* Rooms & Guests — same selector as the hotels page */}
+        <div ref={guestSelectorRef} className="relative">
+          <button
+            type="button"
+            aria-label="Rooms and guests"
+            aria-expanded={showGuestSelector}
+            onClick={() => setShowGuestSelector((o) => !o)}
+            className="flex w-full items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-left hover:border-primary transition-colors"
+          >
+            <UsersRound className="h-4 w-4 text-primary shrink-0" />
+            <span className="flex-1 min-w-0">
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Rooms & Guests</span>
+              <span className="block truncate text-sm font-medium text-foreground">{guestDisplayText()}</span>
+            </span>
+            <ChevronDown className={cn("h-4 w-4 text-muted-foreground shrink-0 transition-transform", showGuestSelector && "rotate-180")} />
+          </button>
+
+          {showGuestSelector && (
+            <div className="absolute top-full right-0 mt-2 bg-card rounded-xl shadow-2xl border border-border z-[200] p-4 w-[300px] max-w-[calc(100vw-2rem)]">
+              <CounterRow label="Rooms" hint="Upto 4 rooms" value={rooms} min={1} max={4} onChange={setRooms} />
+              <CounterRow label="Adults" hint="Age 18+" value={adults} min={1} max={10} onChange={setAdults} />
+              <CounterRow label="Children" hint="0 - 17 Years Old" value={children} min={0} max={6} onChange={setChildren} />
+              <Button size="sm" className="mt-3 w-full" onClick={() => setShowGuestSelector(false)}>
+                Done
+              </Button>
+            </div>
+          )}
+        </div>
 
         <Button
           onClick={() => search()}
