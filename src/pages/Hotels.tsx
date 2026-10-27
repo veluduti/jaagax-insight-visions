@@ -791,12 +791,18 @@ const Hotels = () => {
     if (resultSort === "rating") list.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
     return list;
   }, [searchOutcome.list, resultSort, savedOnly, favorites, mapBounds]);
-  const currentAreas = Array.from(locationIndex.values()).find(c => isSameCity(c.name, selectedCity))?.localities || [];
-  const pickArea = (area: string | null) => {
-    const label = area ? `${area}, ${selectedCity}` : selectedCity === "all" ? "" : selectedCity;
-    setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
+  const pickCityArea = (city: string, area: string | null) => {
+    const label = area ? `${area}, ${city}` : city;
+    setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
     const next = new URLSearchParams(searchParams);
+    next.set("city", city);
     if (area) next.set("locality", area); else next.delete("locality");
+    setSearchParams(next, { replace: true });
+  };
+  const clearLocation = () => {
+    setSelectedCity("all"); setSelectedLocality(null); setLocationLabel(""); setSearchQuery("");
+    const next = new URLSearchParams(searchParams);
+    next.delete("city"); next.delete("locality");
     setSearchParams(next, { replace: true });
   };
   const clearDiscoveryFilters = () => {
@@ -1472,7 +1478,7 @@ const Hotels = () => {
           )}
 
           <div className={`grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)] ${desktopMapVisible ? "xl:grid-cols-[210px_minmax(0,1fr)_340px]" : ""}`}>
-            <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} />
+            <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} />
             <div className={`min-w-0 ${mapView ? "hidden xl:block" : ""}`}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="text-lg font-bold">{loading ? "Finding stays…" : `${filteredAndSortedHotels.length} ${filteredAndSortedHotels.length === 1 ? "Hotel" : "Hotels"}`}{selectedCity !== "all" && <span className="font-normal"> in {selectedCity}</span>}</h2><p className="text-xs text-muted-foreground">{format(checkIn, "dd MMM yyyy")} – {format(checkOut, "dd MMM yyyy")} · {getGuestDisplayText()}</p></div>
@@ -1583,7 +1589,7 @@ const Hotels = () => {
             <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} /></aside>
           </div>
         </div>
-        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} /></SheetContent></Sheet>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} /></SheetContent></Sheet>
       </main>
 
       <Footer />
