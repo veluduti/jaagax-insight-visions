@@ -31,14 +31,6 @@ const INTENTS = [
   { color: "text-primary", key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
 ];
 
-// Tabs shown on the Properties card (mirrors the property search screen)
-const PROPERTY_TABS: { key: string; label: string; icon: any; intent?: string; path?: string }[] = [
-  { key: "properties", label: "Properties", icon: Home, intent: "properties" },
-  { key: "stays", label: "Jaaga Stays", icon: BedDouble, intent: "stay" },
-  { key: "smart", label: "Smart Stays", icon: Plane, path: "/smart-stays" },
-  { key: "projects", label: "New Projects", icon: Building2, path: "/projects" },
-  { key: "agents", label: "Agents", icon: Users, path: "/agents" },
-];
 
 const PROPERTY_KINDS = [
   { value: "any", label: "All Types" },
