@@ -194,7 +194,7 @@ const Hotels = () => {
   const [packages, setPackages] = useState<VisitPackage[]>([]);
   const [roomsByHotel, setRoomsByHotel] = useState<Record<string, OccupancyRoom[]>>({});
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("city") || "");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
   const [selectedLocality, setSelectedLocality] = useState<string | null>(searchParams.get("locality"));
   const [locationLabel, setLocationLabel] = useState<string>("");
@@ -209,16 +209,30 @@ const Hotels = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // New search states for advanced search
-  const [checkIn, setCheckIn] = useState<Date>(new Date());
+  // New search states for advanced search — initialized from URL params so a
+  // homepage search lands here with dates and guests already applied.
+  const parseDateParam = (key: string): Date | null => {
+    const raw = searchParams.get(key);
+    if (!raw) return null;
+    const d = new Date(`${raw}T00:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const parseCountParam = (key: string, min: number, max: number): number | null => {
+    const n = Number(searchParams.get(key));
+    return Number.isFinite(n) && n >= min && n <= max ? Math.round(n) : null;
+  };
+  const [checkIn, setCheckIn] = useState<Date>(() => parseDateParam("checkin") ?? new Date());
   const [checkOut, setCheckOut] = useState<Date>(() => {
-    const date = new Date();
+    const inDate = parseDateParam("checkin") ?? new Date();
+    const fromUrl = parseDateParam("checkout");
+    if (fromUrl && fromUrl.getTime() > inDate.getTime()) return fromUrl;
+    const date = new Date(inDate);
     date.setDate(date.getDate() + 1);
     return date;
   });
-  const [rooms, setRooms] = useState(1);
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  const [rooms, setRooms] = useState(() => parseCountParam("rooms", 1, 4) ?? 1);
+  const [adults, setAdults] = useState(() => parseCountParam("adults", 1, 10) ?? parseCountParam("guests", 1, 10) ?? 2);
+  const [children, setChildren] = useState(() => parseCountParam("children", 0, 6) ?? 0);
   const [childAges, setChildAges] = useState<ChildAge[]>([]);
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [resultSort, setResultSort] = useState("recommended");
