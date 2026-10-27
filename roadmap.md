@@ -1,4 +1,7 @@
 # Active roadmap — JAAGA Travel
+## Hotel stays reference redesign
+- [ ] Match the hotel reference with mint search, image categories, compact results, collapsible filters and synchronized live map; preserve existing booking and search services
+- [ ] Verify real search, guest controls, wishlist, details, booking entry and desktop/mobile layout; live Google Maps requires an authorized deployed origin
 ## Public reviews page
 - [x] Redirect homepage View All Reviews to a dedicated page showing all published reviews; verified all three published rows, desktop/mobile navigation, no overflow or runtime errors, and build OK.
 ## Smart Stays location recommendations
