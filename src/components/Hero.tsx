@@ -15,9 +15,10 @@ interface HeroProps {
  */
 const Hero = ({ showSearchBar = true }: HeroProps) => {
   return (
-    <div className="relative overflow-hidden xl:max-h-[calc(100vh-81px)] flex items-center">
-      {/* Background image with overlay */}
-      <div className="absolute inset-0 z-0">
+    <div className="relative xl:max-h-[calc(100vh-81px)] flex items-center">
+      {/* Background image with overlay — overflow hidden here only, so
+          popovers from the search panel are never clipped by the hero */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={heroImage}
           alt="Luxury resort at sunset"
@@ -30,7 +31,7 @@ const Hero = ({ showSearchBar = true }: HeroProps) => {
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="relative z-10 w-full container mx-auto container-padding pt-4 sm:pt-6 lg:pt-6 pb-4">
+      <div className="relative z-10 w-full container mx-auto container-padding pt-4 sm:pt-6 lg:pt-6 pb-2">
         <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-12">
             {/* Headline */}
