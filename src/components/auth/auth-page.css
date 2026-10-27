@@ -50,7 +50,29 @@
 .auth-footer nav a + a { border-left: 1px solid hsl(var(--input)); padding-left: 12px; }
 @media (min-width: 1440px) { .auth-content { padding-top: 48px; } }
 @media (max-width: 1023px) { .auth-grid { gap: 28px; } .auth-title { font-size: 36px; } .auth-description { font-size: 16px; } .auth-form-card { padding: 28px 24px; } }
+/* ---- Register page ---- */
+.register-card { padding: 40px 44px; border-radius: 24px; background: hsl(var(--card) / 0.98); border: 1px solid hsl(var(--border)); box-shadow: var(--auth-shadow); }
+.register-title { font-size: 30px; font-weight: 800; }
+.register-sub { font-size: 15px; color: hsl(var(--muted-foreground)); }
+.register-benefit { display: flex; gap: 18px; align-items: center; }
+.register-benefit-icon { display: grid; place-items: center; flex-shrink: 0; width: 52px; height: 52px; border-radius: 14px; color: hsl(var(--primary)); background: hsl(var(--accent) / 0.7); }
+.register-benefit h3 { font-size: 15px; font-weight: 800; line-height: 1.4; }
+.register-benefit p { font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.5; }
+.register-cta { position: relative; height: 52px; border-radius: 12px; font-size: 15px; font-weight: 700; }
+.register-cta .register-cta-arrow { position: absolute; right: 18px; }
+.register-choice { position: relative; text-align: left; width: 100%; padding: 16px 18px; border-radius: 14px; border: 1.5px solid hsl(var(--input)); background: hsl(var(--card)); transition: border-color .15s, background .15s, box-shadow .15s; }
+.register-choice:hover { border-color: hsl(var(--primary) / 0.5); }
+.register-choice[data-selected="true"] { border-color: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--primary)); background: hsl(var(--accent) / 0.45); }
+.register-choice-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--primary)); background: hsl(var(--accent) / 0.6); margin-bottom: 12px; }
+.register-choice[data-selected="false"] .register-choice-icon { color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); }
+.register-choice h3 { font-size: 15px; font-weight: 800; }
+.register-choice p { font-size: 12.5px; color: hsl(var(--muted-foreground)); line-height: 1.45; margin-top: 4px; }
+.register-note { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+.register-note svg { flex-shrink: 0; margin-top: 1px; color: hsl(var(--muted-foreground)); }
 @media (max-width: 767px) {
+  .register-card { padding: 28px 22px; border-radius: 18px; }
+  .register-cta .register-cta-arrow { position: static; margin-left: 10px; }
+}
   .auth-header { padding: 22px 20px; }
   .auth-header nav { gap: 8px; font-size: 11px; }
   .auth-header nav a + a { padding-left: 8px; }
