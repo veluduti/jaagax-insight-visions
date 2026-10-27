@@ -98,6 +98,9 @@ const HeroSearchPanel = () => {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [propertyPurpose, setPropertyPurpose] = useState("buy");
+  const [propertyKind, setPropertyKind] = useState("any");
+  const [propertyLocation, setPropertyLocation] = useState("");
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
   const today = useMemo(() => new Date(), []);
