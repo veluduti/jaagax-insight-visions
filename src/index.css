@@ -297,6 +297,8 @@ All colors MUST be HSL.
   .hotel-discovery .hotel-banner-shade { background: var(--gradient-hero-blue); }
   .hotel-discovery h1 { letter-spacing: 0; }
   .hotel-discovery article { scroll-margin-top: 100px; }
+  .stay-image-categories > button { flex-shrink: 0; min-width: 125px; background: hsl(var(--card)); }
+  .stay-image-categories img { width: 100%; height: 48px; max-width: none; object-fit: cover; }
 
   /* ===== COMPONENT UTILITIES ===== */
   .glass-panel {

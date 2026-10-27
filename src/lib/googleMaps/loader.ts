@@ -57,7 +57,6 @@ export function loadGoogleMaps(): Promise<any> {
     const params = new URLSearchParams({
       key: browserKey,
       v: "weekly",
-      libraries: "places",
       loading: "async",
       callback: CALLBACK_NAME,
     });

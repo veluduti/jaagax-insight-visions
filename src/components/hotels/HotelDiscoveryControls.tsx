@@ -24,7 +24,7 @@ export function StayCategoryTabs({ value, onChange }: FilterProps) {
     { label: "Corporate Stays", subtitle: "For business travel", image: apartmentPhoto, types: [], prefs: ["business"] },
     { label: "Unique Stays", subtitle: "Villas, farm stays & more", image: uniquePhoto, types: ["villa", "farm_stay", "homestay", "boutique"], prefs: [] },
   ];
-  return <div className="no-scrollbar mb-5 flex gap-2 overflow-x-auto py-1" aria-label="Accommodation types">{entries.map(e => {
+  return <div className="stay-image-categories no-scrollbar mb-5 flex gap-2 overflow-x-auto py-1" aria-label="Accommodation types">{entries.map(e => {
     const active = e.types.length ? e.types.length === value.types.length && e.types.every(k => value.types.includes(k)) : e.prefs.length ? e.prefs.every(k => value.prefs.includes(k)) && !value.types.length : !value.types.length && !value.prefs.includes("luxury") && !value.prefs.includes("business");
     return <Button key={e.label} variant="outline" aria-pressed={active} className={`h-[100px] min-w-[125px] flex-1 flex-col items-stretch justify-start gap-0 overflow-hidden rounded-md p-0 text-left ${active ? "border-primary ring-1 ring-primary" : "border-border"}`} onClick={() => onChange({ ...value, types: e.types, prefs: [...value.prefs.filter(k => k !== "luxury" && k !== "business"), ...e.prefs] })}><img src={e.image} alt="" className="h-12 w-full shrink-0 object-cover" loading="lazy" width={200} height={80} /><span className="px-2 pt-2 text-[11px] font-bold">{e.label}</span><span className="truncate px-2 pt-0.5 text-[10px] font-normal text-muted-foreground">{e.subtitle}</span></Button>;
   })}</div>;
