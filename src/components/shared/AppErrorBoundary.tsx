@@ -12,6 +12,7 @@ import { AlertTriangle } from "lucide-react";
  */
 interface State {
   error: Error | null;
+  retried: boolean;
 }
 
 function isChunkError(error: Error): boolean {
@@ -24,9 +25,23 @@ function isChunkError(error: Error): boolean {
   );
 }
 
+/**
+ * A temporary backend hiccup (edge runtime overloaded / 503) is not a fault
+ * in the page — it must never leave the user staring at a dead screen.
+ */
+function isTransientBackendError(error: Error): boolean {
+  const m = `${error?.message || ""}`.toLowerCase();
+  return (
+    m.includes("503") ||
+    m.includes("service is temporarily unavailable") ||
+    m.includes("service_degraded") ||
+    m.includes("edge function returned")
+  );
+}
+
 
 export class AppErrorBoundary extends Component<{ children: ReactNode }, State> {
-  state: State = { error: null };
+  state: State = { error: null, retried: false };
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
@@ -48,6 +63,13 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
         }
       } catch { /* storage blocked */ }
     }
+
+    // Transient backend degradation (edge runtime 503 etc.) is not a code
+    // fault: clear the crash screen after a short beat so the page retries.
+    if (isTransientBackendError(error) && !this.state.retried) {
+      this.setState({ retried: true });
+      window.setTimeout(() => this.setState({ error: null }), 1200);
+    }
   }
 
   handleReset = () => {
@@ -61,17 +83,22 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
   render() {
     if (!this.state.error) return this.props.children;
     const message = this.state.error?.message || String(this.state.error);
+    const transient = isTransientBackendError(this.state.error);
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="max-w-md w-full glass-panel rounded-2xl p-8 text-center space-y-4">
           <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="w-6 h-6 text-destructive" />
           </div>
-          <h1 className="text-xl font-semibold">Something went wrong</h1>
+          <h1 className="text-xl font-semibold">
+            {transient ? "The service is briefly unavailable" : "Something went wrong"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            We hit an unexpected error rendering this page. Try again, or reload the app.
+            {transient
+              ? "A background service is temporarily overloaded. This usually clears in a few seconds — please try again."
+              : "We hit an unexpected error rendering this page. Try again, or reload the app."}
           </p>
-          {message && (
+          {!transient && message && (
             <pre className="text-left text-[11px] bg-muted/50 rounded-md p-2 overflow-auto max-h-40 whitespace-pre-wrap">
               {message}
             </pre>
