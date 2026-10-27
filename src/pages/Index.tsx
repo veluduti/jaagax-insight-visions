@@ -23,6 +23,7 @@ import {
 
 const Index = () => {
   const { role, user, loading: authLoading } = useAuth();
+  const { detectedLocation } = useLocation();
 
   // Avoid a flash of the consumer home page while the signed-in user's role resolves.
   if (user && authLoading) {
@@ -70,6 +71,9 @@ const Index = () => {
       {/* Promotional journey banners */}
       <JourneyBanners />
 
+
+      {/* Featured verified properties near the user's location */}
+      <FeaturedProperties detectedCity={detectedLocation?.city} />
 
       {/* Mobile-only: Hotel Services / Property Selling sections */}
       <MobileServiceSections />
