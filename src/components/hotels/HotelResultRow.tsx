@@ -31,7 +31,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
       <div className="flex flex-wrap gap-1">{hotel.amenities?.slice(0, visibleAmenities).map(a => <Badge key={a} variant="secondary" className="text-[9px] font-normal">{a}</Badge>)}{(hotel.amenities?.length || 0) > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{(hotel.amenities?.length || 0) - visibleAmenities}</Badge>}</div>
       {children}
     </div>
-    <div className="mt-auto flex items-center justify-between gap-2 border-t border-border p-2.5">
+    <div className={`mt-auto flex items-center justify-between gap-2 border-t border-border p-2.5 ${grid ? "" : "md:col-span-2"}`}>
       <div className="min-w-0">{!!hotel.discount_percentage && hotel.discount_percentage > 0 && <Badge variant="secondary" className="mb-1 bg-accent px-1.5 py-0 text-[9px] text-primary">{hotel.discount_percentage}% offer</Badge>}<p className="whitespace-nowrap text-sm font-bold text-foreground">₹{hotel.price_per_night.toLocaleString("en-IN")}<span className="ml-0.5 text-[10px] font-normal text-muted-foreground">/night</span></p></div>
       <Button variant="link" onClick={onDetails} className="h-auto shrink-0 gap-1 p-0 text-xs text-primary">View Details<ArrowRight className="h-3 w-3" /></Button>
     </div>
