@@ -80,6 +80,9 @@ import { isResortProperty, matchesResortTypes, countResortTypes, readRecentResor
 import { ResortCategoryTiles, ResortTypeFilter, WhyBookResorts, RecentlyViewedResorts } from "@/components/hotels/ResortDiscovery";
 import resortHero from "@/assets/home-hero-resort.jpg";
 import aptHero from "@/assets/service-apartment-hero.jpg";
+import pgHero from "@/assets/pg-hostel-hero.jpg";
+import { isPgProperty, matchesPgTypes, countPgTypes } from "@/lib/pgDiscovery";
+import { PgCategoryTiles, PgTypeFilter, WhyBookPgs } from "@/components/hotels/PgDiscovery";
 import { isApartmentProperty, matchesApartmentTypes, countApartmentTypes } from "@/lib/apartmentDiscovery";
 import { ApartmentCategoryTiles, ApartmentTypeFilter, WhyBookApartments } from "@/components/hotels/ApartmentDiscovery";
 
@@ -176,7 +179,8 @@ const Hotels = () => {
   const resortMode = stayFilters.types.length === 1 && stayFilters.types[0] === "resort";
   const resortTypes = listParam("rtype");
   const aptMode = stayFilters.types.length === 1 && stayFilters.types[0] === "serviced_apartment";
-  const catMode = resortMode || aptMode;
+  const pgMode = stayFilters.types.length === 2 && stayFilters.types.includes("pg") && stayFilters.types.includes("hostel");
+  const catMode = resortMode || aptMode || pgMode;
   const setResortTypes = (keys: string[]) => {
     const next = new URLSearchParams(searchParams);
     if (keys.length) next.set("rtype", keys.join(",")); else next.delete("rtype");
@@ -838,17 +842,17 @@ const Hotels = () => {
     rawRooms.forEach((r: any) => { (m[r.hotel_id] ||= []).push(r); });
     return m;
   }, [rawRooms]);
-  const resortCandidates = useMemo(() => resortMode ? searchOutcome.list.filter(h => isResortProperty(h as any, roomsForHotel[h.id])) : aptMode ? searchOutcome.list.filter(h => isApartmentProperty(h as any, roomsForHotel[h.id])) : [], [resortMode, aptMode, searchOutcome.list, roomsForHotel]);
-  const resortCounts = useMemo(() => aptMode ? countApartmentTypes(resortCandidates as any, (h: any) => roomsForHotel[h.id] || []) : countResortTypes(resortCandidates as any), [resortCandidates, aptMode, roomsForHotel]);
+  const resortCandidates = useMemo(() => resortMode ? searchOutcome.list.filter(h => isResortProperty(h as any, roomsForHotel[h.id])) : aptMode ? searchOutcome.list.filter(h => isApartmentProperty(h as any, roomsForHotel[h.id])) : pgMode ? searchOutcome.list.filter(h => isPgProperty(h as any, roomsForHotel[h.id])) : [], [resortMode, aptMode, pgMode, searchOutcome.list, roomsForHotel]);
+  const resortCounts = useMemo(() => pgMode ? countPgTypes(resortCandidates as any, (h: any) => roomsForHotel[h.id] || []) : aptMode ? countApartmentTypes(resortCandidates as any, (h: any) => roomsForHotel[h.id] || []) : countResortTypes(resortCandidates as any), [resortCandidates, aptMode, pgMode, roomsForHotel]);
   const filteredAndSortedHotels = useMemo(() => {
-    const base = resortMode ? resortCandidates.filter(h => matchesResortTypes(h as any, resortTypes)) : aptMode ? resortCandidates.filter(h => matchesApartmentTypes(h as any, roomsForHotel[h.id] || [], resortTypes)) : searchOutcome.list;
+    const base = resortMode ? resortCandidates.filter(h => matchesResortTypes(h as any, resortTypes)) : aptMode ? resortCandidates.filter(h => matchesApartmentTypes(h as any, roomsForHotel[h.id] || [], resortTypes)) : pgMode ? resortCandidates.filter(h => matchesPgTypes(h as any, roomsForHotel[h.id] || [], resortTypes)) : searchOutcome.list;
     const list = base.filter(h => (!savedOnly || favorites.includes(h.id)) && (!mapBounds || (h.latitude != null && h.longitude != null && h.latitude >= mapBounds.south && h.latitude <= mapBounds.north && h.longitude >= mapBounds.west && h.longitude <= mapBounds.east)));
     if (resultSort === "price-low") list.sort((a, b) => a.price_per_night - b.price_per_night);
     if (resultSort === "price-high") list.sort((a, b) => b.price_per_night - a.price_per_night);
     if (resultSort === "rating") list.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchOutcome.list, resultSort, savedOnly, favorites, mapBounds, resortMode, aptMode, resortCandidates, roomsForHotel, searchParams]);
+  }, [searchOutcome.list, resultSort, savedOnly, favorites, mapBounds, resortMode, aptMode, pgMode, resortCandidates, roomsForHotel, searchParams]);
   const pickCityArea = (city: string, area: string | null) => {
     const label = area ? `${area}, ${city}` : city;
     setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
@@ -865,7 +869,7 @@ const Hotels = () => {
   };
   const clearDiscoveryFilters = () => {
     setSelectedCity("all"); setSelectedLocality(null); setLocationLabel(""); setSearchQuery("");
-    setMapBounds(null); setSavedOnly(false); setSelectedPriceRange("all"); setSelectedStars([]); setSearchParams(new URLSearchParams(resortMode ? { types: "resort" } : aptMode ? { types: "serviced_apartment" } : {}), { replace: true });
+    setMapBounds(null); setSavedOnly(false); setSelectedPriceRange("all"); setSelectedStars([]); setSearchParams(new URLSearchParams(resortMode ? { types: "resort" } : aptMode ? { types: "serviced_apartment" } : pgMode ? { types: "pg,hostel" } : {}), { replace: true });
   };
 
   // When a stay type is searched (e.g. "guest houses"), show each listing of that
@@ -1147,7 +1151,7 @@ const Hotels = () => {
 
       <main className="relative z-0 flex-1">
         <section className="relative pb-4">
-          <img src={resortMode ? resortHero : aptMode ? aptHero : hotelBanner} alt="Beach resort with pool and tropical villas" width={1920} height={640} className="absolute inset-x-0 top-0 h-[300px] w-full object-cover" />
+          <img src={resortMode ? resortHero : aptMode ? aptHero : pgMode ? pgHero : hotelBanner} alt="Beach resort with pool and tropical villas" width={1920} height={640} className="absolute inset-x-0 top-0 h-[300px] w-full object-cover" />
           <div className="hotel-banner-shade absolute inset-x-0 top-0 h-[300px]" />
           <div className="relative mx-auto w-full max-w-[1600px] px-4 pt-8 lg:px-8">
             <div className="mb-4 flex items-center justify-between gap-4 text-primary-foreground">
@@ -1158,6 +1162,11 @@ const Hotels = () => {
                   <h1 className="text-3xl font-bold md:text-4xl">Resorts{selectedCity !== "all" && <> in <span className="text-primary capitalize">{selectedCity}</span></>}</h1>
                   <p className="mt-1 text-base font-semibold">Relax, Reconnect and Rejuvenate</p>
                   <p className="text-sm">Beach resorts, hill resorts, lake resorts, eco-resorts and luxury retreats — all on JaagaX.</p>
+                </> : pgMode ? <>
+                  <nav aria-label="Breadcrumb" className="mb-2 text-xs"><button type="button" className="hover:underline" onClick={() => navigate("/")}>Home</button> › <button type="button" className="hover:underline" onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}>Jaaga Stays</button> › PG / Hostels</nav>
+                  <h1 className="text-3xl font-bold md:text-4xl">PGs & Hostels{selectedCity !== "all" && <> in <span className="text-primary capitalize">{selectedCity}</span></>}</h1>
+                  <p className="mt-1 text-base font-semibold">Comfortable, safe and affordable stays for students, working professionals and travellers.</p>
+                  <p className="text-sm">Find PGs, hostels and co-living spaces with verified listings on JaagaX.</p>
                 </> : aptMode ? <>
                   <nav aria-label="Breadcrumb" className="mb-2 text-xs"><button type="button" className="hover:underline" onClick={() => navigate("/")}>Home</button> › <button type="button" className="hover:underline" onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}>Jaaga Stays</button> › Service Apartments</nav>
                   <h1 className="text-3xl font-bold md:text-4xl">Service Apartments{selectedCity !== "all" && <> in <span className="text-primary capitalize">{selectedCity}</span></>}</h1>
@@ -1168,7 +1177,7 @@ const Hotels = () => {
                 <p className="mt-1 text-sm">Hotels, Resorts, Service Apartments, PGs, Hostels, Co-living and unique stays — all on Jaaga.</p>
                 </>}
               </div>
-              {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <Button variant="secondary" onClick={() => navigate("/partners")} className="hidden gap-2 sm:inline-flex"><Handshake className="h-4 w-4" />List your property</Button>}
+              {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${pgMode ? (resortCandidates.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <Button variant="secondary" onClick={() => navigate("/partners")} className="hidden gap-2 sm:inline-flex"><Handshake className="h-4 w-4" />List your property</Button>}
             </div>
 
             {/* Advanced Search Bar */}
@@ -1511,7 +1520,7 @@ const Hotels = () => {
         </section>
 
         <div className="mx-auto w-full max-w-[1600px] px-4 pb-8 lg:px-8">
-          {resortMode ? <ResortCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : aptMode ? <ApartmentCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />}
+          {resortMode ? <ResortCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : pgMode ? <PgCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : aptMode ? <ApartmentCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />}
           <MyHotelApplicationsBanner />
 
           {recommended.length > 0 && (
@@ -1549,10 +1558,10 @@ const Hotels = () => {
           )}
 
           <div className={`grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)] ${desktopMapVisible ? "xl:grid-cols-[210px_minmax(0,1fr)_340px]" : ""}`}>
-            <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} />
+            <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : pgMode ? <PgTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} />
             <div className={`min-w-0 ${mapView ? "hidden xl:block" : ""}`}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div><h2 className="text-lg font-bold">{loading ? (resortMode ? "Finding resorts…" : "Finding stays…") : `${filteredAndSortedHotels.length} ${aptMode ? (filteredAndSortedHotels.length === 1 ? "Service Apartment" : "Service Apartments") : resortMode ? (filteredAndSortedHotels.length === 1 ? "Resort" : "Resorts") : filteredAndSortedHotels.length === 1 ? "Hotel" : "Hotels"}`}{selectedCity !== "all" && <span className="font-normal"> in {selectedCity}</span>}</h2><p className="text-xs text-muted-foreground">{format(checkIn, "dd MMM yyyy")} – {format(checkOut, "dd MMM yyyy")} · {getGuestDisplayText()}</p></div>
+                <div><h2 className="text-lg font-bold">{loading ? (resortMode ? "Finding resorts…" : "Finding stays…") : `${filteredAndSortedHotels.length} ${pgMode ? (filteredAndSortedHotels.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (filteredAndSortedHotels.length === 1 ? "Service Apartment" : "Service Apartments") : resortMode ? (filteredAndSortedHotels.length === 1 ? "Resort" : "Resorts") : filteredAndSortedHotels.length === 1 ? "Hotel" : "Hotels"}`}{selectedCity !== "all" && <span className="font-normal"> in {selectedCity}</span>}</h2><p className="text-xs text-muted-foreground">{format(checkIn, "dd MMM yyyy")} – {format(checkOut, "dd MMM yyyy")} · {getGuestDisplayText()}</p></div>
                 <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="lg:hidden" onClick={() => setFiltersOpen(true)}>Filters</Button><Button size="sm" variant={mapView ? "default" : "outline"} onClick={() => { setMapView(v => !v); setDesktopMapVisible(v => !v); }}>{mapView ? "List View" : "Map View"}</Button><select aria-label="Sort hotels" value={resultSort} onChange={e => setResultSort(e.target.value)} className="h-9 rounded-md border border-input bg-card px-2 text-xs"><option value="recommended">Recommended</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="rating">Star rating</option></select><div className="flex rounded-md border border-border p-0.5"><Button size="icon" variant={!gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="List view" aria-pressed={!gridView} onClick={() => setGridView(false)}><List className="h-4 w-4" /></Button><Button size="icon" variant={gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="Grid view" aria-pressed={gridView} onClick={() => setGridView(true)}><LayoutGrid className="h-4 w-4" /></Button></div></div>
               </div>
           <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
@@ -1562,7 +1571,7 @@ const Hotels = () => {
               <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Hotel className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{aptMode ? "No service apartments found" : resortMode ? "No resorts found" : "No hotels found"}</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{pgMode ? "No PGs or hostels found" : aptMode ? "No service apartments found" : resortMode ? "No resorts found" : "No hotels found"}</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 {searchQuery
                   ? `No results found for "${searchQuery}"`
@@ -1657,10 +1666,10 @@ const Hotels = () => {
             </>
           )}
             </div>
-            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{resortMode && <div className="mt-4 space-y-4"><WhyBookResorts /><RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
+            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{pgMode && <div className="mt-4"><WhyBookPgs /></div>}{resortMode && <div className="mt-4 space-y-4"><WhyBookResorts /><RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
           </div>
         </div>
-        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} /></SheetContent></Sheet>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : pgMode ? <PgTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} /></SheetContent></Sheet>
       </main>
 
       <Footer />
