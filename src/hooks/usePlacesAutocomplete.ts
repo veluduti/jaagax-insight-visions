@@ -20,12 +20,12 @@ export function usePlacesAutocomplete(input: string, options: Options = {}) {
   const sessionTokenRef = useRef<any>(null);
   const reqIdRef = useRef(0);
 
-  // Lazily create the session token on first use (needs google.maps loaded).
+  // Lazily create the session token on first use (needs the Places library).
   const ensureSession = async () => {
     if (sessionTokenRef.current) return sessionTokenRef.current;
-    // Lazy-load Maps JS so the session-token class exists.
-    const { loadGoogleMaps } = await import("@/lib/googleMaps/loader");
-    await loadGoogleMaps();
+    // Lazy-load Maps JS + the Places library so the token class exists.
+    const { ensurePlacesLibrary } = await import("@/lib/googleMaps/places");
+    await ensurePlacesLibrary();
     sessionTokenRef.current = createSessionToken();
     return sessionTokenRef.current;
   };
@@ -44,6 +44,9 @@ export function usePlacesAutocomplete(input: string, options: Options = {}) {
         const token = await ensureSession();
         const items = await fetchAutocompleteSuggestions(trimmed, token, { country });
         if (myId === reqIdRef.current) setSuggestions(items);
+      } catch {
+        // Suggestions are an enhancement — never let a maps failure break the page.
+        if (myId === reqIdRef.current) setSuggestions([]);
       } finally {
         if (myId === reqIdRef.current) setLoading(false);
       }

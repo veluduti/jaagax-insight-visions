@@ -35,3 +35,5 @@
 
 - Hotel discovery keeps the existing Hotels state and booking handlers, with separate date and live-map presentation components; map markers use saved coordinates only and share filtered results, preventing fabricated locations or duplicate search services.
 - Auth presentation uses scoped `auth-page.css` tokens and scenery while retaining existing authentication handlers, so sign-in styling changes cannot alter global themes or account behavior.
+- Transient backend outages (edge runtime 503 / `SERVICE_DEGRADED`) are retryable, not page bugs: `AppErrorBoundary` classifies them via `isTransientBackendError`, shows a plain-language notice and auto-clears the crash screen, so a temporary service degradation never blanks the app.
+- Google Places classes are only touched after `ensurePlacesLibrary()` (`src/lib/googleMaps/places.ts`), and `createSessionToken()` returns null when the library is absent, because the Places library loads asynchronously and reading it too early crashes location search.
