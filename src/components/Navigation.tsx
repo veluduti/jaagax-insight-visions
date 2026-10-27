@@ -139,7 +139,7 @@ const navPill = (active: boolean) => cn("h-10 gap-2 rounded-full px-4 text-[14px
         className={`hidden xl:block fixed top-0 left-0 right-0 z-50 ${hotelDiscovery ? "bg-card" : "bg-background/80 backdrop-blur-xl"} border-b border-border/50`}
       >
         <div className="container-padding py-3">
-          <div className={`mx-auto flex items-center justify-between min-w-0 ${hotelDiscovery ? "max-w-[1600px] gap-2 [&_button]:text-xs [&_button]:px-2 [&_button]:gap-1" : "max-w-7xl 3xl:max-w-[1680px] gap-4"}`}>
+          <div className={`mx-auto flex items-center justify-between min-w-0 ${hotelDiscovery ? "max-w-[1600px] gap-3 [&_button]:text-xs [&_button]:px-2 [&_button]:gap-1 [&_a]:text-xs [&_a]:px-2 [&_a]:gap-1 [&_ul]:gap-1 [&_a]:shrink-0" : "max-w-7xl 3xl:max-w-[1680px] gap-4"}`}>
             {/* Logo */}
             <div className="flex items-center gap-2 shrink-0">
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">

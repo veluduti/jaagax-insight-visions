@@ -1018,7 +1018,7 @@ const Hotels = () => {
   const toggleFavorite = (hotelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!favorites.includes(hotelId)) logHotelSignal("shortlist", {}, hotelId);
-    setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]));
+    setFavorites(prev => { const next = prev.includes(hotelId) ? prev.filter(id => id !== hotelId) : [...prev, hotelId]; localStorage.setItem("jaaga_saved_hotels", JSON.stringify(next)); return next; });
   };
 
   const renderStars = (rating: number | null) => {
@@ -1095,7 +1095,7 @@ const Hotels = () => {
 
             {/* Advanced Search Bar */}
             <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
-              <div className="mb-3 flex items-center gap-3"><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
+              <div className="mb-3 flex items-center gap-3"><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
                 <div ref={searchRef} className="relative col-span-2 lg:col-span-1">

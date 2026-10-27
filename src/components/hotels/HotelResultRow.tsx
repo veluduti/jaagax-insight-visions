@@ -15,7 +15,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 }) {
   const [photo, setPhoto] = useState(0);
   const images = hotel.images || [];
-  return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""} ${grid ? "flex flex-col" : "grid gap-4 md:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_150px]"}`}>
+  return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""} ${grid ? "flex flex-col" : "grid gap-4 md:grid-cols-[180px_minmax(0,1fr)] "}`}>
     <div className="relative h-40 shrink-0 overflow-hidden bg-muted">
       <Button variant="ghost" className="block h-full min-h-40 w-full p-0" onClick={onDetails} aria-label={`View ${hotel.name}`}>
         {images[photo] ? <img src={images[photo]} alt={hotel.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" /> : <div className="flex h-44 w-full items-center justify-center"><Hotel className="h-12 w-12 text-muted-foreground" /></div>}
@@ -30,8 +30,8 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
       <div className="flex flex-wrap gap-1.5">{hotel.amenities?.slice(0, 5).map(a => <Badge key={a} variant="secondary" className="text-[10px] font-normal">{a}</Badge>)}{(hotel.amenities?.length || 0) > 5 && <Badge variant="secondary" className="text-[10px]">+{(hotel.amenities?.length || 0) - 5}</Badge>}</div>
       {children}
     </div>
-    <div className={`flex items-center justify-between gap-3 border-t border-border p-3 ${grid ? "mt-auto" : "md:col-span-2 xl:col-span-1 xl:flex-col xl:items-end xl:justify-center xl:border-l xl:border-t-0 xl:pl-3 xl:pt-0"}`}>
-      <div className="xl:text-right">{!!hotel.discount_percentage && hotel.discount_percentage > 0 && <Badge variant="secondary" className="mb-2 bg-accent text-primary">{hotel.discount_percentage}% offer</Badge>}<p className="text-lg font-bold text-foreground">₹{hotel.price_per_night.toLocaleString("en-IN")}<span className="ml-1 text-xs font-normal text-muted-foreground">/night</span></p></div>
+    <div className={`flex items-center justify-between gap-3 border-t border-border p-3 ${grid ? "mt-auto" : "md:col-span-2"}`}>
+      <div className="min-w-0">{!!hotel.discount_percentage && hotel.discount_percentage > 0 && <Badge variant="secondary" className="mb-2 bg-accent text-primary">{hotel.discount_percentage}% offer</Badge>}<p className="text-base font-bold text-foreground">₹{hotel.price_per_night.toLocaleString("en-IN")}<span className="ml-1 text-xs font-normal text-muted-foreground">/night</span></p></div>
       <div className="space-y-1 shrink-0"><Button onClick={onBook} className="h-8 w-full px-3 text-xs">Book Now</Button><Button variant="link" onClick={onDetails} className="h-7 w-full gap-1 text-xs">View Details<ArrowRight className="h-3 w-3" /></Button></div>
     </div>
   </article>;
