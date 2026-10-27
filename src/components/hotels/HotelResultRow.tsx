@@ -16,6 +16,8 @@ export interface DiscoveryHotel {
   distance_km?: number | null;
   free_cancellation?: boolean | null;
   breakfast_included?: boolean | null;
+  rental_price?: number | null;
+  rental_period?: "month" | "week";
 }
 
 const photoCounter = (photo: number, total: number) => `${photo + 1}/${total}`;
@@ -28,7 +30,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   const images = hotel.images || [];
   const amenities = hotel.amenities || [];
   const visibleAmenities = grid ? 2 : 4;
-  const discount = hotel.discount_percentage && hotel.discount_percentage > 0 ? hotel.discount_percentage : null;
+  const rental = hotel.rental_period != null;
+  const displayPrice = rental ? hotel.rental_price : hotel.price_per_night;
+  const discount = !rental && hotel.discount_percentage && hotel.discount_percentage > 0 && hotel.discount_percentage < 100 ? hotel.discount_percentage : null;
   const originalPrice = discount ? Math.round(hotel.price_per_night / (1 - discount / 100)) : null;
   const tags = (hotel.tags || []).filter(Boolean);
   const imageBadge = tags[0] || (hotel.star_rating ? `${hotel.star_rating}-Star` : null);
@@ -52,9 +56,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
   const priceBlock = (compact = false) => (
     <div className="min-w-0">
-      <p className={`whitespace-nowrap font-bold text-foreground ${compact ? "text-base" : "text-lg"}`}>₹{hotel.price_per_night.toLocaleString("en-IN")}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>/ night</span></p>
+      <p className={`whitespace-nowrap font-bold text-foreground ${compact ? "text-base" : "text-lg"}`}>{displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN")}` : "Rent unavailable"}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{displayPrice != null && displayPrice > 0 ? `/ ${hotel.rental_period || "night"}` : ""}</span></p>
       {discount && originalPrice && <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]"><span className="text-muted-foreground line-through">₹{originalPrice.toLocaleString("en-IN")}</span><Badge className="border-0 bg-accent px-1.5 py-0 text-[9px] font-semibold text-primary">{discount}% OFF</Badge></p>}
-      {!compact && !!nights && nights > 0 && <p className="mt-0.5 text-[11px] text-muted-foreground">{nights} {nights === 1 ? "night" : "nights"} · ₹{(hotel.price_per_night * nights).toLocaleString("en-IN")} total</p>}
+      {!rental && !compact && !!nights && nights > 0 && <p className="mt-0.5 text-[11px] text-muted-foreground">{nights} {nights === 1 ? "night" : "nights"} · ₹{(hotel.price_per_night * nights).toLocaleString("en-IN")} before taxes</p>}
     </div>
   );
 
