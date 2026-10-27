@@ -34,6 +34,18 @@ export const HOSPITALITY_CATEGORIES: HospitalityCategory[] = [
 
 export const CATEGORY_BY_KEY = Object.fromEntries(HOSPITALITY_CATEGORIES.map((c) => [c.key, c]));
 
+/** Discovery facets backed by partner eligibility, facilities and resident policies. */
+export const COLIVING_CATEGORIES = [
+  { key: "professionals", label: "For Working Professionals" },
+  { key: "students", label: "For Students" },
+  { key: "couples", label: "For Couples" },
+  { key: "women", label: "For Women" },
+  { key: "men", label: "For Men" },
+  { key: "premium", label: "Premium Co-living" },
+  { key: "workspace", label: "Tech & Startup Hub" },
+  { key: "pet", label: "Pet Friendly" },
+] as const;
+
 /** Map legacy single-select labels onto category keys. */
 const LEGACY: Record<string, string> = {
   "independent hotel": "hotel", "boutique hotel": "boutique", "chain / group": "hotel",
