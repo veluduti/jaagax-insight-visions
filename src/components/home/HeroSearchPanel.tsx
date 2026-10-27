@@ -15,6 +15,8 @@ import {
   Sparkles,
   ArrowRight,
   ChevronDown,
+  Building2,
+  Map as MapIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { POPULAR_AREAS } from "@/config/popularAreas";
@@ -22,11 +24,29 @@ import { cn } from "@/lib/utils";
 
 const INTENTS = [
   { color: "", key: "stay", label: "Find a Stay", icon: BedDouble, path: "/hotels" },
-  { color: "text-destructive", key: "invest", label: "Buy / Rent / Invest", icon: Home, path: "/search" },
+  { color: "text-destructive", key: "properties", label: "Properties", icon: Home, path: "/search" },
   { color: "text-foreground", key: "travel", label: "Smart Travel", icon: Plane, path: "/smart-stays" },
   { color: "text-primary", key: "agent", label: "Find an Agent", icon: Users, path: "/agents" },
   { color: "text-primary", key: "list", label: "List a Property", icon: Plus, path: "/sell-property" },
   { color: "text-primary", key: "experiences", label: "Explore Experiences", icon: Leaf, path: "/communities" },
+];
+
+// Tabs shown on the Properties card (mirrors the property search screen)
+const PROPERTY_TABS: { key: string; label: string; icon: any; intent?: string; path?: string }[] = [
+  { key: "properties", label: "Properties", icon: Home, intent: "properties" },
+  { key: "stays", label: "Jaaga Stays", icon: BedDouble, intent: "stay" },
+  { key: "smart", label: "Smart Stays", icon: Plane, path: "/smart-stays" },
+  { key: "projects", label: "New Projects", icon: Building2, path: "/projects" },
+  { key: "agents", label: "Agents", icon: Users, path: "/agents" },
+];
+
+const PROPERTY_KINDS = [
+  { value: "any", label: "All Types" },
+  { value: "Apartment", label: "Apartment" },
+  { value: "Villa", label: "Villa" },
+  { value: "Independent House", label: "House" },
+  { value: "Plot", label: "Plot" },
+  { value: "Office Space", label: "Office" },
 ];
 
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
@@ -78,6 +98,9 @@ const HeroSearchPanel = () => {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [propertyPurpose, setPropertyPurpose] = useState("buy");
+  const [propertyKind, setPropertyKind] = useState("any");
+  const [propertyLocation, setPropertyLocation] = useState("");
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
   const today = useMemo(() => new Date(), []);
@@ -111,7 +134,20 @@ const HeroSearchPanel = () => {
 
   const handleIntent = (key: string, path: string) => {
     setIntent(key);
-    if (key !== "stay") navigate(path);
+    // "stay" and "properties" swap the card contents; the rest navigate on
+    if (key !== "stay" && key !== "properties") navigate(path);
+  };
+
+  const searchProperties = (city?: string) => {
+    const dest = (city ?? propertyLocation).trim();
+    const params = new URLSearchParams();
+    params.set("tab", "properties");
+    if (dest) params.set("city", dest);
+    // Buy and Invest both search sale listings; Rent filters rentals
+    const listingType = propertyPurpose === "rent" ? "rent" : "buy";
+    if (listingType !== "buy") params.set("type", listingType);
+    if (propertyKind !== "any") params.set("propertyType", propertyKind);
+    navigate(`/search?${params.toString()}`);
   };
 
   const guestDisplayText = () => {
@@ -172,6 +208,133 @@ const HeroSearchPanel = () => {
         })}
       </div>
 
+      {/* Properties card — shown when the Properties intent is active */}
+      {intent === "properties" && (
+        <div className="mt-1">
+          {/* Tab row */}
+          <div className="flex flex-wrap items-center gap-1 overflow-x-auto no-scrollbar">
+            {PROPERTY_TABS.map((t) => {
+              const Icon = t.icon;
+              const active = t.key === "properties";
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => (t.intent ? setIntent(t.intent) : navigate(t.path ?? "/"))}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Buy / Rent / Invest + property type */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="inline-flex rounded-xl border border-border bg-background p-1">
+              {[
+                { v: "buy", l: "Buy" },
+                { v: "rent", l: "Rent" },
+                { v: "invest", l: "Invest" },
+              ].map((p) => (
+                <button
+                  key={p.v}
+                  type="button"
+                  onClick={() => setPropertyPurpose(p.v)}
+                  className={cn(
+                    "rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors",
+                    propertyPurpose === p.v
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {p.l}
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+              <Building2 className="h-4 w-4 text-primary shrink-0" />
+              <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Property Type
+              </span>
+              <select
+                value={propertyKind}
+                onChange={(e) => setPropertyKind(e.target.value)}
+                className="bg-transparent text-sm font-medium text-foreground outline-none"
+                aria-label="Property type"
+              >
+                {PROPERTY_KINDS.map((k) => (
+                  <option key={k.value} value={k.value}>{k.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* Location + search */}
+          <div className="mt-3 flex flex-col sm:flex-row gap-2">
+            <label className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-background px-3 py-3 focus-within:border-primary transition-colors">
+              <MapPin className="h-4 w-4 text-primary shrink-0" />
+              <input
+                value={propertyLocation}
+                onChange={(e) => setPropertyLocation(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && searchProperties()}
+                placeholder="Enter location, city or landmark"
+                list="hero-property-cities"
+                className="w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground outline-none"
+              />
+              <datalist id="hero-property-cities">
+                {popularCities.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </label>
+            <Button onClick={() => searchProperties()} className="rounded-xl px-6 py-3 text-sm font-bold">
+              <Search className="h-4 w-4 mr-1.5" />
+              Search Properties
+            </Button>
+          </div>
+
+          {/* Utility row */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <button
+              type="button"
+              onClick={() => navigate("/search?tab=properties")}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                <MapPin className="h-3.5 w-3.5 text-primary" />
+              </span>
+              Use Current Location
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/map")}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                <MapIcon className="h-3.5 w-3.5 text-primary" />
+              </span>
+              Search on Map
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/ai-advisor")}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-accent px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Try AI Advisor
+            </button>
+          </div>
+        </div>
+      )}
+
+      {intent !== "properties" && (<>
       {/* Search row */}
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr_auto] gap-2.5">
         <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary transition-colors">
@@ -279,6 +442,8 @@ const HeroSearchPanel = () => {
           Try AI Advisor
         </button>
       </div>
+      </>
+      )}
     </div>
   );
 };
