@@ -27,7 +27,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   const [photo, setPhoto] = useState(0);
   const images = hotel.images || [];
   const amenities = hotel.amenities || [];
-  const visibleAmenities = grid ? 2 : 5;
+  const visibleAmenities = grid ? 2 : 4;
   const discount = hotel.discount_percentage && hotel.discount_percentage > 0 ? hotel.discount_percentage : null;
   const originalPrice = discount ? Math.round(hotel.price_per_night / (1 - discount / 100)) : null;
   const tags = (hotel.tags || []).filter(Boolean);
@@ -81,7 +81,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
   // ---- List (wide three-column row) ----
   return <article onMouseEnter={onSelect} className={`overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md ${selected ? "ring-2 ring-primary" : ""}`}>
-    <div className="flex flex-col md:grid md:grid-cols-[220px_minmax(0,1fr)_190px]">
+    <div className="flex flex-col md:grid md:grid-cols-[220px_minmax(0,1fr)_176px]">
       <div className="p-2.5 md:pr-0">
         {media("h-28 md:h-[108px]")}
         {images.length > 1 && <div className="mt-1.5 grid grid-cols-4 gap-1.5">
@@ -119,7 +119,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
       </div>
 
-      <div className="flex w-full flex-col justify-between gap-2 border-t border-border p-2.5 md:w-[190px] md:border-l md:border-t-0">
+      <div className="flex w-full flex-col justify-between gap-2 border-t border-border p-2.5 md:w-[176px] md:border-l md:border-t-0">
         <div className="space-y-1.5">
           {priceBlock(false)}
           {(hotel.free_cancellation || hotel.breakfast_included) && <div className="space-y-1 pt-1">
