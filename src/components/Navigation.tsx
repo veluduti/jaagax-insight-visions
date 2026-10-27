@@ -255,7 +255,6 @@ const navPill = (active: boolean) => cn("h-10 gap-2 rounded-full px-4 text-[14px
               {session && <NotificationBell />}
               <SidebarMenu />
 
-              {hotelDiscovery && <Button asChild size="sm"><Link to="/sell-property"><HousePlus className="h-4 w-4" />Post Property</Link></Button>}
               {session ? (
                 <>
                   <Button
