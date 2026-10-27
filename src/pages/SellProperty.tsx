@@ -1466,6 +1466,8 @@ export default function SellProperty() {
     { id: "land", label: "List Your Land", emoji: "🌿" },
   ];
 
+  const [railExpanded, setRailExpanded] = useState<PropertyCategory | null>(null);
+
   const TYPE_FIELD_BY_CATEGORY: Record<PropertyCategory, string> = {
     residential: "property_type",
     commercial: "property_type",
@@ -1820,8 +1822,8 @@ export default function SellProperty() {
   }, [isAgentMode, category, field?.id]);
 
   /* ----- Switch to a different category mid-flow (resets answers) ----- */
-  const switchCategory = (cat: PropertyCategory) => {
-    if (cat === category) return;
+  const switchCategory = (cat: PropertyCategory, selectedType?: string) => {
+    if (cat === category && !selectedType) return;
     engineRef.current = null;
     setIntakeDone(false);
     setDone(false);
@@ -1832,7 +1834,7 @@ export default function SellProperty() {
       { id: uid(), role: "ai", kind: "text", text: "👋 Hi! I'll help you list your property." },
       { id: uid(), role: "ai", kind: "text", text: "Pick a property category to get started." },
     ]);
-    startCategory(cat);
+    startCategory(cat, selectedType);
   };
 
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
@@ -4519,14 +4521,18 @@ export default function SellProperty() {
             <div className="flex flex-col gap-1.5 pb-2">
               {CATEGORY_OPTIONS.map((opt) => {
                 const active = opt.id === category;
+                const expanded = railExpanded === opt.id;
+                const railTypes: string[] =
+                  getPropertyFlow(opt.id).fields[TYPE_FIELD_BY_CATEGORY[opt.id]]?.options || [];
                 return (
+                  <div key={opt.id} className="shrink-0">
                   <button
-                    key={opt.id}
                     type="button"
-                    onClick={() => (category ? switchCategory(opt.id) : selectCategory(opt.id))}
+                    onClick={() => setRailExpanded(expanded ? null : opt.id)}
+                    aria-expanded={expanded}
                     aria-current={active ? "true" : undefined}
                     className={cn(
-                      "group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all shrink-0",
+                      "group flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all",
                       active
                         ? "border-primary bg-primary/10 text-primary shadow-sm"
                         : "border-transparent hover:border-border hover:bg-muted/60 text-foreground",
@@ -4536,11 +4542,37 @@ export default function SellProperty() {
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-medium truncate">{opt.label}</span>
                       <span className="block text-[10px] text-muted-foreground">
-                        {active ? "Active flow" : category ? "Switch flow" : "Start flow"}
+                        {active ? "Active flow" : `${railTypes.length} types`}
                       </span>
                     </span>
                     {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+                    <ChevronDown
+                      className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform", expanded && "rotate-180")}
+                    />
                   </button>
+                  {expanded && railTypes.length > 0 && (
+                    <div className="mt-1 mb-1 ml-8 flex flex-col gap-0.5 border-l border-border pl-2">
+                      {railTypes.map((type) => {
+                        const typeActive = active && state[TYPE_FIELD_BY_CATEGORY[opt.id]] === type;
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => (category ? switchCategory(opt.id, type) : startCategory(opt.id, type))}
+                            className={cn(
+                              "rounded-md px-2 py-1 text-left text-xs transition-colors",
+                              typeActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                            )}
+                          >
+                            {type}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  </div>
                 );
               })}
             </div>
