@@ -131,7 +131,20 @@ const HeroSearchPanel = () => {
 
   const handleIntent = (key: string, path: string) => {
     setIntent(key);
-    if (key !== "stay") navigate(path);
+    // "stay" and "properties" swap the card contents; the rest navigate on
+    if (key !== "stay" && key !== "properties") navigate(path);
+  };
+
+  const searchProperties = (city?: string) => {
+    const dest = (city ?? propertyLocation).trim();
+    const params = new URLSearchParams();
+    params.set("tab", "properties");
+    if (dest) params.set("city", dest);
+    // Buy and Invest both search sale listings; Rent filters rentals
+    const listingType = propertyPurpose === "rent" ? "rent" : "buy";
+    if (listingType !== "buy") params.set("type", listingType);
+    if (propertyKind !== "any") params.set("propertyType", propertyKind);
+    navigate(`/search?${params.toString()}`);
   };
 
   const guestDisplayText = () => {
