@@ -1569,7 +1569,7 @@ const Hotels = () => {
                   </div>
                 )
               ) : (
-                <div className={gridView ? "grid gap-3 sm:grid-cols-2 2xl:grid-cols-3" : "space-y-3"}>
+                <div className={gridView ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                   {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={hotel} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)} onBook={() => { setBookRoomIds(undefined); setSelectedHotel(hotel); setShowHotelOnlyModal(true); }}>
                     {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? <p className="text-xs text-destructive">Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}</p> : null}
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
