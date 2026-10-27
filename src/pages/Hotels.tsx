@@ -244,6 +244,7 @@ const Hotels = () => {
   const [resultSort, setResultSort] = useState("recommended");
   const [gridView, setGridView] = useState(true);
   const [mapView, setMapView] = useState(false);
+  const [desktopMapVisible, setDesktopMapVisible] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mapSelectedId, setMapSelectedId] = useState<string | null>(null);
   const [mapBounds, setMapBounds] = useState<HotelMapBounds | null>(null);
@@ -1470,12 +1471,12 @@ const Hotels = () => {
             </div>
           )}
 
-          <div className="grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[210px_minmax(0,1fr)_340px]">
+          <div className={`grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)] ${desktopMapVisible ? "xl:grid-cols-[210px_minmax(0,1fr)_340px]" : ""}`}>
             <HotelDiscoveryFilters value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} />
             <div className={`min-w-0 ${mapView ? "hidden xl:block" : ""}`}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="text-lg font-bold">{loading ? "Finding stays…" : `${filteredAndSortedHotels.length} ${filteredAndSortedHotels.length === 1 ? "Hotel" : "Hotels"}`}{selectedCity !== "all" && <span className="font-normal"> in {selectedCity}</span>}</h2><p className="text-xs text-muted-foreground">{format(checkIn, "dd MMM yyyy")} – {format(checkOut, "dd MMM yyyy")} · {getGuestDisplayText()}</p></div>
-                <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="lg:hidden" onClick={() => setFiltersOpen(true)}>Filters</Button><Button size="sm" variant={mapView ? "default" : "outline"} onClick={() => setMapView(v => !v)}>{mapView ? "List View" : "Map View"}</Button><select aria-label="Sort hotels" value={resultSort} onChange={e => setResultSort(e.target.value)} className="h-9 rounded-md border border-input bg-card px-2 text-xs"><option value="recommended">Recommended</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="rating">Star rating</option></select><div className="flex rounded-md border border-border p-0.5"><Button size="icon" variant={!gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="List view" aria-pressed={!gridView} onClick={() => setGridView(false)}><List className="h-4 w-4" /></Button><Button size="icon" variant={gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="Grid view" aria-pressed={gridView} onClick={() => setGridView(true)}><LayoutGrid className="h-4 w-4" /></Button></div></div>
+                <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="lg:hidden" onClick={() => setFiltersOpen(true)}>Filters</Button><Button size="sm" variant={mapView ? "default" : "outline"} onClick={() => { setMapView(v => !v); setDesktopMapVisible(v => !v); }}>{mapView ? "List View" : "Map View"}</Button><select aria-label="Sort hotels" value={resultSort} onChange={e => setResultSort(e.target.value)} className="h-9 rounded-md border border-input bg-card px-2 text-xs"><option value="recommended">Recommended</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="rating">Star rating</option></select><div className="flex rounded-md border border-border p-0.5"><Button size="icon" variant={!gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="List view" aria-pressed={!gridView} onClick={() => setGridView(false)}><List className="h-4 w-4" /></Button><Button size="icon" variant={gridView ? "default" : "ghost"} className="h-8 w-8" aria-label="Grid view" aria-pressed={gridView} onClick={() => setGridView(true)}><LayoutGrid className="h-4 w-4" /></Button></div></div>
               </div>
           <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
           {/* Hotels Grid */}
@@ -1579,7 +1580,7 @@ const Hotels = () => {
             </>
           )}
             </div>
-            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : "hidden xl:block"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => setMapView(false)}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} /></aside>
+            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} /></aside>
           </div>
         </div>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} areas={currentAreas} selectedArea={selectedLocality} onAreaChange={pickArea} onClear={clearDiscoveryFilters} /></SheetContent></Sheet>
