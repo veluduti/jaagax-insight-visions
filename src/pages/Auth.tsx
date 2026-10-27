@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
   Tag,
   Landmark,
   Hotel,
+  ArrowRight,
 } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
@@ -32,6 +33,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 import jaagaxLogo from "@/assets/jaagax-logo.png";
+import authScenery from "@/assets/auth-villa-skyline.jpg";
+import "@/components/auth/auth-page.css";
 
 const roleConfig = {
   buyer: {
@@ -500,57 +503,57 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div
-          className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
-        />
+    <div className="auth-page">
+      <div className="auth-scenery" aria-hidden="true">
+        <img src={authScenery} alt="" width={1536} height={1024} />
       </div>
 
-      <div className="absolute top-8 left-8 z-20">
-        <button
-          onClick={() => navigate("/")}
-          className="hover:opacity-80 transition-opacity"
-          aria-label="JAAGA X - Home"
-        >
-          <img src={jaagaxLogo} alt="JAAGA X" className="h-10 w-auto object-contain" loading="lazy" decoding="async" />
-        </button>
-      </div>
+      <header className="auth-header">
+        <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity" aria-label="JAAGA X - Home">
+          <img src={jaagaxLogo} alt="JAAGA X" className="h-9 w-auto object-contain" width={145} height={40} />
+        </Link>
+        <nav aria-label="Property navigation">
+          <Link to="/search?intent=buy">Buy</Link>
+          <Link to="/sell-property">Sell</Link>
+          <Link to="/search?intent=rent">Rent</Link>
+          <Link to="/search?intent=invest">Invest</Link>
+          <Link to="/smart-stays">Smart Stays</Link>
+        </nav>
+      </header>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-6xl mx-auto relative z-10"
+        className="auth-content"
       >
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="auth-grid">
           {/* Left Side */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="hidden md:block"
+            className="auth-intro"
           >
-            <h1 className="text-5xl font-bold mb-6">
-              Welcome to <span className="text-gradient">JaagaX</span>
+            <p className="auth-eyebrow">REAL ESTATE · TRAVEL · INVESTMENT · POWERED BY AI</p>
+            <h1 className="auth-title">
+              Welcome to <span className="text-primary">JaagaX</span>
             </h1>
-            <p className="text-muted-foreground text-xl mb-8">
+            <p className="auth-description">
               India's most intelligent real estate platform powered by AI
             </p>
-            <div className="space-y-4">
+            <div className="auth-benefits">
               {[
                 { icon: Shield, title: "Verified Properties", desc: "AI-verified listings you can trust" },
                 { icon: Home, title: "Smart Recommendations", desc: "Personalized property matches" },
                 { icon: Building2, title: "Market Intelligence", desc: "AI-powered market insights" },
               ].map((item) => (
-                <div key={item.title} className="flex items-center gap-4 p-4 glass-panel rounded-lg">
-                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <item.icon className="h-6 w-6 text-primary" />
+                <div key={item.title} className="auth-benefit">
+                  <div className="auth-benefit-icon">
+                    <item.icon className="h-7 w-7" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    <h3>{item.title}</h3>
+                    <p>{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -558,10 +561,10 @@ export default function Auth() {
           </motion.div>
 
           {/* Right Side - Auth Form */}
-          <Card className="glass-panel border-primary/20 p-8">
+          <Card className="auth-form-card">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-2">{isLogin ? "Sign In" : "Create Account"}</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-[30px] font-extrabold mb-2">{isLogin ? "Sign In" : "Create Account"}</h2>
+              <p className="text-muted-foreground text-sm">
                 {isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}
               </p>
             </div>
@@ -795,21 +798,25 @@ export default function Auth() {
                             placeholder="••••••••"
                             className="pr-10"
                           />
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground"
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
+                          </Button>
                         </div>
-                        <button
+                        <Button
                           type="button"
+                          variant="link"
                           onClick={() => setShowForgotPassword(true)}
-                          className="text-xs text-primary hover:underline font-medium mt-1"
+                          className="flex ml-auto h-auto p-0 text-xs text-primary font-semibold"
                         >
                           Forgot password?
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </motion.div>
@@ -817,7 +824,7 @@ export default function Auth() {
               </AnimatePresence>
 
               {otpSent ? (
-                <Button type="button" onClick={handleVerifyOtp} className="w-full" disabled={loading} size="lg">
+                <Button type="button" onClick={handleVerifyOtp} className="w-full auth-submit" disabled={loading} size="lg">
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -828,7 +835,7 @@ export default function Auth() {
                   )}
                 </Button>
               ) : (
-                <Button type="submit" className="w-full" disabled={loading} size="lg">
+                <Button type="submit" className="w-full auth-submit" disabled={loading} size="lg">
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -842,7 +849,7 @@ export default function Auth() {
                     isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? (
                       "Send OTP"
                     ) : (
-                      "Sign In"
+                      <>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>
                     )
                   ) : (
                     "Create Account"
@@ -864,7 +871,7 @@ export default function Auth() {
                   type="button"
                   variant="outline"
                   size="lg"
-                  className="mt-4 w-full"
+                  className="mt-4 w-full auth-google"
                   disabled={googleLoading}
                   onClick={handleGoogleSignIn}
                 >
@@ -884,17 +891,28 @@ export default function Auth() {
 
 
 
-            <div className="mt-6 text-center space-y-2">
-              <button
+            <div className="mt-7 text-center text-sm text-muted-foreground">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <Button
+                variant="link"
                 onClick={() => (isLogin ? navigate("/register") : setIsLogin(true))}
-                className="text-primary hover:underline text-sm font-medium"
+                className="h-auto p-0 text-primary text-sm font-bold"
               >
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-              </button>
+                {isLogin ? "Sign up" : "Sign in"}
+              </Button>
             </div>
           </Card>
         </div>
       </motion.div>
+
+      <footer className="auth-footer">
+        <p>© {new Date().getFullYear()} JaagaX. All rights reserved.</p>
+        <nav aria-label="Legal and help">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/help">Help Center</Link>
+        </nav>
+      </footer>
 
       <ForgotPasswordModal
         isOpen={showForgotPassword}
