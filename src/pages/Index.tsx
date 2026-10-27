@@ -1,6 +1,8 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import { useLocation } from "@/contexts/LocationContext";
 import PromotedListings from "@/components/home/PromotedListings";
 import StatsStrip from "@/components/home/StatsStrip";
 import ExploreJaaga from "@/components/home/ExploreJaaga";
@@ -21,6 +23,7 @@ import {
 
 const Index = () => {
   const { role, user, loading: authLoading } = useAuth();
+  const { detectedLocation } = useLocation();
 
   // Avoid a flash of the consumer home page while the signed-in user's role resolves.
   if (user && authLoading) {
@@ -68,6 +71,9 @@ const Index = () => {
       {/* Promotional journey banners */}
       <JourneyBanners />
 
+
+      {/* Featured verified properties near the user's location */}
+      <FeaturedProperties detectedCity={detectedLocation?.city} />
 
       {/* Mobile-only: Hotel Services / Property Selling sections */}
       <MobileServiceSections />
