@@ -1,4 +1,4 @@
-import { it, expect } from "bun:test";
+import { describe, expect, it } from "vitest";
 import {
   distanceFromCityCentre,
   hasFreeCancellation,
@@ -9,6 +9,7 @@ import {
 
 // Hotel discovery rows may only show facts the partner or a guest entered.
 
+describe("Hotel discovery row meta", () => {
 it("shows no city-centre distance without a saved map pin", () => {
   expect(distanceFromCityCentre({ city: "Hyderabad", latitude: null, longitude: null })).toBeNull();
 });
