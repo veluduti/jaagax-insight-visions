@@ -117,11 +117,19 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
         map: map.current,
         position,
         title: agentPublicLabel(agent),
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 16,
+          fillColor: "#0f9d58",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 3,
+        },
         label: {
-          text: rating > 0 ? `★ ${rating.toFixed(1)}` : agentPublicLabel(agent),
-          color: "hsl(145 65% 32%)",
+          text: rating > 0 ? rating.toFixed(1) : agentPublicLabel(agent).slice(0, 2).toUpperCase(),
+          color: "#ffffff",
           fontWeight: "700",
-          fontSize: "12px",
+          fontSize: "11px",
         },
       });
       marker.addListener("click", () => selectRef.current(agent.id));
@@ -159,7 +167,7 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
       )}
       {!error && ready && pinned.length > 0 && (
         <p className="absolute left-3 top-3 rounded-md bg-card/95 px-3 py-1.5 text-[11px] text-muted-foreground shadow">
-          Markers show approximate city locations
+          Markers show approximate service-area locations
         </p>
       )}
       {selected && (

@@ -569,7 +569,7 @@ const Agents = () => {
             </div>
 
             {loading ? (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="animate-pulse rounded-xl border border-border bg-card">
                     <div className="h-40 rounded-t-xl bg-muted" />
@@ -623,7 +623,7 @@ const Agents = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filtered.map((agent, idx) => (
                   <AgentDiscoveryCard
                     key={agent.id}
