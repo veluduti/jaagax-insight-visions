@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
+import { CITY_CENTRES, withinHyderabadPropertyRadius } from "@/lib/hyderabadPropertyRadius";
+import { canonicalizeCity } from "@/lib/cityNormalizer";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +32,22 @@ interface Property {
   trust_score: number | null;
   city: string | null;
   locality: string | null;
+  listing_type?: string | null;
+  approximate?: boolean;
 }
+
+// Hash-based small offset (~0.5-2km) so pinless listings in the same city don't stack.
+const jitter = (id: string, salt: number) => {
+  let h = salt;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return ((Math.abs(h) % 1000) / 1000 - 0.5) * 0.04;
+};
+
+const intentMeta = (listingType: string | null | undefined, transaction: string) => {
+  if ((listingType || "").toLowerCase() === "rent") return { label: "Rent", emoji: "🔑", color: "#0ea5e9" };
+  if (transaction === "invest") return { label: "Invest", emoji: "📈", color: "#d97706" };
+  return { label: "Buy", emoji: "🏠", color: "#059669" };
+};
 
 type PropertyRow = Record<string, unknown> & Partial<Property>;
 
@@ -158,14 +175,8 @@ const RasterPropertyMap = ({
 
       {positionedProperties.map(({ property, left, top }) => {
         const isVerified = Boolean(property.verified);
-        const type = property.type?.toLowerCase() || "";
-        const icon = type.includes("villa")
-          ? "🏡"
-          : type.includes("plot")
-            ? "📍"
-            : type.includes("penthouse")
-              ? "🏢"
-              : "🏠";
+        const meta = intentMeta(property.listing_type, transaction);
+        const icon = meta.emoji;
         return (
           <button
             key={property.id}
@@ -175,9 +186,7 @@ const RasterPropertyMap = ({
             style={{
               left,
               top,
-              background: isVerified
-                ? "linear-gradient(135deg, hsl(152 70% 38%), hsl(152 76% 28%))"
-                : "hsl(var(--primary))",
+              background: isVerified ? meta.color : meta.color,
             }}
             title={`${property.title} - open property`}
             aria-label={`Open ${property.title}`}
@@ -185,7 +194,7 @@ const RasterPropertyMap = ({
             <span className="mr-1" aria-hidden="true">
               {icon}
             </span>
-            ₹{((property.price || 0) / 100000).toFixed(1)}L
+            {meta.label} · ₹{((property.price || 0) / 100000).toFixed(1)}L
           </button>
         );
       })}
@@ -415,11 +424,12 @@ const Map = () => {
       let query = supabase
         .from("properties")
         .select(
-          "id, slug, title, city, locality, latitude, longitude, price, area_sqft, bhk, type, verified, images, trust_score, is_draft, is_live, listing_status, verification_status, description, amenities, bedrooms, bathrooms",
+          "id, slug, title, city, locality, listing_type, latitude, longitude, price, area_sqft, bhk, type, verified, images, trust_score, is_draft, is_live, listing_status, verification_status, description, amenities, bedrooms, bathrooms",
         )
         .limit(300);
 
-      query = query.ilike("city", currentCity);
+      query = query.eq("is_live", true);
+      query = query.eq("listing_type", filters.transactionType === "rent" ? "rent" : "sale");
 
       if (filters.verifiedOnly) {
         query = query.eq("verified", true);
@@ -442,7 +452,9 @@ const Map = () => {
         query = query.ilike("locality", `%${filters.locality}%`);
       }
 
-      query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
+      if (searchParams.get("priceRange")) {
+        query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
+      }
 
       const { data, error } = await query;
 
@@ -456,12 +468,23 @@ const Map = () => {
         (data || []).flatMap((row: PropertyRow): Property[] => {
           const v = getPublicPropertyView(row);
           if (!v) return [];
+          const savedLat = toFiniteNumber(v.latitude ?? row.latitude);
+          const savedLng = toFiniteNumber(v.longitude ?? row.longitude);
+          const cityName = asNullableString(v.city ?? row.city);
+          const centre = cityName ? CITY_CENTRES[canonicalizeCity(cityName)] : undefined;
+          const approximate = (savedLat === null || savedLng === null) && Boolean(centre);
+          const lat = approximate ? centre![0] + jitter(v.id, 7) : savedLat;
+          const lng = approximate ? centre![1] + jitter(v.id, 13) : savedLng;
+          if (currentCity === "Hyderabad" && !withinHyderabadPropertyRadius({ latitude: lat, longitude: lng, city: cityName })) return [];
+          if (currentCity !== "Hyderabad" && cityName && canonicalizeCity(cityName) !== canonicalizeCity(currentCity)) return [];
           return [
             {
               id: v.id,
               slug: asNullableString(row.slug),
-              latitude: toFiniteNumber(v.latitude ?? row.latitude),
-              longitude: toFiniteNumber(v.longitude ?? row.longitude),
+              latitude: lat,
+              longitude: lng,
+              approximate,
+              listing_type: asNullableString(row.listing_type),
               title: v.title,
               city: asNullableString(v.city ?? row.city),
               locality: asNullableString(v.locality ?? row.locality),
@@ -536,21 +559,12 @@ const Map = () => {
           clusterDiv.textContent = String(clusterProps.length);
           inner.appendChild(clusterDiv);
         } else {
-          const typeEmoji = property.type?.toLowerCase().includes("villa")
-            ? "🏡"
-            : property.type?.toLowerCase().includes("plot")
-              ? "📍"
-              : property.type?.toLowerCase().includes("penthouse")
-                ? "🏢"
-                : "🏠";
+          const meta = intentMeta(property.listing_type, filters.transactionType);
+          const typeEmoji = meta.emoji;
 
           const markerDiv = document.createElement("div");
           markerDiv.style.cssText = `
-          background: ${
-            property.verified
-              ? "linear-gradient(135deg, #10b981, #059669)"
-              : "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))"
-          };
+          background: ${meta.color};
           color: white;
           padding: 8px 14px;
           border-radius: 20px;
@@ -568,7 +582,7 @@ const Map = () => {
           emojiSpan.style.fontSize = "14px";
           emojiSpan.textContent = typeEmoji;
 
-          const priceText = document.createTextNode(`₹${(property.price / 100000).toFixed(1)}L`);
+          const priceText = document.createTextNode(`${meta.label} · ₹${(property.price / 100000).toFixed(1)}L`);
 
           markerDiv.appendChild(emojiSpan);
           markerDiv.appendChild(priceText);
@@ -597,7 +611,7 @@ const Map = () => {
               duration: 1000,
             });
           } else {
-            openInNewTab(propertyPath(property));
+            setSelectedProperty(property);
           }
         });
 
@@ -612,6 +626,7 @@ const Map = () => {
             <p style="font-size: 18px; color: hsl(var(--primary)); font-weight: 700; margin-bottom: 6px;">₹${(property.price / 100000).toFixed(1)}L</p>
             <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area_sqft || 0} sq.ft</p>
             <p style="font-size: 12px; color: #888;">${property.locality}, ${property.city}</p>
+            ${property.approximate ? '<p style="font-size: 11px; color: #888; margin-top: 4px;">Approximate area location</p>' : ""}
             ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ""}
           </div>
         `);
@@ -628,7 +643,7 @@ const Map = () => {
     } else {
       map.current.once("load", renderMarkers);
     }
-  }, [properties]);
+  }, [properties, filters.transactionType]);
 
   const toggle3DMode = () => {
     if (!map.current) return;
@@ -714,9 +729,30 @@ const Map = () => {
             center={cityCoordinates[currentCity]}
             zoom={cityCoordinates[currentCity].zoom}
             token={MAPBOX_TOKEN}
-            onPropertyOpen={(property) => openInNewTab(propertyPath(property))}
+            transaction={filters.transactionType}
+            onPropertyOpen={(property) => setSelectedProperty(property)}
           />
         )}
+
+        {/* Buy / Rent / Invest toggle */}
+        <div className="absolute left-4 top-4 z-10 flex gap-1 rounded-full border border-border bg-background/95 p-1 shadow-lg backdrop-blur-md">
+          {[
+            { v: "buy", l: "🏠 Buy" },
+            { v: "rent", l: "🔑 Rent" },
+            { v: "invest", l: "📈 Invest" },
+          ].map((o) => (
+            <button
+              key={o.v}
+              type="button"
+              onClick={() => setFilters((f) => ({ ...f, transactionType: o.v }))}
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                filters.transactionType === o.v ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+              }`}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
 
         {/* Control Buttons — overlaid on the map itself, top-right */}
         <motion.div
