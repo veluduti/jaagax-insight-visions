@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import {
 import {
   MapPin,
   Star,
-  ChevronLeft,
   ChevronRight,
   Loader2,
   BadgeCheck,
@@ -75,7 +73,6 @@ import {
   agentAvatarInitials,
   agentLanguages,
   canRevealAgentContact,
-  AGENT_CONTACT_VISIBLE_STATUSES,
   LANGUAGE_OPTIONS,
 } from "@/lib/agentPrivacy";
 import {
