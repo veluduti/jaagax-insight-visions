@@ -150,7 +150,7 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
 
   return (
     <div
-      className="relative h-[560px] overflow-hidden rounded-lg border border-border bg-muted lg:h-[650px]"
+      className="relative h-[560px] overflow-hidden rounded-lg border border-border bg-muted lg:h-full"
       aria-label="Agent locations map"
     >
       <div ref={container} className="absolute inset-0" />
