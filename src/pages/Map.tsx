@@ -639,6 +639,13 @@ const Map = () => {
 
         markersRef.current.push(marker);
       });
+
+      const pts = properties.filter((p) => p.latitude !== null && p.longitude !== null);
+      if (pts.length > 1 && map.current) {
+        const bounds = new mapboxgl.LngLatBounds();
+        pts.forEach((p) => bounds.extend([p.longitude!, p.latitude!]));
+        map.current.fitBounds(bounds, { padding: 120, maxZoom: 13, duration: 800 });
+      }
     };
 
     if (map.current.isStyleLoaded()) {
