@@ -36,14 +36,15 @@ interface Props {
   isFavorite: boolean;
   onToggleFavorite: (agent: DiscoveryAgent) => void;
   onContact: (agent: DiscoveryAgent) => void;
+  compact?: boolean;
 }
 
-const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onContact }: Props) => {
+const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onContact, compact = false }: Props) => {
   const navigate = useNavigate();
   const badge = deriveBadge(agent);
   const rating = Number(agent.avg_rating || 0);
   const ratings = agent.total_ratings || 0;
-  const specs = (agent.specializations || []).filter(Boolean).slice(0, 4);
+  const specs = (agent.specializations || []).filter(Boolean).slice(0, compact ? 3 : 4);
   const location =
     toArray(agent.cities_served)[0] ||
     [agent.city, agent.state].filter(Boolean).join(", ") ||
@@ -57,7 +58,7 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
     >
       <Card className="overflow-hidden border-border bg-card hover:shadow-lg transition-shadow">
         {/* Photo header */}
-        <div className="relative h-32 bg-muted">
+        <div className={cn("relative bg-muted", compact ? "h-24" : "h-32")}>
           {agent.photo_url ? (
             <img
               src={agent.photo_url}
@@ -98,7 +99,7 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
         </div>
 
         {/* Body */}
-        <div className="p-3">
+        <div className={compact ? "p-2" : "p-3"}>
           <div className="flex items-center gap-1.5">
             <h3 className="truncate text-sm font-bold text-foreground">{agentPublicLabel(agent)}</h3>
             {agent.verified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" />}
@@ -124,15 +125,15 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           {/* Stats — real agent data only */}
           <div className="mt-3 grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-muted/40 py-2 text-center">
             <div>
-              <p className="text-sm font-bold text-foreground">{agent.experience_years ?? 0}+</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{agent.experience_years ?? 0}+</p>
               <p className="text-[10px] text-muted-foreground">Years Exp.</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">{propertiesHandled(agent)}+</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{propertiesHandled(agent)}+</p>
               <p className="text-[10px] text-muted-foreground">Properties</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">{agent.trust_score ?? 0}%</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{agent.trust_score ?? 0}%</p>
               <p className="text-[10px] text-muted-foreground">Trust Score</p>
             </div>
           </div>
@@ -156,12 +157,12 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             <Button
               variant="outline"
               size="sm"
-              className="h-8 flex-1 text-xs"
+              className={cn("flex-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")}
               onClick={() => navigate(`/agent/${agent.id}`)}
             >
               View Profile
             </Button>
-            <Button size="sm" className="h-8 flex-1 gap-1 text-xs" onClick={() => onContact(agent)}>
+            <Button size="sm" className={cn("flex-1 gap-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")} onClick={() => onContact(agent)}>
               <MessageCircle className="h-3.5 w-3.5" />
               Contact
             </Button>
