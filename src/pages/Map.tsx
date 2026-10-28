@@ -70,6 +70,7 @@ const lngLatToWorld = (lng: number, lat: number, zoom: number) => {
 };
 
 const toFiniteNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
   const numberValue = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numberValue) ? numberValue : null;
 };
