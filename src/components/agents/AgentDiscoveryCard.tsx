@@ -137,15 +137,15 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           <div className={cn("grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-muted/40 text-center", compact ? "mt-2 py-1" : "mt-3 py-2")}>
             <div>
               <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{agent.experience_years ?? 0}+</p>
-              <p className={cn("text-muted-foreground", compact ? "text-[9px]" : "text-[10px]")}>Years Exp.</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Yrs" : "Years Exp."}</p>
             </div>
             <div>
               <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{propertiesHandled(agent)}+</p>
-              <p className={cn("text-muted-foreground", compact ? "text-[9px]" : "text-[10px]")}>Properties</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Props" : "Properties"}</p>
             </div>
             <div>
               <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{agent.trust_score ?? 0}%</p>
-              <p className={cn("text-muted-foreground", compact ? "text-[9px]" : "text-[10px]")}>Trust Score</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Trust" : "Trust Score"}</p>
             </div>
           </div>
 
