@@ -594,7 +594,7 @@ const Agents = () => {
               </div>
             ) : viewMode === "map" ? (
               <div className="grid gap-4 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]">
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                <div className="grid items-start grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
                   {filtered.map((agent, idx) => (
                     <div
                       key={agent.id}

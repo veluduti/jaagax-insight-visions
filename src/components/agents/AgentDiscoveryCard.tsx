@@ -168,13 +168,13 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             <Button
               variant="outline"
               size="sm"
-              className={cn("flex-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")}
+              className={cn("flex-1 text-xs", compact ? "h-6 px-1 text-[10px]" : "h-8")}
               onClick={() => navigate(`/agent/${agent.id}`)}
             >
               View Profile
             </Button>
-            <Button size="sm" className={cn("flex-1 gap-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")} onClick={() => onContact(agent)}>
-              <MessageCircle className="h-3.5 w-3.5" />
+            <Button size="sm" className={cn("flex-1 gap-1 text-xs", compact ? "h-6 px-1 text-[10px]" : "h-8")} onClick={() => onContact(agent)}>
+              <MessageCircle className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
               Contact
             </Button>
           </div>
