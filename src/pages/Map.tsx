@@ -80,6 +80,7 @@ const RasterPropertyMap = ({
   center,
   zoom,
   token,
+  transaction = "buy",
   onPropertyOpen,
 }: {
   properties: Property[];
@@ -87,6 +88,7 @@ const RasterPropertyMap = ({
   center: { lng: number; lat: number };
   zoom: number;
   token: string;
+  transaction?: string;
   onPropertyOpen: (property: Property) => void;
 }) => {
   const [viewport, setViewport] = useState(() => ({

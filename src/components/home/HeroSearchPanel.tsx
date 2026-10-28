@@ -307,7 +307,7 @@ const HeroSearchPanel = () => {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/map")}
+              onClick={() => navigate(`/map?transactionType=${propertyPurpose}`)}
               className="inline-flex items-center gap-2 text-xs font-semibold text-foreground hover:text-primary transition-colors"
             >
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
