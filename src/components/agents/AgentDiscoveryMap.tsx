@@ -16,9 +16,38 @@ const CENTRE_LOOKUP: Record<string, [number, number]> = Object.fromEntries(
   Object.entries(CITY_CENTRES).map(([k, v]) => [k.toLowerCase(), v]),
 );
 
+// Approximate centres of common Hyderabad-region localities agents serve.
+const LOCALITY_CENTRES: Record<string, [number, number]> = {
+  balanagar: [17.4795, 78.4421], moosapet: [17.4699, 78.4271], kukatpally: [17.4948, 78.3996],
+  madhapur: [17.4483, 78.3915], gachibowli: [17.4401, 78.3489], "hitec city": [17.4504, 78.3808],
+  hitech: [17.4504, 78.3808], kondapur: [17.4698, 78.3578], "jubilee hills": [17.4326, 78.4071],
+  "banjara hills": [17.4156, 78.4347], ameerpet: [17.4375, 78.4482], secunderabad: [17.4399, 78.4983],
+  begumpet: [17.4447, 78.4664], miyapur: [17.4968, 78.3614], kompally: [17.5357, 78.4859],
+  uppal: [17.4058, 78.5591], "lb nagar": [17.3457, 78.5522], dilsukhnagar: [17.3688, 78.5247],
+  manikonda: [17.4053, 78.3866], "financial district": [17.4156, 78.3410], nizampet: [17.5167, 78.3833],
+  bachupally: [17.5440, 78.3640], alwal: [17.5047, 78.5132], medchal: [17.6297, 78.4814],
+};
+
 export const agentCityCentre = (agent: DiscoveryAgent): [number, number] | null => {
+  const localities = [...toArray((agent as any).localities_served), (agent as any).locality]
+    .filter(Boolean)
+    .map((l: string) => String(l).toLowerCase().trim());
+  for (const l of localities) if (LOCALITY_CENTRES[l]) return LOCALITY_CENTRES[l];
   const city = (toArray(agent.cities_served)[0] || agent.city || "").toLowerCase().trim();
-  return CENTRE_LOOKUP[city] || null;
+  return LOCALITY_CENTRES[city] || CENTRE_LOOKUP[city] || null;
+};
+
+/** Spread agents sharing the same point so every marker stays visible. */
+const spread = (items: { agent: DiscoveryAgent; centre: [number, number] }[]) => {
+  const seen: Record<string, number> = {};
+  return items.map((p) => {
+    const key = p.centre.join(",");
+    const n = (seen[key] = (seen[key] ?? -1) + 1);
+    if (!n) return p;
+    const angle = n * 2.4;
+    const r = 0.006 * Math.sqrt(n);
+    return { ...p, centre: [p.centre[0] + r * Math.sin(angle), p.centre[1] + r * Math.cos(angle)] as [number, number] };
+  });
 };
 
 interface Props {
@@ -38,9 +67,11 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
 
-  const pinned = agents
-    .map((a) => ({ agent: a, centre: agentCityCentre(a) }))
-    .filter((p): p is { agent: DiscoveryAgent; centre: [number, number] } => !!p.centre);
+  const pinned = spread(
+    agents
+      .map((a) => ({ agent: a, centre: agentCityCentre(a) }))
+      .filter((p): p is { agent: DiscoveryAgent; centre: [number, number] } => !!p.centre),
+  );
   const selected = agents.find((a) => a.id === selectedId);
 
   useEffect(() => {
@@ -86,11 +117,19 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
         map: map.current,
         position,
         title: agentPublicLabel(agent),
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 16,
+          fillColor: "#0f9d58",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 3,
+        },
         label: {
-          text: rating > 0 ? `★ ${rating.toFixed(1)}` : agentPublicLabel(agent),
-          color: "hsl(145 65% 32%)",
+          text: rating > 0 ? rating.toFixed(1) : agentPublicLabel(agent).slice(0, 2).toUpperCase(),
+          color: "#ffffff",
           fontWeight: "700",
-          fontSize: "12px",
+          fontSize: "11px",
         },
       });
       marker.addListener("click", () => selectRef.current(agent.id));
@@ -128,7 +167,7 @@ const AgentDiscoveryMap = ({ agents, selectedId, onSelect, onProfile }: Props) =
       )}
       {!error && ready && pinned.length > 0 && (
         <p className="absolute left-3 top-3 rounded-md bg-card/95 px-3 py-1.5 text-[11px] text-muted-foreground shadow">
-          Markers show approximate city locations
+          Markers show approximate service-area locations
         </p>
       )}
       {selected && (

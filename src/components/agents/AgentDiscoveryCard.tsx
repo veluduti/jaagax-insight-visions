@@ -57,7 +57,7 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
     >
       <Card className="overflow-hidden border-border bg-card hover:shadow-lg transition-shadow">
         {/* Photo header */}
-        <div className="relative h-40 bg-muted">
+        <div className="relative h-32 bg-muted">
           {agent.photo_url ? (
             <img
               src={agent.photo_url}
@@ -98,25 +98,25 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
         </div>
 
         {/* Body */}
-        <div className="p-4">
+        <div className="p-3">
           <div className="flex items-center gap-1.5">
-            <h3 className="font-bold text-foreground">{agentPublicLabel(agent)}</h3>
-            {agent.verified && <BadgeCheck className="h-4 w-4 text-primary" />}
+            <h3 className="truncate text-sm font-bold text-foreground">{agentPublicLabel(agent)}</h3>
+            {agent.verified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" />}
           </div>
 
           {ratings > 0 ? (
-            <div className="mt-1 flex items-center gap-1 text-sm">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <div className="mt-1 flex items-center gap-1 text-xs">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
               <span className="text-muted-foreground">({ratings} reviews)</span>
             </div>
           ) : (
-            <p className="mt-1 text-sm text-muted-foreground">No reviews yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">No reviews yet</p>
           )}
 
           {agent.agency_name && (
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Building2 className="h-3.5 w-3.5" />
+            <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+              <Building2 className="h-3 w-3 shrink-0" />
               {agent.agency_name}
             </p>
           )}
@@ -124,44 +124,45 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           {/* Stats — real agent data only */}
           <div className="mt-3 grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-muted/40 py-2 text-center">
             <div>
-              <p className="font-bold text-foreground">{agent.experience_years ?? 0}+</p>
-              <p className="text-[11px] text-muted-foreground">Years Exp.</p>
+              <p className="text-sm font-bold text-foreground">{agent.experience_years ?? 0}+</p>
+              <p className="text-[10px] text-muted-foreground">Years Exp.</p>
             </div>
             <div>
-              <p className="font-bold text-foreground">{propertiesHandled(agent)}+</p>
-              <p className="text-[11px] text-muted-foreground">Properties</p>
+              <p className="text-sm font-bold text-foreground">{propertiesHandled(agent)}+</p>
+              <p className="text-[10px] text-muted-foreground">Properties</p>
             </div>
             <div>
-              <p className="font-bold text-foreground">{agent.trust_score ?? 0}%</p>
-              <p className="text-[11px] text-muted-foreground">Trust Score</p>
+              <p className="text-sm font-bold text-foreground">{agent.trust_score ?? 0}%</p>
+              <p className="text-[10px] text-muted-foreground">Trust Score</p>
             </div>
           </div>
 
           {specs.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {specs.map((s) => (
-                <Badge key={s} variant="outline" className="text-[11px] font-normal">
+                <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 font-normal">
                   {s}
                 </Badge>
               ))}
             </div>
           )}
 
-          <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
+          <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate">{location}</span>
           </p>
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <Button
               variant="outline"
-              className="flex-1"
+              size="sm"
+              className="h-8 flex-1 text-xs"
               onClick={() => navigate(`/agent/${agent.id}`)}
             >
               View Profile
             </Button>
-            <Button className="flex-1 gap-1.5" onClick={() => onContact(agent)}>
-              <MessageCircle className="h-4 w-4" />
+            <Button size="sm" className="h-8 flex-1 gap-1 text-xs" onClick={() => onContact(agent)}>
+              <MessageCircle className="h-3.5 w-3.5" />
               Contact
             </Button>
           </div>
