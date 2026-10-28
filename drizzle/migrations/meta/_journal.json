@@ -330,6 +330,13 @@
       "when": 1793023812216,
       "tag": "0046_platform_stats_function",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793165100134,
+      "tag": "0047_create_agent_favorites",
+      "breakpoints": true
     }
   ]
 }
