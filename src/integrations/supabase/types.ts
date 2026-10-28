@@ -300,6 +300,41 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_faqs: {
+        Row: {
+          agent_id: string
+          answer: string
+          created_at: string
+          id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          agent_id: string
+          answer: string
+          created_at?: string
+          id?: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          agent_id?: string
+          answer?: string
+          created_at?: string
+          id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_faqs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_favorites: {
         Row: {
           agent_id: string
@@ -322,6 +357,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "agent_favorites_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_inquiries: {
+        Row: {
+          agent_id: string
+          channel: string
+          created_at: string
+          id: string
+          message: string
+          sender_name: string
+          sender_user_id: string
+        }
+        Insert: {
+          agent_id: string
+          channel?: string
+          created_at?: string
+          id?: string
+          message: string
+          sender_name: string
+          sender_user_id: string
+        }
+        Update: {
+          agent_id?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          message?: string
+          sender_name?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_inquiries_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_meeting_requests: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          message: string | null
+          preferred_date: string
+          requester_contact: string | null
+          requester_name: string
+          requester_user_id: string
+          status: string
+          time_slot: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_date: string
+          requester_contact?: string | null
+          requester_name: string
+          requester_user_id: string
+          status?: string
+          time_slot: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_date?: string
+          requester_contact?: string | null
+          requester_name?: string
+          requester_user_id?: string
+          status?: string
+          time_slot?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_meeting_requests_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"

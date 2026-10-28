@@ -81,6 +81,7 @@ import HotelBookingsManager from "@/components/agent/HotelBookingsManager";
 import FinancialEnquiriesManager from "@/components/agent/FinancialEnquiriesManager";
 
 import AgentRatings from "@/components/agent/AgentRatings";
+import AgentEngagementPanel from "@/components/agents/AgentEngagementPanel";
 
 // Lazy-load heavy panels
 const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
@@ -934,6 +935,9 @@ export default function AgentDashboard() {
             <AgentRatings agentId={agentProfile.id} trustScore={agentProfile.trust_score || 0} />
           </div>
         )}
+
+        {/* ===== Profile engagement: meeting requests + enquiries ===== */}
+        {agentProfile.id && <AgentEngagementPanel agentId={agentProfile.id} />}
 
         {/* ===== Key Metrics ===== */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
