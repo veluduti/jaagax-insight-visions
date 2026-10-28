@@ -58,7 +58,7 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
     >
       <Card className="overflow-hidden border-border bg-card hover:shadow-lg transition-shadow">
         {/* Photo header */}
-        <div className={cn("relative bg-muted", compact ? "h-24" : "h-32")}>
+        <div className={cn("relative bg-muted", compact ? "h-16" : "h-32")}>
           {agent.photo_url ? (
             <img
               src={agent.photo_url}
@@ -68,7 +68,12 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+              <span
+                className={cn(
+                  "flex items-center justify-center rounded-full bg-primary font-bold text-primary-foreground",
+                  compact ? "h-9 w-9 text-xs" : "h-16 w-16 text-xl",
+                )}
+              >
                 {agentAvatarInitials(agent)}
               </span>
             </div>
@@ -76,7 +81,10 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           {badge && (
             <span
               className={cn(
-                "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold shadow",
+                "absolute rounded-full font-semibold shadow",
+                compact
+                  ? "left-1.5 top-1.5 px-1.5 py-0.5 text-[9px]"
+                  : "left-3 top-3 px-3 py-1 text-xs",
                 BADGE_STYLES[badge],
               )}
             >
@@ -87,7 +95,10 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             type="button"
             aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             onClick={() => onToggleFavorite(agent)}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 shadow transition hover:scale-110"
+            className={cn(
+              "absolute flex items-center justify-center rounded-full bg-card/90 shadow transition hover:scale-110",
+              compact ? "right-1.5 top-1.5 h-5 w-5" : "right-3 top-3 h-8 w-8",
+            )}
           >
             <Heart
               className={cn(
