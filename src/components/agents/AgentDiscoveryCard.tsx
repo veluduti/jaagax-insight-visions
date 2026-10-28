@@ -58,7 +58,7 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
     >
       <Card className="overflow-hidden border-border bg-card hover:shadow-lg transition-shadow">
         {/* Photo header */}
-        <div className={cn("relative bg-muted", compact ? "h-24" : "h-32")}>
+        <div className={cn("relative bg-muted", compact ? "h-16" : "h-32")}>
           {agent.photo_url ? (
             <img
               src={agent.photo_url}
@@ -68,7 +68,12 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+              <span
+                className={cn(
+                  "flex items-center justify-center rounded-full bg-primary font-bold text-primary-foreground",
+                  compact ? "h-9 w-9 text-xs" : "h-16 w-16 text-xl",
+                )}
+              >
                 {agentAvatarInitials(agent)}
               </span>
             </div>
@@ -76,7 +81,10 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           {badge && (
             <span
               className={cn(
-                "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold shadow",
+                "absolute rounded-full font-semibold shadow",
+                compact
+                  ? "left-1.5 top-1.5 px-1.5 py-0.5 text-[9px]"
+                  : "left-3 top-3 px-3 py-1 text-xs",
                 BADGE_STYLES[badge],
               )}
             >
@@ -87,11 +95,14 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             type="button"
             aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             onClick={() => onToggleFavorite(agent)}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 shadow transition hover:scale-110"
+            className={cn(
+              "absolute flex items-center justify-center rounded-full bg-card/90 shadow transition hover:scale-110",
+              compact ? "right-1.5 top-1.5 h-5 w-5" : "right-3 top-3 h-8 w-8",
+            )}
           >
             <Heart
               className={cn(
-                "h-4 w-4",
+                compact ? "h-3 w-3" : "h-4 w-4",
                 isFavorite ? "fill-destructive text-destructive" : "text-muted-foreground",
               )}
             />
@@ -99,23 +110,23 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
         </div>
 
         {/* Body */}
-        <div className={compact ? "p-2" : "p-3"}>
+        <div className={compact ? "p-1.5" : "p-3"}>
           <div className="flex items-center gap-1.5">
-            <h3 className="truncate text-sm font-bold text-foreground">{agentPublicLabel(agent)}</h3>
-            {agent.verified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" />}
+            <h3 className={cn("truncate font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{agentPublicLabel(agent)}</h3>
+            {agent.verified && <BadgeCheck className={cn("shrink-0 text-primary", compact ? "h-3 w-3" : "h-3.5 w-3.5")} />}
           </div>
 
           {ratings > 0 ? (
-            <div className="mt-1 flex items-center gap-1 text-xs">
+            <div className={cn("mt-1 flex items-center gap-1", compact ? "text-[11px]" : "text-xs")}>
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
               <span className="text-muted-foreground">({ratings} reviews)</span>
             </div>
           ) : (
-            <p className="mt-1 text-xs text-muted-foreground">No reviews yet</p>
+            <p className={cn("mt-1 text-muted-foreground", compact ? "text-[11px]" : "text-xs")}>No reviews yet</p>
           )}
 
-          {agent.agency_name && (
+          {agent.agency_name && !compact && (
             <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
               <Building2 className="h-3 w-3 shrink-0" />
               {agent.agency_name}
@@ -123,23 +134,23 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
           )}
 
           {/* Stats — real agent data only */}
-          <div className="mt-3 grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-muted/40 py-2 text-center">
+          <div className={cn("grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-muted/40 text-center", compact ? "mt-2 py-1" : "mt-3 py-2")}>
             <div>
-              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{agent.experience_years ?? 0}+</p>
-              <p className="text-[10px] text-muted-foreground">Years Exp.</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{agent.experience_years ?? 0}+</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Yrs" : "Years Exp."}</p>
             </div>
             <div>
-              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{propertiesHandled(agent)}+</p>
-              <p className="text-[10px] text-muted-foreground">Properties</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{propertiesHandled(agent)}+</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Props" : "Properties"}</p>
             </div>
             <div>
-              <p className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>{agent.trust_score ?? 0}%</p>
-              <p className="text-[10px] text-muted-foreground">Trust Score</p>
+              <p className={cn("font-bold text-foreground", compact ? "text-[11px]" : "text-sm")}>{agent.trust_score ?? 0}%</p>
+              <p className={cn("text-muted-foreground", compact ? "text-[9px] whitespace-nowrap" : "text-[10px]")}>{compact ? "Trust" : "Trust Score"}</p>
             </div>
           </div>
 
           {specs.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className={cn("flex flex-wrap gap-1", compact ? "mt-2" : "mt-3")}>
               {specs.map((s) => (
                 <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 font-normal">
                   {s}
@@ -148,22 +159,22 @@ const AgentDiscoveryCard = ({ agent, index, isFavorite, onToggleFavorite, onCont
             </div>
           )}
 
-          <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" />
+          <p className={cn("flex items-center gap-1 text-muted-foreground", compact ? "mt-1.5 text-[11px]" : "mt-2 text-xs")}>
+            <MapPin className={cn("shrink-0", compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
             <span className="truncate">{location}</span>
           </p>
 
-          <div className="mt-3 flex gap-2">
+          <div className={cn("flex gap-2", compact ? "mt-2" : "mt-3")}>
             <Button
               variant="outline"
               size="sm"
-              className={cn("flex-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")}
+              className={cn("flex-1 text-xs", compact ? "h-6 px-1 text-[10px]" : "h-8")}
               onClick={() => navigate(`/agent/${agent.id}`)}
             >
               View Profile
             </Button>
-            <Button size="sm" className={cn("flex-1 gap-1 text-xs", compact ? "h-7 px-1 text-[11px]" : "h-8")} onClick={() => onContact(agent)}>
-              <MessageCircle className="h-3.5 w-3.5" />
+            <Button size="sm" className={cn("flex-1 gap-1 text-xs", compact ? "h-6 px-1 text-[10px]" : "h-8")} onClick={() => onContact(agent)}>
+              <MessageCircle className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
               Contact
             </Button>
           </div>
