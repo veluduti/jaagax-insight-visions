@@ -81,6 +81,7 @@ import HotelBookingsManager from "@/components/agent/HotelBookingsManager";
 import FinancialEnquiriesManager from "@/components/agent/FinancialEnquiriesManager";
 
 import AgentRatings from "@/components/agent/AgentRatings";
+import AgentEngagementPanel from "@/components/agents/AgentEngagementPanel";
 
 // Lazy-load heavy panels
 const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
