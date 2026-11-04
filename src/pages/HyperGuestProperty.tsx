@@ -24,8 +24,10 @@ const CURRENCIES = ["INR", "USD", "EUR", "GBP"];
 const TESTS = ["", "#1 Pre-book 1 room 1 adult", "#2 1 room 1 adult", "#3 1 room 2A+1C+1I", "#4 2 rooms 2A / 1A", "#5 2 rooms 1A1C / 2A1I", "#6 2 rooms different types/rates", "#7 Same-day 2 adults", "#8 Currency conversion", "#9 Nationality", "#10 Cancel refundable", "#11 Cancel non-refundable", "#12 Package rate"];
 
 type RoomReq = { adults: number; children: number[]; infants: number };
+let LIVE_MODE = false;
+const addMonthsISO = (m: number) => { const x = new Date(); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
 const call = async (body: any) => {
-  const { data, error } = await supabase.functions.invoke("hyperguest", { body });
+  const { data, error } = await supabase.functions.invoke("hyperguest", { body: { ...body, live: LIVE_MODE } });
   if (error) {
     let msg = error.message;
     try { const j = await (error as any).context?.json(); msg = j?.error ?? msg; return { error: msg, data: j }; } catch { /* */ }
@@ -69,19 +71,22 @@ export default function HyperGuestProperty() {
   const { propertyId = "19912" } = useParams();
   const nav = useNavigate();
   const loc = useLocation();
+  const live = new URLSearchParams(loc.search).get("live") === "1";
+  LIVE_MODE = live;
+  const liveMinCheckIn = addMonthsISO(6);
   const { user } = useAuth();
   const [stat, setStat] = useState<any>(null);
-  const [checkIn, setCheckIn] = useState(addDays(today(), 30));
+  const [checkIn, setCheckIn] = useState(live ? addDays(addMonthsISO(6), 1) : addDays(today(), 30));
   const [nights, setNights] = useState(1);
   const [nationality, setNationality] = useState("IN");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(live ? "USD" : "INR");
   const [rooms, setRooms] = useState<RoomReq[]>([{ adults: 1, children: [], infants: 0 }]);
   const [result, setResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const [picked, setPicked] = useState<Record<number, { room: any; rp: any }>>({});
   const [prebook, setPrebook] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [lead, setLead] = useState({ first: "", last: "", email: "", phone: "" });
+  const [lead, setLead] = useState(live ? { first: "Test", last: "Test", email: "", phone: "" } : { first: "", last: "", email: "", phone: "" });
   const [guests, setGuests] = useState<Record<string, { first: string; last: string }>>({});
   const [special, setSpecial] = useState("");
   const [testLabel, setTestLabel] = useState("");
@@ -109,6 +114,7 @@ export default function HyperGuestProperty() {
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
   const search = async () => {
+    if (live && checkIn < liveMinCheckIn) return toast.error(`Live test check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
     setSearching(true); setPicked({}); setPrebook(null); setConfirmed(null);
     const r = await call({ action: "search", propertyId: Number(propertyId), checkIn, nights, nationality, currency, rooms: rooms.map((x) => ({ adults: x.adults, childAges: ages(x) })) });
     setSearching(false);
@@ -129,6 +135,12 @@ export default function HyperGuestProperty() {
 
   const doPrebook = async () => {
     if (!user) return requireLogin();
+    if (live) {
+      const sel0 = rooms.map((_, i) => picked[i]);
+      if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Live test: choose a fully refundable rate only.");
+      const tot = sel0.reduce((a, s) => a + Number(s.rp.payment?.chargeAmount?.price ?? 0), 0);
+      if (sel0.some((s) => s.rp.payment?.chargeAmount?.currency !== "USD") || tot > 500) return toast.error(`Live test: total must be USD 500 or less (selected USD ${tot.toFixed(2)}).`);
+    }
     setBusy(true);
     const sel = rooms.map((_, i) => picked[i]);
     const r = await call({
@@ -166,7 +178,7 @@ export default function HyperGuestProperty() {
       }),
     };
     const r = await call({
-      action: "book", agencyReference: ref, payload, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
+      action: "book", agencyReference: ref, payload, refundable: live ? rooms.every((_, i) => isFullyRefundable(sel[i].rp)) : undefined, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
       roomsSummary: rooms.map((rq, i) => ({ room: sel[i].room.roomName, rate: sel[i].rp.ratePlanName, board: sel[i].rp.board, adults: rq.adults, children: rq.children, infants: rq.infants })),
     });
     setBusy(false);
@@ -187,6 +199,7 @@ export default function HyperGuestProperty() {
   };
   const refresh = async (b: any) => { await call({ action: "refresh", id: b.id }); loadMine(); };
 
+  const isFullyRefundable = (rp: any) => { const ci = cancelInfo(rp, checkIn); return !ci.nonRef && !ci.nowPenalty; };
   const allPicked = rooms.every((_, i) => picked[i]);
   const remarks: string[] = prop?.remarks ?? [];
 
@@ -196,8 +209,20 @@ export default function HyperGuestProperty() {
       <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
         {!stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
+            {live && (
+              <Card className="border-destructive/60 bg-destructive/5"><CardContent className="p-4 space-y-1 text-sm">
+                <p className="font-semibold text-destructive">LIVE booking test (Stage 3) — this creates a real booking at the hotel</p>
+                <ul className="list-disc pl-5 text-xs space-y-0.5">
+                  <li>Guest name is fixed to <b>Test Test</b></li>
+                  <li>Only <b>fully refundable</b> rates can be selected</li>
+                  <li>Check-in on or after <b>{liveMinCheckIn}</b> (6 months from today)</li>
+                  <li>Total must be <b>USD 500 or less</b> (prices shown in USD)</li>
+                  <li>Cancel the booking within <b>7 days</b> of creating it (deadline shown under your bookings)</li>
+                </ul>
+              </CardContent></Card>
+            )}
             <div>
-              <Badge variant="secondary" className="mb-2">HyperGuest property #{stat.id}</Badge>
+              <Badge variant="secondary" className="mb-2">HyperGuest property #{stat.id}{live ? " · LIVE" : ""}</Badge>
               <h1 className="text-2xl md:text-3xl font-bold">{stat.name}</h1>
               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-4 w-4" />{stat.location?.address}, {stat.location?.city?.name} · <Star className="h-4 w-4" />{stat.rating}</p>
               <p className="text-xs text-muted-foreground mt-1">Check-in {stat.settings?.checkIn} · Check-out {stat.settings?.checkOut}</p>
@@ -217,10 +242,10 @@ export default function HyperGuestProperty() {
             <Card><CardContent className="p-4 space-y-3">
               <h2 className="font-semibold">Search rooms</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <label className="text-xs">Check-in<Input type="date" min={today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
+                <label className="text-xs">Check-in<Input type="date" min={live ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
                 <label className="text-xs">Nights<Input type="number" min={1} max={30} value={nights} onChange={(e) => setNights(Math.max(1, +e.target.value))} /></label>
                 <label className="text-xs">Guest nationality<select className="w-full h-10 rounded-md border bg-background px-2" value={nationality} onChange={(e) => setNationality(e.target.value)}>{NATIONALITIES.map((n) => <option key={n}>{n}</option>)}</select></label>
-                <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
+                <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={live} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
               </div>
               {rooms.map((r, i) => (
                 <div key={i} className="flex flex-wrap items-end gap-2 border rounded-md p-2">
@@ -288,7 +313,7 @@ export default function HyperGuestProperty() {
                               </details>
                               <details className="text-xs"><summary className="cursor-pointer font-medium">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
                               {rp.remarks?.length > 0 && <details className="text-xs" open><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
-                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
+                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={live && !isFullyRefundable(rp)} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
                             </div>
                           );
                         })}
@@ -341,8 +366,8 @@ export default function HyperGuestProperty() {
                     {step === "guests" ? (<>
                       <h2 className="font-semibold">Who's staying?</h2>
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Lead first name *" value={lead.first} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
-                        <Input placeholder="Lead last name *" value={lead.last} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
+                        <Input placeholder="Lead first name *" value={lead.first} readOnly={live} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
+                        <Input placeholder="Lead last name *" value={lead.last} readOnly={live} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
                         <Input placeholder="Email *" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} />
                         <Input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} />
                       </div>
