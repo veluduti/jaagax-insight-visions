@@ -149,6 +149,7 @@ const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
 const LongStayBooking = lazy(() => import("./pages/LongStayBooking"));
 const HyperGuestProperty = lazy(() => import("./pages/HyperGuestProperty"));
+const HyperGuestHotels = lazy(() => import("./pages/HyperGuestHotels"));
 const HyperGuestCertification = lazy(() => import("./pages/admin/HyperGuestCertification"));
 const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
@@ -569,6 +570,7 @@ const App = () => (
                   <Route path="/resorts" element={<Navigate to="/hotels?types=resort" replace />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
+                  <Route path="/hotels/hyperguest" element={<HyperGuestHotels />} />
                   <Route path="/hotels/hyperguest/:propertyId" element={<HyperGuestProperty />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
