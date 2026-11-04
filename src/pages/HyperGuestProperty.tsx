@@ -52,6 +52,27 @@ function cancelInfo(rp: any, checkIn: string) {
 const polText = (p: any) =>
   `${Number(p.daysBefore) === 0 ? "On arrival day" : `From ${p.daysBefore} day(s) before check-in`}${p.cancellationDeadlineHour ? ` (${p.cancellationDeadlineHour})` : ""}: ${p.penaltyType === "percent" ? `${p.amount}% charge` : p.penaltyType === "nights" ? `${p.amount} night(s) charge` : `${p.amount} charge`}`;
 
+function BookingPolicy({ b }: { b: any }) {
+  const rooms: any[][] = Array.isArray(b?.cancellation) ? b.cancellation : [];
+  const wins = rooms.flat().filter(Boolean);
+  if (!wins.length) return <p className="text-xs text-muted-foreground">Cancellation policy: not returned yet — press refresh.</p>;
+  const now = Date.now();
+  const free = wins.filter((w) => Number(w?.price?.amount ?? 0) > 0).map((w) => Date.parse(String(w.startDate).replace(" ", "T") + "Z")).filter((n) => !isNaN(n)).sort((a, c) => a - c)[0];
+  return (
+    <div className="text-xs mt-1 space-y-0.5">
+      <p className="font-medium">
+        Cancellation policy:{" "}
+        {free ? (now < free ? <span className="text-primary">Free cancellation until {new Date(free).toLocaleString()}</span> : <span className="text-destructive">Charges now apply</span>) : <span className="text-primary">Fully refundable</span>}
+      </p>
+      <ul className="list-disc pl-4 text-muted-foreground">
+        {wins.map((w, i) => (
+          <li key={i}>{String(w.startDate)} → {String(w.endDate)}: charge {money(w?.price?.amount ?? 0, w?.price?.currency ?? b.total_currency ?? "")}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function TaxLines({ node, cur }: { node: any; cur: string }) {
   const items = [...(node?.taxes ?? []).map((t: any) => ({ ...t, kind: "Tax" })), ...(node?.fees ?? []).map((t: any) => ({ ...t, kind: "Fee" }))];
   if (!items.length) return <p className="text-xs text-muted-foreground">No taxes or fees returned for this rate.</p>;
@@ -199,7 +220,7 @@ export default function HyperGuestProperty() {
   const cancel = async (b: any) => {
     const p = await call({ action: "cancel", id: b.id });
     if (p.error) return toast.error(p.error);
-    if (!confirm(`Cancel booking ${b.hg_booking_id}? Cancellation charge now: ${money(p.data.charge, p.data.currency ?? "")}`)) return;
+    if (!confirm(`Cancel booking ${b.hg_booking_id}? Under this booking's cancellation policy, the charge right now is ${money(p.data.charge, p.data.currency ?? "")}${Number(p.data.charge) === 0 ? " (free cancellation)" : ""}.`)) return;
     const r = await call({ action: "cancel", id: b.id, confirm: true });
     if (r.error) return toast.error(r.error);
     toast.success("Booking cancelled"); loadMine();
@@ -456,6 +477,7 @@ export default function HyperGuestProperty() {
                   <span className="text-muted-foreground">Lead guest</span><span>{lead.first} {lead.last}</span>
                   <span className="text-muted-foreground">Total</span><b>{money(confirmed.total_amount, confirmed.total_currency)}</b>
                 </div>
+                <div className="text-left"><BookingPolicy b={confirmed} /></div>
                 {remarks.length > 0 && <ul className="list-disc pl-5 text-xs text-left">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
                 <div className="flex gap-2 justify-center">
                   <Button variant="outline" onClick={() => window.print()}>Print voucher</Button>
@@ -473,6 +495,7 @@ export default function HyperGuestProperty() {
                       <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out} {b.test_label && <Badge variant="outline" className="ml-1">{b.test_label}</Badge>}{b.environment === "live" && <Badge variant="destructive" className="ml-1">LIVE</Badge>}</p>
                       {b.environment === "live" && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
                       <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.total_amount, b.total_currency ?? "")}</p>
+                      {b.status !== "cancelled" ? <BookingPolicy b={b} /> : <p className="text-xs text-muted-foreground">Cancelled{b.cancelled_at ? ` on ${new Date(b.cancelled_at).toLocaleString()}` : ""}</p>}
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "secondary" : "outline"}>{b.status}</Badge>
