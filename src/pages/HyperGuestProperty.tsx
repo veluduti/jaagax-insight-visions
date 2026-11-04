@@ -9,7 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw } from "lucide-react";
+import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw, CreditCard, Lock, CheckCircle2 } from "lucide-react";
+
+const luhn = (n: string) => {
+  if (!/^\d{13,19}$/.test(n)) return false;
+  let s = 0;
+  for (let i = 0; i < n.length; i++) { let d = +n[n.length - 1 - i]; if (i % 2) { d *= 2; if (d > 9) d -= 9; } s += d; }
+  return s % 10 === 0;
+};
 
 const BOARD: Record<string, string> = { RO: "Room only", BB: "Bed & breakfast", HB: "Half board", FB: "Full board", AI: "All inclusive" };
 const NATIONALITIES = ["IN", "GB", "US", "JP", "IL", "AE", "DE", "FR"];
@@ -81,6 +88,8 @@ export default function HyperGuestProperty() {
   const [ref, setRef] = useState("");
   const [confirmed, setConfirmed] = useState<any>(null);
   const [mine, setMine] = useState<any[]>([]);
+  const [step, setStep] = useState<"guests" | "payment">("guests");
+  const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
 
   useEffect(() => { call({ action: "static", propertyId: Number(propertyId) }).then((r) => setStat(r.data)); }, [propertyId]);
   useEffect(() => {
@@ -294,52 +303,129 @@ export default function HyperGuestProperty() {
               <Button size="lg" className="w-full" onClick={doPrebook} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Check final price</Button>
             )}
 
-            {prebook && !confirmed && (
-              <Card className="border-primary"><CardContent className="p-4 space-y-3">
-                <h2 className="font-semibold">Review & guest details</h2>
-                {prebook.rooms.map((r: any, i: number) => (
-                  <div key={i} className="text-sm border rounded-md p-2 space-y-1">
-                    <p className="font-medium">Room {i + 1}: {picked[i]?.room.roomName} – {picked[i]?.rp.ratePlanName} ({BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board})</p>
-                    {r.priceChange && <p className="text-destructive text-xs">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
-                    <p className="text-xs">Room price (BAR): {money(r.prices?.bar?.price ?? r.prices?.sell?.price, (r.prices?.bar ?? r.prices?.sell)?.currency)}</p>
-                    <TaxLines node={{ taxes: r.prices?.sell?.taxes, fees: r.prices?.fees ?? r.prices?.sell?.fees }} cur={(r.prices?.sell)?.currency} />
-                  </div>
-                ))}
-                <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="Lead first name" value={lead.first} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
-                  <Input placeholder="Lead last name" value={lead.last} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
-                  <Input placeholder="Email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} />
-                  <Input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} />
+            {prebook && !confirmed && (() => {
+              const lines = prebook.rooms.map((r: any, i: number) => {
+                const a = r.priceChange?.toAmount ?? { amount: r.payment?.chargeAmount?.price ?? picked[i]?.rp.payment?.chargeAmount?.price, currency: r.payment?.chargeAmount?.currency ?? picked[i]?.rp.payment?.chargeAmount?.currency };
+                return { label: `${picked[i]?.room.roomName} – ${picked[i]?.rp.ratePlanName}`, amount: Number(a.amount ?? 0), cur: a.currency ?? currency };
+              });
+              const total = lines.reduce((s: number, l: any) => s + l.amount, 0);
+              const cur = lines[0]?.cur ?? currency;
+              const steps = ["Guest details", "Payment", "Confirmation"];
+              const stepIdx = step === "guests" ? 0 : 1;
+              const goPay = () => {
+                if (!lead.first.trim() || !lead.last.trim()) return toast.error("Enter the lead guest's first and last name");
+                if (!/^\S+@\S+\.\S+$/.test(lead.email)) return toast.error("Enter a valid email");
+                setStep("payment"); window.scrollTo({ top: 0, behavior: "smooth" });
+              };
+              const pay = () => {
+                const num = card.number.replace(/\s/g, "");
+                if (!luhn(num)) return toast.error("Card number is not valid");
+                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(card.expiry)) return toast.error("Expiry must be MM/YY");
+                if (!/^\d{3,4}$/.test(card.cvv)) return toast.error("CVV must be 3–4 digits");
+                if (!card.name.trim()) return toast.error("Enter the name on the card");
+                doBook();
+              };
+              return (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs">
+                  {steps.map((s, i) => (
+                    <div key={s} className="flex items-center gap-2">
+                      <span className={`h-6 w-6 rounded-full flex items-center justify-center font-semibold ${i <= stepIdx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
+                      <span className={i === stepIdx ? "font-semibold" : "text-muted-foreground"}>{s}</span>
+                      {i < steps.length - 1 && <span className="w-8 h-px bg-border" />}
+                    </div>
+                  ))}
                 </div>
-                {rooms.map((rq, i) => (
-                  <div key={i} className="space-y-1"><p className="text-xs font-medium">Room {i + 1} guests</p>
-                    {[...Array.from({ length: rq.adults }, (_, a) => ({ k: `${i}-a${a}`, l: `Adult ${a + 1}` })), ...ages(rq).map((age, c) => ({ k: `${i}-c${c}`, l: age <= 3 ? `Infant (${age})` : `Child (${age})` }))].map((g) => (
-                      <div key={g.k} className="grid grid-cols-[90px_1fr_1fr] gap-2 items-center">
-                        <span className="text-xs text-muted-foreground">{g.l}</span>
-                        <Input placeholder="First name" value={guests[g.k]?.first ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], first: e.target.value } as any })} />
-                        <Input placeholder="Last name" value={guests[g.k]?.last ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], last: e.target.value } as any })} />
+                <div className="grid md:grid-cols-[1fr_300px] gap-4 items-start">
+                  <Card className="border-primary"><CardContent className="p-4 space-y-3">
+                    {step === "guests" ? (<>
+                      <h2 className="font-semibold">Who's staying?</h2>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input placeholder="Lead first name *" value={lead.first} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
+                        <Input placeholder="Lead last name *" value={lead.last} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
+                        <Input placeholder="Email *" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} />
+                        <Input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} />
+                      </div>
+                      {rooms.map((rq, i) => (
+                        <div key={i} className="space-y-1"><p className="text-xs font-medium">Room {i + 1} guests</p>
+                          {[...Array.from({ length: rq.adults }, (_, a) => ({ k: `${i}-a${a}`, l: `Adult ${a + 1}` })), ...ages(rq).map((age, c) => ({ k: `${i}-c${c}`, l: age <= 3 ? `Infant (${age})` : `Child (${age})` }))].map((g) => (
+                            <div key={g.k} className="grid grid-cols-[90px_1fr_1fr] gap-2 items-center">
+                              <span className="text-xs text-muted-foreground">{g.l}</span>
+                              <Input placeholder="First name" value={guests[g.k]?.first ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], first: e.target.value } as any })} />
+                              <Input placeholder="Last name" value={guests[g.k]?.last ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], last: e.target.value } as any })} />
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      <div>
+                        <Textarea rows={2} maxLength={500} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
+                        <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
+                      </div>
+                      <label className="text-xs block">Certification test (optional, for logs)
+                        <select className="w-full h-10 rounded-md border bg-background px-2" value={testLabel} onChange={(e) => setTestLabel(e.target.value)}>{TESTS.map((t) => <option key={t} value={t}>{t || "—"}</option>)}</select>
+                      </label>
+                      <Button size="lg" className="w-full" onClick={goPay}>Continue to payment</Button>
+                    </>) : (<>
+                      <div className="flex items-center justify-between">
+                        <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
+                        <Badge variant="outline">Test mode</Badge>
+                      </div>
+                      <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                        <p className="font-medium">Sample payment — no money is charged.</p>
+                        <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
+                        <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
+                      </div>
+                      <Input placeholder="Card number" inputMode="numeric" maxLength={19} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
+                        <Input placeholder="CVV" type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
+                      </div>
+                      <Input placeholder="Name on card" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Card details stay in your browser; the booking uses HyperGuest's test payment.</p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>
+                        <Button size="lg" className="flex-1" onClick={pay} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Pay ${money(total, cur)} & book`}</Button>
+                      </div>
+                    </>)}
+                  </CardContent></Card>
+                  <Card className="md:sticky md:top-24"><CardContent className="p-4 space-y-2 text-sm">
+                    <h3 className="font-semibold">Booking summary</h3>
+                    <p className="font-medium">{stat.name}</p>
+                    <p className="text-xs text-muted-foreground">{checkIn} → {addDays(checkIn, nights)} · {nights} night(s) · {rooms.length} room(s)</p>
+                    {prebook.rooms.map((r: any, i: number) => (
+                      <div key={i} className="border-t pt-2 space-y-1">
+                        <p className="text-xs font-medium">Room {i + 1}: {lines[i].label}</p>
+                        <p className="text-xs text-muted-foreground">{BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board} · {rooms[i].adults} adult(s){ages(rooms[i]).length ? ` + ${ages(rooms[i]).length} child/infant` : ""}</p>
+                        {r.priceChange && <p className="text-destructive text-xs">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
+                        <TaxLines node={{ taxes: r.prices?.sell?.taxes, fees: r.prices?.fees ?? r.prices?.sell?.fees }} cur={(r.prices?.sell)?.currency} />
+                        <p className="text-xs flex justify-between"><span>Room total</span><span>{money(lines[i].amount, lines[i].cur)}</span></p>
                       </div>
                     ))}
-                  </div>
-                ))}
-                <div>
-                  <Textarea rows={2} maxLength={500} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
-                  <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
+                    <div className="border-t pt-2 flex justify-between font-bold"><span>Total to pay</span><span>{money(total, cur)}</span></div>
+                  </CardContent></Card>
                 </div>
-                <label className="text-xs block">Certification test (optional, for logs)
-                  <select className="w-full h-10 rounded-md border bg-background px-2" value={testLabel} onChange={(e) => setTestLabel(e.target.value)}>{TESTS.map((t) => <option key={t} value={t}>{t || "—"}</option>)}</select>
-                </label>
-                <p className="text-xs text-muted-foreground">Test environment: no money is charged. HyperGuest's test payment is used.</p>
-                <Button size="lg" className="w-full" onClick={doBook} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : "Confirm booking"}</Button>
-              </CardContent></Card>
-            )}
+              </div>
+              );
+            })()}
 
             {confirmed && (
-              <Card className="border-primary"><CardContent className="p-4 space-y-1">
-                <h2 className="font-semibold">Booking {confirmed.status}</h2>
-                <p className="text-sm">HyperGuest booking ID: <b>{confirmed.hg_booking_id}</b> · Reference {confirmed.agency_reference}</p>
-                <p className="text-sm">Total: {money(confirmed.total_amount, confirmed.total_currency)}</p>
-                {remarks.length > 0 && <ul className="list-disc pl-5 text-xs mt-2">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
+              <Card className="border-primary"><CardContent className="p-6 space-y-3 text-center">
+                <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
+                <h2 className="text-xl font-semibold">Booking {confirmed.status}</h2>
+                <p className="text-sm text-muted-foreground">Test payment accepted — no money was charged.</p>
+                <div className="grid sm:grid-cols-2 gap-2 text-sm text-left max-w-md mx-auto border rounded-md p-3">
+                  <span className="text-muted-foreground">Hotel</span><span>{stat.name}</span>
+                  <span className="text-muted-foreground">Booking ID</span><b>{confirmed.hg_booking_id}</b>
+                  <span className="text-muted-foreground">Reference</span><span>{confirmed.agency_reference}</span>
+                  <span className="text-muted-foreground">Dates</span><span>{confirmed.check_in} → {confirmed.check_out}</span>
+                  <span className="text-muted-foreground">Lead guest</span><span>{lead.first} {lead.last}</span>
+                  <span className="text-muted-foreground">Total</span><b>{money(confirmed.total_amount, confirmed.total_currency)}</b>
+                </div>
+                {remarks.length > 0 && <ul className="list-disc pl-5 text-xs text-left">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" onClick={() => window.print()}>Print voucher</Button>
+                  <Button onClick={() => { setConfirmed(null); setPrebook(null); setPicked({}); setStep("guests"); setCard({ number: "", expiry: "", cvv: "", name: "" }); }}>Book another</Button>
+                </div>
               </CardContent></Card>
             )}
 
