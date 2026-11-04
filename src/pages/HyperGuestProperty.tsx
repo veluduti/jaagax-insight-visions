@@ -460,7 +460,8 @@ export default function HyperGuestProperty() {
                 {mine.map((b) => (
                   <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 border rounded-md p-2 text-sm">
                     <div>
-                      <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out} {b.test_label && <Badge variant="outline" className="ml-1">{b.test_label}</Badge>}</p>
+                      <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out} {b.test_label && <Badge variant="outline" className="ml-1">{b.test_label}</Badge>}{b.environment === "live" && <Badge variant="destructive" className="ml-1">LIVE</Badge>}</p>
+                      {b.environment === "live" && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
                       <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.total_amount, b.total_currency ?? "")}</p>
                     </div>
                     <div className="flex items-center gap-2">
