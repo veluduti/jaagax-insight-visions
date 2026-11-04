@@ -112,7 +112,7 @@ async function handle(req: Request, body: any, live: boolean) {
     const id = Number(body.propertyId);
     if (!Number.isInteger(id) || id <= 0) return json({ error: "propertyId required" }, 400);
     const r = await hg("detail", `${STATIC}/${id}/property-static.json`);
-    return r.ok ? json(r.data) : json({ error: "Could not load hotel details" }, 502);
+    return r.ok ? json(r.data) : json({ error: "Could not load hotel details", notFound: true });
   }
 
   if (action === "search") {
