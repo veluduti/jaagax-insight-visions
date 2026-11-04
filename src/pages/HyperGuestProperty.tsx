@@ -96,7 +96,14 @@ export default function HyperGuestProperty() {
   const [step, setStep] = useState<"guests" | "payment">("guests");
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
 
-  useEffect(() => { call({ action: "static", propertyId: Number(propertyId) }).then((r) => setStat(r.data)); }, [propertyId]);
+  const [statError, setStatError] = useState<string | null>(null);
+  useEffect(() => {
+    setStat(null); setStatError(null);
+    call({ action: "static", propertyId: Number(propertyId) }).then((r) => {
+      if (r.error || !r.data || r.data.error) setStatError(`Hotel ${propertyId} could not be loaded${live ? " with the live token" : ""}. Check the hotel ID or pick a hotel from the HyperGuest Hotels list.`);
+      else setStat(r.data);
+    });
+  }, [propertyId]);
   useEffect(() => {
     if (!user) return;
     setLead((l) => ({ ...l, email: l.email || user.email || "", phone: l.phone || (user as any).phone || "" }));
@@ -207,7 +214,7 @@ export default function HyperGuestProperty() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
-        {!stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
+        {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
             {live && (
               <Card className="border-destructive/60 bg-destructive/5"><CardContent className="p-4 space-y-1 text-sm">
