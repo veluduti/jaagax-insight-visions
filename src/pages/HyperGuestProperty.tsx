@@ -138,7 +138,7 @@ export default function HyperGuestProperty() {
     });
     setBusy(false);
     if (r.error) return toast.error(r.error);
-    setPrebook(r.data);
+    setPrebook(r.data); setStep("guests");
     setRef(`JX-${crypto.randomUUID().slice(0, 18)}`);
     if (r.data.rooms?.some((x: any) => x.priceChange)) toast.warning("The price changed since your search. Please review the new price before booking.");
   };
