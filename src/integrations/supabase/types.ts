@@ -6818,6 +6818,7 @@ export type Database = {
           check_out: string
           created_at: string
           currency: string | null
+          environment: string
           hg_booking_id: number | null
           id: string
           nationality: string | null
@@ -6840,6 +6841,7 @@ export type Database = {
           check_out: string
           created_at?: string
           currency?: string | null
+          environment?: string
           hg_booking_id?: number | null
           id?: string
           nationality?: string | null
@@ -6862,6 +6864,7 @@ export type Database = {
           check_out?: string
           created_at?: string
           currency?: string | null
+          environment?: string
           hg_booking_id?: number | null
           id?: string
           nationality?: string | null

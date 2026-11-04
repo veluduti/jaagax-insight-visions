@@ -344,6 +344,13 @@
       "when": 1793165709837,
       "tag": "0048_agent_profile_engagement",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793782239263,
+      "tag": "0049_hyperguest_booking_environment",
+      "breakpoints": true
     }
   ]
 }
