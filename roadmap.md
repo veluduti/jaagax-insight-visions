@@ -8,4 +8,4 @@
 
 ## Separate HyperGuest page
 - [x] Add connector-backed property listing and a link from Hotels, keeping test inventory separate.
-- [ ] Verify loaded property, search, detail navigation and mobile layout.
+- [x] Verify loaded property, search, detail navigation and mobile layout (live connector response, no page errors or mobile overflow; build OK).
