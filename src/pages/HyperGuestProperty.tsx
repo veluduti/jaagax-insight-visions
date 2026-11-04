@@ -96,7 +96,14 @@ export default function HyperGuestProperty() {
   const [step, setStep] = useState<"guests" | "payment">("guests");
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
 
-  useEffect(() => { call({ action: "static", propertyId: Number(propertyId) }).then((r) => setStat(r.data)); }, [propertyId]);
+  const [statError, setStatError] = useState<string | null>(null);
+  useEffect(() => {
+    setStat(null); setStatError(null);
+    call({ action: "static", propertyId: Number(propertyId) }).then((r) => {
+      if (r.error || !r.data || r.data.error) setStatError(`Hotel ${propertyId} could not be loaded${live ? " with the live token" : ""}. Check the hotel ID or pick a hotel from the HyperGuest Hotels list.`);
+      else setStat(r.data);
+    });
+  }, [propertyId]);
   useEffect(() => {
     if (!user) return;
     setLead((l) => ({ ...l, email: l.email || user.email || "", phone: l.phone || (user as any).phone || "" }));
@@ -178,7 +185,7 @@ export default function HyperGuestProperty() {
       }),
     };
     const r = await call({
-      action: "book", agencyReference: ref, payload, refundable: live ? rooms.every((_, i) => isFullyRefundable(sel[i].rp)) : undefined, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
+      action: "book", agencyReference: ref, payload, card: live ? { number: card.number.replace(/\s/g, ""), expiry: card.expiry, cvv: card.cvv, name: card.name } : undefined, refundable: live ? rooms.every((_, i) => isFullyRefundable(sel[i].rp)) : undefined, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
       roomsSummary: rooms.map((rq, i) => ({ room: sel[i].room.roomName, rate: sel[i].rp.ratePlanName, board: sel[i].rp.board, adults: rq.adults, children: rq.children, infants: rq.infants })),
     });
     setBusy(false);
@@ -207,7 +214,7 @@ export default function HyperGuestProperty() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
-        {!stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
+        {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
             {live && (
               <Card className="border-destructive/60 bg-destructive/5"><CardContent className="p-4 space-y-1 text-sm">
@@ -393,20 +400,23 @@ export default function HyperGuestProperty() {
                     </>) : (<>
                       <div className="flex items-center justify-between">
                         <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
-                        <Badge variant="outline">Test mode</Badge>
+                        <Badge variant={live ? "destructive" : "outline"}>{live ? "LIVE" : "Test mode"}</Badge>
                       </div>
-                      <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                      {live ? <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs space-y-1">
+                        <p className="font-medium">Live booking — HyperGuest requires a real card.</p>
+                        <p>Enter the agency card HyperGuest should hold for this booking. The rate is fully refundable; cancel within 7 days. Only the last 4 digits are kept in logs.</p>
+                      </div> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
                         <p className="font-medium">Sample payment — no money is charged.</p>
                         <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
                         <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
-                      </div>
+                      </div>}
                       <Input placeholder="Card number" inputMode="numeric" maxLength={19} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
                       <div className="grid grid-cols-2 gap-2">
                         <Input placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
                         <Input placeholder="CVV" type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
                       </div>
                       <Input placeholder="Name on card" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Card details stay in your browser; the booking uses HyperGuest's test payment.</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Card is sent securely to HyperGuest with this booking and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>
                         <Button size="lg" className="flex-1" onClick={pay} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Pay ${money(total, cur)} & book`}</Button>
