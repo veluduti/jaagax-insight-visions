@@ -45,7 +45,7 @@ async function hg(op: ChannelOperation, url: string, body?: unknown, timeoutMs =
   } finally { clearTimeout(t); }
   await logChannelPayload(sb, {
     channel: "hyperguest", operation: op, endpoint: url,
-    request_payload: body ?? null, response_payload: payload, http_status: status,
+    request_payload: redact(body), response_payload: payload, http_status: status,
     request_id: bookingRef ?? null, error_message: err,
   });
   return { ok: !err, status, data: payload, error: err };
@@ -97,6 +97,12 @@ Deno.serve(async (req) => {
 
 const USD_LIMIT = 500;
 const addMonths = (d: Date, m: number) => { const x = new Date(d); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
+
+function redact(b: any) {
+  if (!b?.paymentDetails) return b ?? null;
+  const d = b.paymentDetails.details ?? {};
+  return { ...b, paymentDetails: { type: b.paymentDetails.type, details: { number: d.number ? `****${String(d.number).slice(-4)}` : undefined, cvv: "***", expiry: d.expiry, name: d.name } } };
+}
 
 async function handle(req: Request, body: any, live: boolean) {
   const action = String(body?.action ?? "");
@@ -178,7 +184,16 @@ async function handle(req: Request, body: any, live: boolean) {
       environment: live ? "live" : "test",
     });
 
-    const payload = live ? { ...p, reference: { agency: ref } } : {
+    let liveCard: any = null;
+    if (live) {
+      const c = body.card ?? {};
+      const num = String(c.number ?? "").replace(/\D/g, "");
+      const [mm, yy] = String(c.expiry ?? "").split("/");
+      if (num.length < 13 || !/^\d{3,4}$/.test(String(c.cvv ?? "")) || !/^\d{2}$/.test(mm ?? "") || !/^\d{2}$/.test(yy ?? "")) return json({ error: "Live bookings need a valid payment card." }, 400);
+      const parts = String(c.name ?? "").trim().split(/\s+/);
+      liveCard = { type: "credit_card", details: { number: num, cvv: String(c.cvv), expiry: { month: mm, year: `20${yy}` }, name: { first: parts[0] || "Test", last: parts.slice(1).join(" ") || parts[0] || "Test" } } };
+    }
+    const payload = live ? { ...p, reference: { agency: ref }, paymentDetails: liveCard } : {
       ...p, reference: { agency: ref },
       // Development token only: HyperGuest's test card. Live will use the contracted payment model.
       paymentDetails: { type: "credit_card", details: { number: "4111111111111111", cvv: "123", expiry: { month: "12", year: "2030" }, name: { first: p.leadGuest?.name?.first ?? "Guest", last: p.leadGuest?.name?.last ?? "Guest" } } },
