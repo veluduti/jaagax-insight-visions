@@ -5,7 +5,12 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { logChannelPayload, type ChannelOperation } from "../_shared/channel/audit.ts";
 
-const KEY = Deno.env.get("HYPERGUEST_API_KEY") ?? "";
+import { AsyncLocalStorage } from "node:async_hooks";
+const TEST_KEY = Deno.env.get("HYPERGUEST_API_KEY") ?? "";
+const LIVE_KEY = Deno.env.get("HYPERGUEST_LIVE_API_KEY") ?? "";
+// Per-request token: "live" requests (certification Stage 3) use the live token.
+const keyCtx = new AsyncLocalStorage<string>();
+const currentKey = () => keyCtx.getStore() ?? TEST_KEY;
 const SEARCH = (Deno.env.get("HYPERGUEST_SEARCH_URL") ?? "https://search-api.hyperguest.io/2.0/").replace(/\/?$/, "/");
 const BOOK = (Deno.env.get("HYPERGUEST_BOOK_URL") ?? "https://book-api.hyperguest.com/2.0/").replace(/\/?$/, "/");
 const STATIC = (Deno.env.get("HYPERGUEST_STATIC_URL") ?? "https://hg-static.hyperguest.com").replace(/\/$/, "");
@@ -25,7 +30,7 @@ async function hg(op: ChannelOperation, url: string, body?: unknown, timeoutMs =
     const res = await fetch(url, {
       method: body === undefined ? "GET" : "POST",
       headers: {
-        Authorization: `Bearer ${KEY}`, "Accept-Encoding": "gzip, deflate",
+        Authorization: `Bearer ${currentKey()}`, "Accept-Encoding": "gzip, deflate",
         Accept: "application/json", ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -78,9 +83,22 @@ async function saveBooking(ref: string, b: any) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (!KEY) return json({ error: "HyperGuest is not configured" }, 503);
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+  let live = body?.live === true;
+  if (body?.action === "refresh" || body?.action === "cancel") {
+    const { data: row } = await sb.from("hyperguest_bookings").select("environment").eq("id", String(body.id ?? "")).maybeSingle();
+    live = row?.environment === "live";
+  }
+  const key = live ? LIVE_KEY : TEST_KEY;
+  if (!key) return json({ error: live ? "The live HyperGuest token is not set up yet" : "HyperGuest is not configured" }, 503);
+  return keyCtx.run(key, () => handle(req, body, live));
+});
+
+const USD_LIMIT = 500;
+const addMonths = (d: Date, m: number) => { const x = new Date(d); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
+
+async function handle(req: Request, body: any, live: boolean) {
   const action = String(body?.action ?? "");
 
   // ---- public actions -----------------------------------------------------
@@ -125,6 +143,20 @@ Deno.serve(async (req) => {
     const ref = String(body.agencyReference ?? "").slice(0, 60);
     const p = body.payload;
     if (!/^JX-[A-Za-z0-9-]{6,}$/.test(ref) || !p?.rooms?.length) return json({ error: "Invalid booking request" }, 400);
+    if (live) {
+      // HyperGuest Stage 3 live booking rules, enforced server-side.
+      const n = p.leadGuest?.name ?? {};
+      if (String(n.first).trim() !== "Test" || String(n.last).trim() !== "Test") return json({ error: "Live test bookings must use the guest name Test Test." }, 400);
+      if (String(p.dates?.from) < addMonths(new Date(), 6)) return json({ error: "Live test check-in must be at least 6 months from today." }, 400);
+      let sum = 0;
+      for (const r of p.rooms) {
+        if (String(r.expectedPrice?.currency).toUpperCase() !== "USD") return json({ error: "Live test bookings must be priced in USD." }, 400);
+        sum += Number(r.expectedPrice?.amount ?? NaN);
+        for (const g of r.guests ?? []) { g.name = { first: "Test", last: "Test" }; }
+      }
+      if (!(sum > 0 && sum <= USD_LIMIT)) return json({ error: `Live test booking total must be USD ${USD_LIMIT} or less (this one is USD ${sum.toFixed(2)}).` }, 400);
+      if (body.refundable !== true) return json({ error: "Live test bookings must use a fully refundable rate." }, 400);
+    }
 
     // Idempotency: same reference never books twice.
     const { data: existing } = await sb.from("hyperguest_bookings").select("*").eq("agency_reference", ref).maybeSingle();
@@ -143,9 +175,10 @@ Deno.serve(async (req) => {
       check_in: p.dates?.from, check_out: p.dates?.to, nationality: body.nationality ?? null,
       currency: body.currency ?? null, test_label: body.testLabel ?? null,
       rooms: body.roomsSummary ?? [], special_requests: body.specialRequests ?? null,
+      environment: live ? "live" : "test",
     });
 
-    const payload = {
+    const payload = live ? { ...p, reference: { agency: ref } } : {
       ...p, reference: { agency: ref },
       // Development token only: HyperGuest's test card. Live will use the contracted payment model.
       paymentDetails: { type: "credit_card", details: { number: "4111111111111111", cvv: "123", expiry: { month: "12", year: "2030" }, name: { first: p.leadGuest?.name?.first ?? "Guest", last: p.leadGuest?.name?.last ?? "Guest" } } },
@@ -208,4 +241,4 @@ Deno.serve(async (req) => {
   }
 
   return json({ error: "Unknown action" }, 400);
-});
+}
