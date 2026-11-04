@@ -1,0 +1,1 @@
+ALTER TABLE public.hyperguest_bookings ADD COLUMN IF NOT EXISTS environment text NOT NULL DEFAULT 'test';

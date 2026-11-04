@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Building2, Loader2, MapPin, RefreshCw, Search, Star } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -11,6 +11,8 @@ import { loadHyperGuestHotels } from "@/services/hospitality/hyperguestDiscovery
 
 export default function HyperGuestHotels() {
   const [search, setSearch] = useState("");
+  const [liveId, setLiveId] = useState("");
+  const nav = useNavigate();
   const { data = [], isPending, isError, isFetching, refetch } = useQuery({
     queryKey: ["hyperguest-hotels"], queryFn: loadHyperGuestHotels, staleTime: 300_000, retry: 1,
   });
@@ -26,6 +28,10 @@ export default function HyperGuestHotels() {
           <div><h1 className="text-3xl font-bold">HyperGuest Hotels</h1><Badge variant="outline" className="mt-3">Certification test inventory</Badge></div>
           <Button variant="outline" onClick={() => refetch()} disabled={isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />Refresh</Button>
         </div>
+        <form className="mb-6 flex max-w-lg flex-wrap items-end gap-2 rounded-lg border border-destructive/50 p-3" onSubmit={e => { e.preventDefault(); if (/^\d+$/.test(liveId.trim())) nav(`/hotels/hyperguest/${liveId.trim()}?live=1`); }}>
+          <label className="flex-1 text-xs font-medium">Stage 3 live booking test — live property ID<Input inputMode="numeric" placeholder="e.g. 12345" value={liveId} onChange={e => setLiveId(e.target.value)} /></label>
+          <Button type="submit" variant="destructive" disabled={!/^\d+$/.test(liveId.trim())}>Open live booking</Button>
+        </form>
         <div className="relative mb-6 max-w-lg"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Search HyperGuest hotels" placeholder="Search hotel or location" className="pl-10" value={search} onChange={e => setSearch(e.target.value)} /></div>
         {isPending ? <div role="status" className="flex items-center justify-center gap-3 py-24"><Loader2 className="h-5 w-5 animate-spin" />Loading HyperGuest hotels…</div>
           : isError ? <div role="alert" className="space-y-4 py-12"><p>HyperGuest hotels could not be loaded. Please try again.</p><Button onClick={() => refetch()}>Try again</Button></div>
