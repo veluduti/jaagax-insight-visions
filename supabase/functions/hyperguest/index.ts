@@ -58,6 +58,7 @@ const guestsParam = (rooms: RoomPax[]) =>
 function friendly(err: any) {
   const code = err?.errorCode ?? "";
   const msg = JSON.stringify(err ?? "").toLowerCase();
+  if (msg.includes("test properties")) return "Live bookings can't be made on HyperGuest test hotels. Choose a real hotel that has a direct contract with you.";
   if (msg.includes("price")) return "The price for this room has changed. Please review the new price.";
   if (msg.includes("availab") || msg.includes("sold")) return "This room is no longer available for your dates. Please choose another.";
   if (code === "BN.400") return "Some booking details are invalid. Please check guests and dates.";
