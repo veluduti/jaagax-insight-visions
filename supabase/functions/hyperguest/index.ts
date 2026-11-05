@@ -97,6 +97,9 @@ Deno.serve(async (req) => {
 });
 
 const USD_LIMIT = 500;
+const USD_RATE: Record<string, number> = { USD: 1, EUR: 1.12, GBP: 1.3, BRL: 0.19, MUR: 0.023, INR: 0.012, AED: 0.273 };
+const toUsd = (a: number, c: string) => USD_RATE[String(c).toUpperCase()] != null ? a * USD_RATE[String(c).toUpperCase()] : NaN;
+
 const addMonths = (d: Date, m: number) => { const x = new Date(d); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
 
 function redact(b: any) {
@@ -157,11 +160,10 @@ async function handle(req: Request, body: any, live: boolean) {
       if (String(p.dates?.from) < addMonths(new Date(), 6)) return json({ error: "Live test check-in must be at least 6 months from today." }, 400);
       let sum = 0;
       for (const r of p.rooms) {
-        if (String(r.expectedPrice?.currency).toUpperCase() !== "USD") return json({ error: "Live test bookings must be priced in USD." }, 400);
-        sum += Number(r.expectedPrice?.amount ?? NaN);
+        sum += toUsd(Number(r.expectedPrice?.amount ?? NaN), r.expectedPrice?.currency);
         for (const g of r.guests ?? []) { g.name = { first: "Test", last: "Test" }; }
       }
-      if (!(sum > 0 && sum <= USD_LIMIT)) return json({ error: `Live test booking total must be USD ${USD_LIMIT} or less (this one is USD ${sum.toFixed(2)}).` }, 400);
+      if (!(sum > 0 && sum <= USD_LIMIT)) return json({ error: `Live test booking total must be USD ${USD_LIMIT} or less (this one is about USD ${sum.toFixed(2)}).` }, 400);
       if (body.refundable !== true) return json({ error: "Live test bookings must use a fully refundable rate." }, 400);
     }
 

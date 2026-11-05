@@ -21,6 +21,8 @@ const luhn = (n: string) => {
 const BOARD: Record<string, string> = { RO: "Room only", BB: "Bed & breakfast", HB: "Half board", FB: "Full board", AI: "All inclusive" };
 const NATIONALITIES = ["IN", "GB", "US", "JP", "IL", "AE", "DE", "FR"];
 const CURRENCIES = ["INR", "USD", "EUR", "GBP"];
+const USD_RATE: Record<string, number> = { USD: 1, EUR: 1.12, GBP: 1.3, BRL: 0.19, MUR: 0.023, INR: 0.012, AED: 0.273 };
+const toUsd = (a: number, c: string) => USD_RATE[String(c).toUpperCase()] != null ? a * USD_RATE[String(c).toUpperCase()] : NaN;
 const TESTS = ["", "#1 Pre-book 1 room 1 adult", "#2 1 room 1 adult", "#3 1 room 2A+1C+1I", "#4 2 rooms 2A / 1A", "#5 2 rooms 1A1C / 2A1I", "#6 2 rooms different types/rates", "#7 Same-day 2 adults", "#8 Currency conversion", "#9 Nationality", "#10 Cancel refundable", "#11 Cancel non-refundable", "#12 Package rate"];
 
 type RoomReq = { adults: number; children: number[]; infants: number };
@@ -142,7 +144,7 @@ export default function HyperGuestProperty() {
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
   const search = async () => {
-    if (live && checkIn < liveMinCheckIn) return toast.error(`Live test check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
+    if (live && checkIn < liveMinCheckIn) return toast.error(`Check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
     setSearching(true); setPicked({}); setPrebook(null); setConfirmed(null);
     const r = await call({ action: "search", propertyId: Number(propertyId), checkIn, nights, nationality, currency, rooms: rooms.map((x) => ({ adults: x.adults, childAges: ages(x) })) });
     setSearching(false);
@@ -165,9 +167,9 @@ export default function HyperGuestProperty() {
     if (!user) return requireLogin();
     if (live) {
       const sel0 = rooms.map((_, i) => picked[i]);
-      if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Live test: choose a fully refundable rate only.");
-      const tot = sel0.reduce((a, s) => a + Number(s.rp.payment?.chargeAmount?.price ?? 0), 0);
-      if (sel0.some((s) => s.rp.payment?.chargeAmount?.currency !== "USD") || tot > 500) return toast.error(`Live test: total must be USD 500 or less (selected USD ${tot.toFixed(2)}).`);
+      if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Please choose a fully refundable rate only.");
+      const tot = sel0.reduce((a, s) => a + toUsd(Number(s.rp.payment?.chargeAmount?.price ?? 0), s.rp.payment?.chargeAmount?.currency), 0);
+      if (!(tot <= 500)) return toast.error(Number.isNaN(tot) ? "This rate currency is not supported." : `Booking total must be USD 500 or less (about USD ${tot.toFixed(2)}).`);
     }
     setBusy(true);
     const sel = rooms.map((_, i) => picked[i]);
@@ -237,20 +239,9 @@ export default function HyperGuestProperty() {
       <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
         {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
-            {live && (
-              <Card className="border-destructive/60 bg-destructive/5"><CardContent className="p-4 space-y-1 text-sm">
-                <p className="font-semibold text-destructive">LIVE booking test (Stage 3) — this creates a real booking at the hotel</p>
-                <ul className="list-disc pl-5 text-xs space-y-0.5">
-                  <li>Guest name is fixed to <b>Test Test</b></li>
-                  <li>Only <b>fully refundable</b> rates can be selected</li>
-                  <li>Check-in on or after <b>{liveMinCheckIn}</b> (6 months from today)</li>
-                  <li>Total must be <b>USD 500 or less</b> (prices shown in USD)</li>
-                  <li>Cancel the booking within <b>7 days</b> of creating it (deadline shown under your bookings)</li>
-                </ul>
-              </CardContent></Card>
-            )}
+            {live && <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Free cancellation rates only · check-in from {liveMinCheckIn} · guest name Test Test · cancel from My Bookings within 7 days.</p>}
             <div>
-              <Badge variant="secondary" className="mb-2">HyperGuest property #{stat.id}{live ? " · LIVE" : ""}</Badge>
+              <Badge variant="secondary" className="mb-2">Hotel</Badge>
               <h1 className="text-2xl md:text-3xl font-bold">{stat.name}</h1>
               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-4 w-4" />{stat.location?.address}, {stat.location?.city?.name} · <Star className="h-4 w-4" />{stat.rating}</p>
               <p className="text-xs text-muted-foreground mt-1">Check-in {stat.settings?.checkIn} · Check-out {stat.settings?.checkOut}</p>
@@ -414,19 +405,13 @@ export default function HyperGuestProperty() {
                         <Textarea rows={2} maxLength={500} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
                         <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
                       </div>
-                      <label className="text-xs block">Certification test (optional, for logs)
-                        <select className="w-full h-10 rounded-md border bg-background px-2" value={testLabel} onChange={(e) => setTestLabel(e.target.value)}>{TESTS.map((t) => <option key={t} value={t}>{t || "—"}</option>)}</select>
-                      </label>
                       <Button size="lg" className="w-full" onClick={goPay}>Continue to payment</Button>
                     </>) : (<>
                       <div className="flex items-center justify-between">
                         <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
-                        <Badge variant={live ? "destructive" : "outline"}>{live ? "LIVE" : "Test mode"}</Badge>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      {live ? <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs space-y-1">
-                        <p className="font-medium">Live booking — HyperGuest requires a real card.</p>
-                        <p>Enter the agency card HyperGuest should hold for this booking. The rate is fully refundable; cancel within 7 days. Only the last 4 digits are kept in logs.</p>
-                      </div> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                      {live ? <p className="text-xs text-muted-foreground">The hotel holds this card to guarantee your booking. This rate has free cancellation.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
                         <p className="font-medium">Sample payment — no money is charged.</p>
                         <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
                         <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
@@ -437,7 +422,7 @@ export default function HyperGuestProperty() {
                         <Input placeholder="CVV" type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
                       </div>
                       <Input placeholder="Name on card" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Card is sent securely to HyperGuest with this booking and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>
                         <Button size="lg" className="flex-1" onClick={pay} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Pay ${money(total, cur)} & book`}</Button>
@@ -468,7 +453,7 @@ export default function HyperGuestProperty() {
               <Card className="border-primary"><CardContent className="p-6 space-y-3 text-center">
                 <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
                 <h2 className="text-xl font-semibold">Booking {confirmed.status}</h2>
-                <p className="text-sm text-muted-foreground">Test payment accepted — no money was charged.</p>
+                {!live && <p className="text-sm text-muted-foreground">Sample payment accepted — no money was charged.</p>}
                 <div className="grid sm:grid-cols-2 gap-2 text-sm text-left max-w-md mx-auto border rounded-md p-3">
                   <span className="text-muted-foreground">Hotel</span><span>{stat.name}</span>
                   <span className="text-muted-foreground">Booking ID</span><b>{confirmed.hg_booking_id}</b>
@@ -492,7 +477,7 @@ export default function HyperGuestProperty() {
                 {mine.map((b) => (
                   <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 border rounded-md p-2 text-sm">
                     <div>
-                      <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out} {b.test_label && <Badge variant="outline" className="ml-1">{b.test_label}</Badge>}{b.environment === "live" && <Badge variant="destructive" className="ml-1">LIVE</Badge>}</p>
+                      <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out}</p>
                       {b.environment === "live" && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
                       <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.total_amount, b.total_currency ?? "")}</p>
                       {b.status !== "cancelled" ? <BookingPolicy b={b} /> : <p className="text-xs text-muted-foreground">Cancelled{b.cancelled_at ? ` on ${new Date(b.cancelled_at).toLocaleString()}` : ""}</p>}
