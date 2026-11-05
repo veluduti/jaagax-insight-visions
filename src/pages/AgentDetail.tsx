@@ -1113,14 +1113,23 @@ const AgentDetail = () => {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg">My Specializations</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-3 sm:grid-cols-2">
+                    <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {specializations.length ? (
-                        specializations.map((s) => {
+                        specializations.map((s, i) => {
                           const Icon = SPEC_ICONS[s.id] || Sparkles;
+                          const accents = [
+                            "bg-emerald-100 text-emerald-700",
+                            "bg-sky-100 text-sky-700",
+                            "bg-violet-100 text-violet-700",
+                            "bg-amber-100 text-amber-700",
+                            "bg-teal-100 text-teal-700",
+                            "bg-rose-100 text-rose-700",
+                          ];
+                          const accent = accents[i % accents.length];
                           return (
                             <div key={s.id} className="flex items-start gap-2.5 rounded-xl border p-3">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
-                                <Icon className="h-4 w-4 text-emerald-700" />
+                              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accent}`}>
+                                <Icon className="h-4 w-4" />
                               </span>
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold">{s.label}</p>
