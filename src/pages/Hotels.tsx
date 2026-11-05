@@ -1,3 +1,4 @@
+import LiveHyperGuestHotels from "@/components/hotels/LiveHyperGuestHotels";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useState, useMemo, useEffect, useRef } from "react";
