@@ -770,6 +770,7 @@ export type Database = {
           country_id: string | null
           created_at: string
           date_of_birth: string | null
+          designation: string | null
           district: string | null
           district_id: string | null
           email: string | null
@@ -785,8 +786,10 @@ export type Database = {
           office_address: string | null
           phone: string
           photo_url: string | null
+          property_types_handled: string[]
           rent_count: number
           sales_count: number | null
+          services_offered: string[]
           specializations: string[] | null
           state: string | null
           state_id: string | null
@@ -809,6 +812,7 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          designation?: string | null
           district?: string | null
           district_id?: string | null
           email?: string | null
@@ -824,8 +828,10 @@ export type Database = {
           office_address?: string | null
           phone: string
           photo_url?: string | null
+          property_types_handled?: string[]
           rent_count?: number
           sales_count?: number | null
+          services_offered?: string[]
           specializations?: string[] | null
           state?: string | null
           state_id?: string | null
@@ -848,6 +854,7 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          designation?: string | null
           district?: string | null
           district_id?: string | null
           email?: string | null
@@ -863,8 +870,10 @@ export type Database = {
           office_address?: string | null
           phone?: string
           photo_url?: string | null
+          property_types_handled?: string[]
           rent_count?: number
           sales_count?: number | null
+          services_offered?: string[]
           specializations?: string[] | null
           state?: string | null
           state_id?: string | null
