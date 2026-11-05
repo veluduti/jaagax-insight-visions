@@ -32,6 +32,10 @@ export default function HyperGuestHotels() {
           <label className="flex-1 text-xs font-medium">Stage 3 live booking test — live property ID<Input inputMode="numeric" placeholder="e.g. 12345" value={liveId} onChange={e => setLiveId(e.target.value)} /></label>
           <Button type="submit" variant="destructive" disabled={!/^\d+$/.test(liveId.trim())}>Open live booking</Button>
         </form>
+        <div className="mb-6 flex max-w-lg flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+          <div><p className="text-xs text-muted-foreground">Imported live marketplace hotel · ID 128403</p><p className="font-semibold">Sunrise Business Hotel, S R Nagar – Ameerpet</p><p className="text-xs text-muted-foreground">Hyderabad, Telangana</p></div>
+          <Button asChild size="sm"><Link to="/hotels/hyperguest/128403?live=1">Check live rooms<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+        </div>
         <div className="relative mb-6 max-w-lg"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Search HyperGuest hotels" placeholder="Search hotel or location" className="pl-10" value={search} onChange={e => setSearch(e.target.value)} /></div>
         {isPending ? <div role="status" className="flex items-center justify-center gap-3 py-24"><Loader2 className="h-5 w-5 animate-spin" />Loading HyperGuest hotels…</div>
           : isError ? <div role="alert" className="space-y-4 py-12"><p>HyperGuest hotels could not be loaded. Please try again.</p><Button onClick={() => refetch()}>Try again</Button></div>

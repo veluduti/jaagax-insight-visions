@@ -148,7 +148,7 @@ export default function HyperGuestProperty() {
     setSearching(false);
     if (r.error) return toast.error(r.error);
     setResult(r.data);
-    if (!r.data?.results?.length) toast.info("No rooms available for these dates and guests.");
+    if (!r.data?.results?.some((x: any) => x?.rooms?.length)) toast.info("No rooms available for these dates and guests.");
   };
 
   const roomsFor = (i: number) => {
