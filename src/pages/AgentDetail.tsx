@@ -87,6 +87,8 @@ import {
   buildWhatsAppLink,
   formatAgentPropertyPrice,
   MEETING_TIME_SLOTS,
+  PROPERTY_TYPE_OPTIONS,
+  SERVICE_OPTIONS,
   type AgentProfileLike,
 } from "@/lib/agentProfile";
 import { loadGoogleMaps } from "@/lib/googleMaps";
@@ -115,6 +117,9 @@ interface Agent extends AgentProfileLike {
   languages: string | null;
   languages_spoken?: string[] | null;
   agent_code?: string | null;
+  designation?: string | null;
+  services_offered?: string[] | null;
+  property_types_handled?: string[] | null;
   specializations?: string[] | null;
   experience_years: number | null;
   trust_score?: number | null;
@@ -409,7 +414,7 @@ const AgentDetail = () => {
   /* ---------- derived ---------- */
 
   const canEdit = !!user && !!agent?.user_id && user.id === agent.user_id;
-  const displayName = canEdit ? agent?.name || "Unnamed Agent" : agentPublicLabel(agent);
+  const displayName = agent?.name?.trim() || agentPublicLabel(agent);
   const kycVerified = (kyc?.verification_status || "") === "verified";
 
   const stats = useMemo(() => (agent ? agentProfileStats(agent) : null), [agent]);
@@ -651,6 +656,9 @@ const AgentDetail = () => {
         city: form.city?.trim() || null,
         cities_served: form.cities_served?.trim() || null,
         localities_served: form.localities_served?.trim() || null,
+        designation: form.designation?.trim() || null,
+        services_offered: form.services_offered || [],
+        property_types_handled: form.property_types_handled || [],
         updated_at: new Date().toISOString(),
       };
 
@@ -852,7 +860,7 @@ const AgentDetail = () => {
                 <Avatar className="h-36 w-32 rounded-none">
                   <AvatarImage src={agent.photo_url || undefined} alt={displayName} className="object-cover" />
                   <AvatarFallback className="rounded-none bg-primary text-3xl text-primary-foreground">
-                    {canEdit ? (agent.name || "A").charAt(0).toUpperCase() : agentAvatarInitials(agent)}
+                    {agent.name?.trim() ? agent.name.trim().charAt(0).toUpperCase() : agentAvatarInitials(agent)}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -870,9 +878,12 @@ const AgentDetail = () => {
                   )}
                 </h1>
                 {agent.agency_name && (
-                  <p className="flex items-center gap-1.5 text-sm text-white/85">
-                    <Building2 className="h-3.5 w-3.5" /> {agent.agency_name}
+                  <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                    <Building2 className="h-3.5 w-3.5 text-emerald-400" /> {agent.agency_name}
                   </p>
+                )}
+                {agent.designation && (
+                  <p className="text-sm text-white/85">{agent.designation}</p>
                 )}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/80">
                   {locationLabel && (
@@ -891,7 +902,7 @@ const AgentDetail = () => {
                     {serviceChips.map((c) => (
                       <span
                         key={c.id}
-                        className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-[11px] font-semibold text-white"
+                        className="rounded-md bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
                       >
                         {c.label}
                       </span>
@@ -899,7 +910,7 @@ const AgentDetail = () => {
                     {typeChips.map((c) => (
                       <span
                         key={c.id}
-                        className="rounded-md bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur"
+                        className="rounded-md bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-800"
                       >
                         {c.label}
                       </span>
@@ -1817,6 +1828,7 @@ const AgentDetail = () => {
                 ["gender", "Gender"],
                 ["experience_years", "Experience (years)"],
                 ["agency_name", "Agency Name"],
+                ["designation", "What you do (e.g. Real Estate Consultant & Investment Advisor)"],
                 ["office_address", "Office Address"],
                 ["cities_served", "Operating City"],
                 ["localities_served", "Localities Served"],
@@ -1829,6 +1841,40 @@ const AgentDetail = () => {
                   value={(form[key] as any) ?? ""}
                   onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                 />
+              </div>
+            ))}
+
+            {(
+              [
+                ["services_offered", "Services I offer", SERVICE_OPTIONS],
+                ["property_types_handled", "Property types I handle", PROPERTY_TYPE_OPTIONS],
+              ] as const
+            ).map(([key, label, options]) => (
+              <div key={key} className="space-y-2">
+                <Label>{label}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {options.map((o) => {
+                    const cur = ((form as any)[key] as string[] | null) || [];
+                    const selected = cur.includes(o.id);
+                    return (
+                      <button
+                        key={o.id}
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            [key]: selected ? cur.filter((x) => x !== o.id) : [...cur, o.id],
+                          }))
+                        }
+                        className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                          selected ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted"
+                        }`}
+                      >
+                        {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ))}
 
