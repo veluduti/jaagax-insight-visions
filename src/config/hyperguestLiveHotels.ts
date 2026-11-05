@@ -14,4 +14,5 @@ export interface LiveHyperGuestHotel {
 export const LIVE_HYPERGUEST_HOTELS: LiveHyperGuestHotel[] = [
   { id: 128382, name: "B&B HOTEL Santos Dumont", brand: "B&B Hotels", address: "Avenida Beira Mar, 280, Centro", city: "Rio de Janeiro", country: "Brazil", stars: 3, currency: "BRL", phone: "+55 21 3613-9170" },
   { id: 126632, name: "Veranda Grand Baie Hotel and Spa", brand: "ER Hospitality", address: "Coastal Road 30510", city: "Grand Baie", country: "Mauritius", stars: 4, currency: "EUR", phone: "230-260-5101" },
+  { id: 57985, name: "Monday Hotels, Hitec City", brand: "Monday Hotels", address: "#2-91/14/8, White Fields, Kondapur, Hitech City", city: "Hyderabad", country: "India", stars: 5, currency: "INR", phone: "+91 99639 33585" },
 ];
