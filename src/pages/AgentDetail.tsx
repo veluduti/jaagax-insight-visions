@@ -1163,17 +1163,24 @@ const AgentDetail = () => {
                     <CardContent className="flex flex-wrap gap-2">
                       {areas.length ? (
                         <>
-                          {areas.slice(0, 8).map((a) => (
+                          {areas.slice(0, 8).map((a, i) => (
                             <Badge
                               key={a}
                               variant="outline"
-                              className="rounded-full border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-800"
+                              className={
+                                i === 0
+                                  ? "rounded-full border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800"
+                                  : "rounded-full px-3 py-1 text-xs text-muted-foreground"
+                              }
                             >
                               {a}
                             </Badge>
                           ))}
                           {areas.length > 8 && (
-                            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-emerald-300 px-3 py-1 text-xs font-medium text-emerald-700"
+                            >
                               +{areas.length - 8} More Areas
                             </Badge>
                           )}
