@@ -1028,68 +1028,83 @@ const AgentDetail = () => {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">About Me</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {bioText ? (
-                      <>
-                        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                          {bioExpanded || !bioLong ? bioText : `${bioText.slice(0, 280)}…`}
-                        </p>
-                        {bioLong && (
-                          <button
-                            className="flex items-center gap-1 text-sm font-medium text-emerald-700 hover:underline"
-                            onClick={() => setBioExpanded((v) => !v)}
-                          >
-                            {bioExpanded ? "Read Less" : "Read More"}
-                            <ChevronDown
-                              className={`h-3.5 w-3.5 transition ${bioExpanded ? "rotate-180" : ""}`}
-                            />
-                          </button>
+                  <CardContent>
+                    <div className={`grid gap-5 ${highlightReview ? "lg:grid-cols-[1fr_360px]" : ""}`}>
+                      <div className="space-y-3">
+                        {bioText ? (
+                          <>
+                            <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                              {bioExpanded || !bioLong ? bioText : `${bioText.slice(0, 280)}…`}
+                            </p>
+                            {bioLong && (
+                              <button
+                                className="flex items-center gap-1 text-sm font-medium text-emerald-700 hover:underline"
+                                onClick={() => setBioExpanded((v) => !v)}
+                              >
+                                {bioExpanded ? "Read Less" : "Read More"}
+                                <ChevronDown
+                                  className={`h-3.5 w-3.5 transition ${bioExpanded ? "rotate-180" : ""}`}
+                                />
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No biography added yet.</p>
                         )}
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No biography added yet.</p>
-                    )}
-
-                    {highlightReview && (
-                      <div className="relative rounded-xl bg-emerald-50 p-5">
-                        <Quote className="absolute left-3 top-3 h-6 w-6 text-emerald-200" />
-                        <p className="pl-7 text-sm italic leading-relaxed text-emerald-900">
-                          “{highlightReview.review || highlightReview.comment}”
-                        </p>
-                        <p className="mt-2 pl-7 text-xs font-medium text-emerald-700">
-                          — Verified customer review
-                        </p>
                       </div>
-                    )}
+
+                      {highlightReview && (
+                        <div className="relative flex flex-col justify-center rounded-xl bg-emerald-50 p-5">
+                          <Quote className="absolute left-3 top-3 h-7 w-7 text-emerald-300" />
+                          <p className="pl-8 text-sm font-medium italic leading-relaxed text-emerald-800">
+                            “{highlightReview.review || highlightReview.comment}”
+                          </p>
+                          <p className="mt-2 pl-8 text-right text-xs font-medium text-emerald-700">
+                            — Verified customer review
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Trust items */}
                 {trustItems.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                    {trustItems.map((t) => {
-                      const icons: Record<string, any> = {
-                        verified: ShieldCheck,
-                        local: MapPin,
-                        experienced: Award,
-                        "top-rated": Star,
-                        certified: BadgeCheck,
-                      };
-                      const Icon = icons[t.id] || ShieldCheck;
-                      return (
-                        <div
-                          key={t.id}
-                          className="flex flex-col items-center gap-1.5 rounded-xl border bg-card p-4 text-center"
-                        >
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100">
-                            <Icon className="h-4 w-4 text-emerald-700" />
-                          </span>
-                          <p className="text-xs font-semibold">{t.title}</p>
-                          <p className="text-[10px] text-muted-foreground">{t.subtitle}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <Card className="rounded-2xl shadow-sm">
+                    <CardContent className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-5">
+                      {trustItems.map((t, i) => {
+                        const icons: Record<string, any> = {
+                          verified: ShieldCheck,
+                          local: MapPin,
+                          experienced: Award,
+                          "top-rated": Star,
+                          certified: BadgeCheck,
+                        };
+                        const accents = [
+                          "bg-emerald-100 text-emerald-700",
+                          "bg-violet-100 text-violet-700",
+                          "bg-sky-100 text-sky-700",
+                          "bg-amber-100 text-amber-700",
+                          "bg-teal-100 text-teal-700",
+                        ];
+                        const Icon = icons[t.id] || ShieldCheck;
+                        const accent = accents[i % accents.length];
+                        return (
+                          <div key={t.id} className="flex items-center gap-2.5">
+                            <span
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${accent}`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-semibold">{t.title}</p>
+                              <p className="truncate text-[10px] text-muted-foreground">{t.subtitle}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Specializations + Areas */}
