@@ -87,6 +87,8 @@ import {
   buildWhatsAppLink,
   formatAgentPropertyPrice,
   MEETING_TIME_SLOTS,
+  PROPERTY_TYPE_OPTIONS,
+  SERVICE_OPTIONS,
   type AgentProfileLike,
 } from "@/lib/agentProfile";
 import { loadGoogleMaps } from "@/lib/googleMaps";
@@ -900,7 +902,7 @@ const AgentDetail = () => {
                     {serviceChips.map((c) => (
                       <span
                         key={c.id}
-                        className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-[11px] font-semibold text-white"
+                        className="rounded-md bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
                       >
                         {c.label}
                       </span>
@@ -908,7 +910,7 @@ const AgentDetail = () => {
                     {typeChips.map((c) => (
                       <span
                         key={c.id}
-                        className="rounded-md bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur"
+                        className="rounded-md bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-800"
                       >
                         {c.label}
                       </span>
