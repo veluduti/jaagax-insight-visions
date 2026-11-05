@@ -21,6 +21,8 @@ const luhn = (n: string) => {
 const BOARD: Record<string, string> = { RO: "Room only", BB: "Bed & breakfast", HB: "Half board", FB: "Full board", AI: "All inclusive" };
 const NATIONALITIES = ["IN", "GB", "US", "JP", "IL", "AE", "DE", "FR"];
 const CURRENCIES = ["INR", "USD", "EUR", "GBP"];
+const USD_RATE: Record<string, number> = { USD: 1, EUR: 1.12, GBP: 1.3, BRL: 0.19, MUR: 0.023, INR: 0.012, AED: 0.273 };
+const toUsd = (a: number, c: string) => USD_RATE[String(c).toUpperCase()] != null ? a * USD_RATE[String(c).toUpperCase()] : NaN;
 const TESTS = ["", "#1 Pre-book 1 room 1 adult", "#2 1 room 1 adult", "#3 1 room 2A+1C+1I", "#4 2 rooms 2A / 1A", "#5 2 rooms 1A1C / 2A1I", "#6 2 rooms different types/rates", "#7 Same-day 2 adults", "#8 Currency conversion", "#9 Nationality", "#10 Cancel refundable", "#11 Cancel non-refundable", "#12 Package rate"];
 
 type RoomReq = { adults: number; children: number[]; infants: number };
@@ -142,7 +144,7 @@ export default function HyperGuestProperty() {
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
   const search = async () => {
-    if (live && checkIn < liveMinCheckIn) return toast.error(`Live test check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
+    if (live && checkIn < liveMinCheckIn) return toast.error(`Check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
     setSearching(true); setPicked({}); setPrebook(null); setConfirmed(null);
     const r = await call({ action: "search", propertyId: Number(propertyId), checkIn, nights, nationality, currency, rooms: rooms.map((x) => ({ adults: x.adults, childAges: ages(x) })) });
     setSearching(false);
@@ -165,9 +167,9 @@ export default function HyperGuestProperty() {
     if (!user) return requireLogin();
     if (live) {
       const sel0 = rooms.map((_, i) => picked[i]);
-      if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Live test: choose a fully refundable rate only.");
-      const tot = sel0.reduce((a, s) => a + Number(s.rp.payment?.chargeAmount?.price ?? 0), 0);
-      if (sel0.some((s) => s.rp.payment?.chargeAmount?.currency !== "USD") || tot > 500) return toast.error(`Live test: total must be USD 500 or less (selected USD ${tot.toFixed(2)}).`);
+      if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Please choose a fully refundable rate only.");
+      const tot = sel0.reduce((a, s) => a + toUsd(Number(s.rp.payment?.chargeAmount?.price ?? 0), s.rp.payment?.chargeAmount?.currency), 0);
+      if (!(tot <= 500)) return toast.error(Number.isNaN(tot) ? "This rate currency is not supported." : `Booking total must be USD 500 or less (about USD ${tot.toFixed(2)}).`);
     }
     setBusy(true);
     const sel = rooms.map((_, i) => picked[i]);
