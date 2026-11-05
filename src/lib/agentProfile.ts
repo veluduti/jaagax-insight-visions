@@ -69,7 +69,16 @@ export interface Chip {
 }
 
 /** Service chips (Buy/Sell/Rent/Investment) derived from counts + specializations. */
+export const SERVICE_OPTIONS: Chip[] = [
+  { id: "buy", label: "Buy" },
+  { id: "sell", label: "Sell" },
+  { id: "rent", label: "Rent" },
+  { id: "investment", label: "Investment" },
+];
+
 export const agentServiceChips = (agent: AgentProfileLike): Chip[] => {
+  const saved = (agent as any).services_offered as string[] | null | undefined;
+  if (saved && saved.length) return SERVICE_OPTIONS.filter((o) => saved.includes(o.id));
   const text = (agent.specializations || []).join(" ").toLowerCase();
   const sales = (agent.sales_count || 0) > 0;
   const rent = (agent.rent_count || 0) > 0;
@@ -91,7 +100,11 @@ const TYPE_CHIPS: Array<{ id: string; label: string; keywords: RegExp }> = [
 ];
 
 /** Property-type chips derived from saved specializations only. */
+export const PROPERTY_TYPE_OPTIONS: Chip[] = TYPE_CHIPS.map(({ id, label }) => ({ id, label }));
+
 export const agentTypeChips = (agent: AgentProfileLike): Chip[] => {
+  const saved = (agent as any).property_types_handled as string[] | null | undefined;
+  if (saved && saved.length) return PROPERTY_TYPE_OPTIONS.filter((o) => saved.includes(o.id));
   const text = (agent.specializations || []).join(" ").toLowerCase();
   if (!text.trim()) return [];
   return TYPE_CHIPS.filter((t) => t.keywords.test(text)).map(({ id, label }) => ({ id, label }));
