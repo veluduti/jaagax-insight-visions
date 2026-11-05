@@ -897,26 +897,34 @@ const AgentDetail = () => {
                     </span>
                   )}
                 </div>
-                {(serviceChips.length > 0 || typeChips.length > 0) && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {serviceChips.map((c) => (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {SERVICE_OPTIONS.map((c) => {
+                    const on = serviceChips.some((x) => x.id === c.id);
+                    return (
                       <span
                         key={c.id}
-                        className="rounded-md bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
+                        className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${
+                          on ? "bg-emerald-100 text-emerald-800" : "bg-slate-100/90 text-slate-500"
+                        }`}
                       >
                         {c.label}
                       </span>
-                    ))}
-                    {typeChips.map((c) => (
+                    );
+                  })}
+                  {PROPERTY_TYPE_OPTIONS.map((c) => {
+                    const on = typeChips.some((x) => x.id === c.id);
+                    return (
                       <span
                         key={c.id}
-                        className="rounded-md bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-800"
+                        className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${
+                          on ? "bg-violet-100 text-violet-800" : "bg-slate-100/90 text-slate-500"
+                        }`}
                       >
                         {c.label}
                       </span>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
