@@ -1,3 +1,4 @@
+import LiveHyperGuestHotels from "@/components/hotels/LiveHyperGuestHotels";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -1630,11 +1631,7 @@ const Hotels = () => {
         <div className="mx-auto w-full max-w-[1600px] px-4 pb-8 lg:px-8">
           {uniqueMode ? <UniqueCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : corporateMode ? <CorporateCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : luxuryMode ? <LuxuryCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : colivingMode ? <ColivingCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : resortMode ? <ResortCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : pgMode ? <PgCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : aptMode ? <ApartmentCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />}
           <MyHotelApplicationsBanner />
-          <div className="mb-5 flex justify-end">
-            <Button variant="outline" onClick={() => navigate("/hotels/hyperguest")}>
-              <Building2 className="mr-2 h-4 w-4" />HyperGuest Hotels
-            </Button>
-          </div>
+          {!catMode && <LiveHyperGuestHotels />}
 
           {recommended.length > 0 && (
             <div className="mb-5">
