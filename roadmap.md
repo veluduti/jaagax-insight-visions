@@ -1,5 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
+## Hotel search-to-booking continuity
+- [x] Preserve search dates, guests and rooms in regular and supplier hotel details, including redirects and sign-in.
+- [x] Align supplier hotel details and checkout with JaagaX presentation; automatically load rooms and make search changes optional.
+- [x] Verify real availability, search-result links, supplier redirects, authenticated final-price/guest/payment navigation and mobile no-overflow; nine tests passed. No paid booking created.
+
 ## HyperGuest Marketplace import
 - [x] Reuse existing static/search/pre-book/booking connector and inspect real supplier content.
 - [x] Add unique property/room mapping, safe synchronization, admin controls and logs for the requested 17 hotels.

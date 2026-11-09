@@ -1,6 +1,7 @@
 import { normalizeCategory } from "@/config/hospitalityCategories";
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { readHotelSearchContext } from "@/lib/hotelSearchContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,6 +83,8 @@ const humanize = (s: string) => s.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => 
 const HotelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchContext = readHotelSearchContext(new URLSearchParams(location.search), plusDaysISO(1));
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [extrasCount, setExtrasCount] = useState(0);
@@ -93,11 +96,11 @@ const HotelDetail = () => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
 
-  const [checkIn, setCheckIn] = useState<string>(plusDaysISO(1));
-  const [checkOut, setCheckOut] = useState<string>(plusDaysISO(2));
-  const [adults, setAdults] = useState<number>(2);
-  const [childrenCount, setChildrenCount] = useState<number>(0);
-  const [roomsWanted, setRoomsWanted] = useState<number>(1);
+  const [checkIn, setCheckIn] = useState<string>(searchContext.checkIn);
+  const [checkOut, setCheckOut] = useState<string>(searchContext.checkOut);
+  const [adults, setAdults] = useState<number>(searchContext.adults);
+  const [childrenCount, setChildrenCount] = useState<number>(searchContext.children);
+  const [roomsWanted, setRoomsWanted] = useState<number>(searchContext.rooms);
   const [searchNonce, setSearchNonce] = useState(0);
   const [hotelCoords, setHotelCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [coordsLoading, setCoordsLoading] = useState(false);
@@ -114,7 +117,9 @@ const HotelDetail = () => {
         setHotel(null);
       } else {
         if (data.source_channel === "hyperguest" && data.hyperguest_property_id) {
-          navigate(`/hotels/hyperguest/${data.hyperguest_property_id}?marketplace=1`, { replace: true });
+          const params = new URLSearchParams(location.search);
+          params.set("marketplace", "1");
+          navigate(`/hotels/hyperguest/${data.hyperguest_property_id}?${params}`, { replace: true });
           return;
         }
         const resolved = { ...data, images: await resolveHotelImages((data as any).images) };

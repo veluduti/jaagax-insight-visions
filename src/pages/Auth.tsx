@@ -109,6 +109,8 @@ export default function Auth() {
   const [showResetSuccess, setShowResetSuccess] = useState(false);
   const [resetLinkValid, setResetLinkValid] = useState<boolean | null>(null);
   const [searchParams] = useSearchParams();
+  const hotelReturn = searchParams.get("redirect");
+  const safeHotelReturn = hotelReturn && /^\/hotels(?:\/|\?|$)/.test(hotelReturn) && !hotelReturn.includes("\\") ? hotelReturn : null;
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -156,6 +158,10 @@ export default function Auth() {
     // can set a new password.
     if (isPasswordReset) return;
     if (!authLoading && user) {
+      if (safeHotelReturn) {
+        navigate(safeHotelReturn, { replace: true });
+        return;
+      }
       // Admin always goes straight to admin dashboard
       if (role === "admin") {
         navigate("/dashboard/admin");
@@ -191,7 +197,7 @@ export default function Auth() {
         }
       })();
     }
-  }, [user, role, authLoading, redirectToDashboard, navigate, isPasswordReset]);
+  }, [user, role, authLoading, redirectToDashboard, navigate, isPasswordReset, safeHotelReturn]);
 
   // Handle ?reset=true: parse recovery token (hash OR PKCE ?code=), validate, open modal.
   useEffect(() => {

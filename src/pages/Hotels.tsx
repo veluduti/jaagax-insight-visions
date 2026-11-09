@@ -1,4 +1,5 @@
 import { loadSupplierAvailability } from "@/services/hospitality/hyperguestDiscoveryService";
+import { hotelSearchParams } from "@/lib/hotelSearchContext";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -1177,13 +1178,14 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
+    const params = hotelSearchParams({ checkIn: format(checkIn, "yyyy-MM-dd"), checkOut: format(checkOut, "yyyy-MM-dd"), adults, rooms, childAges: childAges.map(c => Number(c.age)) });
     if (hotel.source_channel === "hyperguest" && hotel.hyperguest_property_id) {
-      const params = new URLSearchParams({marketplace: "1", checkin: format(checkIn, "yyyy-MM-dd"), checkout: format(checkOut, "yyyy-MM-dd"), adults: String(adults), rooms: String(rooms), childAges: childAges.map(c => c.age).join(",")});
+      params.set("marketplace", "1");
       window.open(`/hotels/hyperguest/${hotel.hyperguest_property_id}?${params}`, "_blank", "noopener,noreferrer"); return;
     }
     if (resortMode) setRecentIds(pushRecentResort(hotel.id));
     logHotelSignal("view", { city: hotel.city, business_types: hotel.business_types ?? [] }, hotel.id);
-    window.open(`/hotels/${hotel.id}`, "_blank", "noopener,noreferrer");
+    window.open(`/hotels/${hotel.id}?${params}`, "_blank", "noopener,noreferrer");
   };
 
   const toggleFavorite = (hotelId: string, e: React.MouseEvent) => {
@@ -1730,7 +1732,7 @@ const Hotels = () => {
                         key={l.id}
                         className="flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-border shadow-sm transition-shadow hover:shadow-md"
                         onClick={() =>
-                          window.open(`/hotels/${l.hotelId}?room=${l.id}`, "_blank", "noopener,noreferrer")
+                          window.open(`/hotels/${l.hotelId}?${hotelSearchParams({ checkIn: format(checkIn, "yyyy-MM-dd"), checkOut: format(checkOut, "yyyy-MM-dd"), adults, rooms, childAges: childAges.map(c => Number(c.age)) })}&room=${l.id}`, "_blank", "noopener,noreferrer")
                         }
                       >
                         <div className="h-52 w-full bg-muted">

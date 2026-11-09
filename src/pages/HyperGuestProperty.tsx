@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { readHotelSearchContext, hotelSearchParams } from "@/lib/hotelSearchContext";
+import { isValidDateRangeISO, CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw, CreditCard, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw, CreditCard, Lock, CheckCircle2, ArrowLeft, CalendarDays, Users, BedDouble, Images } from "lucide-react";
 
 const luhn = (n: string) => {
   if (!/^\d{13,19}$/.test(n)) return false;
@@ -98,15 +102,16 @@ export default function HyperGuestProperty() {
   const marketplace = params.get("marketplace") === "1";
   const live = params.get("live") === "1" || marketplace;
   const certification = live && !marketplace;
+  const initialSearch = readHotelSearchContext(params, certification ? addDays(addMonthsISO(6), 1) : addDays(today(), 1));
   LIVE_MODE = live;
   const liveMinCheckIn = addMonthsISO(6);
   const { user } = useAuth();
   const [stat, setStat] = useState<any>(null);
-  const [checkIn, setCheckIn] = useState(params.get("checkin") || (certification ? addDays(addMonthsISO(6), 1) : addDays(today(), 1)));
-  const [nights, setNights] = useState(params.get("checkout") && params.get("checkin") ? Math.max(1, Math.round((Date.parse(params.get("checkout") ?? "") - Date.parse(params.get("checkin") ?? "")) / 86400000)) : 1);
+  const [checkIn, setCheckIn] = useState(initialSearch.checkIn);
+  const [nights, setNights] = useState(Math.round((Date.parse(initialSearch.checkOut) - Date.parse(initialSearch.checkIn)) / 86400000));
   const [nationality, setNationality] = useState("IN");
   const [currency, setCurrency] = useState(certification ? "USD" : "INR");
-  const [rooms, setRooms] = useState<RoomReq[]>(() => { const count = Math.min(4, Math.max(1, Number(params.get("rooms")) || 1)); const adults = Math.max(count, Number(params.get("adults")) || 2); return Array.from({ length: count }, (_, i) => ({ adults: Math.floor(adults / count) + (i < adults % count ? 1 : 0), children: i === 0 ? (params.get("childAges") || "").split(",").filter(Boolean).map(Number).filter(n => n >= 0 && n <= 17) : [], infants: 0 })); });
+  const [rooms, setRooms] = useState<RoomReq[]>(() => { const count = initialSearch.rooms; const adults = Math.max(count, initialSearch.adults); return Array.from({ length: count }, (_, i) => ({ adults: Math.floor(adults / count) + (i < adults % count ? 1 : 0), children: i === 0 ? initialSearch.childAges : [], infants: 0 })); });
   const [result, setResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const [picked, setPicked] = useState<Record<number, { room: any; rp: any }>>({});
@@ -121,6 +126,10 @@ export default function HyperGuestProperty() {
   const [mine, setMine] = useState<any[]>([]);
   const [step, setStep] = useState<"guests" | "payment">("guests");
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
+  const [editSearch, setEditSearch] = useState(!marketplace);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const searchRequest = useRef(0);
 
   const [statError, setStatError] = useState<string | null>(null);
   useEffect(() => {
@@ -147,14 +156,32 @@ export default function HyperGuestProperty() {
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
   const search = async () => {
+    if (!isValidDateRangeISO(checkIn, addDays(checkIn, nights)) || checkIn < today()) return toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
     if (certification && checkIn < liveMinCheckIn) return toast.error(`Check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
+    const request = ++searchRequest.current;
+    setAvailabilityError(null); setResult(null);
     setSearching(true); setPicked({}); setPrebook(null); setConfirmed(null);
     const r = await call({ action: "search", propertyId: Number(propertyId), checkIn, nights, nationality, currency, rooms: rooms.map((x) => ({ adults: x.adults, childAges: ages(x) })) });
+    if (request !== searchRequest.current) return;
     setSearching(false);
-    if (r.error) return toast.error(r.error);
+    if (r.error || r.data?.error) { setAvailabilityError(r.error || r.data.error); return; }
     setResult(r.data);
-    if (!r.data?.results?.some((x: any) => x?.rooms?.length)) toast.info("No rooms available for these dates and guests.");
+    setEditSearch(false);
+    const query = hotelSearchParams({ checkIn, checkOut: addDays(checkIn, nights), adults: rooms.reduce((sum, r) => sum + r.adults, 0), rooms: rooms.length, childAges: rooms.flatMap(ages) });
+    if (marketplace) query.set("marketplace", "1");
+    if (live) query.set("live", "1");
+    nav(`${loc.pathname}?${query}`, { replace: true });
   };
+
+  useEffect(() => {
+    searchRequest.current += 1;
+    setSearching(false); setResult(null); setPicked({}); setPrebook(null); setAvailabilityError(null);
+  }, [checkIn, nights, rooms, nationality, currency]);
+
+  useEffect(() => {
+    if (marketplace) void search();
+    return () => { searchRequest.current += 1; };
+  }, [propertyId]);
 
   const roomsFor = (i: number) => {
     const k = paxKey(rooms[i].adults, ages(rooms[i]));
@@ -163,7 +190,7 @@ export default function HyperGuestProperty() {
 
   const requireLogin = () => {
     toast.warning("Please sign in to book this hotel");
-    nav(`/auth?redirect=${encodeURIComponent(loc.pathname)}`);
+    nav(`/auth?redirect=${encodeURIComponent(loc.pathname + loc.search)}`);
   };
 
   const doPrebook = async () => {
@@ -184,6 +211,7 @@ export default function HyperGuestProperty() {
     setBusy(false);
     if (r.error) return toast.error(r.error);
     setPrebook(r.data); setStep("guests");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setRef(`JX-${crypto.randomUUID().slice(0, 18)}`);
     if (r.data.rooms?.some((x: any) => x.priceChange)) toast.warning("The price changed since your search. Please review the new price before booking.");
   };
@@ -239,33 +267,45 @@ export default function HyperGuestProperty() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
+      <div className="container mx-auto px-4 pt-6 pb-16 max-w-6xl space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => { if (prebook && !confirmed) { setPrebook(null); } else { nav(`/hotels${loc.search}`); } }}><ArrowLeft className="mr-2 h-4 w-4" />{prebook && !confirmed ? "Back to rooms" : "Back to hotels"}</Button>
         {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
             {certification && <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Free cancellation rates only · check-in from {liveMinCheckIn} · guest name Test Test · cancel from My Bookings within 7 days.</p>}
             <div>
               <Badge variant="secondary" className="mb-2">Hotel</Badge>
               <h1 className="text-2xl md:text-3xl font-bold">{stat.name}</h1>
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-4 w-4" />{stat.location?.address}, {stat.location?.city?.name} · <Star className="h-4 w-4" />{stat.rating}</p>
+              <p className="text-sm text-muted-foreground flex flex-wrap items-center gap-1 mt-1"><MapPin className="h-4 w-4 shrink-0" />{stat.location?.address}, {stat.location?.city?.name}{Number(stat.rating) > 0 && <> · <Star className="h-4 w-4" />{stat.rating}</>}</p>
               <p className="text-xs text-muted-foreground mt-1">Check-in {stat.settings?.checkIn} · Check-out {stat.settings?.checkOut}</p>
             </div>
+            {!prebook && !confirmed && <>
             {photos.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto snap-x pb-2">
-                {photos.map((u, i) => <img key={i} src={u} alt="" loading="lazy" className="h-44 w-64 object-cover rounded-lg snap-start flex-shrink-0 bg-muted" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />)}
+              <div className="relative grid grid-cols-2 md:grid-cols-4 gap-2 h-64 md:h-96 overflow-hidden rounded-lg">
+                {photos.slice(0, 5).map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} className={`h-full w-full object-cover bg-muted ${i === 0 ? "row-span-2 md:col-span-2" : ""}`} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />)}
+                <Button variant="secondary" className="absolute bottom-3 right-3" onClick={() => setGalleryOpen(true)}><Images className="mr-2 h-4 w-4" />All photos ({photos.length})</Button>
               </div>
             )}
-            {desc && <p className="text-sm text-muted-foreground">{desc}</p>}
+            <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}><DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto"><DialogTitle>{stat.name} · Photos</DialogTitle><div className="grid sm:grid-cols-2 gap-3">{photos.map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-md" />)}</div></DialogContent></Dialog>
+            <nav className="flex flex-wrap gap-2 border-b border-border pb-2">{["Overview", "Rooms", "Amenities", "Policies"].map(label => <Button key={label} variant="ghost" size="sm" onClick={() => document.getElementById(`supplier-${label.toLowerCase()}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{label}</Button>)}</nav>
+            <section id="supplier-overview" className="scroll-mt-24"><h2 className="font-semibold mb-2">About this hotel</h2>
+            {desc && <details className="text-sm text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">Read about this hotel</summary><p className="mt-2 whitespace-pre-line">{desc}</p></details>}
+            </section>
             {hotelFacilities.length > 0 && (
-              <Card><CardContent className="p-4"><h2 className="font-semibold mb-2">Hotel facilities</h2>
+              <section id="supplier-amenities" className="scroll-mt-24"><h2 className="font-semibold mb-2">Amenities</h2>
                 <div className="flex flex-wrap gap-1.5">{hotelFacilities.map((f: any) => <Badge key={f.id} variant="outline">{f.name}</Badge>)}</div>
-              </CardContent></Card>
+              </section>
             )}
 
-            <Card><CardContent className="p-4 space-y-3">
-              <h2 className="font-semibold">Search rooms</h2>
+            <section id="supplier-rooms" className="scroll-mt-24 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border py-4">
+              <div className="flex flex-wrap gap-4 text-sm"><span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" />{checkIn} — {addDays(checkIn, nights)}</span><span className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" />{rooms.reduce((sum, r) => sum + r.adults, 0)} adults{rooms.flatMap(ages).length > 0 ? `, ${rooms.flatMap(ages).length} children` : ""}</span><span className="flex items-center gap-2"><BedDouble className="h-4 w-4 text-primary" />{rooms.length} room(s)</span></div>
+              <Button variant="outline" size="sm" onClick={() => setEditSearch(!editSearch)}>{editSearch ? "Close" : "Modify search"}</Button>
+            </div>
+            {editSearch && <div className="border border-border rounded-lg p-4 space-y-3">
+              <h2 className="font-semibold">Change dates & guests</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <label className="text-xs">Check-in<Input type="date" min={certification ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
-                <label className="text-xs">Nights<Input type="number" min={1} max={30} value={nights} onChange={(e) => setNights(Math.max(1, +e.target.value))} /></label>
+                <label className="text-xs">Check-out<Input type="date" min={addDays(checkIn, 1)} value={addDays(checkIn, nights)} onChange={(e) => { if (!isValidDateRangeISO(checkIn, e.target.value)) return toast.error(CHECKOUT_AFTER_CHECKIN_MSG); setNights(Math.round((Date.parse(e.target.value) - Date.parse(checkIn)) / 86400000)); }} /></label>
                 <label className="text-xs">Guest nationality<select className="w-full h-10 rounded-md border bg-background px-2" value={nationality} onChange={(e) => setNationality(e.target.value)}>{NATIONALITIES.map((n) => <option key={n}>{n}</option>)}</select></label>
                 <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={certification} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
               </div>
@@ -273,21 +313,25 @@ export default function HyperGuestProperty() {
                 <div key={i} className="flex flex-wrap items-end gap-2 border rounded-md p-2">
                   <span className="text-sm font-medium w-16">Room {i + 1}</span>
                   <label className="text-xs">Adults<Input className="w-20" type="number" min={1} max={4} value={r.adults} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, adults: Math.max(1, +e.target.value) } : x))} /></label>
-                  <label className="text-xs">Child ages (4–17, comma)<Input className="w-36" value={r.children.join(",")} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, children: e.target.value.split(",").map((s) => parseInt(s)).filter((n) => n >= 4 && n <= 17) } : x))} /></label>
+                  <label className="text-xs">Child ages (0–17, comma)<Input className="w-36" value={r.children.join(",")} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, children: e.target.value.split(",").map((s) => parseInt(s)).filter((n) => n >= 0 && n <= 17) } : x))} /></label>
                   <label className="text-xs">Infants (0–3)<Input className="w-20" type="number" min={0} max={2} value={r.infants} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, infants: Math.max(0, +e.target.value) } : x))} /></label>
                   {rooms.length > 1 && <Button size="icon" variant="ghost" onClick={() => setRooms(rooms.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>}
                 </div>
               ))}
               <div className="flex gap-2">
                 {rooms.length < 4 && <Button variant="outline" size="sm" onClick={() => setRooms([...rooms, { adults: 1, children: [], infants: 0 }])}><Plus className="h-4 w-4 mr-1" />Add room</Button>}
-                <Button onClick={search} disabled={searching}>{searching && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Search</Button>
+                <Button onClick={search} disabled={searching}>{searching && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Update availability</Button>
               </div>
-            </CardContent></Card>
+            </div>}
+            {searching && <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Checking available rooms…</div>}
+            {availabilityError && <div className="py-6 text-center space-y-3"><p className="text-sm text-destructive">{availabilityError}</p><Button variant="outline" onClick={search}>Try again</Button></div>}
+            {!searching && result && !prop?.rooms?.length && <div className="py-8 text-center space-y-3"><h2 className="font-semibold">No rooms available for your stay</h2><p className="text-sm text-muted-foreground">Try different dates or guest numbers.</p><Button variant="outline" onClick={() => setEditSearch(true)}>Change dates & guests</Button></div>}
+            </section>
 
             {remarks.length > 0 && (
-              <Card className="border-primary/40"><CardContent className="p-4"><h2 className="font-semibold flex items-center gap-1 mb-2"><Info className="h-4 w-4" />Hotel remarks</h2>
+              <details id="supplier-policies" className="scroll-mt-24"><summary className="font-semibold cursor-pointer mb-2">Hotel policies & remarks</summary>
                 <ul className="list-disc pl-5 text-sm space-y-1">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>
-              </CardContent></Card>
+              </details>
             )}
 
             {prop && rooms.map((rq, i) => (
@@ -334,7 +378,7 @@ export default function HyperGuestProperty() {
                                 {ci.pols.length ? <ul className="list-disc pl-4 mt-1">{ci.pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul> : <p>No penalties returned.</p>}
                               </details>
                               <details className="text-xs"><summary className="cursor-pointer font-medium">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
-                              {rp.remarks?.length > 0 && <details className="text-xs" open><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
+                              {rp.remarks?.length > 0 && <details className="text-xs"><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
                               <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={certification && !isFullyRefundable(rp)} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
                             </div>
                           );
@@ -347,8 +391,9 @@ export default function HyperGuestProperty() {
             ))}
 
             {prop && allPicked && !prebook && !confirmed && (
-              <Button size="lg" className="w-full" onClick={doPrebook} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Check final price</Button>
+              <Button size="lg" className="w-full" onClick={doPrebook} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Continue to booking</Button>
             )}
+            </>}
 
             {prebook && !confirmed && (() => {
               const lines = prebook.rooms.map((r: any, i: number) => {
@@ -374,7 +419,8 @@ export default function HyperGuestProperty() {
               };
               return (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-xs">
+                <h2 className="text-2xl font-bold">Complete your booking</h2>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
                   {steps.map((s, i) => (
                     <div key={s} className="flex items-center gap-2">
                       <span className={`h-6 w-6 rounded-full flex items-center justify-center font-semibold ${i <= stepIdx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
@@ -383,7 +429,7 @@ export default function HyperGuestProperty() {
                     </div>
                   ))}
                 </div>
-                <div className="grid md:grid-cols-[1fr_300px] gap-4 items-start">
+                <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
                   <Card className="border-primary"><CardContent className="p-4 space-y-3">
                     {step === "guests" ? (<>
                       <h2 className="font-semibold">Who's staying?</h2>
@@ -396,7 +442,7 @@ export default function HyperGuestProperty() {
                       {rooms.map((rq, i) => (
                         <div key={i} className="space-y-1"><p className="text-xs font-medium">Room {i + 1} guests</p>
                           {[...Array.from({ length: rq.adults }, (_, a) => ({ k: `${i}-a${a}`, l: `Adult ${a + 1}` })), ...ages(rq).map((age, c) => ({ k: `${i}-c${c}`, l: age <= 3 ? `Infant (${age})` : `Child (${age})` }))].map((g) => (
-                            <div key={g.k} className="grid grid-cols-[90px_1fr_1fr] gap-2 items-center">
+                            <div key={g.k} className="grid grid-cols-2 sm:grid-cols-[90px_minmax(0,1fr)_minmax(0,1fr)] gap-2 items-center">
                               <span className="text-xs text-muted-foreground">{g.l}</span>
                               <Input placeholder="First name" value={guests[g.k]?.first ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], first: e.target.value } as any })} />
                               <Input placeholder="Last name" value={guests[g.k]?.last ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], last: e.target.value } as any })} />
@@ -434,7 +480,7 @@ export default function HyperGuestProperty() {
                   </CardContent></Card>
                   <Card className="md:sticky md:top-24"><CardContent className="p-4 space-y-2 text-sm">
                     <h3 className="font-semibold">Booking summary</h3>
-                    <p className="font-medium">{stat.name}</p>
+                    <div className="flex gap-3 items-start">{photos[0] && <img src={photos[0]} alt={stat.name} className="w-20 h-20 shrink-0 object-cover rounded-md" />}<div><p className="font-medium">{stat.name}</p><p className="text-xs text-muted-foreground">{stat.location?.city?.name}</p></div></div>
                     <p className="text-xs text-muted-foreground">{checkIn} → {addDays(checkIn, nights)} · {nights} night(s) · {rooms.length} room(s)</p>
                     {prebook.rooms.map((r: any, i: number) => (
                       <div key={i} className="border-t pt-2 space-y-1">
@@ -442,6 +488,7 @@ export default function HyperGuestProperty() {
                         <p className="text-xs text-muted-foreground">{BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board} · {rooms[i].adults} adult(s){ages(rooms[i]).length ? ` + ${ages(rooms[i]).length} child/infant` : ""}</p>
                         {r.priceChange && <p className="text-destructive text-xs">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
                         <TaxLines node={{ taxes: r.prices?.sell?.taxes, fees: r.prices?.fees ?? r.prices?.sell?.fees }} cur={(r.prices?.sell)?.currency} />
+                        <details className="text-xs"><summary className="cursor-pointer font-medium">Cancellation policy</summary><ul className="list-disc pl-4 mt-1">{cancelInfo(r, checkIn).pols.length > 0 ? cancelInfo(r, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>) : cancelInfo(picked[i]?.rp ?? {}, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul></details>
                         <p className="text-xs flex justify-between"><span>Room total</span><span>{money(lines[i].amount, lines[i].cur)}</span></p>
                       </div>
                     ))}
@@ -497,6 +544,7 @@ export default function HyperGuestProperty() {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
