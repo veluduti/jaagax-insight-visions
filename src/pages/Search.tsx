@@ -1,4 +1,5 @@
 import { getMainTypeSubtypes } from "@/config/propertyMainTypes";
+import PropertyMarketplace from "@/components/search/PropertyMarketplace";
 import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -143,7 +144,7 @@ interface PropertyDecision {
 // Session cache for AI decisions
 const decisionCache = new Map<string, PropertyDecision[]>();
 
-const Search = () => {
+const LegacySearch = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, role } = useAuth();
@@ -1030,6 +1031,13 @@ const InfiniteSentinel = ({ onReach }: { onReach: () => void }) => {
     }
   }, [inView, onReach]);
   return <div ref={ref} className="h-8 w-full" aria-hidden="true" />;
+};
+
+const Search = () => {
+  const [params] = useSearchParams();
+  return !params.get("tab") || params.get("tab") === "properties"
+    ? <PropertyMarketplace />
+    : <LegacySearch />;
 };
 
 export default Search;

@@ -643,6 +643,7 @@ const PropertyDetail = () => {
 
             
             {/* Agents Listing — strict: only the assigned agent handles this property */}
+            <div id="contact" className="scroll-mt-24">
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact your agent">
               <NearbyAgents
                 primaryAgent={agent}
@@ -653,6 +654,7 @@ const PropertyDetail = () => {
                 exclusiveAssignedAgent={!!agent}
               />
             </AuthGate>
+            </div>
           </div>
         </div>
       </div>

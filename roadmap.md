@@ -1,5 +1,11 @@
 # Roadmap — Agent Profile page rebuild
 
+## Reference Properties marketplace
+- [x] Match the supplied property listing reference using existing search, details and posting workflows.
+- [x] Connect dynamic filters, counts, sorting, views, pagination, saved-coordinate map and favorites without changing role permissions.
+- [x] Verify real listings, authenticated favorites with reload/restore, combined filters, new-tab details, sign-in return and desktop/695px/390px layouts; no runtime errors. Role workflows reviewed, not re-executed.
+- [ ] Actual property map markers: all four live listings lack saved coordinates; requires owners/agents to save actual locations, never fabricated pins.
+
 ## Strict hotel search and matching checkout
 - [x] Show only hotels matching all selected filters and the requested available room count; no partial matches or guessed stock. Restore hotel room access by replacing the admin check's missing roles dependency with existing global admin scopes.
 - [x] Match regular JaagaX guest/payment screens to HyperGuest presentation while preserving Razorpay and native booking confirmation.

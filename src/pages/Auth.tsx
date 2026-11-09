@@ -110,7 +110,7 @@ export default function Auth() {
   const [resetLinkValid, setResetLinkValid] = useState<boolean | null>(null);
   const [searchParams] = useSearchParams();
   const hotelReturn = searchParams.get("redirect");
-  const safeHotelReturn = hotelReturn && /^\/hotels(?:\/|\?|$)/.test(hotelReturn) && !hotelReturn.includes("\\") ? hotelReturn : null;
+  const safeHotelReturn = hotelReturn && /^\/(?:hotels|search)(?:\/|\?|$)/.test(hotelReturn) && !hotelReturn.includes("\\") ? hotelReturn : null;
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);

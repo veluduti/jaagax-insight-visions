@@ -12,6 +12,13 @@ All colors MUST be HSL.
     /* Light Mode - Modern & Vibrant */
     /* Warm cream canvas like the Jaaga reference homepage */
     --background: 40 33% 97%;
+    --marketplace-background: 210 25% 99%;
+    --marketplace-foreground: 238 66% 15%;
+    --marketplace-border: 216 26% 91%;
+    --marketplace-muted: 214 28% 95%;
+    --marketplace-muted-foreground: 222 20% 48%;
+    --marketplace-primary: 153 100% 35%;
+    --marketplace-accent: 149 76% 95%;
     --foreground: 222 47% 14%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 14%;
@@ -152,6 +159,13 @@ All colors MUST be HSL.
   }
 
   .dark {
+    --marketplace-background: 222 30% 10%;
+    --marketplace-foreground: 210 30% 96%;
+    --marketplace-border: 216 22% 25%;
+    --marketplace-muted: 214 25% 18%;
+    --marketplace-muted-foreground: 220 18% 70%;
+    --marketplace-primary: 153 76% 45%;
+    --marketplace-accent: 153 28% 18%;
     /* ===== COLOR SYSTEM - DARK MODE ===== */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;

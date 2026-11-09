@@ -159,7 +159,7 @@ const HeroSearchPanel = () => {
     params.set("tab", "properties");
     if (dest) params.set("city", dest);
     // Buy and Invest both search sale listings; Rent filters rentals
-    const listingType = propertyPurpose === "rent" ? "rent" : "buy";
+    const listingType = propertyPurpose === "rent" ? "rent" : propertyPurpose === "invest" ? "invest" : "buy";
     if (listingType !== "buy") params.set("type", listingType);
     if (propertyKind !== "any") params.set("propertyType", propertyKind);
     navigate(`/search?${params.toString()}`);
