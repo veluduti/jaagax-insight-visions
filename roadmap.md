@@ -1,5 +1,12 @@
 # Roadmap — Agent Profile page rebuild
 
+## HyperGuest Marketplace import
+- [ ] Reuse existing static/search/pre-book/booking connector and inspect real supplier content.
+- [ ] Add unique property/room mapping, safe synchronization, admin controls and logs for the requested 17 hotels.
+- [ ] Integrate imported inventory with existing customer filters, maps, details and live availability.
+- [ ] Separate ordinary marketplace bookings from certification-only restrictions without changing supplier/payment handling.
+- [ ] Import actual data, run regression tests and verify customer/admin flows; report any supplier blockers.
+
 - [x] Migration: `agent_meeting_requests`, `agent_inquiries`, `agent_faqs` (grants + RLS)
 - [x] `src/lib/agentProfile.ts` derivation helpers + tests (chips, trust items, stats, slots)
 - [x] Rebuild `src/pages/AgentDetail.tsx` to reference layout (hero, stats, tabs, sidebar, properties, meeting dialog, contact gating)
