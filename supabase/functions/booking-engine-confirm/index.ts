@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
 
     const { data: hotel } = await supabase.from("partner_hotels").select("*").eq("id", hotel_id).maybeSingle();
     if (!hotel) return json({ error: "Hotel not found" }, 404);
+    if (hotel.source_channel === "hyperguest" && hotel.hyperguest_property_id) return json({ error: "Select live rooms through this hotel's supplier checkout before booking." }, 409);
 
     const { data: connection } = await supabase.from("hotel_channel_connections")
       .select("*").eq("hotel_id", hotel_id).eq("channel", HG).eq("is_active", true).maybeSingle();

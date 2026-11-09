@@ -151,6 +151,7 @@ const LongStayBooking = lazy(() => import("./pages/LongStayBooking"));
 const HyperGuestProperty = lazy(() => import("./pages/HyperGuestProperty"));
 const HyperGuestHotels = lazy(() => import("./pages/HyperGuestHotels"));
 const HyperGuestCertification = lazy(() => import("./pages/admin/HyperGuestCertification"));
+const HospitalityAdminAccess = lazy(() => import("./components/admin/HospitalityAdminAccess"));
 const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
 const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
@@ -603,7 +604,7 @@ const App = () => (
                   <Route path="/partners/properties/:id" element={<PartnerProperties />} />
                   <Route path="/partners/inventory" element={<PartnerInventory />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />
-                  <Route path="/admin/hospitality" element={<ProtectedRoute allowedRole="admin"><AdminHospitality /></ProtectedRoute>} />
+                  <Route path="/admin/hospitality" element={<HospitalityAdminAccess><AdminHospitality /></HospitalityAdminAccess>} />
                   <Route path="/partners/pricing" element={<PartnerPricing />} />
                   <Route path="/partners/addons" element={<PartnerAddons />} />
                   <Route path="/partners/rate-plans" element={<PartnerRatePlans />} />

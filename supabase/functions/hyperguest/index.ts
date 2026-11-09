@@ -189,7 +189,7 @@ async function handle(req: Request, body: any, live: boolean) {
         if (!Array.isArray(rows) || !rows.length) throw new Error("HyperGuest returned an empty catalog");
         catalogCache = { rows, expires: Date.now() + 30 * 60_000 };
       }
-      if (!catalogCache.rows.some(p => Number(p.id ?? p.propertyId ?? p.hotelId) === id)) throw new Error("Property is missing from the live HyperGuest catalog");
+      if (!catalogCache.rows.some(p => Number(p.id ?? p.propertyId ?? p.hotelId ?? p.hotel_id) === id)) throw new Error("Property is missing from the live HyperGuest catalog");
       const detail = await hg("detail", `${STATIC}/${id}/property-static.json`);
       if (!detail.ok) throw new Error("Full property content could not be retrieved");
       const p = detail.data;
@@ -230,6 +230,8 @@ async function handle(req: Request, body: any, live: boolean) {
   if (marketplaceBooking && !marketplaceHotel.is_active) return json({ error: "This hotel is not available for booking" }, 409);
 
   if (action === "prebook") {
+    const parsed = z.object({ search: z.object({ propertyId: z.number().int().positive(), dates: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), nationality: z.string().regex(/^[A-Z]{2}$/), pax: z.array(z.object({ adults: z.number().int().min(1).max(10), children: z.array(z.number().int().min(0).max(17)) })).min(1).max(5) }), rooms: z.array(z.object({ roomCode: z.string().min(1), rateCode: z.string().min(1), expectedPrice: z.object({ amount: z.number().positive(), currency: z.string().regex(/^[A-Z]{3}$/) }) })).min(1).max(5) }).safeParse(body);
+    if (!parsed.success) return json({ error: "Check room selection, dates and guests" }, 400);
     const r = await hg("quote", `${BOOK}booking/pre-book`, { search: body.search, rooms: body.rooms });
     if (!r.ok) return json({ error: friendly(r.data), details: r.data }, 409);
     const c = r.data?.content ?? {};
@@ -241,6 +243,8 @@ async function handle(req: Request, body: any, live: boolean) {
     const ref = String(body.agencyReference ?? "").slice(0, 60);
     const p = body.payload;
     if (!/^JX-[A-Za-z0-9-]{6,}$/.test(ref) || !p?.rooms?.length) return json({ error: "Invalid booking request" }, 400);
+    const parsed = z.object({ propertyId: z.number().int().positive(), dates: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), leadGuest: z.object({ name: z.object({ first: z.string().trim().min(1).max(100), last: z.string().trim().min(1).max(100) }), contact: z.object({ email: z.string().email() }).passthrough() }).passthrough(), rooms: z.array(z.object({ roomCode: z.string().min(1), rateCode: z.string().min(1), expectedPrice: z.object({ amount: z.number().positive(), currency: z.string().regex(/^[A-Z]{3}$/) }), guests: z.array(z.object({ name: z.object({ first: z.string().min(1), last: z.string().min(1) }) }).passthrough()).min(1).max(16) }).passthrough()).min(1).max(5) }).safeParse(p);
+    if (!parsed.success || p.dates.from >= p.dates.to || p.dates.from < new Date().toISOString().slice(0, 10)) return json({ error: "Check booking dates, guest details and selected room prices" }, 400);
     if (certificationRulesApply(live, marketplaceBooking)) {
       // HyperGuest Stage 3 live booking rules, enforced server-side.
       const n = p.leadGuest?.name ?? {};

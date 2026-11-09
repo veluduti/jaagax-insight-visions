@@ -10,6 +10,7 @@ describe("HyperGuest marketplace rules", () => {
     expect(row.hyperguest_property_id).toBe("111139"); expect(row.latitude).toBe(17.46867); expect(row.longitude).toBe(78.36604);
   });
   it("does not import test inventory", () => expect(() => propertyFields({id:19912,name:"Test",isTest:1})).toThrow());
+  it("does not fabricate a star rating for unrated supplier hotels", () => expect(propertyFields({id:111139,name:"Supplier",rating:0,location:{city:{name:"Hyderabad"}}}).star_rating).toBeNull());
   it("uses live sell prices per night and never invents availability", () => {
     expect(availabilitySummary([{propertyId:111139,rooms:[{numberOfAvailableRooms:2,ratePlans:[{prices:{sell:{searchCurrency:6000}}}]}]},{propertyId:120655,rooms:[]}],2)).toEqual([{propertyId:111139,available:true,price:3000},{propertyId:120655,available:false,price:null}]);
   });

@@ -113,6 +113,10 @@ const HotelDetail = () => {
         console.error("Error fetching hotel:", error);
         setHotel(null);
       } else {
+        if (data.source_channel === "hyperguest" && data.hyperguest_property_id) {
+          navigate(`/hotels/hyperguest/${data.hyperguest_property_id}?marketplace=1`, { replace: true });
+          return;
+        }
         const resolved = { ...data, images: await resolveHotelImages((data as any).images) };
         setHotel(resolved as HotelData);
       }

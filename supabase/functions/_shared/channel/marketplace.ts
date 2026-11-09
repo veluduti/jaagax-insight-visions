@@ -13,7 +13,7 @@ export function propertyFields(p: any) {
     country: p.location.country?.name ?? p.location.countryCode ?? null, state: p.location.region ?? null,
     city_id: String(p.location.city.id ?? ""), region_name: p.location.region ?? null,
     latitude: p.coordinates?.latitude ?? null, longitude: p.coordinates?.longitude ?? null,
-    star_rating: Number(p.rating) || 0, description: p.descriptions?.find((d: any) => d.language === "en_US" && d.type === "general")?.description ?? null,
+    star_rating: Number(p.rating) || null, description: p.descriptions?.find((d: any) => d.language === "en_US" && d.type === "general")?.description ?? null,
     images: (p.images ?? []).map((i: any) => i.uri).filter(Boolean), amenities: (p.facilities ?? []).filter((f: any) => f.type !== "room").map((f: any) => f.name),
     contact_phone: p.contact?.phone ?? null, contact_email: p.contact?.email ?? null,
     check_in_time: p.settings?.checkIn ?? null, check_out_time: p.settings?.checkOut ?? null,

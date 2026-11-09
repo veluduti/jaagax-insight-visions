@@ -749,16 +749,18 @@ const Hotels = () => {
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRetry, setAvailabilityRetry] = useState(0);
   const [supplierAvailability, setSupplierAvailability] = useState<Record<string, { available: boolean; price: number | null }>>({});
+  const [supplierError, setSupplierError] = useState(false);
   useEffect(() => {
     let cancelled = false;
     setDateAvailability(null);
     setAvailabilityError(false);
+    setSupplierError(false);
     const timer = setTimeout(() => {
       const supplierHotels = hotels.filter(h => h.source_channel === "hyperguest");
       const pax = Array.from({length: Math.max(1, rooms)}, (_, i) => ({ adults: Math.max(1, Math.floor(adults / Math.max(1, rooms)) + (i < adults % Math.max(1, rooms) ? 1 : 0)), childAges: i === 0 ? childAges.map(c => Number(c.age)).filter(n => Number.isFinite(n)) : [] }));
       Promise.all([
         loadDiscoveryAvailability(rawRooms.filter(r => !supplierHotels.some(h => h.id === r.hotel_id)).map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd")),
-        supplierHotels.length ? loadSupplierAvailability(format(checkIn, "yyyy-MM-dd"), Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000), pax) : Promise.resolve([]),
+        supplierHotels.length ? loadSupplierAvailability(format(checkIn, "yyyy-MM-dd"), Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000), pax).catch(() => { if (!cancelled) setSupplierError(true); return []; }) : Promise.resolve([]),
       ])
         .then(([counts, supplier]) => { if (!cancelled) { setSupplierAvailability(Object.fromEntries(supplier.map(s => [String(s.propertyId), s]))); setDateAvailability(counts); } })
         .catch(() => { if (!cancelled) setAvailabilityError(true); });
@@ -1688,6 +1690,7 @@ const Hotels = () => {
               </div>
           <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
           {/* Hotels Grid */}
+          {supplierError && <div role="alert" className="mb-3 flex items-center gap-3 text-sm text-muted-foreground">Supplier availability could not be checked. Other stays are still available.<Button variant="outline" size="sm" onClick={() => setAvailabilityRetry(n => n + 1)}>Retry</Button></div>}
           {availabilityError ? <div role="alert" className="py-12 text-center"><p className="text-sm text-muted-foreground">Availability could not be checked. Please try again.</p><Button variant="outline" className="mt-3" onClick={() => setAvailabilityRetry(n => n + 1)}>Try again</Button></div> : loading || dateAvailability === null ? <p role="status" className="py-12 text-center text-sm text-muted-foreground">Checking available stays…</p> : filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-card rounded-2xl shadow-sm border border-border/50">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
