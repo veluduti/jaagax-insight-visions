@@ -358,6 +358,27 @@
       "when": 1793876667428,
       "tag": "0050_agent_profile_designation_services",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1794201935730,
+      "tag": "0051_hyperguest_marketplace_sync",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1794202019318,
+      "tag": "0052_hyperguest_upsert_mapping_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794202168297,
+      "tag": "0053_hyperguest_scoped_admin_authorization",
+      "breakpoints": true
     }
   ]
 }

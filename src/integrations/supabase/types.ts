@@ -6914,6 +6914,44 @@ export type Database = {
         }
         Relationships: []
       }
+      hyperguest_sync_logs: {
+        Row: {
+          actor_id: string
+          created_at: string
+          hotel_id: string | null
+          id: string
+          message: string | null
+          property_id: string
+          status: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          message?: string | null
+          property_id: string
+          status: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          message?: string | null
+          property_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hyperguest_sync_logs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -9750,6 +9788,9 @@ export type Database = {
           source_channel: string
           star_rating: number | null
           state: string | null
+          supplier_content: Json | null
+          supplier_sync_error: string | null
+          supplier_synced_at: string | null
           tags: string[]
           total_rooms: number | null
           type_details: Json
@@ -9797,6 +9838,9 @@ export type Database = {
           source_channel?: string
           star_rating?: number | null
           state?: string | null
+          supplier_content?: Json | null
+          supplier_sync_error?: string | null
+          supplier_synced_at?: string | null
           tags?: string[]
           total_rooms?: number | null
           type_details?: Json
@@ -9844,6 +9888,9 @@ export type Database = {
           source_channel?: string
           star_rating?: number | null
           state?: string | null
+          supplier_content?: Json | null
+          supplier_sync_error?: string | null
+          supplier_synced_at?: string | null
           tags?: string[]
           total_rooms?: number | null
           type_details?: Json
@@ -15224,6 +15271,7 @@ export type Database = {
         Args: { _property: string; _user: string }
         Returns: boolean
       }
+      can_manage_hyperguest: { Args: { _user_id: string }; Returns: boolean }
       can_organize_events: { Args: { _uid: string }; Returns: boolean }
       can_remind_admin: { Args: { _target_user_id: string }; Returns: boolean }
       can_review_scope: {

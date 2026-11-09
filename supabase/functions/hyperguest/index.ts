@@ -4,6 +4,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { logChannelPayload, type ChannelOperation } from "../_shared/channel/audit.ts";
+import { MARKETPLACE_IDS, LEGACY_LIVE_IDS, catalogRows, propertyFields, availabilitySummary, certificationRulesApply } from "../_shared/channel/marketplace.ts";
+import { z } from "npm:zod@3.25.76";
 
 import { AsyncLocalStorage } from "node:async_hooks";
 const TEST_KEY = Deno.env.get("HYPERGUEST_API_KEY") ?? "";
@@ -17,6 +19,7 @@ const STATIC = (Deno.env.get("HYPERGUEST_STATIC_URL") ?? "https://hg-static.hype
 // Edge runtime wall clock is below HyperGuest's 300s; we wait as long as we safely
 // can, then reconcile through the Booking List API.
 const BOOK_WAIT_MS = 140_000;
+let catalogCache: { rows: any[]; expires: number } | null = null;
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const json = (b: unknown, s = 200) =>
@@ -86,14 +89,22 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request" }, 400);
   let live = body?.live === true;
+  const propertyId = body.propertyId ?? body.payload?.propertyId ?? body.search?.propertyId;
+  if (propertyId) {
+    const { data: mapped } = await sb.from("partner_hotels").select("id").eq("hyperguest_property_id", String(propertyId)).maybeSingle();
+    if (mapped) live = true;
+  }
+  if (["sync", "marketplace", "marketplace-search", "publish"].includes(body.action)) live = true;
   if (body?.action === "refresh" || body?.action === "cancel") {
     const { data: row } = await sb.from("hyperguest_bookings").select("environment").eq("id", String(body.id ?? "")).maybeSingle();
     live = row?.environment === "live";
   }
   const key = live ? LIVE_KEY : TEST_KEY;
   if (!key) return json({ error: live ? "The live HyperGuest token is not set up yet" : "HyperGuest is not configured" }, 503);
-  return keyCtx.run(key, () => handle(req, body, live));
+  try { return await keyCtx.run(key, () => handle(req, body, live)); }
+  catch (error) { console.error("HyperGuest request failed", (error as Error).message); return json({ error: "Hotel service is temporarily unavailable. Please try again." }, 503); }
 });
 
 const USD_LIMIT = 500;
@@ -111,10 +122,28 @@ function redact(b: any) {
 async function handle(req: Request, body: any, live: boolean) {
   const action = String(body?.action ?? "");
 
+  if (action === "marketplace") {
+    const { data, error } = await sb.from("partner_hotels").select("id,name,city,locality,images,star_rating,country,hyperguest_property_id,source_channel").eq("source_channel", "hyperguest").eq("is_active", true);
+    return error ? json({ error: "Could not load supplier hotels" }, 503) : json({ hotels: data });
+  }
+
+  if (action === "marketplace-search") {
+    const parsed = z.object({ checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), nights: z.number().int().min(1).max(30), rooms: z.array(z.object({ adults: z.number().int().min(1).max(10), childAges: z.array(z.number().int().min(0).max(17)).max(6).optional() })).min(1).max(5), nationality: z.string().regex(/^[A-Z]{2}$/), currency: z.string().regex(/^[A-Z]{3}$/) }).safeParse(body);
+    if (!parsed.success) return json({ error: "Check dates, guests, nationality and currency" }, 400);
+    const { data: hotels, error } = await sb.from("partner_hotels").select("hyperguest_property_id").eq("source_channel", "hyperguest").eq("is_active", true);
+    if (error) return json({ error: "Could not load supplier inventory" }, 503);
+    if (!hotels?.length) return json({ availability: [] });
+    const qs = new URLSearchParams({ checkIn: parsed.data.checkIn, nights: String(parsed.data.nights), guests: guestsParam(parsed.data.rooms), hotelIds: hotels.map(h => h.hyperguest_property_id).join(","), customerNationality: parsed.data.nationality, currency: parsed.data.currency });
+    const r = await hg("search", `${SEARCH}?${qs}`);
+    return r.ok ? json({ availability: availabilitySummary(r.data?.results ?? [], parsed.data.nights) }) : json({ error: friendly(r.data) }, 502);
+  }
+
   // ---- public actions -----------------------------------------------------
   if (action === "static") {
     const id = Number(body.propertyId);
     if (!Number.isInteger(id) || id <= 0) return json({ error: "propertyId required" }, 400);
+    const { data: cached } = await sb.from("partner_hotels").select("supplier_content").eq("hyperguest_property_id", String(id)).maybeSingle();
+    if (cached?.supplier_content) return json(cached.supplier_content);
     const r = await hg("detail", `${STATIC}/${id}/property-static.json`);
     return r.ok ? json(r.data) : json({ error: "Could not load hotel details", notFound: true });
   }
@@ -141,6 +170,65 @@ async function handle(req: Request, body: any, live: boolean) {
   const user = u?.user;
   if (!user) return json({ error: "Please sign in to continue" }, 401);
 
+  if (action === "sync" || action === "publish") {
+    const { data: admin } = await sb.rpc("can_manage_hyperguest", { _user_id: user.id });
+    if (admin !== true) return json({ error: "Administrator access required" }, 403);
+    const id = Number(body.propertyId);
+    if (![...MARKETPLACE_IDS, ...LEGACY_LIVE_IDS].includes(id)) return json({ error: "Hotel is not in the approved import list" }, 400);
+    if (action === "publish") {
+      if (typeof body.published !== "boolean") return json({ error: "Publishing status required" }, 400);
+      const { error } = await sb.from("partner_hotels").update({ is_active: body.published, onboarding_status: body.published ? "published" : "unpublished" }).eq("hyperguest_property_id", String(id)).eq("source_channel", "hyperguest");
+      return error ? json({ error: "Could not change hotel visibility" }, 409) : json({ success: true });
+    }
+    let hotelId: string | null = null;
+    try {
+      if (!catalogCache || catalogCache.expires < Date.now()) {
+        const catalog = await hg("detail", `${STATIC}/hotels.json`);
+        if (!catalog.ok) throw new Error("HyperGuest catalog could not be retrieved");
+        const rows = catalogRows(catalog.data);
+        if (!Array.isArray(rows) || !rows.length) throw new Error("HyperGuest returned an empty catalog");
+        catalogCache = { rows, expires: Date.now() + 30 * 60_000 };
+      }
+      if (!catalogCache.rows.some(p => Number(p.id ?? p.propertyId ?? p.hotelId) === id)) throw new Error("Property is missing from the live HyperGuest catalog");
+      const detail = await hg("detail", `${STATIC}/${id}/property-static.json`);
+      if (!detail.ok) throw new Error("Full property content could not be retrieved");
+      const p = detail.data;
+      if (Number(p?.id) !== id) throw new Error("Supplier property ID does not match");
+      const fields = propertyFields(p);
+      const { data: existing, error: lookupError } = await sb.from("partner_hotels").select("id,source_channel,is_active,onboarding_status").eq("hyperguest_property_id", String(id)).maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existing && existing.source_channel !== "hyperguest") throw new Error("Mapped partner-managed hotel requires administrator review; existing record preserved");
+      const { data: saved, error: saveError } = await sb.from("partner_hotels").upsert({ ...fields, ...(existing ? { id: existing.id, is_active: existing.is_active, onboarding_status: existing.onboarding_status } : { is_active: true, onboarding_status: "published", published_at: new Date().toISOString(), price_per_night: 0 }) }, { onConflict: "hyperguest_property_id" }).select("id").single();
+      if (saveError) throw saveError;
+      hotelId = saved.id;
+      const roomIds: string[] = [];
+      for (const room of p.rooms ?? []) {
+        const s = room.settings ?? {};
+        const rid = String(room.id); roomIds.push(rid);
+        const { data: old, error: oldError } = await sb.from("hotel_rooms").select("id,source_channel").eq("hotel_id", hotelId).eq("hyperguest_room_id", rid).maybeSingle();
+        if (oldError) throw oldError;
+        if (old && old.source_channel !== "hyperguest") throw new Error("Mapped partner room preserved; manual review required");
+        const { error: roomError } = await sb.from("hotel_rooms").upsert({ ...(old ? { id: old.id } : {}), hotel_id: hotelId, hyperguest_room_id: rid, hyperguest_room_type_code: room.pmsCode ?? null, source_channel: "hyperguest", room_type: room.name, room_name: room.name, description: room.descriptions?.find((d: any) => d.language === "en_US")?.description ?? null, photos: (room.images ?? []).map((i: any) => i.uri).filter(Boolean), amenities: (room.facilities ?? []).map((f: any) => f.name), max_occupancy: s.maxOccupancy ?? 1, max_adults: s.adultsNumber ?? s.maxOccupancy ?? 1, max_children: s.childrenNumber ?? 0, max_infants: s.infantsNumber ?? 0, room_size: s.roomSize ?? s.size?.squareMeters ?? null, room_size_unit: "sqm", number_of_bedrooms: s.numberOfBedrooms ?? null, number_of_beds: s.numberOfBeds ?? null, is_active: room.status === "enabled", base_price: 0, total_units: 0, accommodation_kind: "room", updated_at: new Date().toISOString() }, { onConflict: "hotel_id,hyperguest_room_id" });
+        if (roomError) throw roomError;
+      }
+      const { data: storedRooms } = await sb.from("hotel_rooms").select("id,hyperguest_room_id").eq("hotel_id", hotelId).eq("source_channel", "hyperguest");
+      const removed = (storedRooms ?? []).filter(r => !roomIds.includes(r.hyperguest_room_id)).map(r => r.id);
+      if (removed.length) await sb.from("hotel_rooms").update({ is_active: false }).in("id", removed);
+      await sb.from("hyperguest_sync_logs").insert({ property_id: String(id), hotel_id: hotelId, actor_id: user.id, status: "success", message: `${roomIds.length} supplier room types synchronized` });
+      return json({ success: true, hotelId, rooms: roomIds.length });
+    } catch (error) {
+      const message = (error as Error).message;
+      await sb.from("partner_hotels").update({ supplier_sync_error: message }).eq("hyperguest_property_id", String(id));
+      await sb.from("hyperguest_sync_logs").insert({ property_id: String(id), hotel_id: hotelId, actor_id: user.id, status: "failed", message });
+      return json({ error: message }, 409);
+    }
+  }
+
+  const candidateId = body.payload?.propertyId ?? body.search?.propertyId;
+  const { data: marketplaceHotel } = candidateId ? await sb.from("partner_hotels").select("id,is_active,source_channel").eq("hyperguest_property_id", String(candidateId)).maybeSingle() : { data: null };
+  const marketplaceBooking = marketplaceHotel?.source_channel === "hyperguest";
+  if (marketplaceBooking && !marketplaceHotel.is_active) return json({ error: "This hotel is not available for booking" }, 409);
+
   if (action === "prebook") {
     const r = await hg("quote", `${BOOK}booking/pre-book`, { search: body.search, rooms: body.rooms });
     if (!r.ok) return json({ error: friendly(r.data), details: r.data }, 409);
@@ -153,7 +241,7 @@ async function handle(req: Request, body: any, live: boolean) {
     const ref = String(body.agencyReference ?? "").slice(0, 60);
     const p = body.payload;
     if (!/^JX-[A-Za-z0-9-]{6,}$/.test(ref) || !p?.rooms?.length) return json({ error: "Invalid booking request" }, 400);
-    if (live) {
+    if (certificationRulesApply(live, marketplaceBooking)) {
       // HyperGuest Stage 3 live booking rules, enforced server-side.
       const n = p.leadGuest?.name ?? {};
       if (String(n.first).trim() !== "Test" || String(n.last).trim() !== "Test") return json({ error: "Live test bookings must use the guest name Test Test." }, 400);
@@ -179,14 +267,6 @@ async function handle(req: Request, body: any, live: boolean) {
       return json({ booking: fresh, duplicate: true });
     }
 
-    await sb.from("hyperguest_bookings").insert({
-      user_id: user.id, agency_reference: ref, property_id: Number(p.propertyId),
-      check_in: p.dates?.from, check_out: p.dates?.to, nationality: body.nationality ?? null,
-      currency: body.currency ?? null, test_label: body.testLabel ?? null,
-      rooms: body.roomsSummary ?? [], special_requests: body.specialRequests ?? null,
-      environment: live ? "live" : "test",
-    });
-
     let liveCard: any = null;
     if (live) {
       const c = body.card ?? {};
@@ -196,6 +276,14 @@ async function handle(req: Request, body: any, live: boolean) {
       const parts = String(c.name ?? "").trim().split(/\s+/);
       liveCard = { type: "credit_card", details: { number: num, cvv: String(c.cvv), expiry: { month: mm, year: `20${yy}` }, name: { first: parts[0] || "Test", last: parts.slice(1).join(" ") || parts[0] || "Test" } } };
     }
+    const { error: insertError } = await sb.from("hyperguest_bookings").insert({
+      user_id: user.id, agency_reference: ref, property_id: Number(p.propertyId),
+      check_in: p.dates?.from, check_out: p.dates?.to, nationality: body.nationality ?? null,
+      currency: body.currency ?? null, test_label: marketplaceBooking ? null : body.testLabel ?? null,
+      rooms: body.roomsSummary ?? [], special_requests: body.specialRequests ?? null,
+      environment: live ? "live" : "test",
+    });
+    if (insertError) return json({ error: "Booking reference is already in use. Refresh your bookings before trying again." }, 409);
     const payload = live ? { ...p, reference: { agency: ref }, paymentDetails: liveCard } : {
       ...p, reference: { agency: ref },
       // Development token only: HyperGuest's test card. Live will use the contracted payment model.

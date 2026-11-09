@@ -94,22 +94,25 @@ export default function HyperGuestProperty() {
   const { propertyId = "19912" } = useParams();
   const nav = useNavigate();
   const loc = useLocation();
-  const live = new URLSearchParams(loc.search).get("live") === "1";
+  const params = new URLSearchParams(loc.search);
+  const marketplace = params.get("marketplace") === "1";
+  const live = params.get("live") === "1" || marketplace;
+  const certification = live && !marketplace;
   LIVE_MODE = live;
   const liveMinCheckIn = addMonthsISO(6);
   const { user } = useAuth();
   const [stat, setStat] = useState<any>(null);
-  const [checkIn, setCheckIn] = useState(live ? addDays(addMonthsISO(6), 1) : addDays(today(), 30));
-  const [nights, setNights] = useState(1);
+  const [checkIn, setCheckIn] = useState(params.get("checkin") || (certification ? addDays(addMonthsISO(6), 1) : addDays(today(), 1)));
+  const [nights, setNights] = useState(params.get("checkout") && params.get("checkin") ? Math.max(1, Math.round((Date.parse(params.get("checkout") ?? "") - Date.parse(params.get("checkin") ?? "")) / 86400000)) : 1);
   const [nationality, setNationality] = useState("IN");
-  const [currency, setCurrency] = useState(live ? "USD" : "INR");
-  const [rooms, setRooms] = useState<RoomReq[]>([{ adults: 1, children: [], infants: 0 }]);
+  const [currency, setCurrency] = useState(certification ? "USD" : "INR");
+  const [rooms, setRooms] = useState<RoomReq[]>(() => { const count = Math.min(4, Math.max(1, Number(params.get("rooms")) || 1)); const adults = Math.max(count, Number(params.get("adults")) || 2); return Array.from({ length: count }, (_, i) => ({ adults: Math.floor(adults / count) + (i < adults % count ? 1 : 0), children: i === 0 ? (params.get("childAges") || "").split(",").filter(Boolean).map(Number).filter(n => n >= 0 && n <= 17) : [], infants: 0 })); });
   const [result, setResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const [picked, setPicked] = useState<Record<number, { room: any; rp: any }>>({});
   const [prebook, setPrebook] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [lead, setLead] = useState(live ? { first: "Test", last: "Test", email: "", phone: "" } : { first: "", last: "", email: "", phone: "" });
+  const [lead, setLead] = useState(certification ? { first: "Test", last: "Test", email: "", phone: "" } : { first: "", last: "", email: "", phone: "" });
   const [guests, setGuests] = useState<Record<string, { first: string; last: string }>>({});
   const [special, setSpecial] = useState("");
   const [testLabel, setTestLabel] = useState("");
@@ -144,7 +147,7 @@ export default function HyperGuestProperty() {
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
   const search = async () => {
-    if (live && checkIn < liveMinCheckIn) return toast.error(`Check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
+    if (certification && checkIn < liveMinCheckIn) return toast.error(`Check-in must be on or after ${liveMinCheckIn} (6 months from today).`);
     setSearching(true); setPicked({}); setPrebook(null); setConfirmed(null);
     const r = await call({ action: "search", propertyId: Number(propertyId), checkIn, nights, nationality, currency, rooms: rooms.map((x) => ({ adults: x.adults, childAges: ages(x) })) });
     setSearching(false);
@@ -165,7 +168,7 @@ export default function HyperGuestProperty() {
 
   const doPrebook = async () => {
     if (!user) return requireLogin();
-    if (live) {
+    if (certification) {
       const sel0 = rooms.map((_, i) => picked[i]);
       if (sel0.some((s) => !isFullyRefundable(s.rp))) return toast.error("Please choose a fully refundable rate only.");
       const tot = sel0.reduce((a, s) => a + toUsd(Number(s.rp.payment?.chargeAmount?.price ?? 0), s.rp.payment?.chargeAmount?.currency), 0);
@@ -239,7 +242,7 @@ export default function HyperGuestProperty() {
       <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
         {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
-            {live && <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Free cancellation rates only · check-in from {liveMinCheckIn} · guest name Test Test · cancel from My Bookings within 7 days.</p>}
+            {certification && <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Free cancellation rates only · check-in from {liveMinCheckIn} · guest name Test Test · cancel from My Bookings within 7 days.</p>}
             <div>
               <Badge variant="secondary" className="mb-2">Hotel</Badge>
               <h1 className="text-2xl md:text-3xl font-bold">{stat.name}</h1>
@@ -261,10 +264,10 @@ export default function HyperGuestProperty() {
             <Card><CardContent className="p-4 space-y-3">
               <h2 className="font-semibold">Search rooms</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <label className="text-xs">Check-in<Input type="date" min={live ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
+                <label className="text-xs">Check-in<Input type="date" min={certification ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
                 <label className="text-xs">Nights<Input type="number" min={1} max={30} value={nights} onChange={(e) => setNights(Math.max(1, +e.target.value))} /></label>
                 <label className="text-xs">Guest nationality<select className="w-full h-10 rounded-md border bg-background px-2" value={nationality} onChange={(e) => setNationality(e.target.value)}>{NATIONALITIES.map((n) => <option key={n}>{n}</option>)}</select></label>
-                <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={live} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
+                <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={certification} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
               </div>
               {rooms.map((r, i) => (
                 <div key={i} className="flex flex-wrap items-end gap-2 border rounded-md p-2">
@@ -332,7 +335,7 @@ export default function HyperGuestProperty() {
                               </details>
                               <details className="text-xs"><summary className="cursor-pointer font-medium">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
                               {rp.remarks?.length > 0 && <details className="text-xs" open><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
-                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={live && !isFullyRefundable(rp)} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
+                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={certification && !isFullyRefundable(rp)} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
                             </div>
                           );
                         })}
@@ -385,8 +388,8 @@ export default function HyperGuestProperty() {
                     {step === "guests" ? (<>
                       <h2 className="font-semibold">Who's staying?</h2>
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Lead first name *" value={lead.first} readOnly={live} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
-                        <Input placeholder="Lead last name *" value={lead.last} readOnly={live} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
+                        <Input placeholder="Lead first name *" value={lead.first} readOnly={certification} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
+                        <Input placeholder="Lead last name *" value={lead.last} readOnly={certification} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
                         <Input placeholder="Email *" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} />
                         <Input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} />
                       </div>
@@ -411,7 +414,7 @@ export default function HyperGuestProperty() {
                         <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
                         <Lock className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      {live ? <p className="text-xs text-muted-foreground">The hotel holds this card to guarantee your booking. This rate has free cancellation.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                      {live ? <p className="text-xs text-muted-foreground">The hotel holds this card to guarantee your booking. Cancellation charges follow the selected rate policy.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
                         <p className="font-medium">Sample payment — no money is charged.</p>
                         <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
                         <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
@@ -478,7 +481,7 @@ export default function HyperGuestProperty() {
                   <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 border rounded-md p-2 text-sm">
                     <div>
                       <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out}</p>
-                      {b.environment === "live" && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
+                      {b.environment === "live" && b.test_label && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
                       <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.total_amount, b.total_currency ?? "")}</p>
                       {b.status !== "cancelled" ? <BookingPolicy b={b} /> : <p className="text-xs text-muted-foreground">Cancelled{b.cancelled_at ? ` on ${new Date(b.cancelled_at).toLocaleString()}` : ""}</p>}
                     </div>

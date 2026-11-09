@@ -1,4 +1,4 @@
-import LiveHyperGuestHotels from "@/components/hotels/LiveHyperGuestHotels";
+import { loadSupplierAvailability } from "@/services/hospitality/hyperguestDiscoveryService";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -153,6 +153,8 @@ interface PartnerHotel {
   description?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  source_channel?: string;
+  hyperguest_property_id?: string | null;
 }
 
 interface VisitPackage {
@@ -466,11 +468,11 @@ const Hotels = () => {
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
-            .filter((h: any) => minByHotel.has(h.id))
+            .filter((h: any) => minByHotel.has(h.id) || h.source_channel === "hyperguest")
             .map(async (h: any) => ({
               ...h,
-              price_per_night: minByHotel.get(h.id) as number,
-              images: await resolveHotelImages(h.images),
+              price_per_night: minByHotel.get(h.id) ?? 0,
+              images: h.source_channel === "hyperguest" ? h.images : await resolveHotelImages(h.images),
             })),
         );
 
@@ -746,23 +748,29 @@ const Hotels = () => {
   const [dateAvailability, setDateAvailability] = useState<Record<string, number> | null>(null);
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRetry, setAvailabilityRetry] = useState(0);
+  const [supplierAvailability, setSupplierAvailability] = useState<Record<string, { available: boolean; price: number | null }>>({});
   useEffect(() => {
     let cancelled = false;
     setDateAvailability(null);
     setAvailabilityError(false);
     const timer = setTimeout(() => {
-      loadDiscoveryAvailability(rawRooms.map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd"))
-        .then(counts => { if (!cancelled) setDateAvailability(counts); })
+      const supplierHotels = hotels.filter(h => h.source_channel === "hyperguest");
+      const pax = Array.from({length: Math.max(1, rooms)}, (_, i) => ({ adults: Math.max(1, Math.floor(adults / Math.max(1, rooms)) + (i < adults % Math.max(1, rooms) ? 1 : 0)), childAges: i === 0 ? childAges.map(c => Number(c.age)).filter(n => Number.isFinite(n)) : [] }));
+      Promise.all([
+        loadDiscoveryAvailability(rawRooms.filter(r => !supplierHotels.some(h => h.id === r.hotel_id)).map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd")),
+        supplierHotels.length ? loadSupplierAvailability(format(checkIn, "yyyy-MM-dd"), Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000), pax) : Promise.resolve([]),
+      ])
+        .then(([counts, supplier]) => { if (!cancelled) { setSupplierAvailability(Object.fromEntries(supplier.map(s => [String(s.propertyId), s]))); setDateAvailability(counts); } })
         .catch(() => { if (!cancelled) setAvailabilityError(true); });
     }, 250);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [rawRooms, checkIn, checkOut, availabilityRetry]);
+  }, [rawRooms, hotels, checkIn, checkOut, adults, rooms, childAges, availabilityRetry]);
 
   // Filter and sort hotels
   const searchOutcome = useMemo(() => {
     // When the box shows a picked city/area label, the city+locality filters do the work.
     const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
-    let result = hotels.filter((hotel) => {
+    let result = hotels.map(h => h.source_channel === "hyperguest" ? { ...h, price_per_night: supplierAvailability[h.hyperguest_property_id ?? ""]?.price ?? 0 } : h).filter((hotel) => {
       const matchesCity =
         selectedCity === "all" ||
         isSameCity(hotel.city, selectedCity) ||
@@ -790,7 +798,7 @@ const Hotels = () => {
       // either a single fitting room or a valid multi-room combination.
       const hotelRooms = (roomsByHotel[hotel.id] || []).map(r => ({ ...r, available: dateAvailability?.[r.id] ?? 0 }));
       const matchesOccupancy =
-        hotelRooms.length === 0
+        hotel.source_channel === "hyperguest" ? supplierAvailability[hotel.hyperguest_property_id ?? ""]?.available === true : hotelRooms.length === 0
           ? false
           : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
             buildRoomCombinations(hotelRooms, adults, children, {
@@ -877,6 +885,7 @@ const Hotels = () => {
     profile,
     pgMode, pgPlan, rawRooms,
     dateAvailability,
+    supplierAvailability,
   ]);
   // Per-hotel presentation meta. Every value is derived from data a partner or
   // guest actually entered; missing data stays null/false and the row hides it.
@@ -1166,6 +1175,10 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
+    if (hotel.source_channel === "hyperguest" && hotel.hyperguest_property_id) {
+      const params = new URLSearchParams({marketplace: "1", checkin: format(checkIn, "yyyy-MM-dd"), checkout: format(checkOut, "yyyy-MM-dd"), adults: String(adults), rooms: String(rooms), childAges: childAges.map(c => c.age).join(",")});
+      window.open(`/hotels/hyperguest/${hotel.hyperguest_property_id}?${params}`, "_blank", "noopener,noreferrer"); return;
+    }
     if (resortMode) setRecentIds(pushRecentResort(hotel.id));
     logHotelSignal("view", { city: hotel.city, business_types: hotel.business_types ?? [] }, hotel.id);
     window.open(`/hotels/${hotel.id}`, "_blank", "noopener,noreferrer");
@@ -1631,7 +1644,6 @@ const Hotels = () => {
         <div className="mx-auto w-full max-w-[1600px] px-4 pb-8 lg:px-8">
           {uniqueMode ? <UniqueCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : corporateMode ? <CorporateCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : luxuryMode ? <LuxuryCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : colivingMode ? <ColivingCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : resortMode ? <ResortCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : pgMode ? <PgCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : aptMode ? <ApartmentCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />}
           <MyHotelApplicationsBanner />
-          {!catMode && <LiveHyperGuestHotels />}
 
           {recommended.length > 0 && (
             <div className="mb-5">

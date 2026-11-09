@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS partner_hotels_hyperguest_upsert_key ON public.partner_hotels (hyperguest_property_id);
+CREATE UNIQUE INDEX IF NOT EXISTS hotel_rooms_hyperguest_upsert_key ON public.hotel_rooms (hotel_id, hyperguest_room_id);
