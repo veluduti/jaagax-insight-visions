@@ -165,6 +165,7 @@ export default function HotelRoomList({
   // Quote each room once we have dates
   useEffect(() => {
     if (!checkIn || !checkOut || rooms.length === 0) return;
+    let cancelled = false;
     const nights = Math.max(1, Math.round(
       (+new Date(checkOut) - +new Date(checkIn)) / 86400000
     ));
@@ -178,10 +179,11 @@ export default function HotelRoomList({
       (async () => {
         try {
           // Availability
-          const availRes: any = await (supabase as any).rpc("check_room_availability", {
+          const availRes: any = await (supabase as any).rpc("room_free_units", {
             _room_id: room.id, _check_in: checkIn, _check_out: checkOut,
           });
           const available = Number(availRes?.data ?? 0);
+          if (availRes?.error) throw availRes.error;
 
           // Pricing (reuse existing edge function; falls back to base_price on failure)
           let perNight = Number(room.base_price) || 0;
@@ -196,19 +198,22 @@ export default function HotelRoomList({
           const taxes = Math.round(roomTotal * gstFor(perNight));
           const total = roomTotal + taxes;
 
+          if (cancelled) return;
           setQuotes((prev) => ({
             ...prev,
             [room.id]: { loading: false, available, perNight, nights, roomTotal, taxes, total },
           }));
         } catch (e) {
           console.error("quote failed", e);
+          if (cancelled) return;
           setQuotes((prev) => ({
             ...prev,
-            [room.id]: { loading: false, available: room.total_units, perNight: room.base_price, nights, roomTotal: room.base_price * nights, taxes: 0, total: room.base_price * nights },
+            [room.id]: { loading: false, available: 0, perNight: room.base_price, nights, roomTotal: 0, taxes: 0, total: 0 },
           }));
         }
       })();
     });
+    return () => { cancelled = true; };
   }, [rooms, checkIn, checkOut, adults, children, roomsWanted, hotelId, bizTypes]);
 
   const hasDates = !!(checkIn && checkOut);
@@ -248,8 +253,8 @@ export default function HotelRoomList({
 
   const combinations = useMemo(() => {
     if (!quotesReady || bookableRooms.length > 0) return [];
-    return buildRoomCombinations(occupancyPool, adults, children);
-  }, [quotesReady, bookableRooms.length, occupancyPool, adults, children]);
+    return buildRoomCombinations(occupancyPool, adults, children, { exactRooms: roomsWanted });
+  }, [quotesReady, bookableRooms.length, occupancyPool, adults, children, roomsWanted]);
 
   const longStayRooms = rooms.filter((r) => customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay);
   const displayRooms = [...longStayRooms, ...(quotesReady ? bookableRooms : fittingRooms)];
@@ -590,7 +595,7 @@ export default function HotelRoomList({
                   {cv.kind.longStay && <Button variant="outline" className="xl:w-full" onClick={() => setDetailRoom(room)}>View all details</Button>}
                   {!cv.kind.longStay && <Button
                     className="min-w-[140px] xl:w-full"
-                    disabled={!!soldOut}
+                    disabled={!!soldOut || (hasDates && (!quotesReady || Number(q?.available ?? 0) < roomsWanted))}
                     onClick={() =>
                       goCheckout(
                         room.id,
@@ -599,7 +604,7 @@ export default function HotelRoomList({
                       )
                     }
                   >
-                    {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
+                    {soldOut ? "Sold out" : hasDates ? "Continue to booking" : "Select dates"}
                   </Button>}
 
                 </div>

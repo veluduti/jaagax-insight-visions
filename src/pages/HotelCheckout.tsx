@@ -25,7 +25,7 @@ function friendlyBookingError(raw?: string | null) {
   if (/just booked|not available|no availability|sold out|stop.?sell|inventory/.test(m)) return "Sorry, this room is no longer available for your dates. Please pick another room or dates.";
   if (/price.*chang|expired|rate.*(no longer|invalid)/.test(m)) return "The price for this room has changed or expired. Please go back and review the latest price.";
   if (/timeout|timed out|network|fetch/.test(m)) return "The hotel took too long to respond. Please try again — you won't be charged twice.";
-  if (/min.*night/.test(m)) return raw!;
+  if (/min.*night/.test(m)) return raw || "Please check the minimum stay.";
   return raw || "Could not start payment. Please try again.";
 }
 
@@ -75,7 +75,7 @@ const razorpayCheckoutConfig = {
   },
 };
 
-type Step = "guest" | "summary" | "pay";
+type Step = "guest" | "pay";
 
 interface RoomRow {
   id: string; room_type: string; base_price: number;
@@ -124,7 +124,7 @@ const HotelCheckout = () => {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [rateIssue, setRateIssue] = useState<string | null>(null);
+  const [rateIssue, setRateIssue] = useState<string | null>("Checking your selected rate…");
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -352,18 +352,20 @@ const HotelCheckout = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back
+        <Button variant="ghost" size="sm" onClick={() => navigate(`/hotels/${hotelId}?${params}`)} className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to rooms
         </Button>
+        <div className="mb-6 space-y-1"><Badge variant="secondary">Hotel</Badge><h1 className="text-2xl md:text-3xl font-bold">{hotel?.name}</h1><p className="text-sm text-muted-foreground">{hotel?.locality}, {hotel?.city}</p></div>
+        <h2 className="text-2xl font-bold mb-4">Complete your booking</h2>
 
         {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-6 text-sm">
-          {(["guest", "summary", "pay"] as Step[]).map((s, i) => (
+        <div className="flex flex-wrap items-center gap-2 mb-6 text-xs">
+          {(["guest", "pay", "confirmation"]).map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold
-                ${step === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</div>
+                ${i <= (step === "guest" ? 0 : 1) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</div>
               <span className={step === s ? "font-medium" : "text-muted-foreground"}>
-                {s === "guest" ? "Guest details" : s === "summary" ? "Review" : "Payment"}
+                {s === "guest" ? "Guest details" : s === "pay" ? "Payment" : "Confirmation"}
               </span>
               {i < 2 && <div className="w-8 h-px bg-border" />}
             </div>
@@ -373,14 +375,14 @@ const HotelCheckout = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             {step === "guest" && (
-              <Card><CardContent className="p-6 space-y-4">
-                <h2 className="text-lg font-semibold">Guest details</h2>
-                <div className="grid sm:grid-cols-2 gap-4">
+              <Card className="border-primary"><CardContent className="p-4 space-y-3">
+                <h2 className="font-semibold">Who's staying?</h2>
+                <div className="grid sm:grid-cols-2 gap-3">
                   <div><Label>Full name *</Label>
                     <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="As per ID" /></div>
                   <div><Label>Phone *</Label>
                     <Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
-                  <div className="sm:col-span-2"><Label>Email *</Label>
+                  <div><Label>Email *</Label>
                     <Input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
                   <div className="sm:col-span-2"><Label>Special requests (optional)</Label>
                     <Textarea rows={3} maxLength={500} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
@@ -396,46 +398,16 @@ const HotelCheckout = () => {
                   </div>
                 )}
 
-                <Button className="w-full" onClick={() => {
+                <Button size="lg" className="w-full" disabled={!!rateIssue} onClick={() => {
                   const err = validateGuest();
                   if (err) return toast.error(err);
-                  setStep("summary");
-                }}>Continue to review</Button>
-              </CardContent></Card>
-            )}
-
-            {step === "summary" && (
-              <Card><CardContent className="p-6 space-y-4">
-                <h2 className="text-lg font-semibold">Review your booking</h2>
-                <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                  <Info label="Guest" value={guestName} />
-                  <Info label="Contact" value={`${guestEmail} · ${guestPhone}`} />
-                  <Info label="Check-in" value={checkIn} />
-                  <Info label="Check-out" value={checkOut} />
-                  <Info label="Guests" value={`${adults} adult${adults>1?"s":""}${children?`, ${children} child`:""}`} />
-                  <Info label="Rooms" value={String(numRooms)} />
-                </div>
-                {specialRequests && (
-                  <div className="text-sm">
-                    <div className="text-muted-foreground">Special requests</div>
-                    <div>{specialRequests}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Special requests are subject to hotel confirmation.</div>
-                  </div>
-                )}
-                <RateDetailsPanel
-                  hotelId={hotelId!} roomId={roomId} ratePlanId={ratePlanId}
-                  checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} rooms={numRooms}
-                  onResolved={({ error }) => setRateIssue(error)}
-                />
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep("guest")}>Back</Button>
-                  <Button className="flex-1" disabled={!!rateIssue} onClick={() => setStep("pay")}>Continue to payment</Button>
-                </div>
+                  setStep("pay"); window.scrollTo({ top: 0, behavior: "smooth" });
+                }}>Continue to payment</Button>
               </CardContent></Card>
             )}
 
             {step === "pay" && (
-              <Card><CardContent className="p-6 space-y-4">
+              <Card className="border-primary"><CardContent className="p-4 space-y-3">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <CreditCard className="w-5 h-5" /> Payment
                 </h2>
@@ -444,10 +416,10 @@ const HotelCheckout = () => {
                 </p>
                 <div className="rounded-lg bg-muted p-4 text-sm">
                   You'll be charged <b>₹{total.toLocaleString()}</b> for {nights} night{nights>1?"s":""} × {numRooms} room{numRooms>1?"s":""}.
-                  The cancellation policy shown in the review step applies to this rate.
+                  The cancellation policy in your booking summary applies to this rate.
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep("summary")} disabled={submitting}>Back</Button>
+                  <Button variant="outline" onClick={() => setStep("guest")} disabled={submitting}>Back</Button>
                   <Button className="flex-1" onClick={handlePay} disabled={submitting || !!rateIssue}>
                     {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : `Pay ₹${total.toLocaleString()}`}
                   </Button>
@@ -459,6 +431,7 @@ const HotelCheckout = () => {
           {/* Summary sidebar */}
           <div className="lg:col-span-1">
             <Card className="sticky top-24"><CardContent className="p-5 space-y-4">
+              <h3 className="font-semibold">Booking summary</h3>
               <div className="flex gap-3">
                 <img src={hotel?.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200"}
                   className="w-20 h-20 object-cover rounded-md" alt="" />
@@ -471,8 +444,11 @@ const HotelCheckout = () => {
                 </div>
               </div>
               <Separator />
+              <div className="space-y-2 text-xs"><Row icon={<CalendarDays className="h-4 w-4 text-primary" />} label="Dates" value={`${checkIn} — ${checkOut}`} /><Row icon={<Users className="h-4 w-4 text-primary" />} label="Guests" value={`${adults} adults${children ? `, ${children} children` : ""}`} /><Row icon={<BedDouble className="h-4 w-4 text-primary" />} label="Stay" value={`${nights} nights · ${numRooms} rooms`} /></div>
               {liveError && <p className="text-xs text-destructive">{liveError}</p>}
               <PriceBreakdown price={displayPrice} />
+              {hotelId && <details><summary className="cursor-pointer text-xs font-medium">Cancellation policy, taxes & rate details</summary><div className="mt-2"><RateDetailsPanel hotelId={hotelId} roomId={roomId} ratePlanId={ratePlanId} checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} rooms={numRooms} onResolved={({ error }) => setRateIssue(error)} /></div></details>}
+              {rateIssue && <p role="alert" className="text-xs text-destructive">{rateIssue}</p>}
 
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" /> Instant confirmation on successful payment

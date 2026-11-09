@@ -379,6 +379,13 @@
       "when": 1794202168297,
       "tag": "0053_hyperguest_scoped_admin_authorization",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794204657038,
+      "tag": "0054_restore_admin_scope_check_for_hotel_inventory",
+      "breakpoints": true
     }
   ]
 }

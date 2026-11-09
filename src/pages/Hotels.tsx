@@ -1,5 +1,6 @@
 import { loadSupplierAvailability } from "@/services/hospitality/hyperguestDiscoveryService";
 import { hotelSearchParams } from "@/lib/hotelSearchContext";
+import { hasRequestedRooms, exactHotelMatches } from "@/lib/hotelSearchEligibility";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -245,7 +246,7 @@ const Hotels = () => {
   const [packages, setPackages] = useState<VisitPackage[]>([]);
   const [roomsByHotel, setRoomsByHotel] = useState<Record<string, OccupancyRoom[]>>({});
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("city") || "");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || searchParams.get("city") || "");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
   const [selectedLocality, setSelectedLocality] = useState<string | null>(searchParams.get("locality"));
   const [locationLabel, setLocationLabel] = useState<string>("");
@@ -294,7 +295,7 @@ const Hotels = () => {
     setRooms(1);
   }, [pgMode, checkIn, pgPlan, pgDuration]);
   const [children, setChildren] = useState(() => parseCountParam("children", 0, 6) ?? 0);
-  const [childAges, setChildAges] = useState<ChildAge[]>([]);
+  const [childAges, setChildAges] = useState<ChildAge[]>(() => (searchParams.get("childAges") || "").split(",").filter(Boolean).map((age, id) => ({ id, age: age === "0" ? "Under 1" : age })));
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [resultSort, setResultSort] = useState("recommended");
   const [gridView, setGridView] = useState(() => searchParams.get("types") !== "resort");
@@ -758,7 +759,7 @@ const Hotels = () => {
     setSupplierError(false);
     const timer = setTimeout(() => {
       const supplierHotels = hotels.filter(h => h.source_channel === "hyperguest");
-      const pax = Array.from({length: Math.max(1, rooms)}, (_, i) => ({ adults: Math.max(1, Math.floor(adults / Math.max(1, rooms)) + (i < adults % Math.max(1, rooms) ? 1 : 0)), childAges: i === 0 ? childAges.map(c => Number(c.age)).filter(n => Number.isFinite(n)) : [] }));
+      const pax = Array.from({length: Math.max(1, rooms)}, (_, i) => ({ adults: Math.max(1, Math.floor(adults / Math.max(1, rooms)) + (i < adults % Math.max(1, rooms) ? 1 : 0)), childAges: i === 0 ? childAges.map(c => c.age === "Under 1" ? 0 : Number(c.age)).filter(n => Number.isFinite(n)) : [] }));
       Promise.all([
         loadDiscoveryAvailability(rawRooms.filter(r => !supplierHotels.some(h => h.id === r.hotel_id)).map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd")),
         supplierHotels.length ? loadSupplierAvailability(format(checkIn, "yyyy-MM-dd"), Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000), pax).catch(() => { if (!cancelled) setSupplierError(true); return []; }) : Promise.resolve([]),
@@ -771,6 +772,7 @@ const Hotels = () => {
 
   // Filter and sort hotels
   const searchOutcome = useMemo(() => {
+    if (dateAvailability === null || availabilityError) return { list: [] };
     // When the box shows a picked city/area label, the city+locality filters do the work.
     const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
     let result = hotels.map(h => h.source_channel === "hyperguest" ? { ...h, price_per_night: supplierAvailability[h.hyperguest_property_id ?? ""]?.price ?? 0 } : h).filter((hotel) => {
@@ -803,11 +805,7 @@ const Hotels = () => {
       const matchesOccupancy =
         hotel.source_channel === "hyperguest" ? supplierAvailability[hotel.hyperguest_property_id ?? ""]?.available === true : hotelRooms.length === 0
           ? false
-          : hotelRooms.some((r) => roomFitsAlone(r, adults, children)) ||
-            buildRoomCombinations(hotelRooms, adults, children, {
-              maxRooms: Math.max(rooms, 6),
-              limit: 1,
-            }).length > 0;
+          : hasRequestedRooms(hotelRooms, adults, children, rooms);
 
       const matchesUnit = (() => {
         const wantUnits = stayFilters.prefs.map((p) => PREF_TO_UNIT[p]).filter(Boolean);
@@ -823,7 +821,6 @@ const Hotels = () => {
 
     // Requirement checks (AND logic). Stay type and amenities are separate:
     // "pool villa" = a villa (property type or accommodation) that also has a pool.
-    const missing: Record<string, string[]> = {};
     const scored = result.map((hotel) => {
       const hTypes = (hotel.business_types?.length ? hotel.business_types : ["hotel"]).map(normalizeCategory);
       const feats = roomFeatures[hotel.id] || [];
@@ -852,15 +849,10 @@ const Hotels = () => {
         amenityMatch(scopeText, a) ? hits++ : miss.push(AMENITY_LABEL[a] || a);
       });
       const optHits = aiOptional.filter((a) => amenityMatch(scopeText, a)).length;
-      if (miss.length) missing[hotel.id] = miss;
       return { hotel, hits, optHits, miss: miss.length };
     });
 
-    const exact = scored.filter((s) => s.miss === 0);
-    const hasRequirements = stayFilters.types.length + aiKinds.length + stayFilters.amenities.length > 0;
-    // No exact match → show the closest partial matches, clearly labelled.
-    const partial = exact.length === 0 && hasRequirements;
-    const pool = partial ? scored.filter((s) => s.hits > 0) : exact;
+    const pool = exactHotelMatches(scored);
     pool.sort(
       (a, b) =>
         b.hits - a.hits ||
@@ -869,7 +861,7 @@ const Hotels = () => {
         (b.hotel.star_rating || 0) - (a.hotel.star_rating || 0),
     );
 
-    return { list: pool.map((s) => s.hotel), missing, partial };
+    return { list: pool.map((s) => s.hotel) };
   }, [
     hotels,
     selectedCity,
@@ -888,6 +880,7 @@ const Hotels = () => {
     profile,
     pgMode, pgPlan, rawRooms,
     dateAvailability,
+    availabilityError,
     supplierAvailability,
   ]);
   // Per-hotel presentation meta. Every value is derived from data a partner or
@@ -1086,7 +1079,7 @@ const Hotels = () => {
   const roomsNeededByHotel = useMemo(() => {
     const map: Record<string, number> = {};
     filteredAndSortedHotels.forEach((h) => {
-      const hotelRooms = roomsByHotel[h.id] || [];
+      const hotelRooms = (roomsByHotel[h.id] || []).map(r => ({ ...r, available: dateAvailability?.[r.id] ?? 0 }));
       if (hotelRooms.some((r) => roomFitsAlone(r, adults, children))) return;
       const combo = buildRoomCombinations(hotelRooms, adults, children, {
         maxRooms: Math.max(rooms, 6),
@@ -1095,7 +1088,7 @@ const Hotels = () => {
       if (combo) map[h.id] = combo.totalRooms;
     });
     return map;
-  }, [filteredAndSortedHotels, roomsByHotel, adults, children, rooms]);
+  }, [filteredAndSortedHotels, roomsByHotel, adults, children, rooms, dateAvailability]);
 
   // After a Search click, report result count once the filter memo has resettled.
   useEffect(() => {
@@ -1121,6 +1114,11 @@ const Hotels = () => {
   };
 
   const handleAdvancedSearch = () => {
+    if (children > 0 && (childAges.length !== children || childAges.some(c => c.age === "Select"))) {
+      toast.error("Please select each child's age to check room availability.");
+      setShowGuestSelector(true); setShowChildAgeSelector(true);
+      return;
+    }
     setShowSuggestions(false);
     const q = searchQuery.trim();
     const params = new URLSearchParams(searchParams);
@@ -1130,12 +1128,13 @@ const Hotels = () => {
     } else {
       params.delete("locality"); setSelectedLocality(null);
       const resolvedCity = hotels.find(h => isSameCity(h.city, q))?.city || popularLocations.find(c => isSameCity(c, q));
-      setSelectedCity(resolvedCity || "all");
-      if (resolvedCity) params.set("city", resolvedCity); else { params.delete("city"); if (q) params.set("search", q); }
+      if (resolvedCity) { setSelectedCity(resolvedCity); params.set("city", resolvedCity); }
+      else { if (selectedCity !== "all") params.set("city", selectedCity); else params.delete("city"); if (q) params.set("search", q); }
     }
     params.set("checkin", format(checkIn, "yyyy-MM-dd"));
     params.set("checkout", format(checkOut, "yyyy-MM-dd"));
     params.set("rooms", String(rooms)); params.set("adults", String(adults)); params.set("children", String(children));
+    params.set("childAges", childAges.map(c => c.age === "Under 1" ? "0" : c.age).join(","));
     if (pgMode) {
       params.set("checkout", format(pgMoveOut(checkIn, pgPlan, pgDuration), "yyyy-MM-dd"));
       params.set("plan", pgPlan); params.set("duration", String(pgDuration)); params.set("occupants", String(adults));
@@ -1178,7 +1177,7 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
-    const params = hotelSearchParams({ checkIn: format(checkIn, "yyyy-MM-dd"), checkOut: format(checkOut, "yyyy-MM-dd"), adults, rooms, childAges: childAges.map(c => Number(c.age)) });
+    const params = hotelSearchParams({ checkIn: format(checkIn, "yyyy-MM-dd"), checkOut: format(checkOut, "yyyy-MM-dd"), adults, rooms, childAges: childAges.map(c => c.age === "Under 1" ? 0 : Number(c.age)).filter(Number.isFinite) });
     if (hotel.source_channel === "hyperguest" && hotel.hyperguest_property_id) {
       params.set("marketplace", "1");
       window.open(`/hotels/hyperguest/${hotel.hyperguest_property_id}?${params}`, "_blank", "noopener,noreferrer"); return;
@@ -1715,11 +1714,6 @@ const Hotels = () => {
             </div>
           ) : (
             <>
-              {searchOutcome.partial && !typeListings && (
-                <div className="mb-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
-                  No stay matches every requirement yet. Showing the closest matches — each card shows what's missing.
-                </div>
-              )}
               {typeListings ? (
                 typeListings.length === 0 ? (
                   <p className="rounded-xl border border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
@@ -1784,7 +1778,6 @@ const Hotels = () => {
               ) : (
                 <div className={gridView ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                   {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={{ ...hotel, ...(hotelMetaById[hotel.id] || {}), ...(pgMode ? { rental_price: rentalPrices[hotel.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }} nights={Math.max(0, Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000))} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
-                    {searchOutcome.partial && searchOutcome.missing[hotel.id]?.length ? <p className="text-xs text-destructive">Partial match · missing {searchOutcome.missing[hotel.id].join(", ")}</p> : null}
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
                     {roomsNeededByHotel[hotel.id] ? <p className="text-xs text-muted-foreground">Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests</p> : null}
                   </HotelResultRow>)}

@@ -1,5 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
+## Strict hotel search and matching checkout
+- [x] Show only hotels matching all selected filters and the requested available room count; no partial matches or guessed stock. Restore hotel room access by replacing the admin check's missing roles dependency with existing global admin scopes.
+- [x] Match regular JaagaX guest/payment screens to HyperGuest presentation while preserving Razorpay and native booking confirmation.
+- [x] Verified native one-room result, two-room empty result, missing Pool empty result, native and supplier authenticated guest-to-payment navigation, mobile no-overflow, 13 regression tests and SQL authorization checks. No payment or reservation made.
+
 ## Hotel search-to-booking continuity
 - [x] Preserve search dates, guests and rooms in regular and supplier hotel details, including redirects and sign-in.
 - [x] Align supplier hotel details and checkout with JaagaX presentation; automatically load rooms and make search changes optional.

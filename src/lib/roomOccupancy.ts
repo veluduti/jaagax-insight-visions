@@ -126,6 +126,14 @@ export function allocateGuests(
     else { placeAdults(); placeChildren(); }
 
     if (a > 0 || c > 0) return null;
+    // Exact-room searches may intentionally spread a small party across rooms.
+    // Rebalance the greedy allocation without inventing guests or exceeding limits.
+    for (const empty of slots.filter(s => s.adults + s.children === 0)) {
+      const donor = slots.find(s => s.adults + s.children > 1 && s.adults > 0 && empty.room.maxAdults > 0 && empty.room.maxTotal > 0);
+      if (donor) { donor.adults -= 1; empty.adults += 1; continue; }
+      const childDonor = slots.find(s => s.adults + s.children > 1 && s.children > 0 && empty.room.maxChildren > 0 && empty.room.maxTotal > 0);
+      if (childDonor) { childDonor.children -= 1; empty.children += 1; }
+    }
     // Every unit in a combination must host at least one guest.
     if (slots.some((s) => s.adults + s.children === 0)) return null;
     return slots.map((s) => ({
