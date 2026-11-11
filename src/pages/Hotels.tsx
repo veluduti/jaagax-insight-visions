@@ -1249,7 +1249,7 @@ const Hotels = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background hotel-discovery">
-      <Navigation hotelDiscovery onHotelWishlist={() => setSavedOnly(v => !v)} />
+      <Navigation onHotelWishlist={() => setSavedOnly(v => !v)} />
 
       <main className="relative z-0 flex-1">
         <section className="relative pb-4">
