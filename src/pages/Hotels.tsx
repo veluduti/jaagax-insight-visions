@@ -676,6 +676,7 @@ const Hotels = () => {
   }
 
   const [aiBusy, setAiBusy] = useState(false);
+  const [aiText, setAiText] = useState("");
   const runAiSearch = async (q: string) => {
     const query = q.trim();
     if (query.length < 3) { toast.error("Describe your stay in a few words."); return; }
@@ -1632,7 +1633,27 @@ const Hotels = () => {
                 </div>
               </div>
 
-              
+              {/* Intent-based AI search */}
+              <form
+                className="mt-3 flex flex-col gap-2 border-t border-border pt-3 sm:flex-row"
+                onSubmit={(e) => { e.preventDefault(); runAiSearch(aiText); }}
+              >
+                <div className="relative min-w-0 flex-1">
+                  <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+                  <Input
+                    value={aiText}
+                    aria-label="Search by your intent"
+                    onChange={(e) => setAiText(e.target.value)}
+                    placeholder='Search by your intent — e.g. "Pool villa in Goa for 4 people with breakfast"'
+                    className="h-10 bg-card pl-9 text-foreground"
+                    maxLength={500}
+                  />
+                </div>
+                <Button type="submit" disabled={aiBusy} className="h-10 gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  {aiBusy ? "Searching…" : "AI Search"}
+                </Button>
+              </form>
             </div>
           </div>
         </section>
