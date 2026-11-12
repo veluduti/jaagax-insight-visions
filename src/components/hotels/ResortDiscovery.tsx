@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BadgeCheck, BadgePercent, CalendarCheck, Headphones, Heart, Palmtree, Mountain, Waves, Leaf, Users, Crown, Flower2, LayoutGrid } from "lucide-react";
+import { BadgeCheck, BadgePercent, CalendarCheck, Headphones, Heart, ArrowRight, Palmtree, Mountain, Waves, Leaf, Users, Crown, Flower2, LayoutGrid } from "lucide-react";
 import { RESORT_TYPES } from "@/lib/resortDiscovery";
 import { HOTEL_IMAGE_FALLBACK } from "@/lib/hotelImage";
 import allImg from "@/assets/home-hero-resort.jpg";
@@ -61,27 +62,30 @@ export function WhyBookResorts() {
 }
 
 const JAAGA_WHY = [
-  { icon: BadgeCheck, title: "Verified Properties", sub: "Trusted stays" },
-  { icon: BadgePercent, title: "Best Price Guarantee", sub: "No hidden charges" },
-  { icon: CalendarCheck, title: "Free Cancellation", sub: "Flexible plans" },
-  { icon: Headphones, title: "24/7 Support", sub: "Always here" },
+  { icon: BadgeCheck, title: "Verified Properties", sub: "Trusted stays", tone: "--why-green" },
+  { icon: BadgePercent, title: "Best Price Guarantee", sub: "No hidden charges", tone: "--why-orange" },
+  { icon: CalendarCheck, title: "Free Cancellation", sub: "Flexible plans", tone: "--why-green" },
+  { icon: Headphones, title: "24/7 Support", sub: "Always here", tone: "--why-blue" },
 ];
 export function WhyBookJaaga() {
-  return <section className="rounded-lg border border-border bg-card p-3">
-    <h3 className="mb-3 text-sm font-bold">Why Book on Jaaga?</h3>
-    <div className="grid grid-cols-4 gap-1.5">{JAAGA_WHY.map(w => <div key={w.title} className="rounded-md border border-border px-1 py-2 text-center"><span className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent"><w.icon className="h-4 w-4 text-primary" /></span><p className="text-[10px] font-semibold leading-tight">{w.title}</p><p className="text-[9px] text-muted-foreground">{w.sub}</p></div>)}</div>
+  return <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <h3 className="mb-3 text-base font-bold">Why Book on Jaaga?</h3>
+    <div className="grid grid-cols-4 gap-1.5">{JAAGA_WHY.map(w => <div key={w.title} className="rounded-lg border border-border bg-card px-0.5 py-3 text-center">
+      <span className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: `hsl(var(${w.tone}) / 0.12)` }}><w.icon className="h-5 w-5" style={{ color: `hsl(var(${w.tone}))` }} /></span>
+      <p className="text-[10px] font-bold leading-tight [overflow-wrap:normal]">{w.title}</p><p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{w.sub}</p></div>)}</div>
   </section>;
 }
 
 type Recent = { id: string; name: string; price_per_night: number; images: string[] | null };
 export function RecentlyViewedResorts({ items, favorites, onOpen, onFavorite }: { items: Recent[]; favorites: string[]; onOpen: (id: string) => void; onFavorite: (id: string, e: React.MouseEvent) => void }) {
+  const [all, setAll] = useState(false);
   if (!items.length) return null;
-  return <section className="rounded-lg border border-border bg-card p-3">
-    <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold">Recently Viewed</h3>{items.length > 3 && <span className="text-xs font-semibold text-primary">{items.length} viewed</span>}</div>
-    <div className="grid grid-cols-3 gap-2">{items.slice(0, 3).map(h => <button key={h.id} type="button" onClick={() => onOpen(h.id)} className="text-left">
-      <span className="relative block"><img src={h.images?.[0] || HOTEL_IMAGE_FALLBACK} alt={h.name} loading="lazy" className="h-16 w-full rounded-md object-cover" /><span role="button" tabIndex={0} aria-label="Save" onClick={e => onFavorite(h.id, e)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-card"><Heart className={`h-3 w-3 ${favorites.includes(h.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} /></span></span>
-      <span className="mt-1 block truncate text-[11px] font-semibold">{h.name}</span>
-      <span className="block text-[11px] font-bold">₹{Number(h.price_per_night).toLocaleString("en-IN")}<span className="font-normal text-muted-foreground"> / night</span></span>
+  return <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="mb-3 flex items-center justify-between"><h3 className="text-base font-bold">Recently Viewed</h3>{items.length > 3 && <button type="button" onClick={() => setAll(v => !v)} className="flex items-center gap-1 text-xs font-semibold text-primary">{all ? "Show less" : "View All"}<ArrowRight className="h-3.5 w-3.5" /></button>}</div>
+    <div className="grid grid-cols-3 gap-3">{(all ? items : items.slice(0, 3)).map(h => <button key={h.id} type="button" onClick={() => onOpen(h.id)} className="text-left">
+      <span className="relative block"><img src={h.images?.[0] || HOTEL_IMAGE_FALLBACK} alt={h.name} loading="lazy" className="h-20 w-full rounded-lg object-cover" /><span role="button" tabIndex={0} aria-label="Save" onClick={e => onFavorite(h.id, e)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-card"><Heart className={`h-3.5 w-3.5 ${favorites.includes(h.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} /></span></span>
+      <span className="mt-1.5 block truncate text-xs font-semibold">{h.name}</span>
+      <span className="block text-xs font-bold">₹{Number(h.price_per_night).toLocaleString("en-IN")}<span className="font-normal text-muted-foreground"> / night</span></span>
     </button>)}</div>
   </section>;
 }

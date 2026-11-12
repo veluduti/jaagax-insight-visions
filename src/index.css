@@ -8,6 +8,9 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    --why-green: 152 60% 36%;
+    --why-orange: 28 92% 52%;
+    --why-blue: 217 85% 55%;
     /* ===== COLOR SYSTEM ===== */
     /* Light Mode - Modern & Vibrant */
     /* Warm cream canvas like the Jaaga reference homepage */
@@ -159,6 +162,9 @@ All colors MUST be HSL.
   }
 
   .dark {
+    --why-green: 152 55% 50%;
+    --why-orange: 28 92% 60%;
+    --why-blue: 217 85% 65%;
     --marketplace-background: 222 30% 10%;
     --marketplace-foreground: 210 30% 96%;
     --marketplace-border: 216 22% 25%;

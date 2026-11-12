@@ -298,6 +298,7 @@ const Hotels = () => {
   const [childAges, setChildAges] = useState<ChildAge[]>(() => (searchParams.get("childAges") || "").split(",").filter(Boolean).map((age, id) => ({ id, age: age === "0" ? "Under 1" : age })));
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [resultSort, setResultSort] = useState("recommended");
+  const [resultPage, setResultPage] = useState(1);
   const [gridView, setGridView] = useState(() => searchParams.get("types") !== "resort");
   const [recentIds, setRecentIds] = useState<string[]>(() => readRecentResorts());
   const [mapView, setMapView] = useState(false);
@@ -939,6 +940,10 @@ const Hotels = () => {
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchOutcome.list, resultSort, savedOnly, favorites, mapBounds, uniqueMode, corporateMode, luxuryMode, resortMode, aptMode, pgMode, colivingMode, rentalPrices, resortCandidates, roomsForHotel, searchParams]);
+  const HOTELS_PER_PAGE = 9;
+  const resultPageCount = Math.max(1, Math.ceil(filteredAndSortedHotels.length / HOTELS_PER_PAGE));
+  const safeResultPage = Math.min(resultPage, resultPageCount);
+  useEffect(() => { setResultPage(1); }, [filteredAndSortedHotels.length, searchParams]);
   const pickCityArea = (city: string, area: string | null) => {
     const label = area ? `${area}, ${city}` : city;
     setSelectedCity(city); setSelectedLocality(area); setSearchQuery(label); setLocationLabel(label);
@@ -1778,11 +1783,18 @@ const Hotels = () => {
                 )
               ) : (
                 <div className={gridView ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
-                  {filteredAndSortedHotels.map(hotel => <HotelResultRow key={hotel.id} hotel={{ ...hotel, ...(hotelMetaById[hotel.id] || {}), ...(pgMode ? { rental_price: rentalPrices[hotel.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }} nights={Math.max(0, Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000))} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
+                  {filteredAndSortedHotels.slice((safeResultPage - 1) * HOTELS_PER_PAGE, safeResultPage * HOTELS_PER_PAGE).map(hotel => <HotelResultRow key={hotel.id} hotel={{ ...hotel, ...(hotelMetaById[hotel.id] || {}), ...(pgMode ? { rental_price: rentalPrices[hotel.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }} nights={Math.max(0, Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000))} selected={mapSelectedId === hotel.id} onSelect={() => setMapSelectedId(hotel.id)} grid={gridView} favorite={favorites.includes(hotel.id)} onFavorite={e => toggleFavorite(hotel.id, e)} onDetails={() => handleHotelClick(hotel)}>
                     {matchById[hotel.id]?.reasons?.length ? <p className="rounded-md bg-accent px-2 py-1.5 text-xs text-primary">✓ {matchById[hotel.id].reasons.slice(0, 3).map(r => r.label).join(" · ")}</p> : null}
                     {roomsNeededByHotel[hotel.id] ? <p className="text-xs text-muted-foreground">Needs {roomsNeededByHotel[hotel.id]} rooms for {adults + children} guests</p> : null}
                   </HotelResultRow>)}
                 </div>
+              )}
+              {resultPageCount > 1 && (
+                <nav aria-label="Hotel pages" className="mt-5 flex flex-wrap items-center justify-center gap-1.5">
+                  <Button variant="outline" size="sm" disabled={safeResultPage === 1} onClick={() => { setResultPage(safeResultPage - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Previous</Button>
+                  {Array.from({ length: resultPageCount }, (_, i) => i + 1).map(n => <Button key={n} size="sm" variant={n === safeResultPage ? "default" : "outline"} className="w-9" aria-current={n === safeResultPage ? "page" : undefined} onClick={() => { setResultPage(n); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{n}</Button>)}
+                  <Button variant="outline" size="sm" disabled={safeResultPage === resultPageCount} onClick={() => { setResultPage(safeResultPage + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Next</Button>
+                </nav>
               )}
             </>
           )}
