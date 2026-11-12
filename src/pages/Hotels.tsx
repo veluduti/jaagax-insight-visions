@@ -78,7 +78,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { StayCategoryTabs, StayIntentStrip, HotelDiscoveryFilters } from "@/components/hotels/HotelDiscoveryControls";
 import HotelResultRow from "@/components/hotels/HotelResultRow";
 import { distanceFromCityCentre, hasFreeCancellation, hasBreakfast } from "@/lib/hotelDiscoveryMeta";
-import { List, LayoutGrid } from "lucide-react";
+import { List, LayoutGrid, ShieldCheck } from "lucide-react";
 import { isResortProperty, matchesResortTypes, countResortTypes, readRecentResorts, pushRecentResort } from "@/lib/resortDiscovery";
 import { UniqueCategoryTiles, UniqueTypeFilter, WhyBookUnique } from "@/components/hotels/UniqueDiscovery";
 import { isUniqueProperty, uniqueTypesOf, matchesUniqueTypes, countUniqueTypes, UNIQUE_BUSINESS_TYPES } from "@/lib/uniqueDiscovery";
@@ -89,7 +89,7 @@ import { isLuxuryProperty, luxuryTypesOf, matchesLuxuryTypes, countLuxuryTypes }
 import uniqueHero from "@/assets/resort-eco.jpg";
 import corporateHero from "@/assets/corporate-hero.jpg";
 import luxuryHero from "@/assets/resort-luxury.jpg";
-import { ResortCategoryTiles, ResortTypeFilter, WhyBookResorts, RecentlyViewedResorts } from "@/components/hotels/ResortDiscovery";
+import { ResortCategoryTiles, ResortTypeFilter, WhyBookResorts, WhyBookJaaga, RecentlyViewedResorts } from "@/components/hotels/ResortDiscovery";
 import resortHero from "@/assets/home-hero-resort.jpg";
 import aptHero from "@/assets/service-apartment-hero.jpg";
 import pgHero from "@/assets/pg-hostel-hero.jpg";
@@ -1182,7 +1182,7 @@ const Hotels = () => {
       params.set("marketplace", "1");
       window.open(`/hotels/hyperguest/${hotel.hyperguest_property_id}?${params}`, "_blank", "noopener,noreferrer"); return;
     }
-    if (resortMode) setRecentIds(pushRecentResort(hotel.id));
+    setRecentIds(pushRecentResort(hotel.id));
     logHotelSignal("view", { city: hotel.city, business_types: hotel.business_types ?? [] }, hotel.id);
     window.open(`/hotels/${hotel.id}?${params}`, "_blank", "noopener,noreferrer");
   };
@@ -1295,11 +1295,12 @@ const Hotels = () => {
                   <p className="mt-1 text-base font-semibold">Spacious stays with the comfort of home</p>
                   <p className="text-sm">Fully furnished apartments for short or long stays — ideal for families, business travellers and extended stays.</p>
                 </> : <>
-                <h1 className="text-3xl font-bold md:text-4xl">Find Your Perfect Stay</h1>
-                <p className="mt-1 text-sm">Hotels, Resorts, Service Apartments, PGs, Hostels, Co-living and unique stays — all on Jaaga.</p>
+                <nav aria-label="Breadcrumb" className="mb-2 text-xs"><button type="button" className="hover:underline" onClick={() => navigate("/")}>Home</button> › <button type="button" className="hover:underline" onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}>Jaaga Stays</button> › Hotels</nav>
+                <h1 className="text-3xl font-bold md:text-4xl">Hotels{selectedCity !== "all" ? <> in <span className="capitalize">{selectedCity}</span></> : " near you"}</h1>
+                <p className="mt-1 text-sm md:text-base">Discover the best hotels, resorts and stays for your perfect trip</p>
                 </>}
               </div>
-              {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${uniqueMode ? (resortCandidates.length === 1 ? "Unique Stay" : "Unique Stays") : corporateMode ? (resortCandidates.length === 1 ? "Corporate Stay" : "Corporate Stays") : luxuryMode ? (resortCandidates.length === 1 ? "Luxury Stay" : "Luxury Stays") : colivingMode ? "Co-living Spaces" : pgMode ? (resortCandidates.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <Button variant="secondary" onClick={() => navigate("/partners")} className="hidden gap-2 sm:inline-flex"><Handshake className="h-4 w-4" />List your property</Button>}
+              {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${uniqueMode ? (resortCandidates.length === 1 ? "Unique Stay" : "Unique Stays") : corporateMode ? (resortCandidates.length === 1 ? "Corporate Stay" : "Corporate Stays") : luxuryMode ? (resortCandidates.length === 1 ? "Luxury Stay" : "Luxury Stays") : colivingMode ? "Co-living Spaces" : pgMode ? (resortCandidates.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <div className="hidden items-center gap-3 rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:flex"><ShieldCheck className="h-6 w-6" /><div><p className="text-sm font-bold">{loading ? "Loading…" : `${filteredAndSortedHotels.length.toLocaleString("en-IN")} ${filteredAndSortedHotels.length === 1 ? "hotel" : "hotels"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Best price guaranteed</p></div></div>}
             </div>
 
             {/* Advanced Search Bar */}
@@ -1786,7 +1787,7 @@ const Hotels = () => {
             </>
           )}
             </div>
-            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels.map(h => ({ ...h, ...(pgMode ? { rental_price: rentalPrices[h.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }))} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{uniqueMode && <div className="mt-4"><WhyBookUnique /></div>}{corporateMode && <div className="mt-4"><WhyBookCorporate /></div>}{luxuryMode && <div className="mt-4"><WhyBookLuxury /></div>}{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{pgMode && !colivingMode && <div className="mt-4"><WhyBookPgs /></div>}{resortMode && <div className="mt-4 space-y-4"><WhyBookResorts /><RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
+            <aside className={`${mapView ? "block lg:col-start-2 xl:col-start-auto" : desktopMapVisible ? "hidden xl:block" : "hidden"} self-start xl:sticky xl:top-24`}><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Explore on map</span><Button variant="ghost" size="sm" onClick={() => { setMapView(false); setDesktopMapVisible(false); }}>List View</Button></div><HotelDiscoveryMap hotels={filteredAndSortedHotels.map(h => ({ ...h, ...(pgMode ? { rental_price: rentalPrices[h.id], rental_period: pgPlan === "weekly" ? "week" as const : "month" as const } : {}) }))} selectedId={mapSelectedId} onSelect={setMapSelectedId} onDetails={hotel => { const h = hotels.find(h => h.id === hotel.id); if (h) handleHotelClick(h); }} onSearchArea={setMapBounds} />{uniqueMode && <div className="mt-4"><WhyBookUnique /></div>}{corporateMode && <div className="mt-4"><WhyBookCorporate /></div>}{luxuryMode && <div className="mt-4"><WhyBookLuxury /></div>}{aptMode && <div className="mt-4"><WhyBookApartments /></div>}{pgMode && !colivingMode && <div className="mt-4"><WhyBookPgs /></div>}{!catMode && <div className="mt-4"><WhyBookJaaga /></div>}{(resortMode || !catMode) && <div className="mt-4 space-y-4">{resortMode && <WhyBookResorts />}<RecentlyViewedResorts items={recentIds.map(id => hotels.find(h => h.id === id)).filter((h): h is PartnerHotel => !!h)} favorites={favorites} onOpen={id => { const h = hotels.find(x => x.id === id); if (h) handleHotelClick(h); }} onFavorite={(id, e) => toggleFavorite(id, e)} /></div>}</aside>
           </div>
         </div>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}><SheetContent side="left" className="overflow-y-auto"><SheetHeader><SheetTitle>Refine Your Stay</SheetTitle></SheetHeader><HotelDiscoveryFilters mobile rentalPeriod={pgMode ? (pgPlan === "weekly" ? "week" : "month") : undefined} budgetMax={pgMode ? rentalBudgetMax : 20000} value={stayFilters} onChange={onStayFiltersChange} stars={selectedStars} onStarsChange={setSelectedStars} cityIndex={locationIndex} selectedCity={selectedCity} selectedArea={selectedLocality} onPickCityArea={pickCityArea} onClearLocation={clearLocation} onClear={clearDiscoveryFilters} hideTypes={catMode} extra={uniqueMode ? <UniqueTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : corporateMode ? <CorporateTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : luxuryMode ? <LuxuryTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : colivingMode ? <ColivingTypeFilter selected={resortTypes} counts={resortCounts} onSelect={setResortTypes} /> : resortMode ? <ResortTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : pgMode ? <PgTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : aptMode ? <ApartmentTypeFilter selected={resortTypes} counts={resortCounts} onChange={setResortTypes} /> : undefined} /></SheetContent></Sheet>

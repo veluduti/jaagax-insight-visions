@@ -3,7 +3,7 @@ import { HOSPITALITY_CATEGORIES, STAY_PREFERENCES, AMENITY_CHIPS } from "@/confi
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { MapPin, SlidersHorizontal, Star, Compass } from "lucide-react";
+import { MapPin, SlidersHorizontal, Star, Compass, LayoutGrid, Hotel, Palmtree, Building2, BedDouble, Users, Crown, Briefcase, Tent } from "lucide-react";
 import resortPhoto from "@/assets/explore-stays.jpg";
 import hotelPhoto from "@/assets/hero-hotel.jpg";
 import apartmentPhoto from "@/assets/gal-living.jpg";
@@ -17,19 +17,19 @@ type FilterProps = { value: StayFilters; onChange: (value: StayFilters) => void 
 
 export function StayCategoryTabs({ value, onChange }: FilterProps) {
   const entries = [
-    { label: "All Stays", subtitle: "Every kind of getaway", image: roomPhoto, types: [], prefs: [] },
-    { label: "Hotels", subtitle: "Rest for short stays", image: hotelPhoto, types: ["hotel"], prefs: [] },
-    { label: "Resorts", subtitle: "Vacation & leisure", image: resortPhoto, types: ["resort"], prefs: [] },
-    { label: "Service Apartments", subtitle: "For long stays", image: apartmentPhoto, types: ["serviced_apartment"], prefs: [] },
-    { label: "PG / Hostels", subtitle: "For students & working", image: roomPhoto, types: ["pg", "hostel"], prefs: [] },
-    { label: "Co-living", subtitle: "Community living", image: apartmentPhoto, types: ["coliving"], prefs: [] },
-    { label: "Luxury Stays", subtitle: "Premium experiences", image: hotelPhoto, types: ["luxury"], prefs: [] },
-    { label: "Corporate Stays", subtitle: "For business travel", image: apartmentPhoto, types: ["corporate"], prefs: [] },
-    { label: "Unique Stays", subtitle: "Villas, farm stays & more", image: uniquePhoto, types: ["villa", "farm_stay", "homestay", "boutique"], prefs: [] },
+    { label: "All Stays", icon: LayoutGrid, subtitle: "Every kind of getaway", image: roomPhoto, types: [], prefs: [] },
+    { label: "Hotels", icon: Hotel, subtitle: "Rest for short stays", image: hotelPhoto, types: ["hotel"], prefs: [] },
+    { label: "Resorts", icon: Palmtree, subtitle: "Vacation & leisure", image: resortPhoto, types: ["resort"], prefs: [] },
+    { label: "Service Apartments", icon: Building2, subtitle: "For long stays", image: apartmentPhoto, types: ["serviced_apartment"], prefs: [] },
+    { label: "PG / Hostels", icon: BedDouble, subtitle: "For students & working", image: roomPhoto, types: ["pg", "hostel"], prefs: [] },
+    { label: "Co-living", icon: Users, subtitle: "Community living", image: apartmentPhoto, types: ["coliving"], prefs: [] },
+    { label: "Luxury Stays", icon: Crown, subtitle: "Premium experiences", image: hotelPhoto, types: ["luxury"], prefs: [] },
+    { label: "Corporate Stays", icon: Briefcase, subtitle: "For business travel", image: apartmentPhoto, types: ["corporate"], prefs: [] },
+    { label: "Unique Stays", icon: Tent, subtitle: "Villas, farm stays & more", image: uniquePhoto, types: ["villa", "farm_stay", "homestay", "boutique"], prefs: [] },
   ];
   return <div className="stay-image-categories no-scrollbar mb-5 flex gap-2 overflow-x-auto py-1" aria-label="Accommodation types">{entries.map(e => {
     const active = e.types.length ? e.types.length === value.types.length && e.types.every(k => value.types.includes(k)) : e.prefs.length ? e.prefs.every(k => value.prefs.includes(k)) && !value.types.length : !value.types.length && !value.prefs.includes("luxury") && !value.prefs.includes("business");
-    return <Button key={e.label} variant="outline" aria-pressed={active} className={`h-[100px] min-w-[125px] flex-1 flex-col items-stretch justify-start gap-0 overflow-hidden rounded-md p-0 text-left ${active ? "border-primary ring-1 ring-primary" : "border-border"}`} onClick={() => onChange({ ...value, types: e.types, prefs: [...value.prefs.filter(k => k !== "luxury" && k !== "business"), ...e.prefs] })}><img src={e.image} alt="" className="h-12 w-full shrink-0 object-cover" loading="lazy" width={200} height={80} /><span className="px-2 pt-2 text-[11px] font-bold">{e.label}</span><span className="truncate px-2 pt-0.5 text-[10px] font-normal text-muted-foreground">{e.subtitle}</span></Button>;
+    return <Button key={e.label} variant="outline" aria-pressed={active} className={`h-[100px] min-w-[125px] flex-1 flex-col items-stretch justify-start gap-0 overflow-hidden rounded-md p-0 text-left ${active ? "border-primary ring-1 ring-primary" : "border-border"}`} onClick={() => onChange({ ...value, types: e.types, prefs: [...value.prefs.filter(k => k !== "luxury" && k !== "business"), ...e.prefs] })}><span className="relative block"><img src={e.image} alt="" className="h-14 w-full shrink-0 object-cover" loading="lazy" width={200} height={80} /><span className="absolute -bottom-3.5 left-2 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card shadow-sm"><e.icon className="h-4 w-4 text-primary" /></span></span><span className="truncate px-2 pt-5 text-[11px] font-bold">{e.label}</span></Button>;
   })}</div>;
 }
 

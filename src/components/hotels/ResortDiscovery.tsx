@@ -60,11 +60,24 @@ export function WhyBookResorts() {
   </section>;
 }
 
+const JAAGA_WHY = [
+  { icon: BadgeCheck, title: "Verified Properties", sub: "Trusted stays" },
+  { icon: BadgePercent, title: "Best Price Guarantee", sub: "No hidden charges" },
+  { icon: CalendarCheck, title: "Free Cancellation", sub: "Flexible plans" },
+  { icon: Headphones, title: "24/7 Support", sub: "Always here" },
+];
+export function WhyBookJaaga() {
+  return <section className="rounded-lg border border-border bg-card p-3">
+    <h3 className="mb-3 text-sm font-bold">Why Book on Jaaga?</h3>
+    <div className="grid grid-cols-4 gap-1.5">{JAAGA_WHY.map(w => <div key={w.title} className="rounded-md border border-border px-1 py-2 text-center"><span className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent"><w.icon className="h-4 w-4 text-primary" /></span><p className="text-[10px] font-semibold leading-tight">{w.title}</p><p className="text-[9px] text-muted-foreground">{w.sub}</p></div>)}</div>
+  </section>;
+}
+
 type Recent = { id: string; name: string; price_per_night: number; images: string[] | null };
 export function RecentlyViewedResorts({ items, favorites, onOpen, onFavorite }: { items: Recent[]; favorites: string[]; onOpen: (id: string) => void; onFavorite: (id: string, e: React.MouseEvent) => void }) {
   if (!items.length) return null;
   return <section className="rounded-lg border border-border bg-card p-3">
-    <h3 className="mb-3 text-sm font-bold">Recently Viewed</h3>
+    <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold">Recently Viewed</h3>{items.length > 3 && <span className="text-xs font-semibold text-primary">{items.length} viewed</span>}</div>
     <div className="grid grid-cols-3 gap-2">{items.slice(0, 3).map(h => <button key={h.id} type="button" onClick={() => onOpen(h.id)} className="text-left">
       <span className="relative block"><img src={h.images?.[0] || HOTEL_IMAGE_FALLBACK} alt={h.name} loading="lazy" className="h-16 w-full rounded-md object-cover" /><span role="button" tabIndex={0} aria-label="Save" onClick={e => onFavorite(h.id, e)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-card"><Heart className={`h-3 w-3 ${favorites.includes(h.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} /></span></span>
       <span className="mt-1 block truncate text-[11px] font-semibold">{h.name}</span>
