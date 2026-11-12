@@ -27,8 +27,8 @@ export async function hyperguestRequest(body: Record<string, unknown>) {
   return data;
 }
 
-export async function loadSupplierAvailability(checkIn: string, nights: number, rooms: { adults: number; childAges: number[] }[]) {
-  const data = await hyperguestRequest({ action: "marketplace-search", checkIn, nights, rooms, nationality: "IN", currency: "INR" });
+export async function loadSupplierAvailability(checkIn: string, nights: number, rooms: { adults: number; childAges: number[] }[], nationality = "IN", currency = "INR") {
+  const data = await hyperguestRequest({ action: "marketplace-search", checkIn, nights, rooms, nationality, currency });
   return data.availability as { propertyId: number; available: boolean; price: number | null }[];
 }
 

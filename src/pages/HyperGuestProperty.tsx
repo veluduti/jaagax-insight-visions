@@ -141,6 +141,7 @@ export default function HyperGuestProperty() {
   const loadMine = async () => {
     const { data } = await (supabase as any).from("hyperguest_bookings").select("*").eq("property_id", Number(propertyId)).order("created_at", { ascending: false }).limit(30);
     setMine(data ?? []);
+    setConfirmed((current: any) => current ? (data ?? []).find((b: any) => b.id === current.id) ?? current : null);
   };
 
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function HyperGuestProperty() {
     });
     setBusy(false);
     if (r.error) return toast.error(r.error);
-    setPrebook(r.data); setStep("guests");
+    setCard({ number: "", expiry: "", cvv: "", name: "" }); setPrebook(r.data); setStep("guests");
     window.scrollTo({ top: 0, behavior: "smooth" });
     setRef(`JX-${crypto.randomUUID().slice(0, 18)}`);
     if (r.data.rooms?.some((x: any) => x.priceChange)) toast.warning("The price changed since your search. Please review the new price before booking.");
@@ -239,7 +240,7 @@ export default function HyperGuestProperty() {
         ];
         return {
           roomCode: sel[i].room.roomTypeCode, rateCode: sel[i].rp.ratePlanCode, expectedPrice: amount,
-          guests: list.map((g, gi) => ({ birthDate: g.age >= 18 ? "1990-01-01" : birth(g.age), title: g.age >= 18 ? "MR" : "C", name: { first: guests[g.k]?.first || (gi === 0 && i === 0 ? lead.first : `Guest${gi + 1}`), last: guests[g.k]?.last || lead.last } })),
+          guests: list.map((g, gi) => ({ age: g.age, title: g.age >= 18 ? "MR" : "C", name: { first: guests[g.k]?.first || (gi === 0 && i === 0 ? lead.first : `Guest${gi + 1}`), last: guests[g.k]?.last || lead.last } })),
           specialRequests: special.trim() ? [special.trim()] : [],
         };
       }),
@@ -461,7 +462,7 @@ export default function HyperGuestProperty() {
                         </div>
                       ))}
                       <div>
-                        <Textarea rows={2} maxLength={500} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
+                        <Textarea rows={2} maxLength={256} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
                         <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
                       </div>
                       <Button size="lg" className="w-full" onClick={goPay}>Continue to payment</Button>
@@ -476,12 +477,12 @@ export default function HyperGuestProperty() {
                         <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
                       </div>}
                       {settlementRequired && <p role="alert" className="text-sm text-destructive">This rate requires JaagaX supplier settlement, which is not enabled. Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
-                      <Input placeholder="Card number" inputMode="numeric" maxLength={19} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
+                      <Input placeholder="Card number" inputMode="numeric" maxLength={23} disabled={settlementRequired} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 19).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
-                        <Input placeholder="CVV" type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
+                        <Input placeholder="MM/YY" disabled={settlementRequired} maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
+                        <Input placeholder="CVV" disabled={settlementRequired} type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
                       </div>
-                      <Input placeholder="Name on card" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
+                      <Input placeholder="Name on card" disabled={settlementRequired} value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
                       <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>

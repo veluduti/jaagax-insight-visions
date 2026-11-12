@@ -1,11 +1,11 @@
 # Roadmap — Agent Profile page rebuild
 
 ## HyperGuest production safeguards
-- [ ] Correct child occupancy, customer pricing/BAR, rate eligibility and search context.
-- [ ] Validate bookings against current supplier rates; correct payment guarantees versus collection.
-- [ ] Repair recovery, per-room statuses, cancellation simulation/timezones, and voucher disclosures.
-- [ ] Add incremental synchronization/retries and managed scheduled follow-up where supported.
-- [ ] Run regression tests and authenticated live availability-to-checkout checks without creating reservations.
+- [x] Correct child occupancy, customer pricing/BAR, rate eligibility and nationality/currency continuity.
+- [x] Validate bookings against server-owned quotes and current supplier conditions; clarify card guarantees versus collection and block unconfigured prepaid settlement.
+- [x] Repair recovery, per-room statuses, cancellation simulation/timezones, and persisted voucher disclosures; no actual cancellation performed.
+- [x] Add incremental synchronization/retries and authenticated managed schedules; sync and reconcile callbacks returned HTTP 200.
+- [x] 38 focused tests passed; deployed connector and authenticated live hotel availability-to-persisted-quote/payment screen verified; mobile has no overflow or page errors. No reservation made.
 - [ ] Supplier prepaid settlement: requires confirmed commercial payment arrangement; never assume card forwarding collects the customer total.
 
 ## Reference Properties marketplace

@@ -5,7 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { logChannelPayload, type ChannelOperation } from "../_shared/channel/audit.ts";
 import { MARKETPLACE_IDS, LEGACY_LIVE_IDS, catalogRows, propertyFields, availabilitySummary, certificationRulesApply } from "../_shared/channel/marketplace.ts";
-import { supplierGuests, paxSignature, publicRate, customerPrice, bookingList, bookingContent, bookingStatus, redactSupplier, supplierDisclosures } from "../_shared/channel/travelRules.ts";
+import { supplierGuests, paxSignature, publicRate, customerPrice, bookingList, bookingContent, bookingStatus, redactSupplier, supplierDisclosures, payAtHotelSupported, matchingQuotedGuests } from "../_shared/channel/travelRules.ts";
 import { z } from "npm:zod@3.25.76";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 
@@ -23,7 +23,10 @@ const STATIC = (Deno.env.get("HYPERGUEST_STATIC_URL") ?? "https://hg-static.hype
 const BOOK_WAIT_MS = 140_000;
 let catalogCache: { rows: any[]; expires: number } | null = null;
 
-const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const backendUrl = Deno.env.get("SUPABASE_URL");
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+if (!backendUrl || !serviceKey) throw new Error("Backend configuration unavailable");
+const sb = createClient(backendUrl, serviceKey);
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -79,7 +82,7 @@ async function reconcile(ref: string) {
 
 async function saveBooking(ref: string, b: any) {
   const total = b?.payment?.chargeAmount;
-  await sb.from("hyperguest_bookings").update({
+  const { error } = await sb.from("hyperguest_bookings").update({
     hg_booking_id: b?.bookingId ?? null,
     status: bookingStatus(b),
     total_amount: total?.price ?? null, total_currency: total?.currency ?? null,
@@ -87,6 +90,7 @@ async function saveBooking(ref: string, b: any) {
     raw: redactSupplier(b), updated_at: new Date().toISOString(),
     ...(String(b?.status).toLowerCase() === "cancelled" ? { cancelled_at: new Date().toISOString() } : {}),
   }).eq("agency_reference", ref);
+  if (error) throw new Error("Reservation status could not be saved; refresh before retrying");
 }
 
 Deno.serve(async (req) => {
@@ -175,12 +179,9 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
   }
 
   if (action === "search") {
-    const id = Number(body.propertyId);
-    const rooms: RoomPax[] = Array.isArray(body.rooms) ? body.rooms.slice(0, 5) : [];
-    const checkIn = String(body.checkIn ?? "");
-    const nights = Number(body.nights);
-    if (!id || !rooms.length || !/^\d{4}-\d{2}-\d{2}$/.test(checkIn) || !(nights >= 1 && nights <= 30))
-      return json({ error: "propertyId, checkIn, nights and rooms are required" }, 400);
+    const input = z.object({ propertyId: z.number().int().positive(), checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), nights: z.number().int().min(1).max(30), rooms: z.array(z.object({ adults: z.number().int().min(1).max(10), childAges: z.array(z.number().int().min(0).max(17)).max(6).optional() })).min(1).max(5) }).safeParse(body);
+    if (!input.success || !Number.isFinite(Date.parse(input.success ? input.data.checkIn : ""))) return json({ error: "Check hotel, dates and guests for each room" }, 400);
+    const { propertyId: id, rooms, checkIn, nights } = input.data;
     const qs = new URLSearchParams({
       checkIn, nights: String(nights), guests: guestsParam(rooms), hotelIds: String(id),
       customerNationality: String(body.nationality ?? "IN").toUpperCase().slice(0, 2),
@@ -301,10 +302,13 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
 
   if (action === "book") {
     const ref = String(body.agencyReference ?? "").slice(0, 60);
-    const p = body.payload;
+    let p = body.payload;
     if (!/^JX-[A-Za-z0-9-]{6,}$/.test(ref) || !p?.rooms?.length) return json({ error: "Invalid booking request" }, 400);
     const parsed = z.object({ propertyId: z.number().int().positive(), dates: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), leadGuest: z.object({ name: z.object({ first: z.string().trim().min(1).max(100), last: z.string().trim().min(1).max(100) }), contact: z.object({ email: z.string().email() }).passthrough() }).passthrough(), rooms: z.array(z.object({ roomCode: z.string().min(1), rateCode: z.string().min(1), expectedPrice: z.object({ amount: z.number().positive(), currency: z.string().regex(/^[A-Z]{3}$/) }), guests: z.array(z.object({ name: z.object({ first: z.string().min(1), last: z.string().min(1) }) }).passthrough()).min(1).max(16) }).passthrough()).min(1).max(5) }).safeParse(p);
     if (!parsed.success || p.dates.from >= p.dates.to || p.dates.from < new Date().toISOString().slice(0, 10)) return json({ error: "Check booking dates, guest details and selected room prices" }, 400);
+    p = parsed.data;
+    const duration = (Date.parse(p.dates.to) - Date.parse(p.dates.from)) / 86400000;
+    if (!Number.isInteger(duration) || duration < 1 || duration > 30) return json({ error: "Bookings must be between 1 and 30 nights" }, 400);
     if (certificationRulesApply(live, marketplaceBooking)) {
       // HyperGuest Stage 3 live booking rules, enforced server-side.
       const n = p.leadGuest?.name ?? {};
@@ -340,16 +344,27 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
       for (let i = 0; i < p.rooms.length; i++) {
         const selected = verified.rooms[i];
         if (p.rooms[i].roomCode !== selected.roomCode || p.rooms[i].rateCode !== selected.rateCode || p.rooms[i].guests.length !== verified.search.pax[i].adults + verified.search.pax[i].children.length) return json({ error: "Room guests do not match the verified quote" }, 400);
-        if (selected.disclosures.payment.charge !== "customer") return json({ error: "This rate requires JaagaX supplier settlement, which is not enabled. Select a pay-at-hotel rate.", code: "SUPPLIER_SETTLEMENT_REQUIRED" }, 409);
+        if (!matchingQuotedGuests(p.rooms[i].guests, verified.search.pax[i])) return json({ error: "Adults and child ages must match the verified room quote" }, 400);
+        if (!payAtHotelSupported(selected.disclosures)) return json({ error: "This rate requires JaagaX supplier settlement, which is not enabled. Select a pay-at-hotel rate.", code: "SUPPLIER_SETTLEMENT_REQUIRED" }, 409);
         p.rooms[i].expectedPrice = selected.expectedPrice;
       }
+    }
+    if (verified) {
+      const validation = await hg("quote", `${BOOK}booking/pre-book`, { search: verified.search, rooms: verified.rooms.map((r: any) => ({ roomCode: r.roomCode, rateCode: r.rateCode, expectedPrice: r.expectedPrice })) });
+      const current = bookingContent(validation.data);
+      if (!validation.ok || current?.rooms?.length !== verified.rooms.length || current.rooms.some((r: any) => r.priceChange)) return json({ error: "Supplier conditions changed. Refresh availability before booking." }, 409);
+      // Construct only supported fields; never forward client-defined payment/meta/extras.
+      p = { propertyId: p.propertyId, dates: p.dates, leadGuest: p.leadGuest, rooms: p.rooms.map((r: any) => ({ roomCode: r.roomCode, rateCode: r.rateCode, expectedPrice: r.expectedPrice, guests: r.guests, specialRequests: (r.specialRequests ?? []).filter((t: any) => typeof t === "string" && t.length <= 256).slice(0, 5) })) };
     }
     let liveCard: any = null;
     if (live) {
       const c = body.card ?? {};
       const num = String(c.number ?? "").replace(/\D/g, "");
       const [mm, yy] = String(c.expiry ?? "").split("/");
-      if (num.length < 13 || !/^\d{3,4}$/.test(String(c.cvv ?? "")) || !/^\d{2}$/.test(mm ?? "") || !/^\d{2}$/.test(yy ?? "")) return json({ error: "Live bookings need a valid payment card." }, 400);
+      if (!/^\d{13,19}$/.test(num) || !/^\d{3,4}$/.test(String(c.cvv ?? "")) || !/^(0[1-9]|1[0-2])$/.test(mm ?? "") || !/^\d{2}$/.test(yy ?? "") || !String(c.name ?? "").trim()) return json({ error: "Live bookings need a valid payment card." }, 400);
+      let checksum = 0;
+      for (let i = 0; i < num.length; i++) { let digit = Number(num[num.length - 1 - i]); if (i % 2) { digit *= 2; if (digit > 9) digit -= 9; } checksum += digit; }
+      if (checksum % 10 !== 0 || Date.UTC(2000 + Number(yy), Number(mm), 1) <= Date.now()) return json({ error: "Payment card is invalid or expired" }, 400);
       const parts = String(c.name ?? "").trim().split(/\s+/);
       liveCard = { type: "credit_card", details: { number: num, cvv: String(c.cvv), expiry: { month: mm, year: `20${yy}` }, name: { first: parts[0] || "Test", last: parts.slice(1).join(" ") || parts[0] || "Test" }, charge: false } };
     }
@@ -373,7 +388,7 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     if (!b && (r.error === "timeout" || r.status >= 500 || r.status === 0)) b = await reconcile(ref);
     if (!b) {
       if (r.error === "timeout" || r.status === 0 || r.status >= 500) return json({ pending: true, agencyReference: ref, message: "HyperGuest is still confirming. We'll check the status — don't book again." }, 202);
-      await sb.from("hyperguest_bookings").update({ status: "failed", raw: r.data }).eq("agency_reference", ref);
+      await sb.from("hyperguest_bookings").update({ status: "failed", raw: redactSupplier(r.data) }).eq("agency_reference", ref);
       return json({ error: friendly(r.data) }, 409);
     }
     await saveBooking(ref, b);
@@ -387,7 +402,8 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     if (!bk || (bk.user_id !== user.id && !isAdmin)) return json({ error: "Booking not found" }, 404);
 
     if (action === "refresh" || !bk.hg_booking_id) {
-      const found = await reconcile(bk.agency_reference);
+      const retrieved = bk.hg_booking_id ? await hg("booking_retrieve", `${BOOK}booking/get/${bk.hg_booking_id}`, undefined, 60000, bk.agency_reference) : null;
+      const found = retrieved?.ok ? bookingContent(retrieved.data) : await reconcile(bk.agency_reference);
       if (found) await saveBooking(bk.agency_reference, found);
       if (action === "refresh" || !found) {
         const { data } = await sb.from("hyperguest_bookings").select("*").eq("id", bk.id).single();
@@ -404,7 +420,7 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     if (simulated?.cancelSimulation !== true && preview.data?.cancelSimulation !== true) return json({ error: "Supplier did not verify a cancellation preview. Refresh the reservation." }, 409);
     const items = simulated?.items ?? simulated?.rooms ?? [];
     const charges = items.map((item: any) => ({ amount: Number(item.prices?.net?.price ?? item.price?.amount ?? item.prices?.sell?.price ?? 0), currency: item.prices?.net?.currency ?? item.price?.currency ?? item.prices?.sell?.currency ?? cur.total_currency }));
-    if (!charges.length) return json({ error: "Supplier cancellation amount is unavailable. No cancellation was made." }, 409);
+    if (!charges.length || charges.some((c: any) => !Number.isFinite(c.amount) || c.amount < 0 || !c.currency)) return json({ error: "Supplier cancellation amount is unavailable. No cancellation was made." }, 409);
     if (new Set(charges.map((c: any) => c.currency)).size !== 1) return json({ error: "Cancellation charges use multiple currencies; administrator review is required." }, 409);
     const charge = charges.reduce((sum: number, c: any) => sum + c.amount, 0), currency = charges[0].currency;
     if (!body.confirm) return json({ preview: true, charge, currency });

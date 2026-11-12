@@ -10,6 +10,13 @@ export function customerPrice(rate: any, currency: string) {
   return sell == null && bar == null ? null : { amount: Math.max(sell ?? 0, bar ?? 0), currency };
 }
 export function bookingContent(data: any) { return data?.content ?? data; }
+export function payAtHotelSupported(disclosure: any) { return disclosure?.payment?.charge === "customer"; }
+export function matchingQuotedGuests(actual: any[], expected: SupplierPax) {
+  if (actual.length !== expected.adults + (expected.children ?? expected.childAges ?? []).length) return false;
+  const ages = actual.map(g => Number(g.age));
+  if (ages.some(age => !Number.isFinite(age) || age < 0)) return false;
+  return ages.filter(age => age >= 18).length === expected.adults && ages.filter(age => age < 18).sort((a,b) => a-b).join(",") === [...(expected.children ?? expected.childAges ?? [])].sort((a,b) => a-b).join(",");
+}
 export function bookingList(data: any): any[] { return Array.isArray(data) ? data : Array.isArray(data?.content) ? data.content : data?.content?.bookings ?? data?.bookings ?? []; }
 export function bookingStatus(b: any): string {
   const top = String(b?.status ?? "pending").toLowerCase();

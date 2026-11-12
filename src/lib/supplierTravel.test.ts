@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { supplierGuests, customerPrice, allocateSupplierRooms, bookingList, bookingStatus, hotelLocalInstant, policyDeadline, publicRate, redactSupplier } from "../../supabase/functions/_shared/channel/travelRules";
+import { supplierGuests, customerPrice, allocateSupplierRooms, bookingList, bookingStatus, hotelLocalInstant, policyDeadline, publicRate, redactSupplier, payAtHotelSupported, matchingQuotedGuests } from "../../supabase/functions/_shared/channel/travelRules";
 describe("supplier travel production rules", () => {
   it("encodes child ages and room separators", () => expect(supplierGuests([{adults:2,childAges:[11,12]},{adults:1}])).toBe("2-11,12.1"));
+  it("blocks unconfigured agent settlement", () => expect(payAtHotelSupported({payment:{charge:"agent"}})).toBe(false));
+  it("allows supplier pay-at-hotel terms", () => expect(payAtHotelSupported({payment:{charge:"customer"}})).toBe(true));
+  it("rejects a substituted child age", () => expect(matchingQuotedGuests([{age:30},{age:12}],{adults:1,children:[11]})).toBe(false));
+  it("retains exact adults and child ages", () => expect(matchingQuotedGuests([{age:30},{age:11}],{adults:1,children:[11]})).toBe(true));
+  it("uses local day arithmetic across DST", () => expect(policyDeadline({daysBefore:1,cancellationDeadlineHour:"10:00"},"2027-03-15","America/New_York")).toBe(Date.parse("2027-03-14T14:00:00Z")));
   it("never sells below BAR", () => expect(customerPrice({prices:{sell:{price:4462.5,currency:"INR"},bar:{price:5250,currency:"INR"}}},"INR")?.amount).toBe(5250));
   it("keeps conversion atomic", () => expect(customerPrice({prices:{sell:{price:679.75,currency:"BRL",searchCurrency:11412.32},bar:{price:679.75,currency:"BRL",searchCurrency:11412.32}}},"INR")).toEqual({amount:11412.32,currency:"INR"}));
   it("refuses unconverted foreign BAR", () => expect(customerPrice({prices:{sell:{searchCurrency:11412.32},bar:{price:679.75,currency:"BRL"}}},"INR")).toBeNull());
