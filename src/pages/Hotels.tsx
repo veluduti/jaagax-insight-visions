@@ -1634,8 +1634,13 @@ const Hotels = () => {
               </div>
 
               {/* Intent-based AI search */}
+              <div className="mt-3 flex items-center gap-3" aria-hidden="true">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Or</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
               <form
-                className="mt-3 flex flex-col gap-2 border-t border-border pt-3 sm:flex-row"
+                className="mt-3 flex flex-col gap-2 sm:flex-row"
                 onSubmit={(e) => { e.preventDefault(); runAiSearch(aiText); }}
               >
                 <div className="relative min-w-0 flex-1">
