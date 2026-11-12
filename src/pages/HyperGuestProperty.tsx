@@ -88,6 +88,8 @@ function TaxLines({ node, cur }: { node: any; cur: string }) {
   );
 }
 
+import { englishDescription, hotelCoordinates, roomOccupancy, roomBeds, hotelPolicies } from "@/lib/hyperguestDisplay";
+
 export default function HyperGuestProperty() {
   const { propertyId = "19912" } = useParams();
   const nav = useNavigate();
@@ -158,6 +160,9 @@ export default function HyperGuestProperty() {
   const prop = result?.results?.[0];
   const staticRooms: Record<string, any> = useMemo(() => Object.fromEntries((stat?.rooms ?? []).map((r: any) => [String(r.id), r])), [stat]);
   const desc = stat?.descriptions?.find((d: any) => d.language === "en_US" && d.type === "general")?.description;
+  const coords = hotelCoordinates(stat);
+  const staticPolicies = hotelPolicies(stat);
+  const placeLine = [stat?.location?.region, stat?.location?.countryCode].filter((v: any) => typeof v === "string" && v.trim()).join(", ");
   const hotelFacilities = (stat?.facilities ?? []).filter((f: any) => f.type !== "room");
   const photos = [...(stat?.images ?? []), ...(stat?.rooms ?? []).flatMap((r: any) => r.images ?? [])].map((i: any) => i.uri).filter(Boolean);
 
@@ -298,6 +303,16 @@ export default function HyperGuestProperty() {
             <nav className="flex flex-wrap gap-2 border-b border-border pb-2">{["Overview", "Rooms", "Amenities", "Policies"].map(label => <Button key={label} variant="ghost" size="sm" onClick={() => document.getElementById(`supplier-${label.toLowerCase()}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{label}</Button>)}</nav>
             <section id="supplier-overview" className="scroll-mt-24"><h2 className="font-semibold mb-2">About this hotel</h2>
             {desc && <details className="text-sm text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">Read about this hotel</summary><p className="mt-2 whitespace-pre-line">{desc}</p></details>}
+            {(stat.settings?.checkIn || stat.settings?.checkOut || placeLine || stat.location?.postcode?.trim()) && <dl className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              {stat.settings?.checkIn && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Check-in from</dt><dd className="font-medium">{stat.settings.checkIn}</dd></div>}
+              {stat.settings?.checkOut && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Check-out by</dt><dd className="font-medium">{stat.settings.checkOut}</dd></div>}
+              {placeLine && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Region</dt><dd className="font-medium">{placeLine}</dd></div>}
+              {stat.location?.postcode?.trim() && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Postcode</dt><dd className="font-medium">{stat.location.postcode.trim()}</dd></div>}
+            </dl>}
+            {coords && <div className="mt-3 space-y-1">
+              <iframe title={`${stat.name} map`} loading="lazy" className="w-full h-56 rounded-lg border border-border" src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng - 0.01},${coords.lat - 0.006},${coords.lng + 0.01},${coords.lat + 0.006}&layer=mapnik&marker=${coords.lat},${coords.lng}`} />
+              <a className="text-xs text-primary underline" href={`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`} target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+            </div>}
             </section>
             {hotelFacilities.length > 0 && (
               <section id="supplier-amenities" className="scroll-mt-24"><h2 className="font-semibold mb-2">Amenities</h2>
@@ -337,9 +352,10 @@ export default function HyperGuestProperty() {
             {!searching && result && !prop?.rooms?.length && <div className="py-8 text-center space-y-3"><h2 className="font-semibold">No rooms available for your stay</h2><p className="text-sm text-muted-foreground">Try different dates or guest numbers.</p><Button variant="outline" onClick={() => setEditSearch(true)}>Change dates & guests</Button></div>}
             </section>
 
-            {remarks.length > 0 && (
-              <details id="supplier-policies" className="scroll-mt-24"><summary className="font-semibold cursor-pointer mb-2">Hotel policies & remarks</summary>
-                <ul className="list-disc pl-5 text-sm space-y-1">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>
+            {(remarks.length > 0 || staticPolicies.length > 0) && (
+              <details id="supplier-policies" className="scroll-mt-24" open={staticPolicies.length > 0}><summary className="font-semibold cursor-pointer mb-2">Hotel policies & remarks</summary>
+                {staticPolicies.length > 0 && <dl className="text-sm space-y-2 mb-2">{staticPolicies.map((p, i) => <div key={i}><dt className="font-medium">{p.title}</dt><dd className="text-muted-foreground whitespace-pre-line">{p.body}</dd></div>)}</dl>}
+                {remarks.length > 0 && <ul className="list-disc pl-5 text-sm space-y-1">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
               </details>
             )}
 
@@ -355,7 +371,9 @@ export default function HyperGuestProperty() {
                         {st?.images?.[0]?.uri && <img src={st.images[0].uri} alt="" className="h-20 w-28 object-cover rounded-md bg-muted" />}
                         <div>
                           <h3 className="font-semibold">{room.roomName}</h3>
-                          <p className="text-xs text-muted-foreground">{room.settings?.roomSize ? `${room.settings.roomSize} m² · ` : ""}Max {room.settings?.maxOccupancy} guests · {(room.settings?.beddingConfigurations ?? []).map((b: any) => `${b.quantity} ${b.type}`).join(", ")} · {room.numberOfAvailableRooms} left</p>
+                          <p className="text-xs text-muted-foreground">{[(room.settings?.roomSize || st?.settings?.roomSize) ? `${room.settings?.roomSize || st.settings.roomSize} m²` : null, roomBeds(st, room), Number(room.numberOfAvailableRooms) > 0 ? `${room.numberOfAvailableRooms} left` : null].filter(Boolean).join(" · ")}</p>
+                          {(() => { const occ = roomOccupancy({ ...(st?.settings ?? {}), ...(room.settings ?? {}) }); return occ.length > 0 && <div className="flex flex-wrap gap-1 mt-1">{occ.map(o => <Badge key={o.label} variant="outline" className="text-[10px]">{o.label}: {o.value}</Badge>)}</div>; })()}
+                          {englishDescription(st?.descriptions) && <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{englishDescription(st?.descriptions)}</p>}
                           {st?.facilities?.length > 0 && <p className="text-xs mt-1"><span className="font-medium">Room facilities:</span> {st.facilities.map((f: any) => f.name).join(", ")}</p>}
                         </div>
                       </div>
