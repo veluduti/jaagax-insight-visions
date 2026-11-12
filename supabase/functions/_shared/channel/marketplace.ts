@@ -1,3 +1,4 @@
+import { allocateSupplierRooms, customerPrice, publicRate, type SupplierPax } from "./travelRules.ts";
 export const MARKETPLACE_IDS = [111139, 120655, 117810, 119668, 102148, 127194, 100621, 100622, 125400, 126856, 101610, 125492, 101230, 32571, 29212, 100388, 55617];
 export const LEGACY_LIVE_IDS = [128382, 126632, 57985];
 export function catalogRows(data: any): any[] {
@@ -23,11 +24,15 @@ export function propertyFields(p: any) {
     updated_at: new Date().toISOString(),
   };
 }
-export function availabilitySummary(results: any[], nights: number) {
+export function availabilitySummary(results: any[], nights: number, requests?: SupplierPax[], currency = "INR") {
   return results.map(p => {
+    if (requests) {
+      const allocation = allocateSupplierRooms(p, requests, currency);
+      return { propertyId: Number(p.propertyId ?? p.hotelId ?? p.id), available: allocation != null, price: allocation ? allocation.amount / nights / requests.length : null, total: allocation?.amount ?? null, currency };
+    }
     const prices = (p.rooms ?? []).flatMap((r: any) => (r.ratePlans ?? []).map((rate: any) => {
       const sell = rate.prices?.sell;
-      const amount = Number(sell?.searchCurrency ?? sell?.price ?? rate.payment?.chargeAmount?.price);
+      const amount = publicRate(rate) ? customerPrice(rate, currency)?.amount ?? Number(sell?.searchCurrency) : 0;
       return amount > 0 && Number(r.numberOfAvailableRooms) > 0 ? amount / nights : null;
     })).filter((n: any) => n != null);
     return { propertyId: Number(p.propertyId ?? p.hotelId ?? p.id), available: prices.length > 0, price: prices.length ? Math.min(...prices) : null };

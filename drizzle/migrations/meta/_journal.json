@@ -386,6 +386,13 @@
       "when": 1794204657038,
       "tag": "0054_restore_admin_scope_check_for_hotel_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794465068055,
+      "tag": "0055_hyperguest_verified_quotes",
+      "breakpoints": true
     }
   ]
 }

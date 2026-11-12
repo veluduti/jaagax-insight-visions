@@ -1,0 +1,1 @@
+export { customerPrice, publicRate, bookingStatus, hotelLocalInstant, policyDeadline, supplierDisclosures } from "../../supabase/functions/_shared/channel/travelRules";

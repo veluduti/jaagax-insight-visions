@@ -140,8 +140,8 @@ function mapCancellationPolicy(node: any): CanonicalCancellationPolicy {
     penaltyType: node?.penaltyType ?? node?.type ?? null,
     amount: num(node?.amount?.price ?? node?.amount),
     currency: node?.amount?.currency ?? node?.currency ?? null,
-    timeFromCheckIn: num(node?.timeFromCheckIn),
-    timeFromCheckInType: node?.timeFromCheckInType ?? null,
+    timeFromCheckIn: num(node?.timeSetting?.timeFromCheckIn ?? node?.timeFromCheckIn),
+    timeFromCheckInType: node?.timeSetting?.timeFromCheckInType ?? node?.timeFromCheckInType ?? null,
     cancellationDeadlineHour: node?.cancellationDeadlineHour ?? null,
     raw: node,
   };
@@ -208,8 +208,8 @@ export function mapHgRatePlan(rp: any): CanonicalRatePlan {
       }
       : null,
     prices: mapPrices(rp?.prices),
-    taxes: (rp?.taxes ?? []).map(mapTaxFee),
-    fees: (rp?.fees ?? []).map(mapTaxFee),
+    taxes: (rp?.prices?.sell?.taxes ?? rp?.taxes ?? []).map(mapTaxFee),
+    fees: (rp?.prices?.fees ?? rp?.prices?.sell?.fees ?? rp?.fees ?? []).map(mapTaxFee),
     remarks: (rp?.remarks ?? []).map((r: any) => (typeof r === "string" ? r : r?.remark ?? String(r))),
     cancellationPolicies: (rp?.cancellationPolicies ?? []).map(mapCancellationPolicy),
     nightlyBreakdown: (rp?.nightlyBreakdown ?? []).map(mapNightly),

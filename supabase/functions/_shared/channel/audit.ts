@@ -2,6 +2,7 @@
 // EVERY request/response to an external channel (HyperGuest today) is stored so
 // that no external field is ever lost, even if JAAGA does not model it yet.
 
+import { redactSupplier } from "./travelRules.ts";
 export type ChannelOperation =
   | "search"
   | "detail"
@@ -32,8 +33,8 @@ export async function logChannelPayload(supabase: any, entry: ChannelAuditEntry)
       channel: entry.channel,
       operation: entry.operation,
       endpoint: entry.endpoint ?? null,
-      request_payload: entry.request_payload ?? null,
-      response_payload: entry.response_payload ?? null,
+      request_payload: redactSupplier(entry.request_payload ?? null),
+      response_payload: redactSupplier(entry.response_payload ?? null),
       http_status: entry.http_status ?? null,
       request_id: entry.request_id ?? null,
       error_message: entry.error_message ?? null,

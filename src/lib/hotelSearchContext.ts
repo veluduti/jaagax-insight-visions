@@ -7,9 +7,9 @@ export function readHotelSearchContext(params: URLSearchParams, defaultCheckIn: 
   const checkOut = isValidDateRangeISO(checkIn, end) ? end : nextDayISO(checkIn);
   const count = (key: string, fallback: number, min: number) => Math.max(min, Math.floor(Number(params.get(key)) || fallback));
   const childAges = (params.get("childAges") ?? "").split(",").filter(Boolean).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 17);
-  return { checkIn, checkOut, adults: count("adults", Number(params.get("guests")) || 2, 1), rooms: count("rooms", 1, 1), children: childAges.length || count("children", 0, 0), childAges };
+  return { checkIn, checkOut, adults: count("adults", Number(params.get("guests")) || 2, 1), rooms: count("rooms", 1, 1), children: childAges.length || count("children", 0, 0), childAges, nationality: /^[A-Z]{2}$/.test(params.get("nationality") ?? "") ? params.get("nationality") ?? "IN" : "IN", currency: /^[A-Z]{3}$/.test(params.get("currency") ?? "") ? params.get("currency") ?? "INR" : "INR" };
 }
 
-export function hotelSearchParams(context: { checkIn: string; checkOut: string; adults: number; rooms: number; childAges: number[] }) {
-  return new URLSearchParams({ checkin: context.checkIn, checkout: context.checkOut, adults: String(context.adults), rooms: String(context.rooms), children: String(context.childAges.length), childAges: context.childAges.join(",") });
+export function hotelSearchParams(context: { checkIn: string; checkOut: string; adults: number; rooms: number; childAges: number[]; nationality?: string; currency?: string }) {
+  return new URLSearchParams({ checkin: context.checkIn, checkout: context.checkOut, adults: String(context.adults), rooms: String(context.rooms), children: String(context.childAges.length), childAges: context.childAges.join(","), nationality: context.nationality ?? "IN", currency: context.currency ?? "INR" });
 }

@@ -1,3 +1,4 @@
+import { customerPrice, publicRate, hotelLocalInstant, policyDeadline, supplierDisclosures } from "@/lib/supplierTravel";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readHotelSearchContext, hotelSearchParams } from "@/lib/hotelSearchContext";
 import { isValidDateRangeISO, CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
@@ -48,35 +49,28 @@ const paxKey = (adults: number, kids: number[]) => `${adults}|${[...kids].sort((
 const birth = (age: number) => { const d = new Date(); d.setFullYear(d.getFullYear() - age); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); };
 const money = (v: any, c: string) => v == null ? "—" : `${c} ${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
-function cancelInfo(rp: any, checkIn: string) {
+function cancelInfo(rp: any, checkIn: string, timezone?: string, checkInTime?: string) {
   const pols: any[] = rp.cancellationPolicies ?? [];
-  const daysUntil = Math.floor((Date.parse(checkIn) - Date.parse(today())) / 86400000);
-  const nowPenalty = pols.filter((p) => Number(p.daysBefore) >= daysUntil).sort((a, b) => b.amount - a.amount)[0];
-  const nonRef = pols.some((p) => p.penaltyType === "percent" && Number(p.amount) >= 100 && Number(p.daysBefore) >= daysUntil);
-  return { pols, nonRef, nowPenalty };
+  const active = pols.filter(p => { const deadline = policyDeadline(p, checkIn, timezone, checkInTime); return deadline != null && Date.now() >= deadline; });
+  const unknown = pols.some(p => policyDeadline(p, checkIn, timezone, checkInTime) == null);
+  const nonRef = active.some(p => p.penaltyType === "percent" && Number(p.amount) >= 100);
+  return { pols, nonRef, nowPenalty: active.find(p => Number(p.amount) > 0), unknown };
 }
-const polText = (p: any) =>
-  `${Number(p.daysBefore) === 0 ? "On arrival day" : `From ${p.daysBefore} day(s) before check-in`}${p.cancellationDeadlineHour ? ` (${p.cancellationDeadlineHour})` : ""}: ${p.penaltyType === "percent" ? `${p.amount}% charge` : p.penaltyType === "nights" ? `${p.amount} night(s) charge` : `${p.amount} charge`}`;
-
-function BookingPolicy({ b }: { b: any }) {
-  const rooms: any[][] = Array.isArray(b?.cancellation) ? b.cancellation : [];
-  const wins = rooms.flat().filter(Boolean);
-  if (!wins.length) return <p className="text-xs text-muted-foreground">Cancellation policy: not returned yet — press refresh.</p>;
-  const now = Date.now();
-  const free = wins.filter((w) => Number(w?.price?.amount ?? 0) > 0).map((w) => Date.parse(String(w.startDate).replace(" ", "T") + "Z")).filter((n) => !isNaN(n)).sort((a, c) => a - c)[0];
-  return (
-    <div className="text-xs mt-1 space-y-0.5">
-      <p className="font-medium">
-        Cancellation policy:{" "}
-        {free ? (now < free ? <span className="text-primary">Free cancellation until {new Date(free).toLocaleString()}</span> : <span className="text-destructive">Charges now apply</span>) : <span className="text-primary">Fully refundable</span>}
-      </p>
-      <ul className="list-disc pl-4 text-muted-foreground">
-        {wins.map((w, i) => (
-          <li key={i}>{String(w.startDate)} → {String(w.endDate)}: charge {money(w?.price?.amount ?? 0, w?.price?.currency ?? b.total_currency ?? "")}</li>
-        ))}
-      </ul>
-    </div>
-  );
+const polText = (p: any) => {
+  const setting = p.timeSetting ?? p;
+  return `From ${setting.timeFromCheckIn ?? p.daysBefore} ${setting.timeFromCheckInType ?? "days"} before check-in${p.cancellationDeadlineHour ? ` (pivot ${p.cancellationDeadlineHour}, hotel local time)` : " (hotel local time)"}: ${p.amount}${p.penaltyType === "percent" ? "%" : p.penaltyType === "nights" ? " night(s)" : ""} charge`;
+};
+function BookingPolicy({ b, timezone }: { b: any; timezone?: string }) {
+  const wins = (Array.isArray(b?.cancellation) ? b.cancellation : []).flat().filter(Boolean);
+  if (!wins.length) return <p className="text-xs text-muted-foreground">Cancellation policy not returned. Refresh this booking.</p>;
+  const paid = wins.filter((w: any) => Number(w?.price?.amount) > 0);
+  const deadlines = paid.map((w: any) => hotelLocalInstant(String(w.startDate), timezone));
+  const known = deadlines.length > 0 && deadlines.every((n: any) => n != null);
+  const free = known ? Math.min(...deadlines.filter((n: any): n is number => n != null)) : null;
+  return <div className="text-xs mt-1 space-y-1">
+    <p className="font-medium">Cancellation policy{timezone ? ` · ${timezone}` : " · hotel local time"}: {free != null ? Date.now() < free ? `Free cancellation until ${new Date(free).toLocaleString(undefined, { timeZone: timezone })}` : "Cancellation charges apply" : "Review supplier policy below"}</p>
+    <ul className="list-disc pl-4 text-muted-foreground">{wins.map((w: any, i: number) => <li key={i}>{String(w.startDate)} → {String(w.endDate)}: {money(w.price?.amount, w.price?.currency ?? b.total_currency)}</li>)}</ul>
+  </div>;
 }
 
 function TaxLines({ node, cur }: { node: any; cur: string }) {
@@ -109,8 +103,8 @@ export default function HyperGuestProperty() {
   const [stat, setStat] = useState<any>(null);
   const [checkIn, setCheckIn] = useState(initialSearch.checkIn);
   const [nights, setNights] = useState(Math.round((Date.parse(initialSearch.checkOut) - Date.parse(initialSearch.checkIn)) / 86400000));
-  const [nationality, setNationality] = useState("IN");
-  const [currency, setCurrency] = useState(certification ? "USD" : "INR");
+  const [nationality, setNationality] = useState(params.get("nationality") ?? "IN");
+  const [currency, setCurrency] = useState(params.get("currency") ?? (certification ? "USD" : "INR"));
   const [rooms, setRooms] = useState<RoomReq[]>(() => { const count = initialSearch.rooms; const adults = Math.max(count, initialSearch.adults); return Array.from({ length: count }, (_, i) => ({ adults: Math.floor(adults / count) + (i < adults % count ? 1 : 0), children: i === 0 ? initialSearch.childAges : [], infants: 0 })); });
   const [result, setResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
@@ -149,6 +143,17 @@ export default function HyperGuestProperty() {
     setMine(data ?? []);
   };
 
+  useEffect(() => {
+    const pending = mine.filter(b => ["pending", "partial"].includes(b.status));
+    if (!pending.length) return;
+    let stopped = false;
+    const timer = window.setInterval(async () => {
+      await Promise.all(pending.map(b => call({ action: "refresh", id: b.id })));
+      if (!stopped) await loadMine();
+    }, 20000);
+    return () => { stopped = true; window.clearInterval(timer); };
+  }, [mine.map(b => `${b.id}:${b.status}`).join("|")]);
+
   const prop = result?.results?.[0];
   const staticRooms: Record<string, any> = useMemo(() => Object.fromEntries((stat?.rooms ?? []).map((r: any) => [String(r.id), r])), [stat]);
   const desc = stat?.descriptions?.find((d: any) => d.language === "en_US" && d.type === "general")?.description;
@@ -170,6 +175,7 @@ export default function HyperGuestProperty() {
     const query = hotelSearchParams({ checkIn, checkOut: addDays(checkIn, nights), adults: rooms.reduce((sum, r) => sum + r.adults, 0), rooms: rooms.length, childAges: rooms.flatMap(ages) });
     if (marketplace) query.set("marketplace", "1");
     if (live) query.set("live", "1");
+    query.set("nationality", nationality); query.set("currency", currency);
     nav(`${loc.pathname}?${query}`, { replace: true });
   };
 
@@ -204,7 +210,7 @@ export default function HyperGuestProperty() {
     setBusy(true);
     const sel = rooms.map((_, i) => picked[i]);
     const r = await call({
-      action: "prebook",
+      action: "prebook", currency,
       search: { dates: { from: checkIn, to: addDays(checkIn, nights) }, propertyId: Number(propertyId), nationality, pax: rooms.map((x) => ({ adults: x.adults, children: ages(x) })) },
       rooms: sel.map((s) => ({ roomCode: s.room.roomTypeCode, rateCode: s.rp.ratePlanCode, expectedPrice: { amount: s.rp.payment?.chargeAmount?.price, currency: s.rp.payment?.chargeAmount?.currency } })),
     });
@@ -239,14 +245,16 @@ export default function HyperGuestProperty() {
       }),
     };
     const r = await call({
-      action: "book", agencyReference: ref, payload, card: live ? { number: card.number.replace(/\s/g, ""), expiry: card.expiry, cvv: card.cvv, name: card.name } : undefined, refundable: live ? rooms.every((_, i) => isFullyRefundable(sel[i].rp)) : undefined, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
+      action: "book", agencyReference: ref, quoteId: prebook.quoteId, payload, card: live ? { number: card.number.replace(/\s/g, ""), expiry: card.expiry, cvv: card.cvv, name: card.name } : undefined, refundable: live ? rooms.every((_, i) => isFullyRefundable(sel[i].rp)) : undefined, nationality, currency, testLabel: testLabel || null, specialRequests: special || null,
       roomsSummary: rooms.map((rq, i) => ({ room: sel[i].room.roomName, rate: sel[i].rp.ratePlanName, board: sel[i].rp.board, adults: rq.adults, children: rq.children, infants: rq.infants })),
     });
     setBusy(false);
     if (r.error) return toast.error(r.error);
     if (r.data?.pending) { toast.info(r.data.message); loadMine(); return; }
     setConfirmed(r.data.booking);
-    toast.success(r.data.duplicate ? "This booking was already made — showing it." : "Booking confirmed by HyperGuest");
+    setCard({ number: "", expiry: "", cvv: "", name: "" });
+    if (r.data.booking?.status === "confirmed") toast.success("All rooms confirmed by the hotel");
+    else toast.info(`Reservation status: ${r.data.booking?.status ?? "pending"}. Review each room below.`);
     loadMine();
   };
 
@@ -254,13 +262,13 @@ export default function HyperGuestProperty() {
     const p = await call({ action: "cancel", id: b.id });
     if (p.error) return toast.error(p.error);
     if (!confirm(`Cancel booking ${b.hg_booking_id}? Under this booking's cancellation policy, the charge right now is ${money(p.data.charge, p.data.currency ?? "")}${Number(p.data.charge) === 0 ? " (free cancellation)" : ""}.`)) return;
-    const r = await call({ action: "cancel", id: b.id, confirm: true });
+    const r = await call({ action: "cancel", id: b.id, confirm: true, acceptedCharge: p.data.charge, acceptedCurrency: p.data.currency });
     if (r.error) return toast.error(r.error);
-    toast.success("Booking cancelled"); loadMine();
+    if (r.data.cancelled) toast.success("Booking cancelled by the hotel"); else toast.info("Cancellation is awaiting verification. Refresh the booking."); loadMine();
   };
   const refresh = async (b: any) => { await call({ action: "refresh", id: b.id }); loadMine(); };
 
-  const isFullyRefundable = (rp: any) => { const ci = cancelInfo(rp, checkIn); return !ci.nonRef && !ci.nowPenalty; };
+  const isFullyRefundable = (rp: any) => { const ci = cancelInfo(rp, checkIn, stat?.settings?.timezone, stat?.settings?.checkIn); return !ci.unknown && !ci.nonRef && !ci.nowPenalty; };
   const allPicked = rooms.every((_, i) => picked[i]);
   const remarks: string[] = prop?.remarks ?? [];
 
@@ -351,11 +359,12 @@ export default function HyperGuestProperty() {
                         </div>
                       </div>
                       <div className="grid md:grid-cols-2 gap-3">
-                        {room.ratePlans.map((rp: any) => {
+                        {room.ratePlans.filter(publicRate).map((rp: any) => {
                           const sell = rp.prices?.sell, bar = rp.prices?.bar;
-                          const shown = bar?.searchCurrency ?? bar?.price ?? sell?.searchCurrency ?? sell?.price;
-                          const shownCur = (bar?.searchCurrency ?? sell?.searchCurrency) != null ? currency : (bar ?? sell)?.currency;
-                          const ci = cancelInfo(rp, checkIn);
+                          const retail = customerPrice(rp, currency);
+                          const shown = retail?.amount;
+                          const shownCur = retail?.currency ?? currency;
+                          const ci = cancelInfo(rp, checkIn, stat?.settings?.timezone, stat?.settings?.checkIn);
                           const sel = picked[i]?.rp === rp && picked[i]?.room === room;
                           return (
                             <div key={`${rp.ratePlanId}-${rp.ratePlanCode}`} className={`rounded-lg border p-3 space-y-2 ${sel ? "border-primary ring-1 ring-primary" : ""}`}>
@@ -364,7 +373,7 @@ export default function HyperGuestProperty() {
                                   <p className="font-medium text-sm">{rp.ratePlanName}</p>
                                   <div className="flex flex-wrap gap-1 mt-1">
                                     <Badge variant="secondary">{BOARD[rp.board] ?? rp.board}</Badge>
-                                    <Badge variant={ci.nonRef ? "destructive" : "default"}>{ci.nonRef ? "Non-refundable" : "Refundable"}</Badge>
+                                    <Badge variant={ci.nonRef ? "destructive" : "default"}>{ci.nonRef ? "Non-refundable" : ci.unknown ? "See cancellation policy" : ci.nowPenalty ? "Cancellation charges apply" : "Refundable"}</Badge>
                                     {rp.ratePlanInfo?.isPackageRate && <Badge variant="outline">Package rate</Badge>}
                                     {rp.ratePlanInfo?.isPromotion && <Badge variant="outline">Promotion</Badge>}
                                   </div>
@@ -379,7 +388,7 @@ export default function HyperGuestProperty() {
                               </details>
                               <details className="text-xs"><summary className="cursor-pointer font-medium">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
                               {rp.remarks?.length > 0 && <details className="text-xs"><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
-                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={certification && !isFullyRefundable(rp)} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
+                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={!retail || (certification && !isFullyRefundable(rp))} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
                             </div>
                           );
                         })}
@@ -397,10 +406,11 @@ export default function HyperGuestProperty() {
 
             {prebook && !confirmed && (() => {
               const lines = prebook.rooms.map((r: any, i: number) => {
-                const a = r.priceChange?.toAmount ?? { amount: r.payment?.chargeAmount?.price ?? picked[i]?.rp.payment?.chargeAmount?.price, currency: r.payment?.chargeAmount?.currency ?? picked[i]?.rp.payment?.chargeAmount?.currency };
+                const a = prebook.customerRooms?.[i]?.retail ?? customerPrice(picked[i]?.rp ?? {}, currency) ?? { amount: null, currency };
                 return { label: `${picked[i]?.room.roomName} – ${picked[i]?.rp.ratePlanName}`, amount: Number(a.amount ?? 0), cur: a.currency ?? currency };
               });
-              const total = lines.reduce((s: number, l: any) => s + l.amount, 0);
+              const total = prebook.customerTotal ?? lines.reduce((s: number, l: any) => s + l.amount, 0);
+              const settlementRequired = marketplace && prebook.customerRooms?.some((r: any) => r.disclosures?.payment?.charge !== "customer");
               const cur = lines[0]?.cur ?? currency;
               const steps = ["Guest details", "Payment", "Confirmation"];
               const stepIdx = step === "guests" ? 0 : 1;
@@ -460,11 +470,12 @@ export default function HyperGuestProperty() {
                         <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
                         <Lock className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      {live ? <p className="text-xs text-muted-foreground">The hotel holds this card to guarantee your booking. Cancellation charges follow the selected rate policy.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                      {live ? <p className="text-xs text-muted-foreground">Your card guarantees the reservation. The hotel collects payment according to the selected rate; JaagaX does not charge this card now.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
                         <p className="font-medium">Sample payment — no money is charged.</p>
                         <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
                         <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
                       </div>}
+                      {settlementRequired && <p role="alert" className="text-sm text-destructive">This rate requires JaagaX supplier settlement, which is not enabled. Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
                       <Input placeholder="Card number" inputMode="numeric" maxLength={19} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
                       <div className="grid grid-cols-2 gap-2">
                         <Input placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
@@ -474,7 +485,7 @@ export default function HyperGuestProperty() {
                       <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>
-                        <Button size="lg" className="flex-1" onClick={pay} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Pay ${money(total, cur)} & book`}</Button>
+                        <Button size="lg" className="flex-1" onClick={pay} disabled={busy || settlementRequired}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Confirm reservation · ${money(total, cur)}`}</Button>
                       </div>
                     </>)}
                   </CardContent></Card>
@@ -487,12 +498,14 @@ export default function HyperGuestProperty() {
                         <p className="text-xs font-medium">Room {i + 1}: {lines[i].label}</p>
                         <p className="text-xs text-muted-foreground">{BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board} · {rooms[i].adults} adult(s){ages(rooms[i]).length ? ` + ${ages(rooms[i]).length} child/infant` : ""}</p>
                         {r.priceChange && <p className="text-destructive text-xs">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
-                        <TaxLines node={{ taxes: r.prices?.sell?.taxes, fees: r.prices?.fees ?? r.prices?.sell?.fees }} cur={(r.prices?.sell)?.currency} />
+                        <TaxLines node={prebook.customerRooms?.[i]?.disclosures ?? supplierDisclosures(picked[i]?.rp ?? {})} cur={currency} />
+                        {(prebook.customerRooms?.[i]?.disclosures?.remarks ?? picked[i]?.rp.remarks ?? []).map((remark: any, k: number) => <p key={k} className="text-xs">{typeof remark === "string" ? remark : remark.remark ?? ""}</p>)}
+                        {prebook.customerRooms?.[i]?.disclosures?.immediate === false && <p className="text-xs text-muted-foreground">On request — this room needs hotel approval.</p>}
                         <details className="text-xs"><summary className="cursor-pointer font-medium">Cancellation policy</summary><ul className="list-disc pl-4 mt-1">{cancelInfo(r, checkIn).pols.length > 0 ? cancelInfo(r, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>) : cancelInfo(picked[i]?.rp ?? {}, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul></details>
                         <p className="text-xs flex justify-between"><span>Room total</span><span>{money(lines[i].amount, lines[i].cur)}</span></p>
                       </div>
                     ))}
-                    <div className="border-t pt-2 flex justify-between font-bold"><span>Total to pay</span><span>{money(total, cur)}</span></div>
+                    <div className="border-t pt-2 flex justify-between font-bold"><span>Customer stay total</span><span>{money(total, cur)}</span></div>
                   </CardContent></Card>
                 </div>
               </div>
@@ -501,7 +514,7 @@ export default function HyperGuestProperty() {
 
             {confirmed && (
               <Card className="border-primary"><CardContent className="p-6 space-y-3 text-center">
-                <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
+                {confirmed.status === "confirmed" ? <CheckCircle2 className="h-12 w-12 text-primary mx-auto" /> : <Info className="h-12 w-12 text-muted-foreground mx-auto" />}
                 <h2 className="text-xl font-semibold">Booking {confirmed.status}</h2>
                 {!live && <p className="text-sm text-muted-foreground">Sample payment accepted — no money was charged.</p>}
                 <div className="grid sm:grid-cols-2 gap-2 text-sm text-left max-w-md mx-auto border rounded-md p-3">
@@ -510,9 +523,9 @@ export default function HyperGuestProperty() {
                   <span className="text-muted-foreground">Reference</span><span>{confirmed.agency_reference}</span>
                   <span className="text-muted-foreground">Dates</span><span>{confirmed.check_in} → {confirmed.check_out}</span>
                   <span className="text-muted-foreground">Lead guest</span><span>{lead.first} {lead.last}</span>
-                  <span className="text-muted-foreground">Total</span><b>{money(confirmed.total_amount, confirmed.total_currency)}</b>
+                  <span className="text-muted-foreground">Customer stay total</span><b>{money(confirmed.customer_total ?? confirmed.total_amount, confirmed.customer_currency ?? confirmed.total_currency)}</b>
                 </div>
-                <div className="text-left"><BookingPolicy b={confirmed} /></div>
+                <div className="text-left space-y-2">{(confirmed.raw?.rooms ?? []).map((r: any, i: number) => <p key={i} className="text-sm">Room {i + 1}: {r.status ?? confirmed.status}</p>)}{(confirmed.customer_disclosures?.rooms ?? []).map((r: any, i: number) => <div key={i}><TaxLines node={r} cur={confirmed.customer_currency} />{(r.remarks ?? []).map((remark: any, k: number) => <p key={k} className="text-xs">{typeof remark === "string" ? remark : remark.remark ?? ""}</p>)}</div>)}<BookingPolicy b={confirmed} timezone={stat?.settings?.timezone} /></div>
                 {remarks.length > 0 && <ul className="list-disc pl-5 text-xs text-left">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
                 <div className="flex gap-2 justify-center">
                   <Button variant="outline" onClick={() => window.print()}>Print voucher</Button>
@@ -529,13 +542,13 @@ export default function HyperGuestProperty() {
                     <div>
                       <p className="font-medium">#{b.hg_booking_id ?? "pending"} · {b.check_in} → {b.check_out}</p>
                       {b.environment === "live" && b.test_label && b.status !== "cancelled" && <p className="text-xs text-destructive font-medium">Cancel by {new Date(new Date(b.created_at).getTime() + 7 * 86400000).toLocaleString()}</p>}
-                      <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.total_amount, b.total_currency ?? "")}</p>
-                      {b.status !== "cancelled" ? <BookingPolicy b={b} /> : <p className="text-xs text-muted-foreground">Cancelled{b.cancelled_at ? ` on ${new Date(b.cancelled_at).toLocaleString()}` : ""}</p>}
+                      <p className="text-xs text-muted-foreground">{(b.rooms ?? []).map((r: any) => `${r.room} / ${r.rate}`).join(" + ")} · {money(b.customer_total ?? b.total_amount, b.customer_currency ?? b.total_currency ?? "")}</p>
+                      {b.status !== "cancelled" ? <BookingPolicy b={b} timezone={stat?.settings?.timezone} /> : <p className="text-xs text-muted-foreground">Cancelled{b.cancelled_at ? ` on ${new Date(b.cancelled_at).toLocaleString()}` : ""}</p>}
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "secondary" : "outline"}>{b.status}</Badge>
                       <Button size="icon" variant="ghost" onClick={() => refresh(b)}><RefreshCw className="h-4 w-4" /></Button>
-                      {b.status === "confirmed" && <Button size="sm" variant="outline" onClick={() => cancel(b)}>Cancel</Button>}
+                      {["confirmed", "pending", "partial"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => cancel(b)}>Cancel</Button>}
                     </div>
                   </div>
                 ))}

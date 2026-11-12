@@ -6827,11 +6827,15 @@ export type Database = {
           check_out: string
           created_at: string
           currency: string | null
+          customer_currency: string | null
+          customer_disclosures: Json | null
+          customer_total: number | null
           environment: string
           hg_booking_id: number | null
           id: string
           nationality: string | null
           property_id: number
+          quote_id: string | null
           raw: Json | null
           rooms: Json
           special_requests: string | null
@@ -6850,11 +6854,15 @@ export type Database = {
           check_out: string
           created_at?: string
           currency?: string | null
+          customer_currency?: string | null
+          customer_disclosures?: Json | null
+          customer_total?: number | null
           environment?: string
           hg_booking_id?: number | null
           id?: string
           nationality?: string | null
           property_id: number
+          quote_id?: string | null
           raw?: Json | null
           rooms?: Json
           special_requests?: string | null
@@ -6873,11 +6881,15 @@ export type Database = {
           check_out?: string
           created_at?: string
           currency?: string | null
+          customer_currency?: string | null
+          customer_disclosures?: Json | null
+          customer_total?: number | null
           environment?: string
           hg_booking_id?: number | null
           id?: string
           nationality?: string | null
           property_id?: number
+          quote_id?: string | null
           raw?: Json | null
           rooms?: Json
           special_requests?: string | null
@@ -6888,7 +6900,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hyperguest_bookings_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "hyperguest_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hyperguest_cert_checks: {
         Row: {
@@ -6911,6 +6931,33 @@ export type Database = {
           status?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      hyperguest_quotes: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          property_id: number
+          snapshot: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          property_id: number
+          snapshot: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          property_id?: number
+          snapshot?: Json
+          user_id?: string
         }
         Relationships: []
       }

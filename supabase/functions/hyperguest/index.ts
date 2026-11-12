@@ -5,7 +5,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { logChannelPayload, type ChannelOperation } from "../_shared/channel/audit.ts";
 import { MARKETPLACE_IDS, LEGACY_LIVE_IDS, catalogRows, propertyFields, availabilitySummary, certificationRulesApply } from "../_shared/channel/marketplace.ts";
+import { supplierGuests, paxSignature, publicRate, customerPrice, bookingList, bookingContent, bookingStatus, redactSupplier, supplierDisclosures } from "../_shared/channel/travelRules.ts";
 import { z } from "npm:zod@3.25.76";
+import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 
 import { AsyncLocalStorage } from "node:async_hooks";
 const TEST_KEY = Deno.env.get("HYPERGUEST_API_KEY") ?? "";
@@ -48,19 +50,21 @@ async function hg(op: ChannelOperation, url: string, body?: unknown, timeoutMs =
   } finally { clearTimeout(t); }
   await logChannelPayload(sb, {
     channel: "hyperguest", operation: op, endpoint: url,
-    request_payload: redact(body), response_payload: payload, http_status: status,
+    request_payload: redact(body), response_payload: redactSupplier(payload), http_status: status,
     request_id: bookingRef ?? null, error_message: err,
   });
   return { ok: !err, status, data: payload, error: err };
 }
 
 type RoomPax = { adults: number; childAges?: number[] };
-const guestsParam = (rooms: RoomPax[]) =>
-  rooms.map((r) => [Math.max(1, r.adults | 0), ...(r.childAges ?? []).map((a) => Math.max(0, a | 0))].join("-")).join(".");
+const guestsParam = supplierGuests;
 
 function friendly(err: any) {
   const code = err?.errorCode ?? "";
   const msg = JSON.stringify(err ?? "").toLowerCase();
+  if (code === "BN.506") return "Supplier credit is unavailable. Please contact JaagaX before retrying.";
+  if (code === "BN.507") return "The hotel could not process the payment card. Check it or use another card.";
+  if (code === "BN.503") return "This hotel is not ready to accept bookings. Please choose another hotel.";
   if (msg.includes("test properties")) return "Live bookings can't be made on HyperGuest test hotels. Choose a real hotel that has a direct contract with you.";
   if (msg.includes("price")) return "The price for this room has changed. Please review the new price.";
   if (msg.includes("availab") || msg.includes("sold")) return "This room is no longer available for your dates. Please choose another.";
@@ -70,17 +74,17 @@ function friendly(err: any) {
 
 async function reconcile(ref: string) {
   const r = await hg("booking_retrieve", `${BOOK}booking/list`, { agencyReference: ref }, 60_000, ref);
-  return r.ok ? (r.data?.content?.bookings ?? [])[0] ?? null : null;
+  return r.ok ? bookingList(r.data).find((b: any) => b.reference?.agency === ref || b.references?.agency === ref) ?? (bookingList(r.data).length === 1 ? bookingList(r.data)[0] : null) : null;
 }
 
 async function saveBooking(ref: string, b: any) {
   const total = b?.payment?.chargeAmount;
   await sb.from("hyperguest_bookings").update({
     hg_booking_id: b?.bookingId ?? null,
-    status: String(b?.status ?? "unknown").toLowerCase(),
+    status: bookingStatus(b),
     total_amount: total?.price ?? null, total_currency: total?.currency ?? null,
     cancellation: (b?.rooms ?? []).map((r: any) => r?.cancellationPolicy ?? []),
-    raw: b, updated_at: new Date().toISOString(),
+    raw: redactSupplier(b), updated_at: new Date().toISOString(),
     ...(String(b?.status).toLowerCase() === "cancelled" ? { cancelled_at: new Date().toISOString() } : {}),
   }).eq("agency_reference", ref);
 }
@@ -90,7 +94,9 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request" }, 400);
-  let live = body?.live === true;
+  const managed = body.action === "maintenance";
+  if (managed) { const denied = authenticateCronRequest(req); if (denied) return json({ error: "Unauthorized" }, denied.status); }
+  let live = body?.live === true || managed;
   const propertyId = body.propertyId ?? body.payload?.propertyId ?? body.search?.propertyId;
   if (propertyId) {
     const { data: mapped } = await sb.from("partner_hotels").select("id").eq("hyperguest_property_id", String(propertyId)).maybeSingle();
@@ -103,7 +109,7 @@ Deno.serve(async (req) => {
   }
   const key = live ? LIVE_KEY : TEST_KEY;
   if (!key) return json({ error: live ? "The live HyperGuest token is not set up yet" : "HyperGuest is not configured" }, 503);
-  try { return await keyCtx.run(key, () => handle(req, body, live)); }
+  try { return await keyCtx.run(key, () => handle(req, body, live, managed)); }
   catch (error) { console.error("HyperGuest request failed", (error as Error).message); return json({ error: "Hotel service is temporarily unavailable. Please try again." }, 503); }
 });
 
@@ -119,8 +125,28 @@ function redact(b: any) {
   return { ...b, paymentDetails: { type: b.paymentDetails.type, details: { number: d.number ? `****${String(d.number).slice(-4)}` : undefined, cvv: "***", expiry: d.expiry, name: d.name } } };
 }
 
-async function handle(req: Request, body: any, live: boolean) {
+async function handle(req: Request, body: any, live: boolean, managed = false) {
   const action = String(body?.action ?? "");
+
+  if (managed && action === "maintenance") {
+    if (body.task === "reconcile") {
+      const { data: pending } = await sb.from("hyperguest_bookings").select("agency_reference,environment").in("status", ["pending", "partial"]).gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()).order("updated_at").limit(3);
+      let refreshed = 0;
+      for (const row of pending ?? []) {
+        const key = row.environment === "live" ? LIVE_KEY : TEST_KEY;
+        if (!key) continue;
+        const found = await keyCtx.run(key, () => reconcile(row.agency_reference));
+        if (found) { await saveBooking(row.agency_reference, found); refreshed++; }
+      }
+      return json({ success: true, refreshed });
+    }
+    if (body.task === "sync") {
+      const ids = [...MARKETPLACE_IDS, ...LEGACY_LIVE_IDS];
+      const slot = Math.floor(Date.now() / 3600000) % ids.length;
+      return handle(req, { action: "sync", propertyId: ids[slot] }, true, true);
+    }
+    return json({ error: "Unknown maintenance task" }, 400);
+  }
 
   if (action === "marketplace") {
     const { data, error } = await sb.from("partner_hotels").select("id,name,city,locality,images,star_rating,country,hyperguest_property_id,source_channel").eq("source_channel", "hyperguest").eq("is_active", true);
@@ -135,7 +161,7 @@ async function handle(req: Request, body: any, live: boolean) {
     if (!hotels?.length) return json({ availability: [] });
     const qs = new URLSearchParams({ checkIn: parsed.data.checkIn, nights: String(parsed.data.nights), guests: guestsParam(parsed.data.rooms), hotelIds: hotels.map(h => h.hyperguest_property_id).join(","), customerNationality: parsed.data.nationality, currency: parsed.data.currency });
     const r = await hg("search", `${SEARCH}?${qs}`);
-    return r.ok ? json({ availability: availabilitySummary(r.data?.results ?? [], parsed.data.nights) }) : json({ error: friendly(r.data) }, 502);
+    return r.ok ? json({ availability: availabilitySummary(r.data?.results ?? [], parsed.data.nights, parsed.data.rooms, parsed.data.currency) }) : json({ error: friendly(r.data) }, 502);
   }
 
   // ---- public actions -----------------------------------------------------
@@ -161,13 +187,15 @@ async function handle(req: Request, body: any, live: boolean) {
       currency: String(body.currency ?? "INR").toUpperCase().slice(0, 3),
     });
     const r = await hg("search", `${SEARCH}?${qs}`);
+    if (r.ok) { for (const property of r.data?.results ?? []) { for (const room of property.rooms ?? []) room.ratePlans = (room.ratePlans ?? []).filter(publicRate); } }
     return r.ok ? json(r.data) : json({ error: friendly(r.data) }, 502);
   }
 
   // ---- signed-in actions ----------------------------------------------------
   const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
-  const { data: u } = await sb.auth.getUser(token);
-  const user = u?.user;
+  const { data: u } = managed ? { data: { user: null } } : await sb.auth.getUser(token);
+  const { data: actor } = managed ? await sb.from("admin_scopes").select("user_id").eq("role", "global_admin").eq("is_active", true).limit(1).maybeSingle() : { data: null };
+  const user = u?.user ?? (actor ? { id: actor.user_id } : null);
   if (!user) return json({ error: "Please sign in to continue" }, 401);
 
   if (action === "sync" || action === "publish") {
@@ -190,7 +218,14 @@ async function handle(req: Request, body: any, live: boolean) {
         catalogCache = { rows, expires: Date.now() + 30 * 60_000 };
       }
       if (!catalogCache.rows.some(p => Number(p.id ?? p.propertyId ?? p.hotelId ?? p.hotel_id) === id)) throw new Error("Property is missing from the live HyperGuest catalog");
-      const detail = await hg("detail", `${STATIC}/${id}/property-static.json`);
+      const catalogEntry = catalogCache.rows.find(p => Number(p.id ?? p.propertyId ?? p.hotelId ?? p.hotel_id) === id);
+      const { data: prior } = await sb.from("partner_hotels").select("supplier_content,supplier_synced_at").eq("hyperguest_property_id", String(id)).maybeSingle();
+      if (!body.force && prior?.supplier_content && catalogEntry?.last_updated && Date.parse(catalogEntry.last_updated) <= Date.parse(prior.supplier_synced_at)) return json({ success: true, unchanged: true });
+      let detail = await hg("detail", `${STATIC}/${id}/property-static.json`);
+      for (let retry = 0; detail.status === 429 && retry < 2; retry++) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** retry));
+        detail = await hg("detail", `${STATIC}/${id}/property-static.json`);
+      }
       if (!detail.ok) throw new Error("Full property content could not be retrieved");
       const p = detail.data;
       if (Number(p?.id) !== id) throw new Error("Supplier property ID does not match");
@@ -232,11 +267,36 @@ async function handle(req: Request, body: any, live: boolean) {
   if (action === "prebook") {
     const parsed = z.object({ search: z.object({ propertyId: z.number().int().positive(), dates: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), nationality: z.string().regex(/^[A-Z]{2}$/), pax: z.array(z.object({ adults: z.number().int().min(1).max(10), children: z.array(z.number().int().min(0).max(17)) })).min(1).max(5) }), rooms: z.array(z.object({ roomCode: z.string().min(1), rateCode: z.string().min(1), expectedPrice: z.object({ amount: z.number().positive(), currency: z.string().regex(/^[A-Z]{3}$/) }) })).min(1).max(5) }).safeParse(body);
     if (!parsed.success) return json({ error: "Check room selection, dates and guests" }, 400);
-    const r = await hg("quote", `${BOOK}booking/pre-book`, { search: body.search, rooms: body.rooms });
-    if (!r.ok) return json({ error: friendly(r.data), details: r.data }, 409);
-    const c = r.data?.content ?? {};
-    if (!c.rooms?.length) return json({ error: "This room is no longer available for your dates. Please choose another." }, 409);
-    return json(c);
+    if (body.search.dates.from >= body.search.dates.to || body.search.pax.length !== body.rooms.length) return json({ error: "Every selected room needs matching guests and valid dates" }, 400);
+    const displayCurrency = String(body.currency ?? "INR").toUpperCase();
+    if (!/^[A-Z]{3}$/.test(displayCurrency)) return json({ error: "Invalid display currency" }, 400);
+    const nights = Math.round((Date.parse(body.search.dates.to) - Date.parse(body.search.dates.from)) / 86400000);
+    if (nights < 1 || nights > 30) return json({ error: "Stays must be between 1 and 30 nights" }, 400);
+    const qs = new URLSearchParams({ checkIn: body.search.dates.from, nights: String(nights), guests: supplierGuests(body.search.pax), hotelIds: String(body.search.propertyId), customerNationality: body.search.nationality, currency: displayCurrency });
+    const latest = await hg("search", `${SEARCH}?${qs}`);
+    if (!latest.ok) return json({ error: friendly(latest.data) }, 409);
+    const property = latest.data?.results?.find((p: any) => Number(p.propertyId) === body.search.propertyId);
+    const used = new Map<string, number>();
+    const selected: any[] = [];
+    for (let i = 0; i < body.rooms.length; i++) {
+      const choice = body.rooms[i];
+      const room = property?.rooms?.find((r: any) => r.roomTypeCode === choice.roomCode && paxSignature(r.searchedPax) === paxSignature(body.search.pax[i]));
+      const rate = room?.ratePlans?.find((r: any) => r.ratePlanCode === choice.rateCode && publicRate(r));
+      const retail = rate && customerPrice(rate, displayCurrency);
+      if (!rate || !retail) return json({ error: "The selected public rate is no longer available" }, 409);
+      const id = String(room.roomId); used.set(id, (used.get(id) ?? 0) + 1);
+      if ((used.get(id) ?? 0) > Number(room.numberOfAvailableRooms)) return json({ error: "Not enough rooms remain for this selection" }, 409);
+      selected.push({ roomCode: choice.roomCode, rateCode: choice.rateCode, roomId: room.roomId, ratePlanId: rate.ratePlanId, expectedPrice: { amount: rate.payment.chargeAmount.price, currency: rate.payment.chargeAmount.currency }, retail, disclosures: supplierDisclosures(rate) });
+    }
+    const r = await hg("quote", `${BOOK}booking/pre-book`, { search: body.search, rooms: selected.map(({ roomCode, rateCode, expectedPrice }) => ({ roomCode, rateCode, expectedPrice })) });
+    if (!r.ok) return json({ error: friendly(r.data) }, 409);
+    const c = bookingContent(r.data);
+    if (c?.rooms?.length !== selected.length) return json({ error: "Supplier could not quote every requested room" }, 409);
+    if (c.rooms.some((r: any) => r.priceChange)) return json({ error: "The price changed. Update availability and select the current rate." }, 409);
+    const snapshot = { search: body.search, rooms: selected, customerCurrency: displayCurrency, customerTotal: selected.reduce((sum, r) => sum + r.retail.amount, 0) };
+    const { data: quote, error } = await sb.from("hyperguest_quotes").insert({ user_id: user.id, property_id: body.search.propertyId, snapshot }).select("id,expires_at").single();
+    if (error || !quote) return json({ error: "Could not save verified room quote" }, 503);
+    return json({ ...c, quoteId: quote.id, expiresAt: quote.expires_at, customerTotal: snapshot.customerTotal, customerCurrency: displayCurrency, customerRooms: selected });
   }
 
   if (action === "book") {
@@ -271,6 +331,19 @@ async function handle(req: Request, body: any, live: boolean) {
       return json({ booking: fresh, duplicate: true });
     }
 
+    let verified: any = null;
+    if (marketplaceBooking) {
+      const { data: quote } = await sb.from("hyperguest_quotes").select("*").eq("id", String(body.quoteId ?? "")).eq("user_id", user.id).maybeSingle();
+      if (!quote || Date.parse(quote.expires_at) < Date.now() || Number(quote.property_id) !== Number(p.propertyId)) return json({ error: "Your room quote expired. Select the rooms again." }, 409);
+      verified = quote.snapshot;
+      if (p.dates.from !== verified.search.dates.from || p.dates.to !== verified.search.dates.to || p.rooms.length !== verified.rooms.length || body.nationality !== verified.search.nationality) return json({ error: "Dates or guests changed. Request a fresh quote." }, 409);
+      for (let i = 0; i < p.rooms.length; i++) {
+        const selected = verified.rooms[i];
+        if (p.rooms[i].roomCode !== selected.roomCode || p.rooms[i].rateCode !== selected.rateCode || p.rooms[i].guests.length !== verified.search.pax[i].adults + verified.search.pax[i].children.length) return json({ error: "Room guests do not match the verified quote" }, 400);
+        if (selected.disclosures.payment.charge !== "customer") return json({ error: "This rate requires JaagaX supplier settlement, which is not enabled. Select a pay-at-hotel rate.", code: "SUPPLIER_SETTLEMENT_REQUIRED" }, 409);
+        p.rooms[i].expectedPrice = selected.expectedPrice;
+      }
+    }
     let liveCard: any = null;
     if (live) {
       const c = body.card ?? {};
@@ -278,7 +351,7 @@ async function handle(req: Request, body: any, live: boolean) {
       const [mm, yy] = String(c.expiry ?? "").split("/");
       if (num.length < 13 || !/^\d{3,4}$/.test(String(c.cvv ?? "")) || !/^\d{2}$/.test(mm ?? "") || !/^\d{2}$/.test(yy ?? "")) return json({ error: "Live bookings need a valid payment card." }, 400);
       const parts = String(c.name ?? "").trim().split(/\s+/);
-      liveCard = { type: "credit_card", details: { number: num, cvv: String(c.cvv), expiry: { month: mm, year: `20${yy}` }, name: { first: parts[0] || "Test", last: parts.slice(1).join(" ") || parts[0] || "Test" } } };
+      liveCard = { type: "credit_card", details: { number: num, cvv: String(c.cvv), expiry: { month: mm, year: `20${yy}` }, name: { first: parts[0] || "Test", last: parts.slice(1).join(" ") || parts[0] || "Test" }, charge: false } };
     }
     const { error: insertError } = await sb.from("hyperguest_bookings").insert({
       user_id: user.id, agency_reference: ref, property_id: Number(p.propertyId),
@@ -286,6 +359,7 @@ async function handle(req: Request, body: any, live: boolean) {
       currency: body.currency ?? null, test_label: marketplaceBooking ? null : body.testLabel ?? null,
       rooms: body.roomsSummary ?? [], special_requests: body.specialRequests ?? null,
       environment: live ? "live" : "test",
+      quote_id: marketplaceBooking ? body.quoteId : null, customer_total: verified?.customerTotal ?? null, customer_currency: verified?.customerCurrency ?? null, customer_disclosures: verified ? { rooms: verified.rooms.map((r: any) => r.disclosures) } : null,
     });
     if (insertError) return json({ error: "Booking reference is already in use. Refresh your bookings before trying again." }, 409);
     const payload = live ? { ...p, reference: { agency: ref }, paymentDetails: liveCard } : {
@@ -295,12 +369,12 @@ async function handle(req: Request, body: any, live: boolean) {
       isTest: true,
     };
     const r = await hg("booking_create", `${BOOK}booking/create`, payload, BOOK_WAIT_MS, ref);
-    let b = r.ok ? r.data?.content : null;
+    let b = r.ok ? bookingContent(r.data) : null;
     if (!b && (r.error === "timeout" || r.status >= 500 || r.status === 0)) b = await reconcile(ref);
     if (!b) {
-      if (r.error === "timeout") return json({ pending: true, agencyReference: ref, message: "HyperGuest is still confirming. We'll check the status — don't book again." }, 202);
+      if (r.error === "timeout" || r.status === 0 || r.status >= 500) return json({ pending: true, agencyReference: ref, message: "HyperGuest is still confirming. We'll check the status — don't book again." }, 202);
       await sb.from("hyperguest_bookings").update({ status: "failed", raw: r.data }).eq("agency_reference", ref);
-      return json({ error: friendly(r.data), details: r.data }, 409);
+      return json({ error: friendly(r.data) }, 409);
     }
     await saveBooking(ref, b);
     const { data: saved } = await sb.from("hyperguest_bookings").select("*").eq("agency_reference", ref).single();
@@ -321,33 +395,26 @@ async function handle(req: Request, body: any, live: boolean) {
       }
     }
 
-    // Work out the current cancellation charge from HyperGuest's own policy windows.
     const { data: cur } = await sb.from("hyperguest_bookings").select("*").eq("id", bk.id).single();
-    // Policy windows are in the hotel's local time; convert with its UTC offset.
-    const st = await hg("detail", `${STATIC}/${cur.property_id}/property-static.json`);
-    const offMin = Number(st.data?.settings?.utcOffset ?? 0);
-    const now = Date.now() + offMin * 60_000;
-    let charge = 0, roomTotal = 0, currency = cur.total_currency;
-    for (const room of cur.raw?.rooms ?? []) {
-      roomTotal += Number(room?.prices?.net?.price ?? room?.payment?.chargeAmount?.price ?? 0);
-      for (const w of room?.cancellationPolicy ?? []) {
-        const s = Date.parse(String(w.startDate).replace(" ", "T") + "Z");
-        const e = Date.parse(String(w.endDate).replace(" ", "T") + "Z");
-        if (now >= s && now < e) { charge += Number(w.price?.amount ?? 0); currency = w.price?.currency ?? currency; }
-      }
-    }
-    const total = Number(cur.total_amount ?? roomTotal);
-    if (total > 0 && charge >= total - 0.01) {
-      await logChannelPayload(sb, { channel: "hyperguest", operation: "booking_cancel", request_id: cur.agency_reference,
-        request_payload: { bookingId: cur.hg_booking_id }, response_payload: { blocked: "non_refundable", charge, total }, error_message: "non-refundable" });
-      return json({ error: "This booking is non-refundable. Cancelling now would charge the full amount, so it can't be cancelled online.", nonRefundable: true, charge, currency }, 409);
-    }
+    if (!cur?.hg_booking_id) return json({ error: "Reservation confirmation is still pending. Refresh before cancelling." }, 409);
+    const request = { bookingId: cur.hg_booking_id, reason: String(body.reason ?? "Guest request").slice(0, 256) };
+    const preview = await hg("booking_cancel", `${BOOK}booking/cancel`, { ...request, simulation: true }, 60000, cur.agency_reference);
+    if (!preview.ok) return json({ error: "Could not retrieve the supplier cancellation charge. No cancellation was made." }, 409);
+    const simulated = bookingContent(preview.data);
+    if (simulated?.cancelSimulation !== true && preview.data?.cancelSimulation !== true) return json({ error: "Supplier did not verify a cancellation preview. Refresh the reservation." }, 409);
+    const items = simulated?.items ?? simulated?.rooms ?? [];
+    const charges = items.map((item: any) => ({ amount: Number(item.prices?.net?.price ?? item.price?.amount ?? item.prices?.sell?.price ?? 0), currency: item.prices?.net?.currency ?? item.price?.currency ?? item.prices?.sell?.currency ?? cur.total_currency }));
+    if (!charges.length) return json({ error: "Supplier cancellation amount is unavailable. No cancellation was made." }, 409);
+    if (new Set(charges.map((c: any) => c.currency)).size !== 1) return json({ error: "Cancellation charges use multiple currencies; administrator review is required." }, 409);
+    const charge = charges.reduce((sum: number, c: any) => sum + c.amount, 0), currency = charges[0].currency;
     if (!body.confirm) return json({ preview: true, charge, currency });
-    const r = await hg("booking_cancel", `${BOOK}booking/cancel`, { bookingId: cur.hg_booking_id, reason: String(body.reason ?? "Guest request").slice(0, 200) }, 120_000, cur.agency_reference);
-    if (!r.ok) return json({ error: "HyperGuest could not cancel this booking. Please try again.", details: r.data }, 409);
-    await saveBooking(cur.agency_reference, r.data?.content);
+    if (Number(body.acceptedCharge) !== charge || body.acceptedCurrency !== currency) return json({ error: "The cancellation charge changed. Review it again before cancelling." }, 409);
+    const r = await hg("booking_cancel", `${BOOK}booking/cancel`, { ...request, simulation: false }, 120000, cur.agency_reference);
+    if (!r.ok) return json({ error: "Cancellation is not yet verified. Refresh this booking before retrying." }, 409);
+    const cancelled = bookingContent(r.data);
+    await saveBooking(cur.agency_reference, cancelled);
     const { data } = await sb.from("hyperguest_bookings").select("*").eq("id", bk.id).single();
-    return json({ booking: data, charge, currency });
+    return json({ booking: data, charge, currency, cancelled: bookingStatus(cancelled) === "cancelled" });
   }
 
   return json({ error: "Unknown action" }, 400);

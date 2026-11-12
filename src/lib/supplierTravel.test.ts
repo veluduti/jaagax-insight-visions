@@ -1,0 +1,22 @@
+import { describe, expect, it } from "vitest";
+import { supplierGuests, customerPrice, allocateSupplierRooms, bookingList, bookingStatus, hotelLocalInstant, policyDeadline, publicRate, redactSupplier } from "../../supabase/functions/_shared/channel/travelRules";
+describe("supplier travel production rules", () => {
+  it("encodes child ages and room separators", () => expect(supplierGuests([{adults:2,childAges:[11,12]},{adults:1}])).toBe("2-11,12.1"));
+  it("never sells below BAR", () => expect(customerPrice({prices:{sell:{price:4462.5,currency:"INR"},bar:{price:5250,currency:"INR"}}},"INR")?.amount).toBe(5250));
+  it("keeps conversion atomic", () => expect(customerPrice({prices:{sell:{price:679.75,currency:"BRL",searchCurrency:11412.32},bar:{price:679.75,currency:"BRL",searchCurrency:11412.32}}},"INR")).toEqual({amount:11412.32,currency:"INR"}));
+  it("refuses unconverted foreign BAR", () => expect(customerPrice({prices:{sell:{searchCurrency:11412.32},bar:{price:679.75,currency:"BRL"}}},"INR")).toBeNull());
+  const room = (stock:number) => ({roomId:10,numberOfAvailableRooms:stock,searchedPax:{adults:2,children:[]},ratePlans:[{prices:{sell:{price:100,currency:"USD"}}}]});
+  it("requires two physical units for two rooms", () => expect(allocateSupplierRooms({rooms:[room(1),room(1)]},[{adults:2},{adults:2}],"USD")).toBeNull());
+  it("prices all requested rooms", () => expect(allocateSupplierRooms({rooms:[room(2)]},[{adults:2},{adults:2}],"USD")?.amount).toBe(200));
+  it("requires exact child occupancy", () => expect(allocateSupplierRooms({rooms:[room(2)]},[{adults:2,childAges:[11]}],"USD")).toBeNull());
+  it("supports booking list arrays", () => expect(bookingList([{bookingId:123}])[0].bookingId).toBe(123));
+  it("supports certified nested lists", () => expect(bookingList({content:{bookings:[{bookingId:456}]}})[0].bookingId).toBe(456));
+  it("does not confirm rejected rooms", () => expect(bookingStatus({status:"Confirmed",rooms:[{status:"Confirmed"},{status:"Rejected"}]})).toBe("partial"));
+  it("keeps on-request rooms pending", () => expect(bookingStatus({status:"Confirmed",rooms:[{status:"Pending"}]})).toBe("pending"));
+  it("uses hotel-local windows", () => expect(hotelLocalInstant("2027-03-09 22:00:00","Asia/Kolkata")).toBe(Date.parse("2027-03-09T16:30:00Z")));
+  it("uses nested hourly deadlines", () => expect(policyDeadline({timeSetting:{timeFromCheckIn:12,timeFromCheckInType:"hours"},cancellationDeadlineHour:"10:00"},"2027-03-10","Asia/Kolkata")).toBe(Date.parse("2027-03-09T16:30:00Z")));
+  it("does not invent unknown timezone", () => expect(hotelLocalInstant("2027-03-09 22:00:00")).toBeNull());
+  it("excludes private rates", () => expect(publicRate({ratePlanInfo:{isPrivate:true}})).toBe(false));
+  it("excludes package-only rates", () => expect(publicRate({ratePlanInfo:{isPackageRate:true}})).toBe(false));
+  it("redacts returned card information", () => expect(redactSupplier({payment:{details:{number:"4111111111111111",cvv:"123"}}})).toEqual({payment:{details:{number:"[redacted]",cvv:"[redacted]"}}}));
+});
