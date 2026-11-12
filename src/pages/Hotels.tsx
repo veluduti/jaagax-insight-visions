@@ -58,7 +58,7 @@ import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { buildRoomCombinations, roomFitsAlone, toOccupancyRoom, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
-import StayFinder, { type StayFilters, type AiIntent } from "@/components/hotels/StayFinder";
+import type { StayFilters, AiIntent } from "@/components/hotels/StayFinder";
 import { matchStayRequest, type Match } from "@/services/hospitality/matchingService";
 import { logHotelSignal, loadStayProfile, type StayProfile } from "@/services/hotelSignals";
 import { normalizeCategory, PREF_TO_UNIT } from "@/config/hospitalityCategories";
@@ -674,6 +674,29 @@ const Hotels = () => {
     s += stayFilters.amenities.filter((a) => amenityMatch(am, a)).length * 5;
     return s;
   }
+
+  const [aiBusy, setAiBusy] = useState(false);
+  const runAiSearch = async (q: string) => {
+    const query = q.trim();
+    if (query.length < 3) { toast.error("Describe your stay in a few words."); return; }
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("hotel-ai-intent", {
+        body: { query, today: new Date().toISOString().slice(0, 10) },
+      });
+      if (error) {
+        let msg = "AI search failed. Please use the filters instead.";
+        try { msg = (await (error as any).context?.json())?.error || msg; } catch { /* keep default */ }
+        throw new Error(msg);
+      }
+      if (data?.error) throw new Error(data.error);
+      applyAiIntent(data.intent as AiIntent);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const applyAiIntent = (intent: AiIntent) => {
     const merged: StayFilters = {
@@ -1301,7 +1324,7 @@ const Hotels = () => {
                   <p className="text-sm">Fully furnished apartments for short or long stays — ideal for families, business travellers and extended stays.</p>
                 </> : <>
                 <nav aria-label="Breadcrumb" className="mb-2 text-xs"><button type="button" className="hover:underline" onClick={() => navigate("/")}>Home</button> › <button type="button" className="hover:underline" onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}>Jaaga Stays</button> › Hotels</nav>
-                <h1 className="text-3xl font-bold md:text-4xl">Hotels{selectedCity !== "all" ? <> in <span className="capitalize">{selectedCity}</span></> : " near you"}</h1>
+                <h1 className="text-3xl font-bold md:text-4xl">Hotels{selectedCity !== "all" ? <> in <span className="text-primary capitalize">{selectedCity}</span></> : " near you"}</h1>
                 <p className="mt-1 text-sm md:text-base">Discover the best hotels, resorts and stays for your perfect trip</p>
                 </>}
               </div>
@@ -1309,8 +1332,8 @@ const Hotels = () => {
             </div>
 
             {/* Advanced Search Bar */}
-            <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
-              <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" className="h-7 shrink-0 rounded-full text-xs" onClick={() => { window.dispatchEvent(new CustomEvent("jaaga-stay-ai-prompt", { detail: text })); }}>{text}</Button>)}</div></div>
+            <div className="relative z-20 rounded-lg border border-primary/20 bg-card p-3 text-card-foreground shadow-lg md:p-4">
+              <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
                 <div ref={searchRef} className="relative col-span-2 lg:col-span-1">
@@ -1610,42 +1633,6 @@ const Hotels = () => {
               </div>
 
               
-            </div>
-            <div className="mt-3">
-            {/* AI search + filters on the green hero */}
-            <StayFinder
-              value={stayFilters}
-              hideTypeTags={pgMode || luxuryMode || corporateMode || uniqueMode}
-              onChange={onStayFiltersChange}
-              onAiIntent={applyAiIntent}
-              detectCity={(text) => {
-                const t = ` ${text.toLowerCase().replace(/[^a-z0-9 ]/g, " ")} `;
-                let best: { name: string; areas: { name: string; count: number }[] } | null = null;
-                locationIndex.forEach((c) => {
-                  if (best) return;
-                  if ([c.name, c.key].some((n) => n && t.includes(` ${n.toLowerCase()} `)))
-                    best = { name: c.name, areas: c.localities.slice(0, 12) };
-                });
-                if (!best && selectedCity !== "all") {
-                  const c = Array.from(locationIndex.values()).find((x) => isSameCity(x.name, selectedCity));
-                  if (c) best = { name: c.name, areas: c.localities.slice(0, 12) };
-                }
-                return best;
-              }}
-              selectedArea={selectedLocality}
-              onPickArea={(city, area) => {
-                const label = area ? `${area}, ${city}` : city;
-                setSelectedCity(city);
-                setSelectedLocality(area);
-                setSearchQuery(label);
-                setLocationLabel(label);
-                const next = new URLSearchParams(searchParams);
-                next.set("city", city);
-                if (area) next.set("locality", area);
-                else next.delete("locality");
-                setSearchParams(next, { replace: true });
-              }}
-            />
             </div>
           </div>
         </section>
