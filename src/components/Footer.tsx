@@ -1,3 +1,4 @@
+import AppPromo from "@/components/home/AppPromo";
 import { Link } from "react-router-dom";
 import { Instagram, Linkedin, Youtube, Twitter, Heart, Send } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -44,6 +45,8 @@ const socials = [
 
 const Footer = () => {
   return (
+    <>
+    <AppPromo />
     <footer className="bg-footer text-footer-foreground">
       <div className="container mx-auto container-padding py-12 sm:py-14">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
@@ -132,6 +135,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+    </>
   );
 };
 

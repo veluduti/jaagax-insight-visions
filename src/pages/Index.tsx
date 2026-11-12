@@ -10,7 +10,6 @@ import FeaturedStays from "@/components/home/FeaturedStays";
 import JourneyBanners from "@/components/home/JourneyBanners";
 import HowItWorks from "@/components/home/HowItWorks";
 import HomeReviews from "@/components/home/HomeReviews";
-import AppPromo from "@/components/home/AppPromo";
 import AIInsightStrip from "@/components/AIInsightStrip";
 import { useAuth } from "@/hooks/useAuth";
 import { LazyMount, AISectionSkeleton } from "@/components/shared";
@@ -83,7 +82,6 @@ const Index = () => {
 
       {/* Real customer reviews (hidden when none exist) */}
       <HomeReviews />
-      <AppPromo />
       <Footer />
     </div>
   );
