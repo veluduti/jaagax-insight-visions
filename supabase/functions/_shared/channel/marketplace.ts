@@ -28,7 +28,14 @@ export function availabilitySummary(results: any[], nights: number, requests?: S
   return results.map(p => {
     if (requests) {
       const allocation = allocateSupplierRooms(p, requests, currency);
-      return { propertyId: Number(p.propertyId ?? p.hotelId ?? p.id), available: allocation != null, price: allocation ? allocation.amount / nights / requests.length : null, total: allocation?.amount ?? null, currency };
+      const selected = allocation?.selections ?? [];
+      return { propertyId: Number(p.propertyId ?? p.hotelId ?? p.id), available: allocation != null, price: allocation ? allocation.amount / nights / requests.length : null, total: allocation?.amount ?? null, currency,
+        roomTypes: [...new Set(selected.map(s => s.roomName).filter(Boolean))],
+        breakfastIncluded: selected.length > 0 && selected.every(s => ["BB", "HB", "FB", "AI"].includes(s.rate.board)),
+        mealsIncluded: selected.length > 0 && selected.every(s => ["BB", "HB", "FB", "AI"].includes(s.rate.board)),
+        // Only explicitly zero-penalty policies are safely free without hotel timezone data.
+        freeCancellation: selected.length > 0 && selected.every(s => Array.isArray(s.rate.cancellationPolicies) && s.rate.cancellationPolicies.length > 0 && s.rate.cancellationPolicies.every((pol: any) => pol.amount != null && Number(pol.amount) === 0)),
+      };
     }
     const prices = (p.rooms ?? []).flatMap((r: any) => (r.ratePlans ?? []).map((rate: any) => {
       const sell = rate.prices?.sell;

@@ -1,4 +1,4 @@
-import { loadSupplierAvailability } from "@/services/hospitality/hyperguestDiscoveryService";
+import { loadSupplierAvailability, type SupplierDiscoveryOffer } from "@/services/hospitality/hyperguestDiscoveryService";
 import { hotelSearchParams } from "@/lib/hotelSearchContext";
 import { hasRequestedRooms, exactHotelMatches } from "@/lib/hotelSearchEligibility";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
@@ -77,7 +77,7 @@ import HotelDiscoveryMap, { type HotelMapBounds } from "@/components/hotels/Hote
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StayCategoryTabs, StayIntentStrip, HotelDiscoveryFilters } from "@/components/hotels/HotelDiscoveryControls";
 import HotelResultRow from "@/components/hotels/HotelResultRow";
-import { distanceFromCityCentre, hasFreeCancellation, hasBreakfast } from "@/lib/hotelDiscoveryMeta";
+import { distanceFromCityCentre, hasFreeCancellation, lowestMatchingRoomOffer, hotelCardLocation, hotelSpecialties } from "@/lib/hotelDiscoveryMeta";
 import { List, LayoutGrid, ShieldCheck } from "lucide-react";
 import { isResortProperty, matchesResortTypes, countResortTypes, readRecentResorts, pushRecentResort } from "@/lib/resortDiscovery";
 import { UniqueCategoryTiles, UniqueTypeFilter, WhyBookUnique } from "@/components/hotels/UniqueDiscovery";
@@ -103,7 +103,7 @@ import type { RentPlan } from "@/lib/longStayPricing";
 import colivingHero from "@/assets/coliving-hero.jpg";
 import { isColivingProperty, colivingTypesOf, rentalDiscoveryPrice } from "@/lib/colivingDiscovery";
 import { ColivingCategoryTiles, ColivingTypeFilter } from "@/components/hotels/ColivingDiscovery";
-import { loadDiscoveryAvailability } from "@/services/hospitality/discoveryAvailabilityService";
+import { loadDiscoveryAvailability, loadDiscoveryQuotes, type DiscoveryRoomQuote } from "@/services/hospitality/discoveryAvailabilityService";
 
 interface RoomFeature {
   kind: string;
@@ -773,13 +773,15 @@ const Hotels = () => {
   };
 
   const [dateAvailability, setDateAvailability] = useState<Record<string, number> | null>(null);
+  const [discoveryQuotes, setDiscoveryQuotes] = useState<Record<string, DiscoveryRoomQuote>>({});
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRetry, setAvailabilityRetry] = useState(0);
-  const [supplierAvailability, setSupplierAvailability] = useState<Record<string, { available: boolean; price: number | null }>>({});
+  const [supplierAvailability, setSupplierAvailability] = useState<Record<string, SupplierDiscoveryOffer>>({});
   const [supplierError, setSupplierError] = useState(false);
   useEffect(() => {
     let cancelled = false;
     setDateAvailability(null);
+    setDiscoveryQuotes({});
     setAvailabilityError(false);
     setSupplierError(false);
     const timer = setTimeout(() => {
@@ -789,18 +791,27 @@ const Hotels = () => {
         loadDiscoveryAvailability(rawRooms.filter(r => !supplierHotels.some(h => h.id === r.hotel_id)).map(r => r.id), format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd")),
         supplierHotels.length ? loadSupplierAvailability(format(checkIn, "yyyy-MM-dd"), Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000), pax).catch(() => { if (!cancelled) setSupplierError(true); return []; }) : Promise.resolve([]),
       ])
-        .then(([counts, supplier]) => { if (!cancelled) { setSupplierAvailability(Object.fromEntries(supplier.map(s => [String(s.propertyId), s]))); setDateAvailability(counts); } })
+        .then(async ([counts, supplier]) => {
+          const quotes = pgMode ? {} : await loadDiscoveryQuotes(rawRooms.filter(r => !supplierHotels.some(h => h.id === r.hotel_id)), counts, format(checkIn, "yyyy-MM-dd"), format(checkOut, "yyyy-MM-dd"), adults, children);
+          if (!cancelled) { setDiscoveryQuotes(quotes); setSupplierAvailability(Object.fromEntries(supplier.map(s => [String(s.propertyId), s]))); setDateAvailability(counts); }
+        })
         .catch(() => { if (!cancelled) setAvailabilityError(true); });
     }, 250);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [rawRooms, hotels, checkIn, checkOut, adults, rooms, childAges, availabilityRetry]);
+  }, [rawRooms, hotels, checkIn, checkOut, adults, rooms, childAges, availabilityRetry, pgMode]);
+
+  const matchingOffers = useMemo(() => Object.fromEntries(hotels.map(h => {
+    const pool = (roomsByHotel[h.id] || []).filter(r => !aiKinds.length || aiKinds.includes(r.raw?.accommodation_kind || "room")).map(r => ({ ...r, available: dateAvailability?.[r.id] ?? 0, perNight: discoveryQuotes[r.id]?.perNight ?? 0 }));
+    return [h.id, lowestMatchingRoomOffer(pool, adults, children, rooms)];
+  })), [hotels, roomsByHotel, dateAvailability, discoveryQuotes, adults, children, rooms, searchParams]);
 
   // Filter and sort hotels
   const searchOutcome = useMemo(() => {
     if (dateAvailability === null || availabilityError) return { list: [] };
     // When the box shows a picked city/area label, the city+locality filters do the work.
     const q = searchQuery.trim() === locationLabel ? "" : searchQuery.trim().toLowerCase();
-    let result = hotels.map(h => h.source_channel === "hyperguest" ? { ...h, price_per_night: supplierAvailability[h.hyperguest_property_id ?? ""]?.price ?? 0 } : h).filter((hotel) => {
+    let result = hotels.map(h => h.source_channel === "hyperguest" ? { ...h, price_per_night: supplierAvailability[h.hyperguest_property_id ?? ""]?.price ?? 0 } : pgMode ? h : { ...h, price_per_night: matchingOffers[h.id]?.price ?? 0 }).filter((hotel) => {
+      if (!pgMode && hotel.price_per_night <= 0) return false;
       const matchesCity =
         selectedCity === "all" ||
         isSameCity(hotel.city, selectedCity) ||
@@ -907,24 +918,35 @@ const Hotels = () => {
     dateAvailability,
     availabilityError,
     supplierAvailability,
+    matchingOffers,
   ]);
   // Per-hotel presentation meta. Every value is derived from data a partner or
   // guest actually entered; missing data stays null/false and the row hides it.
   const hotelMetaById = useMemo(() => {
-    const out: Record<string, { distance_km: number | null; free_cancellation: boolean; breakfast_included: boolean; review_count: number; avg_rating: number | null }> = {};
+    const out: Record<string, { distance_km: number | null; free_cancellation: boolean; breakfast_included: boolean; meals_included: boolean; review_count: number; avg_rating: number | null; location_label: string; tags: string[]; lowest_room_type: string | null; original_price: number | null; discount_percentage: number | null }> = {};
     hotels.forEach((h) => {
-      const rooms = rawRooms.filter((r: any) => r.hotel_id === h.id);
+      const offer = matchingOffers[h.id];
+      const offerRooms = rawRooms.filter((r: any) => offer?.roomIds.includes(r.id));
+      const quotes = (offer?.roomIds || []).map(id => discoveryQuotes[id]);
+      const original = quotes.length && quotes.every(q => q?.originalPrice != null) ? quotes.reduce((sum, q) => sum + (q.originalPrice || 0), 0) / quotes.length : null;
       const agg = reviewMeta[h.id];
+      const supplier = h.source_channel === "hyperguest" ? supplierAvailability[h.hyperguest_property_id ?? ""] : null;
       out[h.id] = {
         distance_km: distanceFromCityCentre(h),
-        free_cancellation: hasFreeCancellation(rooms),
-        breakfast_included: hasBreakfast(rooms, h.amenities),
+        free_cancellation: supplier ? supplier.freeCancellation === true : offerRooms.length > 0 && offerRooms.every(r => hasFreeCancellation([r])),
+        breakfast_included: supplier ? supplier.breakfastIncluded === true : quotes.length > 0 && quotes.every(q => q?.breakfastIncluded === true),
+        meals_included: supplier ? supplier.mealsIncluded === true : quotes.length > 0 && quotes.every(q => q?.mealsIncluded === true),
+        location_label: hotelCardLocation(h),
+        tags: hotelSpecialties(h),
+        lowest_room_type: supplier?.roomTypes?.join(" + ") || offer?.roomTypes.join(" + ") || null,
+        original_price: original,
+        discount_percentage: original && offer ? Math.round((1 - offer.price / original) * 100) : null,
         review_count: agg?.count || 0,
         avg_rating: agg && agg.count ? Math.round((agg.total / agg.count) * 10) / 10 : null,
       };
     });
     return out;
-  }, [hotels, rawRooms, reviewMeta]);
+  }, [hotels, rawRooms, reviewMeta, matchingOffers, discoveryQuotes, supplierAvailability]);
 
   const roomsForHotel = useMemo(() => {
     const m: Record<string, any[]> = {};

@@ -11,6 +11,11 @@ export interface HyperGuestHotel {
   descriptions?: { language: string; type: string; description: string }[];
 }
 
+export interface SupplierDiscoveryOffer {
+  propertyId: number; available: boolean; price: number | null;
+  roomTypes?: string[]; breakfastIncluded?: boolean; mealsIncluded?: boolean; freeCancellation?: boolean;
+}
+
 export async function loadHyperGuestHotels(): Promise<HyperGuestHotel[]> {
   const data = await hyperguestRequest({ action: "marketplace" });
   return (data.hotels ?? []).map((h: any) => ({ id: Number(h.hyperguest_property_id), name: h.name, rating: h.star_rating, location: { address: h.locality, city: { name: h.city }, country: { name: h.country } }, images: (h.images ?? []).map((uri: string) => ({ uri })) }));
@@ -29,7 +34,7 @@ export async function hyperguestRequest(body: Record<string, unknown>) {
 
 export async function loadSupplierAvailability(checkIn: string, nights: number, rooms: { adults: number; childAges: number[] }[], nationality = "IN", currency = "INR") {
   const data = await hyperguestRequest({ action: "marketplace-search", checkIn, nights, rooms, nationality, currency });
-  return data.availability as { propertyId: number; available: boolean; price: number | null }[];
+  return data.availability as SupplierDiscoveryOffer[];
 }
 
 export async function loadSupplierAdmin() {

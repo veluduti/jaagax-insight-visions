@@ -5,7 +5,11 @@ import {
   hasBreakfast,
   amenityLabel,
   formatReviewCount,
+  hotelCardLocation,
+  hotelSpecialties,
+  lowestMatchingRoomOffer,
 } from "../hotelDiscoveryMeta";
+import { toOccupancyRoom } from "../roomOccupancy";
 
 // Hotel discovery rows may only show facts the partner or a guest entered.
 
@@ -31,6 +35,27 @@ it("reports free cancellation only when the partner policy says so", () => {
   expect(hasFreeCancellation([{ cancellation_policy: "Non-refundable" }])).toBe(false);
   expect(hasFreeCancellation([{ cancellation_policy: null }])).toBe(false);
   expect(hasFreeCancellation([])).toBe(false);
+  expect(hasFreeCancellation([{ cancellation_policy: "No free cancellation" }])).toBe(false);
+  expect(hasFreeCancellation([{ cancellation_policy: "Flexible cancellation with a fee" }])).toBe(false);
+});
+
+it("uses only area/city, not a full street address", () => {
+  expect(hotelCardLocation({ locality: "Kondapur", city: "Hyderabad" })).toBe("Kondapur, Hyderabad");
+  expect(hotelCardLocation({ locality: "2-57/24/C, Beside Subway", address: "2-57/24/C, Beside Subway", city: "Hyderabad" })).toBe("Hyderabad");
+  expect(hotelCardLocation({ locality: "Hyderabad", city: "Hyderabad" })).toBe("Hyderabad");
+});
+
+it("highlights saved specialties without inventing best-seller claims", () => {
+  expect(hotelSpecialties({ business_types: ["luxury", "corporate"], tags: ["Spa", "demo"] })).toEqual(["Spa", "Luxury Stay", "Corporate / Business Stay"]);
+  expect(hotelSpecialties({ business_types: ["hotel"], tags: [] })).toEqual([]);
+});
+
+it("advertises the cheapest available matching room instead of unavailable cheaper stock", () => {
+  const room = (id: string, price: number, units: number, capacity = 2) => toOccupancyRoom({ id, room_type: id, max_occupancy: capacity, max_children: 0 }, { available: units, perNight: price });
+  const pool = [room("sold-out", 1000, 0), room("Standard", 2500, 2), room("Suite", 5000, 2)];
+  expect(lowestMatchingRoomOffer(pool, 2, 0, 1)).toEqual({ price: 2500, roomIds: ["Standard"], roomTypes: ["Standard"] });
+  expect(lowestMatchingRoomOffer(pool, 4, 0, 2)?.price).toBe(2500);
+  expect(lowestMatchingRoomOffer(pool, 8, 0, 2)).toBeNull();
 });
 
 it("reports breakfast only when entered room or hotel data mentions it", () => {

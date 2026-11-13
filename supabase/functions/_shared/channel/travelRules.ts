@@ -74,19 +74,21 @@ export function allocateSupplierRooms(property: any, requests: SupplierPax[], cu
     const id = String(room.roomId ?? room.roomTypeCode);
     const count = Math.max(0, Number(room.numberOfAvailableRooms) || 0);
     stock.set(id, Math.min(stock.get(id) ?? count, count));
-    return (room.ratePlans ?? []).filter(publicRate).map((rate: any) => ({ id, price: customerPrice(rate, currency) })).filter((c: any) => c.price);
+    return (room.ratePlans ?? []).filter(publicRate).map((rate: any) => ({ id, roomName: room.roomName ?? null, rate, price: customerPrice(rate, currency) })).filter((c: any) => c.price);
   }));
   if (!requests.length || choices.some(c => !c.length)) return null;
   let best = Infinity;
+  let bestChoices: any[] = [];
+  const selected: any[] = [];
   function visit(i: number, sum: number) {
     if (sum >= best) return;
-    if (i === choices.length) { best = sum; return; }
+    if (i === choices.length) { best = sum; bestChoices = [...selected]; return; }
     for (const choice of choices[i]) {
       const available = stock.get(choice.id) ?? 0;
       if (available < 1) continue;
-      stock.set(choice.id, available - 1); visit(i + 1, sum + choice.price.amount); stock.set(choice.id, available);
+      stock.set(choice.id, available - 1); selected.push(choice); visit(i + 1, sum + choice.price.amount); selected.pop(); stock.set(choice.id, available);
     }
   }
   visit(0, 0);
-  return Number.isFinite(best) ? { amount: best, currency } : null;
+  return Number.isFinite(best) ? { amount: best, currency, selections: bestChoices } : null;
 }

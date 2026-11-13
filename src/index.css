@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .hotel-review-score { background: hsl(var(--why-blue) / 0.12); color: hsl(var(--why-blue)); }
+  .hotel-specialty-business { background: hsl(var(--why-blue) / 0.08); color: hsl(var(--why-blue)); }
+  .hotel-star-filled { fill: hsl(var(--hotel-star)); color: hsl(var(--hotel-star)); }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -11,6 +17,7 @@ All colors MUST be HSL.
     --why-green: 152 60% 36%;
     --why-orange: 28 92% 52%;
     --why-blue: 217 85% 55%;
+    --hotel-star: 42 96% 50%;
     /* ===== COLOR SYSTEM ===== */
     /* Light Mode - Modern & Vibrant */
     /* Warm cream canvas like the Jaaga reference homepage */

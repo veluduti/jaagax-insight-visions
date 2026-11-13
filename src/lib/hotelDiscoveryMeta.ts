@@ -1,5 +1,7 @@
 import { canonicalizeCity } from "./cityNormalizer";
 import { CITY_CENTRES } from "./hyderabadPropertyRadius";
+import { CATEGORY_BY_KEY, normalizeCategory } from "@/config/hospitalityCategories";
+import { buildRoomCombinations, type OccupancyRoom } from "./roomOccupancy";
 import {
   Armchair,
   Bell,
@@ -114,8 +116,28 @@ export function hasFreeCancellation(
 ): boolean {
   return (rooms || []).some((r) => {
     const policy = (r.cancellation_policy || "").toLowerCase();
-    return policy.includes("free") || policy.includes("no charge") || policy.includes("flexible");
+    return !/non[ -]?refundable|no free|not free|without free/.test(policy) && /free cancellation|cancellation.*no charge|no charge.*cancel/.test(policy);
   });
+}
+
+/** Do not mistake a street address saved in legacy locality for an area name. */
+export function hotelCardLocation(hotel: { locality?: string | null; city?: string | null; address?: string | null }): string {
+  const area = hotel.locality?.trim();
+  const city = hotel.city?.trim();
+  const street = area && (area === hotel.address?.trim() || /\d|\b(road|street|avenue|survey|postal|cep|complex)\b/i.test(area) || area.length > 60);
+  return [...new Set([!street ? area : null, city].filter(Boolean))].join(", ");
+}
+
+export function hotelSpecialties(hotel: { tags?: string[] | null; business_types?: string[] | null }): string[] {
+  const types = (hotel.business_types || []).filter(t => t !== "hotel" && t !== "other").map(t => CATEGORY_BY_KEY[normalizeCategory(t)]?.label).filter((t): t is string => Boolean(t));
+  return [...new Set([...(hotel.tags || []).filter(t => t && t !== "demo"), ...types])];
+}
+
+/** Cheapest exact-room allocation uses dated rates, never a sold-out room's base price. */
+export function lowestMatchingRoomOffer(pool: OccupancyRoom[], adults: number, children: number, rooms: number) {
+  const combo = buildRoomCombinations(pool.filter(r => r.perNight > 0 && r.available > 0), adults, children, { exactRooms: rooms, limit: 1 })[0];
+  if (!combo) return null;
+  return { price: Math.round(combo.perNightTotal / rooms * 100) / 100, roomIds: combo.items.map(i => i.room.id), roomTypes: combo.items.map(i => i.room.room_type) };
 }
 
 /** True only when breakfast appears in partner-entered room/hotel data. */

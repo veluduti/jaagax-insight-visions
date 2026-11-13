@@ -1,5 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
+## Hotel reference cards
+- [x] Show lowest available matching room prices, real inclusions and quoted discounts without changing checkout prices; supplier prepaid safeguards remain unchanged.
+- [x] Match partner/name, compact area/city/distance, blue reviews and saved specialty highlights in grid/list cards; absent areas/ratings/specialties remain hidden.
+- [x] 47 focused tests passed; real Hyderabad native and supplier results verified in grid/list at desktop and 631px, including live supplier breakfast inclusion; no booking made.
+
 ## HyperGuest production safeguards
 - [x] Correct child occupancy, customer pricing/BAR, rate eligibility and nationality/currency continuity.
 - [x] Validate bookings against server-owned quotes and current supplier conditions; clarify card guarantees versus collection and block unconfigured prepaid settlement.

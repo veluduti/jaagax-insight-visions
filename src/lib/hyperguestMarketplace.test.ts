@@ -15,4 +15,11 @@ describe("HyperGuest marketplace rules", () => {
     expect(availabilitySummary([{propertyId:111139,rooms:[{numberOfAvailableRooms:2,ratePlans:[{prices:{sell:{searchCurrency:6000}}}]}]},{propertyId:120655,rooms:[]}],2)).toEqual([{propertyId:111139,available:true,price:3000},{propertyId:120655,available:false,price:null}]);
   });
   it("keeps certification restrictions off mapped marketplace bookings", () => { expect(certificationRulesApply(true,true)).toBe(false); expect(certificationRulesApply(true,false)).toBe(true); });
+  it("shows inclusions only from the lowest matching supplier rate", () => {
+    const result = availabilitySummary([{ propertyId: 111139, rooms: [{ roomId: 1, roomName: "Standard", searchedPax: { adults: 2 }, numberOfAvailableRooms: 1, ratePlans: [
+      { board: "BB", prices: { sell: { searchCurrency: 6000 } }, cancellationPolicies: [{ amount: 0 }] },
+      { board: "RO", prices: { sell: { searchCurrency: 5000 } }, cancellationPolicies: [{ amount: 100 }] },
+    ] }] }], 2, [{ adults: 2 }]);
+    expect(result[0]).toMatchObject({ price: 2500, roomTypes: ["Standard"], breakfastIncluded: false, freeCancellation: false });
+  });
 });
