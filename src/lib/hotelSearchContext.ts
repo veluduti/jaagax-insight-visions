@@ -1,5 +1,21 @@
 import { isValidDateRangeISO, nextDayISO } from "./dateRange";
 
+/** Expired discovery links start today while keeping their original stay length. */
+export function currentHotelSearchDates(params: URLSearchParams, today: string) {
+  const raw = params.get("checkin") ?? "";
+  const validStart = /^\d{4}-\d{2}-\d{2}$/.test(raw) && !Number.isNaN(Date.parse(raw));
+  const expired = validStart && raw < today;
+  const checkIn = validStart && !expired ? raw : today;
+  const end = params.get("checkout") ?? "";
+  if (expired && isValidDateRangeISO(raw, end)) {
+    const nights = Math.round((Date.parse(end) - Date.parse(raw)) / 86400000);
+    const shifted = new Date(`${today}T00:00:00Z`);
+    shifted.setUTCDate(shifted.getUTCDate() + nights);
+    return { checkIn, checkOut: shifted.toISOString().slice(0, 10), expired };
+  }
+  return { checkIn, checkOut: isValidDateRangeISO(checkIn, end) ? end : nextDayISO(checkIn), expired };
+}
+
 export function readHotelSearchContext(params: URLSearchParams, defaultCheckIn: string) {
   const raw = params.get("checkin") ?? "";
   const checkIn = /^\d{4}-\d{2}-\d{2}$/.test(raw) && !Number.isNaN(Date.parse(raw)) ? raw : defaultCheckIn;

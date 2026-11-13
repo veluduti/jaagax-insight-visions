@@ -1,5 +1,5 @@
 import { loadSupplierAvailability, type SupplierDiscoveryOffer } from "@/services/hospitality/hyperguestDiscoveryService";
-import { hotelSearchParams } from "@/lib/hotelSearchContext";
+import { currentHotelSearchDates, hotelSearchParams } from "@/lib/hotelSearchContext";
 import { hasRequestedRooms, exactHotelMatches } from "@/lib/hotelSearchEligibility";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
 import { longStayQuote } from "@/lib/longStayPricing";
@@ -264,25 +264,22 @@ const Hotels = () => {
 
   // New search states for advanced search — initialized from URL params so a
   // homepage search lands here with dates and guests already applied.
-  const parseDateParam = (key: string): Date | null => {
-    const raw = searchParams.get(key);
-    if (!raw) return null;
-    const d = new Date(`${raw}T00:00:00`);
-    return isNaN(d.getTime()) ? null : d;
-  };
+  const [initialSearchDates] = useState(() => currentHotelSearchDates(searchParams, format(new Date(), "yyyy-MM-dd")));
+  useEffect(() => {
+    if (!initialSearchDates.expired) return;
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      next.set("checkin", initialSearchDates.checkIn);
+      next.set("checkout", initialSearchDates.checkOut);
+      return next;
+    }, { replace: true });
+  }, [initialSearchDates, setSearchParams]);
   const parseCountParam = (key: string, min: number, max: number): number | null => {
     const n = Number(searchParams.get(key));
     return Number.isFinite(n) && n >= min && n <= max ? Math.round(n) : null;
   };
-  const [checkIn, setCheckIn] = useState<Date>(() => parseDateParam("checkin") ?? new Date());
-  const [checkOut, setCheckOut] = useState<Date>(() => {
-    const inDate = parseDateParam("checkin") ?? new Date();
-    const fromUrl = parseDateParam("checkout");
-    if (fromUrl && fromUrl.getTime() > inDate.getTime()) return fromUrl;
-    const date = new Date(inDate);
-    date.setDate(date.getDate() + 1);
-    return date;
-  });
+  const [checkIn, setCheckIn] = useState<Date>(() => new Date(`${initialSearchDates.checkIn}T00:00:00`));
+  const [checkOut, setCheckOut] = useState<Date>(() => new Date(`${initialSearchDates.checkOut}T00:00:00`));
   const [rooms, setRooms] = useState(() => parseCountParam("rooms", 1, 4) ?? 1);
   const [adults, setAdults] = useState(() => parseCountParam("occupants", 1, 10) ?? parseCountParam("adults", 1, 10) ?? parseCountParam("guests", 1, 10) ?? (pgMode ? 1 : 2));
   const [pgPlan, setPgPlan] = useState<RentPlan>(() => searchParams.get("plan") === "weekly" ? "weekly" : "monthly");
@@ -1165,6 +1162,10 @@ const Hotels = () => {
   };
 
   const handleAdvancedSearch = () => {
+    if (format(checkIn, "yyyy-MM-dd") < format(new Date(), "yyyy-MM-dd")) {
+      toast.error("Please choose today or a future check-in date.");
+      return;
+    }
     if (children > 0 && (childAges.length !== children || childAges.some(c => c.age === "Select"))) {
       toast.error("Please select each child's age to check room availability.");
       setShowGuestSelector(true); setShowChildAgeSelector(true);
@@ -1732,6 +1733,7 @@ const Hotels = () => {
               </div>
           <div className="mb-4"><StayIntentStrip value={stayFilters} onChange={onStayFiltersChange} /></div>
           {/* Hotels Grid */}
+          {initialSearchDates.expired && <p role="status" className="mb-3 text-sm text-muted-foreground">Your previous dates have passed. Showing availability from {format(new Date(`${initialSearchDates.checkIn}T00:00:00`), "dd MMM yyyy")}.</p>}
           {supplierError && <div role="alert" className="mb-3 flex items-center gap-3 text-sm text-muted-foreground">Supplier availability could not be checked. Other stays are still available.<Button variant="outline" size="sm" onClick={() => setAvailabilityRetry(n => n + 1)}>Retry</Button></div>}
           {availabilityError ? <div role="alert" className="py-12 text-center"><p className="text-sm text-muted-foreground">Availability could not be checked. Please try again.</p><Button variant="outline" className="mt-3" onClick={() => setAvailabilityRetry(n => n + 1)}>Try again</Button></div> : loading || dateAvailability === null ? <p role="status" className="py-12 text-center text-sm text-muted-foreground">Checking available stays…</p> : filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-card rounded-2xl shadow-sm border border-border/50">
