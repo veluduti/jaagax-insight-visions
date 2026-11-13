@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, ShieldCheck, CalendarDays, Users, BedDouble, CreditCard, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, ShieldCheck, CalendarDays, Users, BedDouble, CreditCard, Lock, ArrowRight, Sparkles, User, FileText } from "lucide-react";
+import { BookingStepper, HotelHeroHeader, WhyBookCard, TrustStrip, PaymentBadges, useHotelReviewStats } from "@/components/hotels/booking/BookingFlowChrome";
 import { toast } from "sonner";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
@@ -84,6 +85,8 @@ interface RoomRow {
 interface HotelRow {
   id: string; name: string; city: string; locality: string;
   images: string[] | null; address: string | null;
+  star_rating?: number | null; total_rooms?: number | null; amenities?: string[] | null;
+  check_in_time?: string | null; check_out_time?: string | null;
 }
 
 const HotelCheckout = () => {
@@ -107,6 +110,7 @@ const HotelCheckout = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { isAuthenticated, openAuthPopup } = useRequireAuth();
+  const reviewStats = useHotelReviewStats(hotelId);
 
   // Only signed-in users may reach checkout: bounce guests with a sign-in prompt.
   useEffect(() => {
@@ -140,7 +144,7 @@ const HotelCheckout = () => {
     (async () => {
       setLoading(true);
       const [{ data: h }, { data: r }] = await Promise.all([
-        supabase.from("partner_hotels").select("id,name,city,locality,images,address").eq("id", hotelId).maybeSingle(),
+        supabase.from("partner_hotels").select("id,name,city,locality,images,address,star_rating,total_rooms,amenities,check_in_time,check_out_time").eq("id", hotelId).maybeSingle(),
         supabase.from("hotel_rooms").select("id,room_type,base_price,photos,bed_type,max_occupancy").eq("id", roomId).maybeSingle(),
       ]);
       const resolvedHotel = h ? { ...h, images: await resolveHotelImages((h as any).images) } : null;
@@ -348,114 +352,137 @@ const HotelCheckout = () => {
     );
   }
 
+  const fmtDay = (iso: string) => { const d = new Date(`${iso}T00:00:00`); return Number.isNaN(+d) ? "—" : d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }); };
+  const inr = (n: number) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
+  const perNight = Number(displayPrice?.perNight || 0);
+  const roomCharges = Number(displayPrice?.roomCharges || 0);
+  const taxAmount = Number(displayPrice?.taxAmount || 0);
+  const roomImg = room?.photos?.[0] || hotel?.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400";
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/hotels/${hotelId}?${params}`)} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to rooms
-        </Button>
-        <div className="mb-6 space-y-1"><Badge variant="secondary">Hotel</Badge><h1 className="text-2xl md:text-3xl font-bold">{hotel?.name}</h1><p className="text-sm text-muted-foreground">{hotel?.locality}, {hotel?.city}</p></div>
-        <h2 className="text-2xl font-bold mb-4">Complete your booking</h2>
+      <div className="container mx-auto max-w-7xl px-4 py-4">
+        <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <button onClick={() => navigate("/")}>Home</button><span>›</span>
+          <button onClick={() => navigate("/hotels")}>Jaaga Stays</button><span>›</span>
+          <button onClick={() => navigate(`/hotels/${hotelId}?${params}`)}>{hotel?.name}</button><span>›</span>
+          <span className="font-semibold text-foreground">Book Your Stay</span>
+        </nav>
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-6">
+            <HotelHeroHeader name={hotel?.name || ""} image={hotel?.images?.[0] || roomImg} photoCount={hotel?.images?.length || 0} star={Number(hotel?.star_rating) || 0} rooms={Number(hotel?.total_rooms) || 0} amenities={hotel?.amenities || []} address={hotel?.address || [hotel?.locality, hotel?.city].filter(Boolean).join(", ")} verified reviews={reviewStats} />
+            <BookingStepper current={step === "guest" ? 1 : 2} />
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/hotels/${hotelId}?${params}`)}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Change room or dates
+            </Button>
 
-        {/* Step indicator */}
-        <div className="flex flex-wrap items-center gap-2 mb-6 text-xs">
-          {(["guest", "pay", "confirmation"]).map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold
-                ${i <= (step === "guest" ? 0 : 1) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</div>
-              <span className={step === s ? "font-medium" : "text-muted-foreground"}>
-                {s === "guest" ? "Guest details" : s === "pay" ? "Payment" : "Confirmation"}
-              </span>
-              {i < 2 && <div className="w-8 h-px bg-border" />}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {step === "guest" && (
-              <Card className="border-primary"><CardContent className="p-4 space-y-3">
-                <h2 className="font-semibold">Who's staying?</h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <div><Label>Full name *</Label>
-                    <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="As per ID" /></div>
-                  <div><Label>Phone *</Label>
-                    <Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
-                  <div><Label>Email *</Label>
-                    <Input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
-                  <div className="sm:col-span-2"><Label>Special requests (optional)</Label>
-                    <Textarea rows={3} maxLength={500} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
-                      placeholder="High floor, twin beds, late arrival…" />
-                    <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to hotel confirmation.</p></div>
-                </div>
-
-                {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
-                  <div className="space-y-4 rounded-lg border border-border/60 p-4">
-                    <h3 className="text-sm font-semibold">Meals & extra beds</h3>
+            {step === "guest" && (<>
+              {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
+                <section>
+                  <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><Sparkles className="h-5 w-5 text-primary" /> Enhance Your Stay (Optional)</h2>
+                  <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
                     <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
                     <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
                   </div>
-                )}
-
-                <Button size="lg" className="w-full" disabled={!!rateIssue} onClick={() => {
-                  const err = validateGuest();
-                  if (err) return toast.error(err);
-                  setStep("pay"); window.scrollTo({ top: 0, behavior: "smooth" });
-                }}>Continue to payment</Button>
-              </CardContent></Card>
-            )}
+                </section>
+              )}
+              <section>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><User className="h-5 w-5 text-primary" /> Guest Details</h2>
+                <div className="rounded-2xl border border-border bg-card p-4">
+                  <p className="mb-3 font-bold text-foreground">Primary Guest (Room 1)</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div><Label>Full Name <span className="text-destructive">*</span></Label><Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="As per ID" /></div>
+                    <div><Label>Mobile Number <span className="text-destructive">*</span></Label><Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
+                    <div><Label>Email ID <span className="text-destructive">*</span></Label><Input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
+                  </div>
+                </div>
+              </section>
+              <section>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><FileText className="h-5 w-5 text-primary" /> Special Requests (Optional)</h2>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <Textarea rows={3} maxLength={300} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} placeholder="e.g., Early check-in, high floor, extra pillows, anniversary setup, etc." className="border-0 shadow-none focus-visible:ring-0" />
+                  <p className="text-right text-xs text-muted-foreground">{specialRequests.length}/300</p>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">Special requests are sent to the hotel and are subject to hotel confirmation.</p>
+              </section>
+            </>)}
 
             {step === "pay" && (
-              <Card className="border-primary"><CardContent className="p-4 space-y-3">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" /> Payment
-                </h2>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Secure payment via Razorpay · UPI, Cards, Netbanking
-                </p>
-                <div className="rounded-lg bg-muted p-4 text-sm">
-                  You'll be charged <b>₹{total.toLocaleString()}</b> for {nights} night{nights>1?"s":""} × {numRooms} room{numRooms>1?"s":""}.
-                  The cancellation policy in your booking summary applies to this rate.
+              <Card className="border-primary"><CardContent className="space-y-3 p-5">
+                <h2 className="flex items-center gap-2 text-xl font-extrabold"><CreditCard className="h-5 w-5 text-primary" /> Review &amp; Pay</h2>
+                <div className="grid gap-2 text-sm sm:grid-cols-3">
+                  <div><p className="text-xs text-muted-foreground">Guest</p><p className="font-semibold">{guestName}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Mobile</p><p className="font-semibold">{guestPhone}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Email</p><p className="font-semibold break-all">{guestEmail}</p></div>
                 </div>
+                <p className="flex items-center gap-2 text-sm text-muted-foreground"><Lock className="h-4 w-4" /> Secure payment via Razorpay · UPI, Cards, Netbanking</p>
+                <div className="rounded-lg bg-muted p-4 text-sm">You'll be charged <b>{inr(total)}</b> for {nights} night{nights > 1 ? "s" : ""} × {numRooms} room{numRooms > 1 ? "s" : ""}. The cancellation policy in your booking summary applies to this rate.</div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep("guest")} disabled={submitting}>Back</Button>
                   <Button className="flex-1" onClick={handlePay} disabled={submitting || !!rateIssue}>
-                    {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : `Pay ₹${total.toLocaleString()}`}
+                    {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</> : `Pay ${inr(total)}`}
                   </Button>
                 </div>
               </CardContent></Card>
             )}
           </div>
 
-          {/* Summary sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24"><CardContent className="p-5 space-y-4">
-              <h3 className="font-semibold">Booking summary</h3>
+          <aside className="space-y-4 lg:sticky lg:top-24">
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h3 className="mb-3 text-xl font-extrabold">Your Booking Summary</h3>
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
+                <div><p className="text-[11px] text-muted-foreground">Check-in</p><p className="font-bold">{fmtDay(checkIn)}</p></div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <div><p className="text-[11px] text-muted-foreground">Check-out</p><p className="font-bold">{fmtDay(checkOut)}</p></div>
+              </div>
+              <p className="mt-3 flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4 text-primary" />{adults} Adult{adults > 1 ? "s" : ""}{children ? `, ${children} Child${children > 1 ? "ren" : ""}` : ""} · {numRooms} Room{numRooms > 1 ? "s" : ""}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="mb-2 flex items-center justify-between"><h3 className="font-extrabold">Selected Room &amp; Rate Plan</h3>
+                <button className="text-sm font-semibold text-primary" onClick={() => navigate(`/hotels/${hotelId}?${params}`)}>Change</button></div>
               <div className="flex gap-3">
-                <img src={hotel?.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200"}
-                  className="w-20 h-20 object-cover rounded-md" alt="" />
-                <div>
-                  <div className="font-semibold leading-tight">{hotel?.name}</div>
-                  <div className="text-xs text-muted-foreground">{hotel?.locality}, {hotel?.city}</div>
-                  <Badge variant="secondary" className="mt-1 text-[10px]">
-                    <BedDouble className="w-3 h-3 mr-1" />{room?.room_type}
-                  </Badge>
+                <img src={roomImg} alt="" className="h-16 w-20 rounded-lg object-cover" />
+                <div className="text-sm">
+                  <p className="font-bold">{room?.room_type}</p>
+                  {selectedMeals.length > 0 && <p className="text-muted-foreground">With {selectedMeals.join(", ")}</p>}
+                  {perNight > 0 && <p><b>{inr(perNight)}</b> per night</p>}
+                  <p className="text-muted-foreground">× {nights} Night{nights > 1 ? "s" : ""}</p>
                 </div>
               </div>
-              <Separator />
-              <div className="space-y-2 text-xs"><Row icon={<CalendarDays className="h-4 w-4 text-primary" />} label="Dates" value={`${checkIn} — ${checkOut}`} /><Row icon={<Users className="h-4 w-4 text-primary" />} label="Guests" value={`${adults} adults${children ? `, ${children} children` : ""}`} /><Row icon={<BedDouble className="h-4 w-4 text-primary" />} label="Stay" value={`${nights} nights · ${numRooms} rooms`} /></div>
-              {liveError && <p className="text-xs text-destructive">{liveError}</p>}
-              <PriceBreakdown price={displayPrice} />
-              {hotelId && <details><summary className="cursor-pointer text-xs font-medium">Cancellation policy, taxes & rate details</summary><div className="mt-2"><RateDetailsPanel hotelId={hotelId} roomId={roomId} ratePlanId={ratePlanId} checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} rooms={numRooms} onResolved={({ error }) => setRateIssue(error)} /></div></details>}
-              {rateIssue && <p role="alert" className="text-xs text-destructive">{rateIssue}</p>}
-
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-500" /> Instant confirmation on successful payment
-              </div>
-            </CardContent></Card>
-          </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h3 className="mb-2 text-lg font-extrabold">Price Details</h3>
+              {roomCharges > 0 && <div className="flex justify-between text-sm"><span>Room Charges{perNight ? ` (${inr(perNight)} × ${nights} nights)` : ""}</span><span>{inr(roomCharges)}</span></div>}
+              <details className="my-2"><summary className="cursor-pointer text-xs text-primary">Full breakdown</summary><PriceBreakdown price={displayPrice} /></details>
+              <div className="flex justify-between text-sm"><span>Taxes &amp; Fees{displayPrice?.gstRate ? ` (${displayPrice.gstRate}% GST)` : ""}</span><span>{inr(taxAmount)}</span></div>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-primary/10 px-3 py-2"><span className="font-bold">Total Amount</span><span className="text-xl font-extrabold text-primary">{inr(total)}</span></div>
+              {liveError && <p className="mt-2 text-xs text-destructive">{liveError}</p>}
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h3 className="flex items-center gap-2 font-bold"><CalendarDays className="h-5 w-5 text-primary" /> Cancellation, Payment &amp; Hotel Policies</h3>
+              {hotelId && <div className="mt-2"><RateDetailsPanel hotelId={hotelId} roomId={roomId} ratePlanId={ratePlanId} checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} rooms={numRooms} onResolved={({ error }) => setRateIssue(error)} /></div>}
+              {(hotel?.check_in_time || hotel?.check_out_time) && <ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">
+                {hotel?.check_in_time && <li>Check-in: From {hotel.check_in_time}</li>}
+                {hotel?.check_out_time && <li>Check-out: By {hotel.check_out_time}</li>}
+              </ul>}
+              {rateIssue && <p role="alert" className="mt-2 text-xs text-destructive">{rateIssue}</p>}
+            </div>
+            {step === "guest" ? (
+              <Button size="lg" className="h-12 w-full text-base font-bold" disabled={!!rateIssue} onClick={() => { const err = validateGuest(); if (err) return toast.error(err); setStep("pay"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                Continue to Payment <ArrowRight className="ml-1 h-5 w-5" />
+              </Button>
+            ) : (
+              <Button size="lg" className="h-12 w-full text-base font-bold" onClick={handlePay} disabled={submitting || !!rateIssue}>
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay ${inr(total)}`}
+              </Button>
+            )}
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold"><Lock className="h-4 w-4 text-primary" /> Secure &amp; Safe Payment</div>
+            <PaymentBadges />
+            <WhyBookCard />
+          </aside>
         </div>
+        <div className="mt-8"><TrustStrip /></div>
       </div>
       <Footer />
     </div>

@@ -88,6 +88,7 @@ function TaxLines({ node, cur }: { node: any; cur: string }) {
   );
 }
 
+import { BookingStepper, TrustStrip } from "@/components/hotels/booking/BookingFlowChrome";
 import { englishDescription, hotelCoordinates, roomOccupancy, roomBeds, hotelPolicies } from "@/lib/hyperguestDisplay";
 
 export default function HyperGuestProperty() {
@@ -431,8 +432,6 @@ export default function HyperGuestProperty() {
               const total = prebook.customerTotal ?? lines.reduce((s: number, l: any) => s + l.amount, 0);
               const settlementRequired = marketplace && prebook.customerRooms?.some((r: any) => r.disclosures?.payment?.charge !== "customer");
               const cur = lines[0]?.cur ?? currency;
-              const steps = ["Guest details", "Payment", "Confirmation"];
-              const stepIdx = step === "guests" ? 0 : 1;
               const goPay = () => {
                 if (!lead.first.trim() || !lead.last.trim()) return toast.error("Enter the lead guest's first and last name");
                 if (!/^\S+@\S+\.\S+$/.test(lead.email)) return toast.error("Enter a valid email");
@@ -449,15 +448,7 @@ export default function HyperGuestProperty() {
               return (
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Complete your booking</h2>
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  {steps.map((s, i) => (
-                    <div key={s} className="flex items-center gap-2">
-                      <span className={`h-6 w-6 rounded-full flex items-center justify-center font-semibold ${i <= stepIdx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
-                      <span className={i === stepIdx ? "font-semibold" : "text-muted-foreground"}>{s}</span>
-                      {i < steps.length - 1 && <span className="w-8 h-px bg-border" />}
-                    </div>
-                  ))}
-                </div>
+                <BookingStepper current={step === "guests" ? 1 : 2} />
                 <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
                   <Card className="border-primary"><CardContent className="p-4 space-y-3">
                     {step === "guests" ? (<>
@@ -575,6 +566,7 @@ export default function HyperGuestProperty() {
             )}
           </>
         )}
+        <div className="mt-8"><TrustStrip /></div>
       </div>
       <Footer />
     </div>

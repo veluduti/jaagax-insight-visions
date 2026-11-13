@@ -28,7 +28,12 @@ import {
   ShieldCheck,
   Sparkles,
   Info,
+  Users,
+  ArrowRight,
+  CheckCircle2,
+  Lock,
 } from "lucide-react";
+import { BookingStepper, HotelHeroHeader, StarRow, WhyBookCard, TrustStrip, PaymentBadges, IncludedTick, useHotelReviewStats } from "@/components/hotels/booking/BookingFlowChrome";
 import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
@@ -77,6 +82,8 @@ const titleCase = (s?: string | null) =>
     .toString()
     .toLowerCase()
     .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const fmtDay = (iso: string) => { const d = new Date(`${iso}T00:00:00`); return Number.isNaN(+d) ? "—" : d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }); };
 
 const humanize = (s: string) => s.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -178,6 +185,7 @@ const HotelDetail = () => {
     };
   }, [hotel]);
 
+  const reviewStats = useHotelReviewStats(id);
   const images = useMemo(() => (hotel?.images && hotel.images.length ? hotel.images : [FALLBACK_IMG]), [hotel]);
 
   if (loading) {
@@ -225,6 +233,8 @@ const HotelDetail = () => {
       ? `${locLocality}, ${locCity}`
       : locLocality || locCity || "";
 
+  const mapUrl = hotelCoords ? `https://www.google.com/maps/search/?api=1&query=${hotelCoords.lat},${hotelCoords.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name} ${hotel.address || locationLine}`)}`;
+
   const renderStars = (rating: number) =>
     Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -245,298 +255,69 @@ const HotelDetail = () => {
       <Navigation />
 
       <main className="flex-1">
-        {/* Breadcrumb */}
-        <div className="container mx-auto max-w-6xl px-4 pt-5 pb-3">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-            <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">
-              Hotels
-            </button>
-            <span className="opacity-50">/</span>
-            <span>{locCity}</span>
-            <span className="opacity-50">/</span>
-            <span className="text-foreground font-medium truncate max-w-[240px]">{titleCase(hotel.name)}</span>
-          </div>
+        <div className="container mx-auto max-w-7xl px-4 pt-4 pb-2">
+          <nav className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <button onClick={() => navigate("/")} className="hover:text-foreground">Home</button><span>›</span>
+            <button onClick={() => navigate("/hotels")} className="hover:text-foreground">Jaaga Stays</button><span>›</span>
+            <button onClick={() => navigate(`/hotels${location.search}`)} className="hover:text-foreground">Hotels</button><span>›</span>
+            <span className="text-foreground">{titleCase(hotel.name)}</span><span>›</span>
+            <span className="font-semibold text-foreground">Book Your Stay</span>
+          </nav>
         </div>
 
-        {/* 1 — HOTEL PHOTOS */}
-        <section className="container mx-auto max-w-6xl px-4">
-          <div className="relative">
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[440px] rounded-2xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setGalleryOpen(true)}
-                className={`relative row-span-2 group overflow-hidden ${
-                  images.length > 1 ? "col-span-4 md:col-span-2" : "col-span-4"
-                }`}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={currentImageIndex}
-                    src={images[currentImageIndex] || FALLBACK_IMG}
-                    alt={`${hotel.name} photo`}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0, scale: 1.03 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35 }}
-                  />
-                </AnimatePresence>
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prevImage();
-                      }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        nextImage();
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
-              </button>
+        <div className="container mx-auto max-w-7xl px-4 pb-10">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-6">
+          <HotelHeroHeader
+            name={titleCase(hotel.name)}
+            image={images[0]}
+            photoCount={hotel.images?.length || 0}
+            star={starCount}
+            rooms={totalRooms}
+            amenities={amenities}
+            address={[hotel.address || locationLine].filter(Boolean).join("")}
+            mapUrl={mapUrl}
+            verified
+            reviews={reviewStats}
+            onPhotos={() => setGalleryOpen(true)}
+          />
+          <BookingStepper current={0} />
 
-              {/* Side tiles — only real photos */}
-              {images.slice(1, 5).map((img, i) => {
-                const offset = i + 1;
-                const isLast = i === 3;
-                const extra = images.length - 5;
-                return (
-                  <button
-                    key={offset}
-                    type="button"
-                    onClick={() => {
-                      setCurrentImageIndex(offset);
-                      if (isLast && extra > 0) setGalleryOpen(true);
-                    }}
-                    className={`hidden md:block col-span-1 relative overflow-hidden group ${
-                      images.length <= 3 ? "row-span-2" : "row-span-1"
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${hotel.name} photo ${offset + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    {isLast && extra > 0 && (
-                      <div className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-semibold text-sm">
-                        +{extra} photos
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          {hotel.description && <p className="text-sm leading-relaxed text-muted-foreground">{hotel.description}</p>}
 
-            {hasDiscount && (
-              <Badge className="absolute top-4 left-4 bg-emerald-500 hover:bg-emerald-500 text-white border-0 shadow-lg px-3 py-1.5 text-xs font-semibold">
-                {discountPct}% OFF
-              </Badge>
-            )}
-
-            {images.length > 1 && (
-              <button
-                onClick={() => setGalleryOpen(true)}
-                className="absolute bottom-4 right-4 gap-2 inline-flex items-center px-3.5 py-2 rounded-lg bg-background/95 backdrop-blur shadow-md text-xs font-semibold hover:bg-background transition"
-              >
-                <Images className="h-3.5 w-3.5" />
-                View all {images.length} photos
-              </button>
-            )}
-          </div>
-        </section>
-
-        <div className="container mx-auto max-w-6xl px-4 py-8">
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-8 items-start">
-        <div className="min-w-0 space-y-10">
-
-          {/* 2 — BASIC HOTEL INFORMATION */}
-          <section>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 space-y-2">
-                <h1 className="text-3xl md:text-[2.25rem] font-bold tracking-tight leading-tight text-foreground">
-                  {titleCase(hotel.name)}
-                </h1>
-                <div className="flex items-center gap-3 flex-wrap text-sm">
-                  {starCount > 0 && (
-                    <>
-                      <div className="flex gap-0.5">{renderStars(starCount)}</div>
-                      <span className="text-muted-foreground">{starCount}-Star</span>
-                    </>
-                  )}
-                  {locationLine && (
-                    <span className="text-muted-foreground inline-flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {locationLine}
-                    </span>
-                  )}
-                  {totalRooms > 0 && <span className="text-muted-foreground">{totalRooms} Rooms</span>}
+          {!onlyLongStay && <section id="availability">
+            <h2 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">Check Availability &amp; Select Room</h2>
+            <p className="mb-4 text-sm text-muted-foreground">Choose your stay dates, guests and preferred room with a rate plan.</p>
+            <div className="grid items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm md:grid-cols-[1fr_1fr_1.4fr_auto]">
+              <label className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="flex flex-col"><span className="text-[11px] text-muted-foreground">Check-in</span>
+                <input id="availability-check-in" type="date" value={checkIn} min={todayISO()} onChange={(e) => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }} className="bg-transparent text-sm font-bold outline-none" /></span>
+              </label>
+              <label className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="flex flex-col"><span className="text-[11px] text-muted-foreground">Check-out</span>
+                <input id="availability-check-out" type="date" value={checkOut} min={nextDayISO(checkIn) || todayISO()} onChange={(e) => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }} className="bg-transparent text-sm font-bold outline-none" /></span>
+              </label>
+              <div className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
+                <Users className="h-5 w-5 shrink-0 text-primary" />
+                <div className="grid flex-1 grid-cols-3 gap-2">
+                  {([["Adults", adults, 1, 20, setAdults], ["Children", childrenCount, 0, 10, setChildrenCount], ["Rooms", roomsWanted, 1, 10, setRoomsWanted]] as const).map(([lbl, val, mn, mx, set]) => (
+                    <label key={lbl} className="flex flex-col"><span className="text-[11px] text-muted-foreground">{lbl}</span>
+                      <input type="number" min={mn} max={mx} value={val} onChange={(e) => (set as any)(Math.max(mn, Math.min(mx, Number(e.target.value) || mn)))} className="w-full bg-transparent text-sm font-bold outline-none" /></label>
+                  ))}
                 </div>
-                {hotel.address && <p className="text-sm text-muted-foreground">{hotel.address}</p>}
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full h-10 w-10"
-                  onClick={() => {
-                    setLiked(!liked);
-                    toast.success(liked ? "Removed from wishlist" : "Added to wishlist");
-                  }}
-                >
-                  <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full h-10 w-10"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link copied!");
-                  }}
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {hotel.description && (
-              <p className="text-muted-foreground leading-relaxed mt-4">{hotel.description}</p>
-            )}
-
-            {/* Only real, manager-provided facts */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {hotel.check_in_time && (
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-muted-foreground">Check-in</span>
-                  <span className="font-semibold">{hotel.check_in_time}</span>
-                </span>
-              )}
-              {hotel.check_out_time && (
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-muted-foreground">Check-out</span>
-                  <span className="font-semibold">{hotel.check_out_time}</span>
-                </span>
-              )}
-              {hotel.partner_since && (
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs">
-                  <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-muted-foreground">Partner since</span>
-                  <span className="font-semibold">
-                    {new Date(hotel.partner_since).toLocaleDateString("en-IN", { year: "numeric", month: "short" })}
-                  </span>
-                </span>
-              )}
-            </div>
-          </section>
-
-
-          {/* 3 — AVAILABILITY */}
-          {!onlyLongStay && <section id="availability" className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
-            <h2 className="text-sm font-semibold mb-3">Check availability</h2>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-              <div className="flex flex-col">
-                <label htmlFor="availability-check-in" className="text-[11px] text-muted-foreground mb-1">Check-in</label>
-                <input
-                  id="availability-check-in"
-                  type="date"
-                  value={checkIn}
-                  min={todayISO()}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setCheckIn(v);
-                    if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
-                  }}
-                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="availability-check-out" className="text-[11px] text-muted-foreground mb-1">Check-out</label>
-                <input
-                  id="availability-check-out"
-                  type="date"
-                  value={checkOut}
-                  min={nextDayISO(checkIn) || todayISO()}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
-                      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                      return;
-                    }
-                    setCheckOut(v);
-                  }}
-                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={adults}
-                  onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
-                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Children</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={10}
-                  value={childrenCount}
-                  onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
-                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={roomsWanted}
-                  onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
-                  className="h-10 px-3 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <Button
-                className="h-10 font-semibold"
-                onClick={() => {
-                  if (checkOut <= checkIn) {
-                    toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                    return;
-                  }
-                  setSearchNonce((n) => n + 1);
-                  scrollToId("rooms");
-                }}
-              >
-                Search Rooms
+              <Button className="h-12 px-6 text-base font-bold" onClick={() => { if (checkOut <= checkIn) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setSearchNonce((n) => n + 1); scrollToId("rooms"); }}>
+                Check Availability
               </Button>
             </div>
           </section>}
 
-          {/* 4 — ROOMS */}
           <section id="rooms" className="scroll-mt-24">
-            <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-              <BedDouble className="h-5 w-5 text-primary" />
-              {onlyLongStay ? "Rooms & beds · Weekly / monthly stays" : "Rooms"}
+            <h2 className="mb-4 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+              <BedDouble className="h-6 w-6 text-primary" />
+              {onlyLongStay ? "Rooms & beds · Weekly / monthly stays" : "Available Rooms"}
             </h2>
             <HotelRoomTypes
               key={searchNonce}
@@ -552,187 +333,89 @@ const HotelDetail = () => {
             />
           </section>
 
-          {/* 4b — ADD-ONS / UPSELLS */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">
+            <span className="flex items-center gap-2 font-bold text-foreground"><CheckCircle2 className="h-5 w-5 text-primary" /> What's Included in Your Stay?</span>
+            <IncludedTick>Room as per selected plan</IncludedTick>
+            <IncludedTick>Taxes (as applicable)</IncludedTick>
+            {amenities.slice(0, 3).map((a) => <IncludedTick key={a}>{a}</IncludedTick>)}
+          </div>
+
           <HotelAddonsShowcase hotelId={hotel.id} onAdd={() => scrollToId("rooms")} />
 
-          {/* 5 — AMENITIES (only if provided) */}
           {amenities.length > 0 && (
             <section>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Amenities & Facilities
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold"><Sparkles className="h-5 w-5 text-primary" /> Amenities &amp; Facilities</h2>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {amenities.map((amenity) => (
-                  <div
-                    key={amenity}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/40"
-                  >
-                    <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                      <ShieldCheck className="h-4 w-4" />
-                    </span>
-                    <span className="text-sm font-medium">{amenity}</span>
+                  <div key={amenity} className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3">
+                    <ShieldCheck className="h-4 w-4 text-primary" /><span className="text-sm font-medium">{amenity}</span>
                   </div>
                 ))}
               </div>
             </section>
           )}
-
         </div>
 
-        {/* RIGHT RAIL */}
-        <aside className="lg:sticky lg:top-24 space-y-4">
-          {/* Book your stay */}
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
-            <h3 className="font-semibold">Book your stay</h3>
-            {onlyLongStay ? <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">Weekly and monthly rental plans</p>
-              <Button className="w-full" onClick={() => scrollToId("rooms")}>Choose a room or bed</Button>
-            </div> : <>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
-                <input
-                  type="date"
-                  value={checkIn}
-                  min={todayISO()}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setCheckIn(v);
-                    if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
-                  }}
-                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
-                <input
-                  type="date"
-                  value={checkOut}
-                  min={nextDayISO(checkIn) || todayISO()}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
-                      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                      return;
-                    }
-                    setCheckOut(v);
-                  }}
-                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
-                />
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h3 className="mb-3 text-xl font-extrabold text-foreground">Your Booking Summary</h3>
+            <div className="flex gap-3">
+              <img src={images[0]} alt="" className="h-16 w-20 rounded-lg object-cover" />
+              <div className="min-w-0">
+                <p className="font-bold text-foreground">{titleCase(hotel.name)}</p>
+                {starCount > 0 && <StarRow value={starCount} size="h-3.5 w-3.5" />}
+                <p className="text-xs text-muted-foreground">{starCount > 0 ? `${starCount} Star · ` : ""}{locationLine}</p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={adults}
-                  onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
-                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
-                />
+            {!onlyLongStay && <>
+              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-border pt-3 text-sm">
+                <div><p className="text-[11px] text-muted-foreground">Check-in</p><p className="font-bold">{fmtDay(checkIn)}</p></div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <div><p className="text-[11px] text-muted-foreground">Check-out</p><p className="font-bold">{fmtDay(checkOut)}</p></div>
               </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Children</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={10}
-                  value={childrenCount}
-                  onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
-                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={roomsWanted}
-                  onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
-                  className="h-10 px-2 rounded-lg border border-input bg-background text-sm"
-                />
-              </div>
-            </div>
-            <Button
-              className="w-full h-11 font-semibold"
-              onClick={() => {
-                if (checkOut <= checkIn) {
-                  toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
-                  return;
-                }
-                setSearchNonce((n) => n + 1);
-                scrollToId("rooms");
-              }}
-            >
-              Search Rooms
-            </Button>
+              <div className="mt-3 flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-primary" />
+                <span className="font-semibold">{adults} Adult{adults > 1 ? "s" : ""}{childrenCount ? `, ${childrenCount} Child${childrenCount > 1 ? "ren" : ""}` : ""} · {roomsWanted} Room{roomsWanted > 1 ? "s" : ""}</span></div>
+              <p className="mt-3 rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">Select a room and rate plan to see your price breakdown and continue to guest details.</p>
             </>}
+            <Button className="mt-4 h-11 w-full font-bold" onClick={() => scrollToId("rooms")}>
+              {onlyLongStay ? "Choose a room or bed" : "Select Room & Continue"} <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+            <div className="mt-3 flex items-center justify-center gap-1 text-xs font-semibold"><Lock className="h-3.5 w-3.5 text-primary" /> Secure &amp; Safe Payment</div>
+            <div className="mt-2"><PaymentBadges /></div>
           </div>
 
-          {/* Events & Facilities (extra services) */}
+          {(hotel.check_in_time || hotel.check_out_time || policyEntries.length > 0) && (
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h3 className="mb-2 flex items-center gap-2 font-bold text-foreground"><ShieldCheck className="h-5 w-5 text-primary" /> Hotel Policies</h3>
+              <ul className="list-disc space-y-1 pl-9 text-sm text-muted-foreground">
+                {hotel.check_in_time && <li>Check-in: From {hotel.check_in_time}</li>}
+                {hotel.check_out_time && <li>Check-out: By {hotel.check_out_time}</li>}
+                {policyEntries.slice(0, 4).map(([k, v]) => <li key={k}>{humanize(k)}: {typeof v === "boolean" ? (v ? "Yes" : "No") : String(v)}</li>)}
+              </ul>
+            </div>
+          )}
+
           <div className={extrasCount > 0 ? "" : "hidden"}>
             <HotelExtraServices hotelId={hotel.id} variant="sidebar" onCount={setExtrasCount} />
           </div>
 
-          {/* Why book with JaagaX */}
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <h3 className="font-semibold mb-3">Why book with JaagaX?</h3>
-            <ul className="space-y-3">
-              {[
-                { icon: BadgeCheck, title: "Best Price Guarantee", sub: "Get the best deal, always" },
-                { icon: ShieldCheck, title: "Verified Partner Hotel", sub: "Quality checked & trusted" },
-                { icon: Info, title: "Secure Payments", sub: "100% safe and secure" },
-                { icon: Clock, title: "24x7 Support", sub: "We are always here to help" },
-              ].map((f) => (
-                <li key={f.title} className="flex items-start gap-3">
-                  <f.icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-tight">{f.title}</p>
-                    <p className="text-xs text-muted-foreground">{f.sub}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <WhyBookCard />
 
-          {/* Location */}
           {(hotel.address || locationLine) && (
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
-              <h3 className="font-semibold">Location</h3>
+            <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <h3 className="font-bold">Location</h3>
               <p className="text-sm text-muted-foreground">{hotel.address || locationLine}</p>
               {hotelCoords ? (
                 <div className="overflow-hidden rounded-xl border border-border">
-                  <GoogleStaticMarkerMap
-                    lat={hotelCoords.lat}
-                    lng={hotelCoords.lng}
-                    label={hotel.name}
-                    height="240px"
-                    zoom={14}
-                    variant="verified"
-                  />
+                  <GoogleStaticMarkerMap lat={hotelCoords.lat} lng={hotelCoords.lng} label={hotel.name} height="200px" zoom={14} variant="verified" />
                 </div>
-              ) : coordsLoading ? (
-                <div className="h-60 rounded-xl border border-border bg-muted animate-pulse" />
-              ) : null}
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${hotel.name} ${hotel.address || locationLine}`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-              >
-                <MapPin className="h-3.5 w-3.5" /> View on map
-              </a>
+              ) : coordsLoading ? <div className="h-48 animate-pulse rounded-xl border border-border bg-muted" /> : null}
             </div>
           )}
-
         </aside>
         </div>
+
+        <div className="mt-8"><TrustStrip /></div>
 
         <NearbyHotelProperties
           latitude={(hotel as any).latitude}
