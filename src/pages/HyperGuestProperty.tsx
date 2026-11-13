@@ -473,14 +473,68 @@ export default function HyperGuestProperty() {
                 if (!card.name.trim()) return toast.error("Enter the name on the card");
                 doBook();
               };
+              const fmtD = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+              const tAdults = rooms.reduce((s, r) => s + r.adults, 0);
+              const tKids = rooms.flatMap(ages).length;
+              const allPols = prebook.rooms.flatMap((r: any, i: number) => { const a = cancelInfo(r, checkIn).pols; return a.length ? a : cancelInfo(picked[i]?.rp ?? {}, checkIn).pols; });
+              const freeCancel = prebook.rooms.every((_: any, i: number) => picked[i] && isFullyRefundable(picked[i].rp));
+              const tile = "flex items-center gap-3 rounded-xl border border-border bg-card p-3";
               return (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Complete your booking</h2>
+              <div className="space-y-5">
                 <BookingStepper current={step === "guests" ? 1 : 2} />
-                <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
-                  <Card className="border-primary"><CardContent className="p-4 space-y-3">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl font-extrabold text-primary">{step === "guests" ? "Guest Details" : "Pay & Confirm Your Booking"}</h1>
+                    <p className="text-sm text-muted-foreground">{step === "guests" ? `Tell us who's staying at ${stat.name}.` : `You're almost done! Complete your payment to confirm your stay at ${stat.name}.`}</p>
+                  </div>
+                  <div className="flex items-center gap-3"><Lock className="h-8 w-8 text-primary" /><div><p className="font-bold">Secure & Encrypted</p><p className="text-xs text-muted-foreground">Your details are sent securely.</p></div></div>
+                </div>
+                <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
+                  <div className="space-y-4">
+                    <Card><CardContent className="flex flex-col gap-4 p-4 sm:flex-row">
+                      {photos[0] && <div className="relative shrink-0"><img src={photos[0]} alt={stat.name} className="h-40 w-full rounded-xl object-cover sm:w-64" /><span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-foreground/70 px-2 py-1 text-xs text-background"><Images className="h-3 w-3" />{photos.length} Photos</span></div>}
+                      <div className="min-w-0 space-y-2">
+                        <h2 className="text-2xl font-bold text-primary">{stat.name}</h2>
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          {Number(stat.rating) > 0 && <span className="flex">{Array.from({ length: Math.round(Number(stat.rating)) }, (_, k) => <Star key={k} className="h-4 w-4 fill-accent text-accent" />)}</span>}
+                          <Badge variant="outline" className="border-primary/40 text-primary"><CheckCircle2 className="mr-1 h-3 w-3" />Verified Hotel</Badge>
+                        </div>
+                        <p className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{[stat.location?.address, stat.location?.city?.name, placeLine].filter(Boolean).join(", ")}</p>
+                        {hotelFacilities.length > 0 && <div className="flex flex-wrap gap-2 pt-1">{hotelFacilities.slice(0, 5).map((f: any) => <span key={f.id} className="rounded-lg border border-border px-3 py-1.5 text-xs">{f.name}</span>)}</div>}
+                      </div>
+                    </CardContent></Card>
+
+                    <Card><CardContent className="space-y-3 p-4">
+                      <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><CalendarDays className="h-5 w-5" />Your Stay Details</h3>
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                        <div className={tile}><CalendarDays className="h-6 w-6 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Check-in</p><p className="text-sm font-bold">{fmtD(checkIn)}</p>{stat.settings?.checkIn && <p className="text-xs">From {stat.settings.checkIn}</p>}</div></div>
+                        <div className={tile}><CalendarDays className="h-6 w-6 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Check-out</p><p className="text-sm font-bold">{fmtD(addDays(checkIn, nights))}</p>{stat.settings?.checkOut && <p className="text-xs">By {stat.settings.checkOut}</p>}</div></div>
+                        <div className={tile}><Users className="h-6 w-6 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Guests</p><p className="text-sm font-bold">{tAdults} Adult{tAdults > 1 ? "s" : ""}{tKids ? `, ${tKids} Child` : ""}</p></div></div>
+                        <div className={tile}><BedDouble className="h-6 w-6 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Room</p><p className="text-sm font-bold">{rooms.length} Room{rooms.length > 1 ? "s" : ""}</p></div></div>
+                        <div className={tile}><CalendarDays className="h-6 w-6 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Nights</p><p className="text-sm font-bold">{nights} Night{nights > 1 ? "s" : ""}</p></div></div>
+                      </div>
+                    </CardContent></Card>
+
+                    <Card><CardContent className="space-y-3 p-4">
+                      <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><BedDouble className="h-5 w-5" />Room & Rate Plan</h3>
+                      {prebook.rooms.map((r: any, i: number) => {
+                        const img = staticRooms[String(picked[i]?.room.roomId)]?.images?.[0]?.uri;
+                        return <div key={i} className="flex flex-col gap-3 border-t border-border pt-3 first:border-0 first:pt-0 sm:flex-row sm:items-center">
+                          {img && <img src={img} alt="" className="h-28 w-full rounded-xl object-cover sm:w-40" />}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-lg font-bold text-primary">{picked[i]?.room.roomName}</p>
+                            <p className="text-xs text-muted-foreground">{rooms[i].adults} adult(s){ages(rooms[i]).length ? ` + ${ages(rooms[i]).length} child/infant` : ""}</p>
+                            <div className="inline-block rounded-lg bg-primary/10 px-3 py-2 text-xs"><p className="font-semibold">{picked[i]?.rp.ratePlanName}</p><p>{BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board}{picked[i] && isFullyRefundable(picked[i].rp) ? " | Free cancellation" : ""}</p></div>
+                            {r.priceChange && <p className="text-xs text-destructive">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
+                          </div>
+                          <div className="text-right"><p className="text-xl font-bold">{money(lines[i].amount, lines[i].cur)}</p><p className="text-xs text-muted-foreground">for {nights} night{nights > 1 ? "s" : ""}</p></div>
+                        </div>;
+                      })}
+                    </CardContent></Card>
+
+                    <Card className="border-primary/40"><CardContent className="space-y-3 p-4">
                     {step === "guests" ? (<>
-                      <h2 className="font-semibold">Who's staying?</h2>
+                      <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><Users className="h-5 w-5" />Who's staying?</h3>
                       <div className="grid grid-cols-2 gap-2">
                         <Input placeholder="Lead first name *" value={lead.first} readOnly={certification} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
                         <Input placeholder="Lead last name *" value={lead.last} readOnly={certification} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
@@ -502,49 +556,79 @@ export default function HyperGuestProperty() {
                         <Textarea rows={2} maxLength={256} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
                         <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
                       </div>
-                      <Button size="lg" className="w-full" onClick={goPay}>Continue to payment</Button>
                     </>) : (<>
-                      <div className="flex items-center justify-between">
-                        <h2 className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Payment</h2>
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      {live ? <p className="text-xs text-muted-foreground">Your card guarantees the reservation. The hotel collects payment according to the selected rate; JaagaX does not charge this card now.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
-                        <p className="font-medium">Sample payment — no money is charged.</p>
-                        <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
-                        <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
-                      </div>}
-                      {settlementRequired && <p role="alert" className="text-sm text-destructive">This rate requires JaagaX supplier settlement, which is not enabled. Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
-                      <Input placeholder="Card number" inputMode="numeric" maxLength={23} disabled={settlementRequired} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 19).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="MM/YY" disabled={settlementRequired} maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
-                        <Input placeholder="CVV" disabled={settlementRequired} type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
-                      </div>
-                      <Input placeholder="Name on card" disabled={settlementRequired} value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setStep("guests")} disabled={busy}>Back</Button>
-                        <Button size="lg" className="flex-1" onClick={pay} disabled={busy || settlementRequired}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}{busy ? "Confirming with hotel (can take a few minutes)…" : `Confirm reservation · ${money(total, cur)}`}</Button>
+                      <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><CreditCard className="h-5 w-5" />Choose Payment Method</h3>
+                      <div className="grid gap-3 md:grid-cols-[200px_minmax(0,1fr)]">
+                        <div className="rounded-xl bg-primary p-3 text-primary-foreground"><p className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Credit / Debit Card</p><p className="text-xs opacity-90">Visa, Mastercard, RuPay, Amex</p></div>
+                        <div className="space-y-2 rounded-xl border border-primary/40 p-3">
+                          <p className="flex items-center gap-2 font-bold"><Lock className="h-4 w-4 text-primary" />Card — Secure & Instant</p>
+                          {live ? <p className="text-xs text-muted-foreground">Your card guarantees the reservation. The hotel collects payment according to the selected rate; JaagaX does not charge this card now.</p> : <div className="rounded-md bg-muted p-3 text-xs space-y-1">
+                            <p className="font-medium">Sample payment — no money is charged.</p>
+                            <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
+                            <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
+                          </div>}
+                          {settlementRequired && <p role="alert" className="text-sm text-destructive">This rate requires JaagaX supplier settlement, which is not enabled. Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
+                          <Input placeholder="Card number" inputMode="numeric" maxLength={23} disabled={settlementRequired} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 19).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input placeholder="MM/YY" disabled={settlementRequired} maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />
+                            <Input placeholder="CVV" disabled={settlementRequired} type="password" inputMode="numeric" maxLength={4} value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "") })} />
+                          </div>
+                          <Input placeholder="Name on card" disabled={settlementRequired} value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
+                        </div>
                       </div>
                     </>)}
-                  </CardContent></Card>
-                  <Card className="md:sticky md:top-24"><CardContent className="p-4 space-y-2 text-sm">
-                    <h3 className="font-semibold">Booking summary</h3>
-                    <div className="flex gap-3 items-start">{photos[0] && <img src={photos[0]} alt={stat.name} className="w-20 h-20 shrink-0 object-cover rounded-md" />}<div><p className="font-medium">{stat.name}</p><p className="text-xs text-muted-foreground">{stat.location?.city?.name}</p></div></div>
-                    <p className="text-xs text-muted-foreground">{checkIn} → {addDays(checkIn, nights)} · {nights} night(s) · {rooms.length} room(s)</p>
-                    {prebook.rooms.map((r: any, i: number) => (
-                      <div key={i} className="border-t pt-2 space-y-1">
-                        <p className="text-xs font-medium">Room {i + 1}: {lines[i].label}</p>
-                        <p className="text-xs text-muted-foreground">{BOARD[picked[i]?.rp.board] ?? picked[i]?.rp.board} · {rooms[i].adults} adult(s){ages(rooms[i]).length ? ` + ${ages(rooms[i]).length} child/infant` : ""}</p>
-                        {r.priceChange && <p className="text-destructive text-xs">Price changed: {money(r.priceChange.fromAmount.amount, r.priceChange.fromAmount.currency)} → {money(r.priceChange.toAmount.amount, r.priceChange.toAmount.currency)}</p>}
-                        <TaxLines node={prebook.customerRooms?.[i]?.disclosures ?? supplierDisclosures(picked[i]?.rp ?? {})} cur={currency} />
-                        {(prebook.customerRooms?.[i]?.disclosures?.remarks ?? picked[i]?.rp.remarks ?? []).map((remark: any, k: number) => <p key={k} className="text-xs">{typeof remark === "string" ? remark : remark.remark ?? ""}</p>)}
-                        {prebook.customerRooms?.[i]?.disclosures?.immediate === false && <p className="text-xs text-muted-foreground">On request — this room needs hotel approval.</p>}
-                        <details className="text-xs"><summary className="cursor-pointer font-medium">Cancellation policy</summary><ul className="list-disc pl-4 mt-1">{cancelInfo(r, checkIn).pols.length > 0 ? cancelInfo(r, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>) : cancelInfo(picked[i]?.rp ?? {}, checkIn).pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul></details>
-                        <p className="text-xs flex justify-between"><span>Room total</span><span>{money(lines[i].amount, lines[i].cur)}</span></p>
-                      </div>
-                    ))}
-                    <div className="border-t pt-2 flex justify-between font-bold"><span>Customer stay total</span><span>{money(total, cur)}</span></div>
-                  </CardContent></Card>
+                    </CardContent></Card>
+                  </div>
+
+                  <aside className="space-y-4 lg:sticky lg:top-24">
+                    <Card><CardContent className="space-y-3 p-4 text-sm">
+                      <h3 className="text-xl font-bold text-primary">Booking Summary</h3>
+                      <div className="flex gap-3">{photos[0] && <img src={photos[0]} alt={stat.name} className="h-16 w-20 shrink-0 rounded-md object-cover" />}<div><p className="font-bold text-primary">{stat.name}</p><p className="text-xs text-muted-foreground">{stat.location?.city?.name}</p></div></div>
+                      {prebook.rooms.map((_: any, i: number) => (
+                        <div key={i} className="space-y-1 border-t border-border pt-2">
+                          <p className="flex justify-between gap-2"><span className="font-semibold">{picked[i]?.room.roomName}</span><span className="whitespace-nowrap">{money(lines[i].amount, lines[i].cur)}</span></p>
+                          <p className="text-xs text-muted-foreground">{picked[i]?.rp.ratePlanName} · {nights} night(s)</p>
+                          <TaxLines node={prebook.customerRooms?.[i]?.disclosures ?? supplierDisclosures(picked[i]?.rp ?? {})} cur={currency} />
+                          {(prebook.customerRooms?.[i]?.disclosures?.remarks ?? picked[i]?.rp.remarks ?? []).map((remark: any, k: number) => <p key={k} className="text-xs">{typeof remark === "string" ? remark : remark.remark ?? ""}</p>)}
+                          {prebook.customerRooms?.[i]?.disclosures?.immediate === false && <p className="text-xs text-muted-foreground">On request — this room needs hotel approval.</p>}
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3 font-bold"><span>Total Payable Amount</span><span className="text-xl text-primary">{money(total, cur)}</span></div>
+                    </CardContent></Card>
+                    <Card><CardContent className="space-y-2 p-4 text-sm">
+                      <h3 className="flex items-center gap-2 text-lg font-bold text-primary"><CheckCircle2 className="h-5 w-5" />Cancellation & Policies</h3>
+                      <ul className="space-y-1.5">
+                        {freeCancel && <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />Free cancellation available on this rate</li>}
+                        {allPols.slice(0, 4).map((p: any, k: number) => <li key={k} className="flex gap-2 text-xs"><CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />{polText(p)}</li>)}
+                        {stat.settings?.checkIn && <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />Check-in: From {stat.settings.checkIn}</li>}
+                        {stat.settings?.checkOut && <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />Check-out: By {stat.settings.checkOut}</li>}
+                      </ul>
+                      {(staticPolicies.length > 0 || remarks.length > 0) && <details className="text-xs"><summary className="cursor-pointer font-semibold text-primary">View All Policies →</summary>
+                        {staticPolicies.map((p, k) => <div key={k} className="mt-1"><p className="font-medium">{p.title}</p><p className="whitespace-pre-line text-muted-foreground">{p.body}</p></div>)}
+                        {remarks.map((r, k) => <p key={k} className="mt-1 whitespace-pre-line">{r}</p>)}
+                      </details>}
+                    </CardContent></Card>
+                    <Card><CardContent className="space-y-2 p-4 text-sm">
+                      <h3 className="flex items-center gap-2 text-lg font-bold text-primary"><Info className="h-5 w-5" />Important Information</h3>
+                      <ul className="list-disc space-y-1 pl-5 text-xs">
+                        <li>Your booking is confirmed once the hotel accepts it.</li>
+                        <li>Booking details appear in My Bookings on this page.</li>
+                        <li>Please carry a valid government ID at check-in.</li>
+                      </ul>
+                    </CardContent></Card>
+                  </aside>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-primary/5 p-4">
+                  <div className="flex items-center gap-3"><Lock className="h-8 w-8 text-primary" /><div><p className="font-bold">Secure Payment</p><p className="text-xs text-muted-foreground">Your details are protected with encrypted connections.</p></div></div>
+                </div>
+                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:flex-row md:items-center">
+                  <div className="md:border-r md:border-border md:pr-6"><p className="text-sm">Amount to Pay</p><p className="text-3xl font-extrabold text-primary">{money(total, cur)}</p></div>
+                  <p className="flex-1 text-xs text-muted-foreground">By proceeding, you agree to Jaaga's Terms & Conditions and Privacy Policy.</p>
+                  {step === "guests"
+                    ? <Button size="lg" className="md:min-w-80" onClick={goPay}>Continue to Payment</Button>
+                    : <div className="flex gap-2"><Button variant="outline" size="lg" onClick={() => setStep("guests")} disabled={busy}>Back</Button><Button size="lg" className="md:min-w-80" onClick={pay} disabled={busy || settlementRequired}>{busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Lock className="h-4 w-4 mr-1" />}{busy ? "Confirming with hotel…" : `Pay ${money(total, cur)} & Confirm Booking`}</Button></div>}
                 </div>
               </div>
               );
