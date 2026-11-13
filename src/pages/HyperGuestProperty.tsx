@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw, CreditCard, Lock, CheckCircle2, ArrowLeft, CalendarDays, Users, BedDouble, Images } from "lucide-react";
+import { Loader2, MapPin, Star, Plus, Trash2, Info, RefreshCw, CreditCard, Lock, CheckCircle2, ArrowLeft, CalendarDays, Users, BedDouble, Images, User, FileText, ArrowRight } from "lucide-react";
 
 const luhn = (n: string) => {
   if (!/^\d{13,19}$/.test(n)) return false;
@@ -88,7 +88,8 @@ function TaxLines({ node, cur }: { node: any; cur: string }) {
   );
 }
 
-import { BookingStepper, TrustStrip } from "@/components/hotels/booking/BookingFlowChrome";
+import { BookingStepper, TrustStrip, PaymentBadges, WhyBookCard } from "@/components/hotels/booking/BookingFlowChrome";
+import { Label } from "@/components/ui/label";
 import { englishDescription, hotelCoordinates, roomOccupancy, roomBeds, hotelPolicies } from "@/lib/hyperguestDisplay";
 import RoomDetailsDialog from "@/components/hotels/RoomDetailsDialog";
 import { hyperguestRoomDetails, hasRoomDetails, type RoomDetails } from "@/lib/roomDetails";
@@ -537,31 +538,42 @@ export default function HyperGuestProperty() {
                       })}
                     </CardContent></Card>
 
-                    <Card className="border-primary/40"><CardContent className="space-y-3 p-4">
                     {step === "guests" ? (<>
-                      <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><Users className="h-5 w-5" />Who's staying?</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Lead first name *" value={lead.first} readOnly={certification} onChange={(e) => setLead({ ...lead, first: e.target.value })} />
-                        <Input placeholder="Lead last name *" value={lead.last} readOnly={certification} onChange={(e) => setLead({ ...lead, last: e.target.value })} />
-                        <Input placeholder="Email *" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} />
-                        <Input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} />
-                      </div>
-                      {rooms.map((rq, i) => (
-                        <div key={i} className="space-y-1"><p className="text-xs font-medium">Room {i + 1} guests</p>
-                          {[...Array.from({ length: rq.adults }, (_, a) => ({ k: `${i}-a${a}`, l: `Adult ${a + 1}` })), ...ages(rq).map((age, c) => ({ k: `${i}-c${c}`, l: age <= 3 ? `Infant (${age})` : `Child (${age})` }))].map((g) => (
-                            <div key={g.k} className="grid grid-cols-2 sm:grid-cols-[90px_minmax(0,1fr)_minmax(0,1fr)] gap-2 items-center">
-                              <span className="text-xs text-muted-foreground">{g.l}</span>
-                              <Input placeholder="First name" value={guests[g.k]?.first ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], first: e.target.value } as any })} />
-                              <Input placeholder="Last name" value={guests[g.k]?.last ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], last: e.target.value } as any })} />
+                      <section>
+                        <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><User className="h-5 w-5 text-primary" /> Guest Details</h2>
+                        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+                          <div>
+                            <p className="mb-3 font-bold text-foreground">Primary Guest (Room 1)</p>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div><Label>First Name <span className="text-destructive">*</span></Label><Input value={lead.first} readOnly={certification} placeholder="As per ID" onChange={(e) => setLead({ ...lead, first: e.target.value })} /></div>
+                              <div><Label>Last Name <span className="text-destructive">*</span></Label><Input value={lead.last} readOnly={certification} placeholder="As per ID" onChange={(e) => setLead({ ...lead, last: e.target.value })} /></div>
+                              <div><Label>Mobile Number</Label><Input value={lead.phone} placeholder="+91 98xxxxxxxx" onChange={(e) => setLead({ ...lead, phone: e.target.value })} /></div>
+                              <div><Label>Email ID <span className="text-destructive">*</span></Label><Input type="email" value={lead.email} placeholder="you@example.com" onChange={(e) => setLead({ ...lead, email: e.target.value })} /></div>
+                            </div>
+                          </div>
+                          {rooms.map((rq, i) => (
+                            <div key={i} className="space-y-2 border-t border-border pt-3">
+                              <p className="font-bold text-foreground">Room {i + 1} Guests</p>
+                              {[...Array.from({ length: rq.adults }, (_, a) => ({ k: `${i}-a${a}`, l: `Adult ${a + 1}` })), ...ages(rq).map((age, c) => ({ k: `${i}-c${c}`, l: age <= 3 ? `Infant (${age})` : `Child (${age})` }))].map((g) => (
+                                <div key={g.k} className="grid grid-cols-2 items-end gap-3 sm:grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)]">
+                                  <span className="col-span-2 pb-2 text-sm text-muted-foreground sm:col-span-1">{g.l}</span>
+                                  <div><Label className="text-xs">First Name</Label><Input value={guests[g.k]?.first ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], first: e.target.value } as any })} /></div>
+                                  <div><Label className="text-xs">Last Name</Label><Input value={guests[g.k]?.last ?? ""} onChange={(e) => setGuests({ ...guests, [g.k]: { ...guests[g.k], last: e.target.value } as any })} /></div>
+                                </div>
+                              ))}
                             </div>
                           ))}
                         </div>
-                      ))}
-                      <div>
-                        <Textarea rows={2} maxLength={256} placeholder="Special requests (e.g. late check-in, high floor)" value={special} onChange={(e) => setSpecial(e.target.value)} />
-                        <p className="text-xs text-muted-foreground mt-1">Special requests are sent to the hotel and are subject to the hotel's confirmation — they are not guaranteed.</p>
-                      </div>
-                    </>) : (<>
+                      </section>
+                      <section>
+                        <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><FileText className="h-5 w-5 text-primary" /> Special Requests (Optional)</h2>
+                        <div className="rounded-2xl border border-border bg-card p-3">
+                          <Textarea rows={3} maxLength={256} value={special} onChange={(e) => setSpecial(e.target.value)} placeholder="e.g., Early check-in, high floor, extra pillows, anniversary setup, etc." className="border-0 shadow-none focus-visible:ring-0" />
+                          <p className="text-right text-xs text-muted-foreground">{special.length}/256</p>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">Special requests are sent to the hotel and are subject to hotel confirmation.</p>
+                      </section>
+                    </>) : (<Card className="border-primary/40"><CardContent className="space-y-3 p-4">
                       <h3 className="flex items-center gap-2 text-xl font-bold text-primary"><CreditCard className="h-5 w-5" />Choose Payment Method</h3>
                       <div className="grid gap-3 md:grid-cols-[200px_minmax(0,1fr)]">
                         <div className="rounded-xl bg-primary p-3 text-primary-foreground"><p className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Credit / Debit Card</p><p className="text-xs opacity-90">Visa, Mastercard, RuPay, Amex</p></div>
@@ -582,8 +594,7 @@ export default function HyperGuestProperty() {
                           <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />{live ? "Your card is sent securely to the hotel and is not stored." : "Card details stay in your browser; the booking uses HyperGuest's test payment."}</p>
                         </div>
                       </div>
-                    </>)}
-                    </CardContent></Card>
+                    </CardContent></Card>)}
                   </div>
 
                   <aside className="space-y-4 lg:sticky lg:top-24">
@@ -622,6 +633,10 @@ export default function HyperGuestProperty() {
                         <li>Please carry a valid government ID at check-in.</li>
                       </ul>
                     </CardContent></Card>
+                    {step === "guests" && <Button size="lg" className="h-12 w-full text-base font-bold" onClick={goPay}>Continue to Payment <ArrowRight className="ml-1 h-5 w-5" /></Button>}
+                    <div className="flex items-center justify-center gap-1 text-sm font-semibold"><Lock className="h-4 w-4 text-primary" /> Secure &amp; Safe Payment</div>
+                    <PaymentBadges />
+                    <WhyBookCard />
                   </aside>
                 </div>
 
