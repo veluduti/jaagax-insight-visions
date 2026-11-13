@@ -12,12 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BedDouble, Users, Maximize, Check, Coffee, ShieldCheck,
-  ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers, Tag,
+  ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers, Tag, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { joinWaitlist } from "@/services/hospitality/longStayService";
 import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { boardLabel } from "@/types/hotelCanonical";
+import RoomDetailsDialog from "@/components/hotels/RoomDetailsDialog";
+import { nativeRoomDetails, hasRoomDetails, type RoomDetails } from "@/lib/roomDetails";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
@@ -81,6 +83,7 @@ export default function HotelRoomList({
   onNightlyRoomsChange,
 }: Props) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
+  const [roomPopup, setRoomPopup] = useState<RoomDetails | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [meals, setMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -381,6 +384,7 @@ export default function HotelRoomList({
         const amenityList: string[] = Array.isArray(room.amenities)
           ? room.amenities
           : (typeof room.amenities === "object" && room.amenities ? Object.keys(room.amenities) : []);
+        const roomDetailsData = nativeRoomDetails(room, mealsForRoom(room.id));
         const soldOut = !cv.kind.longStay && hasDates && q && !q.loading && q.available < roomsWanted;
         const lowStock = !cv.kind.longStay && hasDates && q && !q.loading && q.available > 0 && q.available <= 3;
 
@@ -454,6 +458,12 @@ export default function HotelRoomList({
                         <Badge key={a} variant="secondary" className="text-[10px] font-normal">{a}</Badge>
                       ))}
                     </div>
+                  )}
+
+                  {hasRoomDetails(roomDetailsData) && (
+                    <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setRoomPopup(roomDetailsData)}>
+                      <Info className="h-3.5 w-3.5" /> Room Details &amp; Amenities
+                    </Button>
                   )}
 
                   {mealsForRoom(room.id).length > 0 && (
@@ -613,6 +623,7 @@ export default function HotelRoomList({
           </Card>
         );
       })}
+      <RoomDetailsDialog details={roomPopup} open={!!roomPopup} onOpenChange={(v) => { if (!v) setRoomPopup(null); }} />
       {detailRoom && <Dialog open onOpenChange={(v) => !v && setDetailRoom(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader><DialogTitle>{detailRoom.room_type}</DialogTitle></DialogHeader>

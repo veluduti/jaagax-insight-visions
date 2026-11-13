@@ -90,6 +90,8 @@ function TaxLines({ node, cur }: { node: any; cur: string }) {
 
 import { BookingStepper, TrustStrip } from "@/components/hotels/booking/BookingFlowChrome";
 import { englishDescription, hotelCoordinates, roomOccupancy, roomBeds, hotelPolicies } from "@/lib/hyperguestDisplay";
+import RoomDetailsDialog from "@/components/hotels/RoomDetailsDialog";
+import { hyperguestRoomDetails, hasRoomDetails, type RoomDetails } from "@/lib/roomDetails";
 
 export default function HyperGuestProperty() {
   const { propertyId = "19912" } = useParams();
@@ -125,6 +127,7 @@ export default function HyperGuestProperty() {
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
   const [editSearch, setEditSearch] = useState(!marketplace);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [roomDetails, setRoomDetails] = useState<RoomDetails | null>(null);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const searchRequest = useRef(0);
 
@@ -319,6 +322,7 @@ export default function HyperGuestProperty() {
                     </div>
                   </div>
                   <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}><DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto"><DialogTitle>{stat.name} · Photos</DialogTitle><div className="grid sm:grid-cols-2 gap-3">{photos.map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-md" />)}</div></DialogContent></Dialog>
+                  <RoomDetailsDialog details={roomDetails} open={!!roomDetails} onOpenChange={(v) => { if (!v) setRoomDetails(null); }} />
 
                   <BookingStepper current={0} />
 
@@ -361,6 +365,7 @@ export default function HyperGuestProperty() {
                           const size = room.settings?.roomSize || st?.settings?.roomSize;
                           const occ = roomOccupancy({ ...(st?.settings ?? {}), ...(room.settings ?? {}) });
                           const rdesc = englishDescription(st?.descriptions);
+                          const rd = hyperguestRoomDetails(st, room);
                           return (
                             <div key={room.roomId} className={`grid gap-4 rounded-xl border p-3 md:grid-cols-[170px_minmax(0,1fr)_minmax(0,1.3fr)] ${isPicked ? "border-primary ring-1 ring-primary" : "border-border"}`}>
                               <div className="relative h-32 overflow-hidden rounded-lg bg-muted">
@@ -372,7 +377,7 @@ export default function HyperGuestProperty() {
                                 <p className="text-xs text-muted-foreground">{[size ? `${size} m²` : null, roomBeds(st, room), Number(room.numberOfAvailableRooms) > 0 ? `${room.numberOfAvailableRooms} left` : null].filter(Boolean).join(" · ")}</p>
                                 {occ.length > 0 && <p className="text-xs text-muted-foreground">{occ.map(o => `${o.label}: ${o.value}`).join(" · ")}</p>}
                                 {rdesc && <p className="line-clamp-2 text-xs">{rdesc}</p>}
-                                {st?.facilities?.length > 0 && <details className="text-xs"><summary className="cursor-pointer font-medium text-primary">Room Details & Amenities</summary><p className="mt-1 text-muted-foreground">{st.facilities.map((f: any) => f.name).join(", ")}</p></details>}
+                                {hasRoomDetails(rd) && <Button type="button" variant="outline" size="sm" className="mt-1 h-8 gap-1.5 text-xs" onClick={() => setRoomDetails(rd)}><Info className="h-3.5 w-3.5" />Room Details &amp; Amenities</Button>}
                               </div>
                               <div className="space-y-2">
                                 <p className="text-sm font-semibold">Choose a Rate Plan</p>
