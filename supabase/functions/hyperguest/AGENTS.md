@@ -1,4 +1,4 @@
 - Marketplace imports reuse unique supplier IDs on partner hotels and rooms, retain raw supplier content and publication state, and never create local stock or prices; live search is authoritative.
-- Supplier synchronization requires existing global-admin scopes via can_manage_hyperguest because the legacy is_admin helper references a missing roles table.
+- Supplier synchronization requires existing global-admin scopes via can_manage_hyperguest.
 - Mapped supplier bookings reuse the certified connector and card/confirmation/cancellation handling without certification-only constraints; unmapped certification flows retain those constraints.
 - Shared travel rules and server-owned expiring quotes separate retail totals from supplier settlement; prepaid settlement stays blocked until configured, and scheduled maintenance uses managed cron authentication.
