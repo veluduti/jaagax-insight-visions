@@ -108,6 +108,7 @@ const HotelCheckout = () => {
   const [step, setStep] = useState<Step>("guest");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [payMethod, setPayMethod] = useState<string>("upi");
 
   const { isAuthenticated, openAuthPopup } = useRequireAuth();
   const reviewStats = useHotelReviewStats(hotelId);
@@ -333,7 +334,7 @@ const HotelCheckout = () => {
         name: hotel?.name || "JAAGA X",
         description: `Booking ${data.booking_reference}`,
         order_id: data.order_id,
-        prefill: { name: guestName, email: guestEmail, contact: guestPhone },
+        prefill: { name: guestName, email: guestEmail, contact: guestPhone, method: payMethod },
         theme: { color: "#10b981" },
         handler: async (response: any) => {
           const { data: verify, error: vErr } = await supabase.functions.invoke("razorpay-verify-payment", {
@@ -473,10 +474,37 @@ const HotelCheckout = () => {
             </>)}
 
             {step === "pay" && (<>
-              <h2 className="flex items-center gap-2 text-2xl font-extrabold text-primary"><CreditCard className="h-6 w-6" /> Pay &amp; Confirm Your Booking</h2>
-              <StayOverview />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">Pay &amp; Confirm Your Booking</h1>
+                  <p className="text-sm text-muted-foreground">You're almost done! Complete your payment to confirm your stay at {hotel?.name}.</p>
+                </div>
+                <div className="flex items-center gap-2"><Lock className="h-7 w-7 text-primary" /><div><p className="text-sm font-bold">Secure &amp; Encrypted</p><p className="text-[11px] text-muted-foreground">Your payment is 100% safe with Jaaga.</p></div></div>
+              </div>
               <section className="rounded-2xl border border-border bg-card p-4">
-                <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 font-extrabold"><User className="h-5 w-5 text-primary" /> Guest Details</h3>
+                <h3 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-primary"><CalendarDays className="h-5 w-5" /> Your Stay Details</h3>
+                <div className="grid gap-2 text-sm sm:grid-cols-5">
+                  <PayTile label="Check-in" value={fmtDay(checkIn)} sub={hotel?.check_in_time ? `From ${hotel.check_in_time}` : undefined} />
+                  <PayTile label="Check-out" value={fmtDay(checkOut)} sub={hotel?.check_out_time ? `By ${hotel.check_out_time}` : undefined} />
+                  <PayTile label="Guests" value={`${adults} Adult${adults > 1 ? "s" : ""}${children ? `, ${children} Child${children > 1 ? "ren" : ""}` : ""}`} />
+                  <PayTile label="Room" value={`${numRooms} Room${numRooms > 1 ? "s" : ""}`} />
+                  <PayTile label="Nights" value={`${nights} Night${nights > 1 ? "s" : ""}`} />
+                </div>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-4">
+                <h3 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-primary"><BedDouble className="h-5 w-5" /> Room &amp; Rate Plan</h3>
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <img src={roomImg} onError={(e) => { e.currentTarget.src = FALLBACK_ROOM; }} alt={room?.room_type || "Room"} className="h-28 w-full rounded-xl object-cover sm:w-40" />
+                  <div className="flex-1 text-sm">
+                    <p className="text-lg font-extrabold text-primary">{room?.room_type}</p>
+                    <p className="text-muted-foreground">{[room?.bed_type, room?.max_occupancy ? `Up to ${room.max_occupancy} guests` : ""].filter(Boolean).join(" · ")}</p>
+                    <div className="mt-2 inline-block rounded-lg bg-primary/10 px-3 py-2"><p className="font-bold">{selectedMeals.length ? `With ${selectedMeals.join(", ")}` : "Room Only"}</p></div>
+                  </div>
+                  {perNight > 0 && <div className="text-right"><p className="text-xl font-extrabold">{inr(perNight)}</p><p className="text-xs text-muted-foreground">per night</p></div>}
+                </div>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 text-lg font-extrabold text-primary"><User className="h-5 w-5" /> Guest Details</h3>
                   <button className="text-sm font-semibold text-primary" onClick={() => setStep("guest")}>Edit</button></div>
                 <div className="grid gap-3 text-sm sm:grid-cols-3">
                   <Info label="Primary guest" value={guestName} />
@@ -488,22 +516,38 @@ const HotelCheckout = () => {
                 {specialRequests.trim() && <p className="mt-3 rounded-lg bg-muted p-3 text-sm"><b>Special requests:</b> {specialRequests}</p>}
               </section>
               <section className="rounded-2xl border border-border bg-card p-4">
-                <h3 className="mb-3 flex items-center gap-2 font-extrabold"><Lock className="h-5 w-5 text-primary" /> Payment Method</h3>
-                <div className="flex items-center gap-3 rounded-xl border-2 border-primary bg-primary/5 p-3">
-                  <span className="h-4 w-4 rounded-full border-4 border-primary" />
-                  <div className="flex-1"><p className="font-bold">Pay securely online</p><p className="text-xs text-muted-foreground">UPI, Credit / Debit Cards, Netbanking &amp; Wallets via Razorpay</p></div>
+                <h3 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-primary"><CreditCard className="h-5 w-5" /> Choose Payment Method</h3>
+                <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+                  <div className="overflow-hidden rounded-xl border border-border">
+                    <div className="bg-primary p-3 text-primary-foreground"><p className="font-bold">Pay Online</p><p className="text-xs opacity-90">(Recommended)</p></div>
+                    {PAY_METHODS.map((m) => (
+                      <button key={m.id} onClick={() => setPayMethod(m.id)} className={`block w-full border-t border-border p-3 text-left text-sm ${payMethod === m.id ? "bg-primary/10 font-bold text-primary" : "hover:bg-muted"}`}>{m.label}</button>
+                    ))}
+                  </div>
+                  <div className="rounded-xl border border-border p-3">
+                    <p className="flex items-center gap-2 font-extrabold"><Lock className="h-5 w-5 text-primary" /> Pay Online – Secure &amp; Instant</p>
+                    <p className="mb-3 text-xs text-muted-foreground">Complete your booking with your preferred payment method.</p>
+                    <div className="space-y-2">
+                      {PAY_METHODS.map((m) => (
+                        <label key={m.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${payMethod === m.id ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
+                          <input type="radio" name="paymethod" className="accent-primary" checked={payMethod === m.id} onChange={() => setPayMethod(m.id)} />
+                          <div><p className="text-sm font-bold">{m.label}</p><p className="text-xs text-muted-foreground">{m.sub}</p></div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-3"><PaymentBadges /></div>
               </section>
-              <section className="rounded-2xl border border-border bg-card p-4 text-sm">
-                <p>You'll be charged <b>{inr(total)}</b> for {nights} night{nights > 1 ? "s" : ""} × {numRooms} room{numRooms > 1 ? "s" : ""}. The cancellation policy shown in your booking summary applies to this rate.</p>
-                <p className="mt-2 text-xs text-muted-foreground">By paying you agree to the hotel policies and JaagaX booking terms.</p>
+              <section className="flex flex-col gap-3 rounded-2xl border border-border bg-primary/5 p-4 sm:flex-row sm:items-center">
+                <Lock className="h-8 w-8 text-primary" />
+                <div className="flex-1"><p className="font-extrabold">Secure Payment</p><p className="text-xs text-muted-foreground">Your payment is protected by SSL encryption and processed by Razorpay (PCI-DSS compliant).</p></div>
+                <PaymentBadges />
               </section>
-              <div className="flex flex-col gap-3 rounded-2xl border border-primary bg-primary/5 p-4 sm:flex-row sm:items-center">
-                <div className="flex-1"><p className="text-xs text-muted-foreground">Total payable</p><p className="text-2xl font-extrabold text-primary">{inr(total)}</p></div>
-                <Button variant="outline" onClick={() => setStep("guest")} disabled={submitting}><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>
-                <Button size="lg" className="font-bold" onClick={handlePay} disabled={submitting || !!rateIssue}>
-                  {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</> : <><Lock className="mr-1 h-4 w-4" /> Pay {inr(total)} Securely</>}
+              <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
+                <div className="sm:border-r sm:border-border sm:pr-5"><p className="text-xs text-muted-foreground">Amount to Pay</p><p className="text-3xl font-extrabold text-primary">{inr(total)}</p></div>
+                <p className="flex-1 text-xs text-muted-foreground">By proceeding, you agree to Jaaga's <a href="/terms" target="_blank" className="text-primary underline">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" className="text-primary underline">Privacy Policy</a>, and the cancellation policy shown for this rate.</p>
+                <Button size="lg" className="h-12 font-bold" onClick={handlePay} disabled={submitting || !!rateIssue}>
+                  {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</> : <><Lock className="mr-1 h-4 w-4" /> Pay {inr(total)} &amp; Confirm Booking <ArrowRight className="ml-1 h-4 w-4" /></>}
                 </Button>
               </div>
             </>)}
@@ -560,6 +604,7 @@ const HotelCheckout = () => {
             )}
             <div className="flex items-center justify-center gap-1 text-sm font-semibold"><Lock className="h-4 w-4 text-primary" /> Secure &amp; Safe Payment</div>
             <PaymentBadges />
+            {step === "pay" && <div className="rounded-2xl border border-border bg-card p-5 shadow-sm"><h3 className="mb-2 font-extrabold text-primary">Important Information</h3><ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground"><li>Your booking is confirmed instantly after successful payment.</li><li>Confirmation details are sent to your email and mobile.</li><li>Please carry a valid government ID at check-in.</li></ul></div>}
             <WhyBookCard />
           </aside>
         </div>
@@ -570,6 +615,15 @@ const HotelCheckout = () => {
   );
 };
 
+const PAY_METHODS = [
+  { id: "upi", label: "UPI", sub: "Google Pay, PhonePe, Paytm, BHIM UPI" },
+  { id: "card", label: "Credit / Debit Card", sub: "Visa, Mastercard, RuPay, Amex" },
+  { id: "netbanking", label: "Net Banking", sub: "All major banks supported" },
+  { id: "wallet", label: "Wallets", sub: "Paytm, Amazon Pay, Mobikwik, etc." },
+];
+const PayTile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
+  <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="font-bold">{value}</p>{sub && <p className="text-xs text-muted-foreground">{sub}</p>}</div>
+);
 const Info = ({ label, value }: { label: string; value: string }) => (
   <div><div className="text-muted-foreground text-xs">{label}</div><div className="font-medium">{value}</div></div>
 );
