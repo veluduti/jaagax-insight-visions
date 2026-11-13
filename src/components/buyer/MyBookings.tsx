@@ -209,7 +209,9 @@ const MyBookings = () => {
         body: { booking_id: deleting.id, reason: "guest_cancel", cancelled_by: user?.id || null },
       });
       if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || "Cancellation failed");
+        let msg = data?.error;
+        if (error && !msg) { try { msg = (await (error as any).context?.json?.())?.error; } catch { /* ignore */ } }
+        throw new Error(msg || "Cancellation failed. Please try again.");
       }
       const refund = data.refund?.amount || 0;
       toast.success(

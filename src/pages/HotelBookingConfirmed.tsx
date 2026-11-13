@@ -27,6 +27,7 @@ const HotelBookingConfirmed = () => {
   const [hotel, setHotel] = useState<any>(null);
   const [room, setRoom] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const reviews = useHotelReviewStats(booking?.hotel_id);
 
   useEffect(() => {
@@ -84,6 +85,25 @@ const HotelBookingConfirmed = () => {
   const mapUrl = hotel?.latitude && hotel?.longitude ? `https://www.google.com/maps/dir/?api=1&destination=${hotel.latitude},${hotel.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotelName} ${address}`)}`;
   const portal = booking.guest_portal_token ? `/stay/${booking.guest_portal_token}` : null;
   const shareText = `My stay at ${hotelName} is confirmed. Booking ID ${ref}, ${fmtDay(booking.check_in)} – ${fmtDay(booking.check_out)}.`;
+
+  const cancelBooking = async () => {
+    if (!window.confirm(`Cancel your booking at ${hotelName}? Refunds follow the cancellation policy shown at booking.`)) return;
+    setCancelling(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase.functions.invoke("hotel-booking-cancel", {
+        body: { booking_id: booking.id, reason: "guest_cancel", cancelled_by: user?.id || null },
+      });
+      let msg = data?.error;
+      if (error && !msg) { try { msg = (await (error as any).context?.json?.())?.error; } catch { /* ignore */ } }
+      if (error || !data?.success) throw new Error(msg || "Cancellation failed. Please try again.");
+      if (data.booking) setBooking(data.booking); else setBooking({ ...booking, status: "cancelled" });
+      const refund = Number(data.refund?.amount) || 0;
+      toast.success(refund > 0 ? `Booking cancelled. Refund of ${inr(refund)} initiated.` : "Booking cancelled.");
+    } catch (e: any) {
+      toast.error(e.message || "Cancellation failed");
+    } finally { setCancelling(false); }
+  };
 
   const copy = (v: string) => { navigator.clipboard.writeText(v); toast.success("Copied"); };
   const share = async () => { try { if (navigator.share) await navigator.share({ title: "Booking confirmed", text: shareText, url: window.location.href }); else copy(`${shareText} ${window.location.href}`); } catch { /* dismissed */ } };
@@ -240,14 +260,15 @@ const HotelBookingConfirmed = () => {
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
               <h3 className="mb-2 flex items-center gap-2 text-lg font-extrabold"><CalendarDays className="h-5 w-5 text-primary" /> Manage Your Booking</h3>
               {[
-                { icon: CalendarDays, label: "Modify Booking", to: "/dashboard/buyer?tab=bookings" },
-                { icon: XCircle, label: "Cancel Booking", to: "/dashboard/buyer?tab=bookings", danger: true },
+                { icon: CalendarDays, label: "Modify Booking", to: "/dashboard/customer?view=buying&tab=bookings" },
+                ...(cancelled || booking.status === "checked_out" ? [] : [{ icon: cancelling ? Loader2 : XCircle, label: cancelling ? "Cancelling…" : "Cancel Booking", action: cancelBooking, danger: true }]),
                 { icon: FileText, label: "Request Invoice (GST)", href: booking.invoice_url },
                 { icon: Headphones, label: "Contact Support", to: "/contact" },
-              ].map((m) => {
+              ].map((m: any) => {
                 const inner = <><m.icon className={`h-5 w-5 ${m.danger ? "text-destructive" : "text-primary"}`} /><span className="flex-1 font-semibold">{m.label}</span><ChevronRight className="h-4 w-4" /></>;
                 const cls = "flex items-center gap-3 border-b border-border py-3 text-sm last:border-0";
                 if (m.href) return <a key={m.label} href={m.href} target="_blank" rel="noreferrer" className={cls}>{inner}</a>;
+                if (m.action) return <button key={m.label} disabled={cancelling} onClick={m.action} className={`${cls} w-full text-left disabled:opacity-60`}>{inner}</button>;
                 if (!m.to) return <button key={m.label} onClick={() => window.print()} className={`${cls} w-full text-left`}>{inner}</button>;
                 return <Link key={m.label} to={m.to} className={cls}>{inner}</Link>;
               })}
