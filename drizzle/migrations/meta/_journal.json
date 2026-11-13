@@ -393,6 +393,13 @@
       "when": 1794465068055,
       "tag": "0055_hyperguest_verified_quotes",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794542176330,
+      "tag": "0056_restrict_inventory_units_and_journey_members",
+      "breakpoints": true
     }
   ]
 }

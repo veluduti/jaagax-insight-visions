@@ -16044,6 +16044,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      travel_journey_has_capacity: {
+        Args: { _journey_id: string }
+        Returns: boolean
+      }
       update_financial_loan_document_status: {
         Args: { _document_id: string; _notes?: string; _status: string }
         Returns: undefined
