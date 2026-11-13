@@ -386,7 +386,6 @@ export default function HotelRoomList({
           : (typeof room.amenities === "object" && room.amenities ? Object.keys(room.amenities) : []);
         const roomDetailsData = nativeRoomDetails(room, mealsForRoom(room.id));
         const soldOut = !cv.kind.longStay && hasDates && q && !q.loading && q.available < roomsWanted;
-        const lowStock = !cv.kind.longStay && hasDates && q && !q.loading && q.available > 0 && q.available <= 3;
 
         return (
           <Card key={room.id} className="overflow-hidden rounded-xl border-border">
@@ -544,14 +543,8 @@ export default function HotelRoomList({
                         )}
                         {!cv.kind.longStay && hasDates && q && !q.loading && (
                           <div className="pt-1">
-                            {soldOut ? (
+                            {soldOut && (
                               <Badge variant="destructive" className="text-[10px]">Sold out for these dates</Badge>
-                            ) : lowStock ? (
-                              <Badge className="bg-orange-500 hover:bg-orange-500 text-[10px]">Only {q.available} left</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-700">
-                                {q.available} rooms available
-                              </Badge>
                             )}
                           </div>
                         )}

@@ -42,7 +42,6 @@ import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelExtraServices from "@/components/hotels/HotelExtraServices";
 import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
-import NearbyHotelProperties from "@/components/hotels/NearbyHotelProperties";
 import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 
@@ -433,13 +432,6 @@ const HotelDetail = () => {
         </div>
 
         <div className="mt-8"><TrustStrip /></div>
-
-        <NearbyHotelProperties
-          latitude={(hotel as any).latitude}
-          longitude={(hotel as any).longitude}
-          city={hotel.city}
-          hotelName={hotel.name}
-        />
         </div>
       </main>
 
