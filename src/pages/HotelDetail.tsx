@@ -1,5 +1,5 @@
 import { normalizeCategory } from "@/config/hospitalityCategories";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { readHotelSearchContext } from "@/lib/hotelSearchContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -99,6 +99,8 @@ const HotelDetail = () => {
   const [liked, setLiked] = useState(false);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [hasNightlyRooms, setHasNightlyRooms] = useState<boolean | null>(null);
+  const [roomSelection, setRoomSelection] = useState<{ roomId: string; ratePlanId?: string } | null>(null);
+  const handleRoomSelection = useCallback((sel: { roomId: string; ratePlanId?: string } | null) => setRoomSelection(sel), []);
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
@@ -340,6 +342,7 @@ const HotelDetail = () => {
               children={onlyLongStay ? 0 : childrenCount}
               roomsWanted={roomsWanted}
               onNightlyRoomsChange={setHasNightlyRooms}
+              onSelectionChange={handleRoomSelection}
             />
           </section>
 
@@ -406,7 +409,19 @@ const HotelDetail = () => {
           )}
 
           <div>
-            <Button className="h-11 w-full font-bold" onClick={() => scrollToId("rooms")}>
+            <Button className="h-11 w-full font-bold" onClick={() => {
+              if (onlyLongStay || !roomSelection || !checkIn || !checkOut) { scrollToId("rooms"); return; }
+              const params = new URLSearchParams({
+                room: roomSelection.roomId,
+                checkin: checkIn,
+                checkout: checkOut,
+                adults: String(adults),
+                children: String(childrenCount),
+                rooms: String(roomsWanted),
+              });
+              if (roomSelection.ratePlanId) params.set("rate_plan", roomSelection.ratePlanId);
+              navigate(`/hotels/${hotel.id}/checkout?${params.toString()}`);
+            }}>
               {onlyLongStay ? "Choose a room or bed" : "Continue to Payment"}
             </Button>
             <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" /> Secure &amp; Safe Payment</div>

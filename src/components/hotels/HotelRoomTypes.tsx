@@ -14,11 +14,12 @@ interface Props {
   roomsWanted?: number;
   hotelCity?: string;
   onNightlyRoomsChange?: (hasNightlyRooms: boolean) => void;
+  onSelectionChange?: (sel: { roomId: string; ratePlanId?: string } | null) => void;
 }
 
 export default function HotelRoomTypes({
   hotelId, hotelName, hotelCity, checkIn, checkOut, adults, children, roomsWanted,
-  onNightlyRoomsChange,
+  onNightlyRoomsChange, onSelectionChange,
 }: Props) {
   return (
     <HotelRoomList
@@ -31,6 +32,7 @@ export default function HotelRoomTypes({
       children={children}
       roomsWanted={roomsWanted}
       onNightlyRoomsChange={onNightlyRoomsChange}
+      onSelectionChange={onSelectionChange}
     />
   );
 }

@@ -63,6 +63,7 @@ interface Props {
   children?: number;
   roomsWanted?: number;
   onNightlyRoomsChange?: (hasNightlyRooms: boolean) => void;
+  onSelectionChange?: (sel: { roomId: string; ratePlanId?: string } | null) => void;
 }
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800";
@@ -80,7 +81,7 @@ interface RoomQuote {
 export default function HotelRoomList({
   hotelId, hotelName, hotelCity,
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
-  onNightlyRoomsChange,
+  onNightlyRoomsChange, onSelectionChange,
 }: Props) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
   const [roomPopup, setRoomPopup] = useState<RoomDetails | null>(null);
@@ -91,6 +92,7 @@ export default function HotelRoomList({
   const [galleryIdx, setGalleryIdx] = useState<Record<string, number>>({});
   const [ratePlans, setRatePlans] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Record<string, string>>({});
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [bizTypes, setBizTypes] = useState<string[]>([]);
   useEffect(() => {
@@ -261,6 +263,27 @@ export default function HotelRoomList({
 
   const longStayRooms = rooms.filter((r) => customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay);
   const displayRooms = [...longStayRooms, ...(quotesReady ? bookableRooms : fittingRooms)];
+  const displayIds = displayRooms.map((r) => r.id).join(",");
+
+  // Default-select the first nightly room so the page-level "Continue to Payment" has a target.
+  useEffect(() => {
+    const ids = displayIds ? displayIds.split(",") : [];
+    if (selectedRoomId && ids.includes(selectedRoomId)) return;
+    const first = displayRooms.find((r) => !customerView(r, r.attributes?.business_type ? [r.attributes.business_type] : bizTypes).kind.longStay);
+    setSelectedRoomId(first?.id ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayIds, bizTypes]);
+
+  // Report the selected room + rate plan to the parent (drives the sidebar payment button).
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    if (!selectedRoomId) { onSelectionChange(null); return; }
+    onSelectionChange({
+      roomId: selectedRoomId,
+      ratePlanId: selectedPlan[selectedRoomId] ?? plansForRoom(selectedRoomId)[0]?.id,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoomId, selectedPlan, ratePlans, onSelectionChange]);
 
   if (loading) {
     return (
@@ -388,7 +411,7 @@ export default function HotelRoomList({
         const soldOut = !cv.kind.longStay && hasDates && q && !q.loading && q.available < roomsWanted;
 
         return (
-          <Card key={room.id} className="overflow-hidden rounded-xl border-border">
+          <Card key={room.id} className={`overflow-hidden rounded-xl border-border ${room.id === selectedRoomId ? "ring-2 ring-primary" : ""}`}>
             <CardContent className="p-3">
               <div className="grid gap-4 md:grid-cols-[170px_minmax(0,1fr)_minmax(0,1.3fr)]">
                 {/* Gallery */}
@@ -519,7 +542,7 @@ export default function HotelRoomList({
                           return (
                             <label key={plan?.id ?? "base"} className={`flex cursor-pointer gap-2 rounded-lg border p-2.5 ${sel ? "border-primary bg-primary/5" : "border-border"}`}>
                               <input type="radio" className="mt-1 accent-primary" name={`rate-${room.id}`} checked={sel}
-                                onChange={() => plan && setSelectedPlan((p) => ({ ...p, [room.id]: plan.id }))} />
+                                onChange={() => { setSelectedRoomId(room.id); if (plan) setSelectedPlan((p) => ({ ...p, [room.id]: plan.id })); }} />
                               <span className="min-w-0 flex-1">
                                 <span className="block text-sm font-semibold">{plan ? (plan.rate_plan_name || plan.name) : "Room Only"}</span>
                                 <span className="block text-[11px] text-muted-foreground">
@@ -575,19 +598,9 @@ export default function HotelRoomList({
                     </Button>
                   )}
                   {cv.kind.longStay && <Button variant="outline" className="w-full" onClick={() => setDetailRoom(room)}>View all details</Button>}
-                  {!cv.kind.longStay && <Button
-                    className="w-full"
-                    disabled={!!soldOut || (hasDates && (!quotesReady || Number(q?.available ?? 0) < roomsWanted))}
-                    onClick={() =>
-                      goCheckout(
-                        room.id,
-                        roomsWanted ?? 1,
-                        selectedPlan[room.id] ?? plansForRoom(room.id)[0]?.id,
-                      )
-                    }
-                  >
-                    {soldOut ? "Sold out" : hasDates ? "Continue to booking" : "Select dates"}
-                  </Button>}
+                  {!cv.kind.longStay && soldOut && (
+                    <Button className="w-full" disabled>Sold out</Button>
+                  )}
 
                 </div>
               </div>
