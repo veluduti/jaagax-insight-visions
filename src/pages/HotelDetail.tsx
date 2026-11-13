@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
@@ -283,12 +284,10 @@ const HotelDetail = () => {
           />
           <BookingStepper current={0} />
 
-          {hotel.description && <p className="text-sm leading-relaxed text-muted-foreground">{hotel.description}</p>}
-
           {!onlyLongStay && <section id="availability">
             <h2 className="text-2xl font-bold text-primary">Check Availability &amp; Select Room</h2>
             <p className="mb-4 text-sm text-muted-foreground">Choose your stay dates, guests and preferred room with a rate plan.</p>
-            <div className="grid items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm md:grid-cols-[1fr_1fr_1.4fr_auto]">
+            <div className="grid items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm md:grid-cols-[1fr_1fr_1.2fr_auto]">
               <label className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
                 <Calendar className="h-5 w-5 text-primary" />
                 <span className="flex flex-col"><span className="text-[11px] text-muted-foreground">Check-in</span>
@@ -299,15 +298,27 @@ const HotelDetail = () => {
                 <span className="flex flex-col"><span className="text-[11px] text-muted-foreground">Check-out</span>
                 <input id="availability-check-out" type="date" value={checkOut} min={nextDayISO(checkIn) || todayISO()} onChange={(e) => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }} className="bg-transparent text-sm font-bold outline-none" /></span>
               </label>
-              <div className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
-                <Users className="h-5 w-5 shrink-0 text-primary" />
-                <div className="grid flex-1 grid-cols-3 gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button type="button" className="flex items-center gap-3 rounded-xl border border-input px-3 py-2 text-left">
+                    <Users className="h-5 w-5 shrink-0 text-primary" />
+                    <span className="flex flex-col"><span className="text-[11px] text-muted-foreground">Guests &amp; Rooms</span>
+                      <span className="text-sm font-bold">{adults} Adult{adults > 1 ? "s" : ""}{childrenCount ? `, ${childrenCount} Child${childrenCount > 1 ? "ren" : ""}` : ""}, {roomsWanted} Room{roomsWanted > 1 ? "s" : ""}</span></span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 space-y-3" align="start">
                   {([["Adults", adults, 1, 20, setAdults], ["Children", childrenCount, 0, 10, setChildrenCount], ["Rooms", roomsWanted, 1, 10, setRoomsWanted]] as const).map(([lbl, val, mn, mx, set]) => (
-                    <label key={lbl} className="flex flex-col"><span className="text-[11px] text-muted-foreground">{lbl}</span>
-                      <input type="number" min={mn} max={mx} value={val} onChange={(e) => (set as any)(Math.max(mn, Math.min(mx, Number(e.target.value) || mn)))} className="w-full bg-transparent text-sm font-bold outline-none" /></label>
+                    <div key={lbl} className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{lbl}</span>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" size="icon" variant="outline" className="h-7 w-7" disabled={val <= mn} onClick={() => (set as any)(Math.max(mn, val - 1))}>−</Button>
+                        <span className="w-6 text-center text-sm font-bold">{val}</span>
+                        <Button type="button" size="icon" variant="outline" className="h-7 w-7" disabled={val >= mx} onClick={() => (set as any)(Math.min(mx, val + 1))}>+</Button>
+                      </div>
+                    </div>
                   ))}
-                </div>
-              </div>
+                </PopoverContent>
+              </Popover>
               <Button className="h-12 px-6 text-base font-bold" onClick={() => { if (checkOut <= checkIn) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setSearchNonce((n) => n + 1); scrollToId("rooms"); }}>
                 Check Availability
               </Button>
@@ -342,6 +353,13 @@ const HotelDetail = () => {
 
           <HotelAddonsShowcase hotelId={hotel.id} onAdd={() => scrollToId("rooms")} />
 
+          {hotel.description && (
+            <section>
+              <h2 className="mb-2 text-lg font-bold">About this hotel</h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">{hotel.description}</p>
+            </section>
+          )}
+
           {amenities.length > 0 && (
             <section>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-bold"><Sparkles className="h-5 w-5 text-primary" /> Amenities &amp; Facilities</h2>
@@ -368,26 +386,19 @@ const HotelDetail = () => {
               </div>
             </div>
             {!onlyLongStay && <>
-              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-border pt-3 text-sm">
-                <div><p className="text-[11px] text-muted-foreground">Check-in</p><p className="font-bold">{fmtDay(checkIn)}</p></div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                <div><p className="text-[11px] text-muted-foreground">Check-out</p><p className="font-bold">{fmtDay(checkOut)}</p></div>
+              <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-3 text-sm">
+                <div><p className="text-[11px] text-muted-foreground">Check-in</p><p className="font-semibold">{fmtDay(checkIn)}</p></div>
+                <div><p className="text-[11px] text-muted-foreground">Check-out</p><p className="font-semibold">{fmtDay(checkOut)}</p></div>
               </div>
-              <div className="mt-3 flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-primary" />
-                <span className="font-semibold">{adults} Adult{adults > 1 ? "s" : ""}{childrenCount ? `, ${childrenCount} Child${childrenCount > 1 ? "ren" : ""}` : ""} · {roomsWanted} Room{roomsWanted > 1 ? "s" : ""}</span></div>
-              <p className="mt-3 rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">Select a room and rate plan to see your price breakdown and continue to guest details.</p>
+              <div className="mt-3 text-sm"><p className="text-[11px] text-muted-foreground">Guests</p>
+                <p className="font-semibold">{adults} Adult{adults > 1 ? "s" : ""}{childrenCount ? `, ${childrenCount} Child${childrenCount > 1 ? "ren" : ""}` : ""} · {roomsWanted} Room{roomsWanted > 1 ? "s" : ""}</p></div>
             </>}
-            <Button className="mt-4 h-11 w-full font-bold" onClick={() => scrollToId("rooms")}>
-              {onlyLongStay ? "Choose a room or bed" : "Select Room & Continue"} <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-            <div className="mt-3 flex items-center justify-center gap-1 text-xs font-semibold"><Lock className="h-3.5 w-3.5 text-primary" /> Secure &amp; Safe Payment</div>
-            <div className="mt-2"><PaymentBadges /></div>
           </div>
 
           {(hotel.check_in_time || hotel.check_out_time || policyEntries.length > 0) && (
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <h3 className="mb-2 flex items-center gap-2 font-bold text-primary"><ShieldCheck className="h-5 w-5 text-primary" /> Hotel Policies</h3>
-              <ul className="list-disc space-y-1 pl-9 text-sm text-muted-foreground">
+              <h3 className="mb-2 font-bold text-primary">Hotel Policies</h3>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                 {hotel.check_in_time && <li>Check-in: From {hotel.check_in_time}</li>}
                 {hotel.check_out_time && <li>Check-out: By {hotel.check_out_time}</li>}
                 {policyEntries.slice(0, 4).map(([k, v]) => <li key={k}>{humanize(k)}: {typeof v === "boolean" ? (v ? "Yes" : "No") : String(v)}</li>)}
@@ -395,6 +406,12 @@ const HotelDetail = () => {
             </div>
           )}
 
+          <div>
+            <Button className="h-11 w-full font-bold" onClick={() => scrollToId("rooms")}>
+              {onlyLongStay ? "Choose a room or bed" : "Continue to Payment"}
+            </Button>
+            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" /> Secure &amp; Safe Payment</div>
+          </div>
           <div className={extrasCount > 0 ? "" : "hidden"}>
             <HotelExtraServices hotelId={hotel.id} variant="sidebar" onCount={setExtrasCount} />
           </div>
