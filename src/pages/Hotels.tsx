@@ -1385,7 +1385,7 @@ const Hotels = () => {
                       role="combobox"
                       aria-expanded={showSuggestions}
                       autoComplete="off"
-                      className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-card text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent h-10"
+                      className="w-full border border-input rounded-lg px-3 py-2 text-sm bg-card text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary h-10"
                     />
 
                     {/* Suggestions Dropdown - IMPROVED to match image 1 */}
@@ -1498,7 +1498,7 @@ const Hotels = () => {
                       setShowGuestSelector(!showGuestSelector);
                       setShowChildAgeSelector(false);
                     }}
-                    className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-card text-foreground cursor-pointer hover:border-primary transition-colors min-h-10 flex items-center justify-between"
+                    className="w-full border border-input rounded-lg px-3 py-2 text-sm bg-card text-foreground cursor-pointer hover:border-primary transition-colors min-h-10 flex items-center justify-between"
                   >
                     <span className="truncate text-xs md:text-sm">{getGuestDisplayText()}</span>
                     <ChevronDown
@@ -1678,7 +1678,7 @@ const Hotels = () => {
                     aria-label="Search by your intent"
                     onChange={(e) => setAiText(e.target.value)}
                     placeholder='Search by your intent — e.g. "Pool villa in Goa for 4 people with breakfast"'
-                    className="h-10 border-transparent bg-card pl-9 text-foreground"
+                    className="h-10 border-input bg-card pl-9 text-foreground"
                     maxLength={500}
                   />
                 </div>
