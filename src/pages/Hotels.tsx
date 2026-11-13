@@ -1361,7 +1361,7 @@ const Hotels = () => {
         <div className="sticky top-16 z-30 -mt-6 bg-card pb-2 pt-2 xl:top-[68px]">
           <div className="mx-auto w-full max-w-[1600px] px-4 lg:px-8">
             {/* Advanced Search Bar */}
-            <div className="relative z-20 rounded-lg border border-primary/20 bg-card p-3 text-card-foreground shadow-lg md:p-4">
+            <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
               <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
@@ -1385,7 +1385,7 @@ const Hotels = () => {
                       role="combobox"
                       aria-expanded={showSuggestions}
                       autoComplete="off"
-                      className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-accent text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent h-10"
+                      className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-card text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent h-10"
                     />
 
                     {/* Suggestions Dropdown - IMPROVED to match image 1 */}
@@ -1498,7 +1498,7 @@ const Hotels = () => {
                       setShowGuestSelector(!showGuestSelector);
                       setShowChildAgeSelector(false);
                     }}
-                    className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-accent text-foreground cursor-pointer hover:border-primary transition-colors min-h-10 flex items-center justify-between"
+                    className="w-full border border-transparent rounded-lg px-3 py-2 text-sm bg-card text-foreground cursor-pointer hover:border-primary transition-colors min-h-10 flex items-center justify-between"
                   >
                     <span className="truncate text-xs md:text-sm">{getGuestDisplayText()}</span>
                     <ChevronDown
@@ -1678,7 +1678,7 @@ const Hotels = () => {
                     aria-label="Search by your intent"
                     onChange={(e) => setAiText(e.target.value)}
                     placeholder='Search by your intent — e.g. "Pool villa in Goa for 4 people with breakfast"'
-                    className="h-10 border-transparent bg-accent pl-9 text-foreground"
+                    className="h-10 border-transparent bg-card pl-9 text-foreground"
                     maxLength={500}
                   />
                 </div>
