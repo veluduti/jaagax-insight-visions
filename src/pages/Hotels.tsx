@@ -1361,7 +1361,7 @@ const Hotels = () => {
         <div className="sticky top-16 z-30 -mt-6 bg-card pb-2 pt-2 xl:top-[68px]">
           <div className="mx-auto w-full max-w-[1600px] px-4 lg:px-8">
             {/* Advanced Search Bar */}
-            <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
+            <div className="relative z-20 rounded-lg border-2 border-primary/40 bg-card p-3 text-card-foreground shadow-lg md:p-4">
               <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
