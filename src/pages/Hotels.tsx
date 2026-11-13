@@ -1663,9 +1663,9 @@ const Hotels = () => {
 
               {/* Intent-based AI search */}
               <div className="mt-3 flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Or</span>
-                <span className="h-px flex-1 bg-border" />
+                <span className="h-px flex-1 bg-primary/60" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-primary">Or</span>
+                <span className="h-px flex-1 bg-primary/60" />
               </div>
               <form
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
