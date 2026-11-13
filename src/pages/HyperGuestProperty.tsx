@@ -282,147 +282,175 @@ export default function HyperGuestProperty() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 pt-6 pb-16 max-w-6xl space-y-6">
+      <div className="container mx-auto px-4 pt-6 pb-16 max-w-7xl space-y-6">
         <Button variant="ghost" size="sm" onClick={() => { if (prebook && !confirmed) { setPrebook(null); } else { nav(`/hotels${loc.search}`); } }}><ArrowLeft className="mr-2 h-4 w-4" />{prebook && !confirmed ? "Back to rooms" : "Back to hotels"}</Button>
         {statError ? <div className="py-20 text-center text-muted-foreground">{statError}</div> : !stat ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : (
           <>
             {certification && <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Free cancellation rates only · check-in from {liveMinCheckIn} · guest name Test Test · cancel from My Bookings within 7 days.</p>}
-            <div>
-              <Badge variant="secondary" className="mb-2">Hotel</Badge>
-              <h1 className="text-2xl md:text-3xl font-bold">{stat.name}</h1>
-              <p className="text-sm text-muted-foreground flex flex-wrap items-center gap-1 mt-1"><MapPin className="h-4 w-4 shrink-0" />{stat.location?.address}, {stat.location?.city?.name}{Number(stat.rating) > 0 && <> · <Star className="h-4 w-4" />{stat.rating}</>}</p>
-              <p className="text-xs text-muted-foreground mt-1">Check-in {stat.settings?.checkIn} · Check-out {stat.settings?.checkOut}</p>
-            </div>
-            {!prebook && !confirmed && <>
-            {photos.length > 0 && (
-              <div className="relative grid grid-cols-2 md:grid-cols-4 gap-2 h-64 md:h-96 overflow-hidden rounded-lg">
-                {photos.slice(0, 5).map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} className={`h-full w-full object-cover bg-muted ${i === 0 ? "row-span-2 md:col-span-2" : ""}`} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />)}
-                <Button variant="secondary" className="absolute bottom-3 right-3" onClick={() => setGalleryOpen(true)}><Images className="mr-2 h-4 w-4" />All photos ({photos.length})</Button>
-              </div>
-            )}
-            <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}><DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto"><DialogTitle>{stat.name} · Photos</DialogTitle><div className="grid sm:grid-cols-2 gap-3">{photos.map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-md" />)}</div></DialogContent></Dialog>
-            <nav className="flex flex-wrap gap-2 border-b border-border pb-2">{["Overview", "Rooms", "Amenities", "Policies"].map(label => <Button key={label} variant="ghost" size="sm" onClick={() => document.getElementById(`supplier-${label.toLowerCase()}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{label}</Button>)}</nav>
-            <section id="supplier-overview" className="scroll-mt-24"><h2 className="font-semibold mb-2">About this hotel</h2>
-            {desc && <details className="text-sm text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">Read about this hotel</summary><p className="mt-2 whitespace-pre-line">{desc}</p></details>}
-            {(stat.settings?.checkIn || stat.settings?.checkOut || placeLine || stat.location?.postcode?.trim()) && <dl className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              {stat.settings?.checkIn && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Check-in from</dt><dd className="font-medium">{stat.settings.checkIn}</dd></div>}
-              {stat.settings?.checkOut && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Check-out by</dt><dd className="font-medium">{stat.settings.checkOut}</dd></div>}
-              {placeLine && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Region</dt><dd className="font-medium">{placeLine}</dd></div>}
-              {stat.location?.postcode?.trim() && <div className="rounded-md border border-border p-2"><dt className="text-muted-foreground">Postcode</dt><dd className="font-medium">{stat.location.postcode.trim()}</dd></div>}
-            </dl>}
-            {coords && <div className="mt-3 space-y-1">
-              <iframe title={`${stat.name} map`} loading="lazy" className="w-full h-56 rounded-lg border border-border" src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng - 0.01},${coords.lat - 0.006},${coords.lng + 0.01},${coords.lat + 0.006}&layer=mapnik&marker=${coords.lat},${coords.lng}`} />
-              <a className="text-xs text-primary underline" href={`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`} target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
-            </div>}
-            </section>
-            {hotelFacilities.length > 0 && (
-              <section id="supplier-amenities" className="scroll-mt-24"><h2 className="font-semibold mb-2">Amenities</h2>
-                <div className="flex flex-wrap gap-1.5">{hotelFacilities.map((f: any) => <Badge key={f.id} variant="outline">{f.name}</Badge>)}</div>
-              </section>
-            )}
-
-            <section id="supplier-rooms" className="scroll-mt-24 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border py-4">
-              <div className="flex flex-wrap gap-4 text-sm"><span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" />{checkIn} — {addDays(checkIn, nights)}</span><span className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" />{rooms.reduce((sum, r) => sum + r.adults, 0)} adults{rooms.flatMap(ages).length > 0 ? `, ${rooms.flatMap(ages).length} children` : ""}</span><span className="flex items-center gap-2"><BedDouble className="h-4 w-4 text-primary" />{rooms.length} room(s)</span></div>
-              <Button variant="outline" size="sm" onClick={() => setEditSearch(!editSearch)}>{editSearch ? "Close" : "Modify search"}</Button>
-            </div>
-            {editSearch && <div className="border border-border rounded-lg p-4 space-y-3">
-              <h2 className="font-semibold">Change dates & guests</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <label className="text-xs">Check-in<Input type="date" min={certification ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} /></label>
-                <label className="text-xs">Check-out<Input type="date" min={addDays(checkIn, 1)} value={addDays(checkIn, nights)} onChange={(e) => { if (!isValidDateRangeISO(checkIn, e.target.value)) return toast.error(CHECKOUT_AFTER_CHECKIN_MSG); setNights(Math.round((Date.parse(e.target.value) - Date.parse(checkIn)) / 86400000)); }} /></label>
-                <label className="text-xs">Guest nationality<select className="w-full h-10 rounded-md border bg-background px-2" value={nationality} onChange={(e) => setNationality(e.target.value)}>{NATIONALITIES.map((n) => <option key={n}>{n}</option>)}</select></label>
-                <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={certification} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
-              </div>
-              {rooms.map((r, i) => (
-                <div key={i} className="flex flex-wrap items-end gap-2 border rounded-md p-2">
-                  <span className="text-sm font-medium w-16">Room {i + 1}</span>
-                  <label className="text-xs">Adults<Input className="w-20" type="number" min={1} max={4} value={r.adults} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, adults: Math.max(1, +e.target.value) } : x))} /></label>
-                  <label className="text-xs">Child ages (0–17, comma)<Input className="w-36" value={r.children.join(",")} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, children: e.target.value.split(",").map((s) => parseInt(s)).filter((n) => n >= 0 && n <= 17) } : x))} /></label>
-                  <label className="text-xs">Infants (0–3)<Input className="w-20" type="number" min={0} max={2} value={r.infants} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, infants: Math.max(0, +e.target.value) } : x))} /></label>
-                  {rooms.length > 1 && <Button size="icon" variant="ghost" onClick={() => setRooms(rooms.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>}
-                </div>
-              ))}
-              <div className="flex gap-2">
-                {rooms.length < 4 && <Button variant="outline" size="sm" onClick={() => setRooms([...rooms, { adults: 1, children: [], infants: 0 }])}><Plus className="h-4 w-4 mr-1" />Add room</Button>}
-                <Button onClick={search} disabled={searching}>{searching && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Update availability</Button>
-              </div>
-            </div>}
-            {searching && <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Checking available rooms…</div>}
-            {availabilityError && <div className="py-6 text-center space-y-3"><p className="text-sm text-destructive">{availabilityError}</p><Button variant="outline" onClick={search}>Try again</Button></div>}
-            {!searching && result && !prop?.rooms?.length && <div className="py-8 text-center space-y-3"><h2 className="font-semibold">No rooms available for your stay</h2><p className="text-sm text-muted-foreground">Try different dates or guest numbers.</p><Button variant="outline" onClick={() => setEditSearch(true)}>Change dates & guests</Button></div>}
-            </section>
-
-            {(remarks.length > 0 || staticPolicies.length > 0) && (
-              <details id="supplier-policies" className="scroll-mt-24" open={staticPolicies.length > 0}><summary className="font-semibold cursor-pointer mb-2">Hotel policies & remarks</summary>
-                {staticPolicies.length > 0 && <dl className="text-sm space-y-2 mb-2">{staticPolicies.map((p, i) => <div key={i}><dt className="font-medium">{p.title}</dt><dd className="text-muted-foreground whitespace-pre-line">{p.body}</dd></div>)}</dl>}
-                {remarks.length > 0 && <ul className="list-disc pl-5 text-sm space-y-1">{remarks.map((r, i) => <li key={i} className="whitespace-pre-line">{r}</li>)}</ul>}
-              </details>
-            )}
-
-            {prop && rooms.map((rq, i) => (
-              <div key={i} className="space-y-3">
-                <h2 className="font-semibold">Room {i + 1}: {rq.adults} adult(s){rq.children.length ? `, ${rq.children.length} child(ren)` : ""}{rq.infants ? `, ${rq.infants} infant(s)` : ""}</h2>
-                {roomsFor(i).length === 0 && <p className="text-sm text-muted-foreground">No rooms fit these guests.</p>}
-                {roomsFor(i).map((room: any) => {
-                  const st = staticRooms[String(room.roomId)];
-                  return (
-                    <Card key={room.roomId}><CardContent className="p-4 space-y-3">
-                      <div className="flex gap-3">
-                        {st?.images?.[0]?.uri && <img src={st.images[0].uri} alt="" className="h-20 w-28 object-cover rounded-md bg-muted" />}
-                        <div>
-                          <h3 className="font-semibold">{room.roomName}</h3>
-                          <p className="text-xs text-muted-foreground">{[(room.settings?.roomSize || st?.settings?.roomSize) ? `${room.settings?.roomSize || st.settings.roomSize} m²` : null, roomBeds(st, room), Number(room.numberOfAvailableRooms) > 0 ? `${room.numberOfAvailableRooms} left` : null].filter(Boolean).join(" · ")}</p>
-                          {(() => { const occ = roomOccupancy({ ...(st?.settings ?? {}), ...(room.settings ?? {}) }); return occ.length > 0 && <div className="flex flex-wrap gap-1 mt-1">{occ.map(o => <Badge key={o.label} variant="outline" className="text-[10px]">{o.label}: {o.value}</Badge>)}</div>; })()}
-                          {englishDescription(st?.descriptions) && <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{englishDescription(st?.descriptions)}</p>}
-                          {st?.facilities?.length > 0 && <p className="text-xs mt-1"><span className="font-medium">Room facilities:</span> {st.facilities.map((f: any) => f.name).join(", ")}</p>}
-                        </div>
+            {!prebook && !confirmed && (() => {
+              const pickedList = rooms.map((_, i) => picked[i]).filter(Boolean) as { room: any; rp: any }[];
+              const pickedTotal = pickedList.reduce((s, p) => s + Number(customerPrice(p.rp, currency)?.amount ?? 0), 0);
+              const pickedCur = pickedList[0] ? customerPrice(pickedList[0].rp, currency)?.currency ?? currency : currency;
+              const first = pickedList[0];
+              const firstImg = first ? staticRooms[String(first.room.roomId)]?.images?.[0]?.uri : null;
+              const totalAdults = rooms.reduce((sum, r) => sum + r.adults, 0);
+              const totalKids = rooms.flatMap(ages).length;
+              const fmtDay = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+              return (
+              <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+                <div className="space-y-6 min-w-0">
+                  <div className="grid md:grid-cols-[300px_minmax(0,1fr)] gap-5">
+                    <button type="button" className="relative h-52 overflow-hidden rounded-xl bg-muted" onClick={() => photos.length && setGalleryOpen(true)}>
+                      {photos[0] && <img src={photos[0]} alt={stat.name} className="h-full w-full object-cover" />}
+                      {photos.length > 1 && <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-foreground/70 px-2 py-1 text-xs text-background"><Images className="h-3 w-3" />{photos.length} Photos</span>}
+                    </button>
+                    <div className="min-w-0 space-y-2">
+                      <h1 className="text-2xl md:text-3xl font-bold text-primary">{stat.name}</h1>
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        {Number(stat.rating) > 0 && <span className="flex items-center gap-0.5">{Array.from({ length: Math.round(Number(stat.rating)) }, (_, k) => <Star key={k} className="h-4 w-4 fill-current text-amber-500" />)}</span>}
+                        <Badge variant="outline" className="border-primary/40 text-primary"><CheckCircle2 className="mr-1 h-3 w-3" />Verified Hotel</Badge>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {room.ratePlans.filter(publicRate).map((rp: any) => {
-                          const sell = rp.prices?.sell, bar = rp.prices?.bar;
-                          const retail = customerPrice(rp, currency);
-                          const shown = retail?.amount;
-                          const shownCur = retail?.currency ?? currency;
-                          const ci = cancelInfo(rp, checkIn, stat?.settings?.timezone, stat?.settings?.checkIn);
-                          const sel = picked[i]?.rp === rp && picked[i]?.room === room;
+                      <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0 text-primary" />{[stat.location?.address, stat.location?.city?.name].filter(Boolean).join(", ")}{coords && <a className="ml-2 font-medium text-primary hover:underline" href={`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`} target="_blank" rel="noopener noreferrer">View on Map</a>}</p>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {Number(stat.rating) > 0 && <div className="flex w-20 flex-col items-center gap-1 rounded-lg border border-border p-2 text-xs"><Star className="h-5 w-5 text-primary" />{stat.rating} Star</div>}
+                        {(stat.rooms?.length ?? 0) > 0 && <div className="flex w-20 flex-col items-center gap-1 rounded-lg border border-border p-2 text-xs"><BedDouble className="h-5 w-5 text-primary" />{stat.rooms.length} Rooms</div>}
+                        {hotelFacilities.slice(0, 4).map((f: any) => <div key={f.id} className="flex w-20 flex-col items-center gap-1 rounded-lg border border-border p-2 text-center text-xs"><CheckCircle2 className="h-5 w-5 text-primary" /><span className="line-clamp-1">{f.name}</span></div>)}
+                      </div>
+                    </div>
+                  </div>
+                  <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}><DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto"><DialogTitle>{stat.name} · Photos</DialogTitle><div className="grid sm:grid-cols-2 gap-3">{photos.map((u, i) => <img key={i} src={u} alt={`${stat.name} photo ${i + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-md" />)}</div></DialogContent></Dialog>
+
+                  <BookingStepper current={0} />
+
+                  <section id="supplier-rooms" className="scroll-mt-24 space-y-4">
+                    <div><h2 className="text-2xl font-bold text-primary">Check Availability & Select Room</h2><p className="text-sm text-muted-foreground">Choose your stay dates, guests and preferred room with a rate plan.</p></div>
+                    <div className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-2 md:grid-cols-[1fr_1fr_1.2fr_auto]">
+                      <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2"><CalendarDays className="h-5 w-5 text-primary" /><span className="flex-1"><span className="block text-xs text-muted-foreground">Check-in</span><input type="date" className="w-full bg-transparent text-sm font-semibold outline-none" min={certification ? liveMinCheckIn : today()} value={checkIn} onChange={(e) => e.target.value && setCheckIn(e.target.value)} /></span></label>
+                      <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2"><CalendarDays className="h-5 w-5 text-primary" /><span className="flex-1"><span className="block text-xs text-muted-foreground">Check-out</span><input type="date" className="w-full bg-transparent text-sm font-semibold outline-none" min={addDays(checkIn, 1)} value={addDays(checkIn, nights)} onChange={(e) => { if (!isValidDateRangeISO(checkIn, e.target.value)) return toast.error(CHECKOUT_AFTER_CHECKIN_MSG); setNights(Math.round((Date.parse(e.target.value) - Date.parse(checkIn)) / 86400000)); }} /></span></label>
+                      <button type="button" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-left" onClick={() => setEditSearch(!editSearch)}><Users className="h-5 w-5 text-primary" /><span className="flex-1"><span className="block text-xs text-muted-foreground">Guests & Rooms</span><span className="text-sm font-semibold">{totalAdults} Adults{totalKids ? `, ${totalKids} Children` : ""}, {rooms.length} Room{rooms.length > 1 ? "s" : ""}</span></span></button>
+                      <Button size="lg" className="h-auto" onClick={search} disabled={searching}>{searching && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Check Availability</Button>
+                    </div>
+                    {editSearch && <div className="border border-border rounded-lg p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-2 md:max-w-md">
+                        <label className="text-xs">Guest nationality<select className="w-full h-10 rounded-md border bg-background px-2" value={nationality} onChange={(e) => setNationality(e.target.value)}>{NATIONALITIES.map((n) => <option key={n}>{n}</option>)}</select></label>
+                        <label className="text-xs">Currency<select className="w-full h-10 rounded-md border bg-background px-2" value={currency} disabled={certification} onChange={(e) => setCurrency(e.target.value)}>{CURRENCIES.map((n) => <option key={n}>{n}</option>)}</select></label>
+                      </div>
+                      {rooms.map((r, i) => (
+                        <div key={i} className="flex flex-wrap items-end gap-2 border rounded-md p-2">
+                          <span className="text-sm font-medium w-16">Room {i + 1}</span>
+                          <label className="text-xs">Adults<Input className="w-20" type="number" min={1} max={4} value={r.adults} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, adults: Math.max(1, +e.target.value) } : x))} /></label>
+                          <label className="text-xs">Child ages (0–17, comma)<Input className="w-36" value={r.children.join(",")} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, children: e.target.value.split(",").map((s) => parseInt(s)).filter((n) => n >= 0 && n <= 17) } : x))} /></label>
+                          <label className="text-xs">Infants (0–3)<Input className="w-20" type="number" min={0} max={2} value={r.infants} onChange={(e) => setRooms(rooms.map((x, j) => j === i ? { ...x, infants: Math.max(0, +e.target.value) } : x))} /></label>
+                          {rooms.length > 1 && <Button size="icon" variant="ghost" onClick={() => setRooms(rooms.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>}
+                        </div>
+                      ))}
+                      {rooms.length < 4 && <Button variant="outline" size="sm" onClick={() => setRooms([...rooms, { adults: 1, children: [], infants: 0 }])}><Plus className="h-4 w-4 mr-1" />Add room</Button>}
+                    </div>}
+                    {searching && <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Checking available rooms…</div>}
+                    {availabilityError && <div className="py-6 text-center space-y-3"><p className="text-sm text-destructive">{availabilityError}</p><Button variant="outline" onClick={search}>Try again</Button></div>}
+                    {!searching && result && !prop?.rooms?.length && <div className="py-8 text-center space-y-3"><h2 className="font-semibold">No rooms available for your stay</h2><p className="text-sm text-muted-foreground">Try different dates or guest numbers.</p></div>}
+                    {!searching && !result && !availabilityError && <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Choose your dates and tap Check Availability to see live rooms and prices.</p>}
+
+                    {prop && rooms.map((rq, i) => (
+                      <div key={i} className="space-y-3">
+                        <h2 className="text-xl font-bold text-primary">Available Rooms ({roomsFor(i).length}){rooms.length > 1 && <span className="ml-2 text-sm font-normal text-muted-foreground">Room {i + 1} · {rq.adults} adult(s){rq.children.length ? `, ${rq.children.length} child(ren)` : ""}</span>}</h2>
+                        {roomsFor(i).length === 0 && <p className="text-sm text-muted-foreground">No rooms fit these guests.</p>}
+                        {roomsFor(i).map((room: any) => {
+                          const st = staticRooms[String(room.roomId)];
+                          const isPicked = picked[i]?.room === room;
+                          const size = room.settings?.roomSize || st?.settings?.roomSize;
+                          const occ = roomOccupancy({ ...(st?.settings ?? {}), ...(room.settings ?? {}) });
+                          const rdesc = englishDescription(st?.descriptions);
                           return (
-                            <div key={`${rp.ratePlanId}-${rp.ratePlanCode}`} className={`rounded-lg border p-3 space-y-2 ${sel ? "border-primary ring-1 ring-primary" : ""}`}>
-                              <div className="flex justify-between gap-2">
-                                <div>
-                                  <p className="font-medium text-sm">{rp.ratePlanName}</p>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    <Badge variant="secondary">{BOARD[rp.board] ?? rp.board}</Badge>
-                                    <Badge variant={ci.nonRef ? "destructive" : "default"}>{ci.nonRef ? "Non-refundable" : ci.unknown ? "See cancellation policy" : ci.nowPenalty ? "Cancellation charges apply" : "Refundable"}</Badge>
-                                    {rp.ratePlanInfo?.isPackageRate && <Badge variant="outline">Package rate</Badge>}
-                                    {rp.ratePlanInfo?.isPromotion && <Badge variant="outline">Promotion</Badge>}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-bold">{money(shown, shownCur)}</p>
-                                  <p className="text-[10px] text-muted-foreground">{nights} night(s){(bar ?? sell)?.currency !== shownCur ? ` · ${money((bar ?? sell)?.price, (bar ?? sell)?.currency)}` : ""}</p>
-                                </div>
+                            <div key={room.roomId} className={`grid gap-4 rounded-xl border p-3 md:grid-cols-[170px_minmax(0,1fr)_minmax(0,1.3fr)] ${isPicked ? "border-primary ring-1 ring-primary" : "border-border"}`}>
+                              <div className="relative h-32 overflow-hidden rounded-lg bg-muted">
+                                {st?.images?.[0]?.uri && <img src={st.images[0].uri} alt={room.roomName} loading="lazy" className="h-full w-full object-cover" />}
+                                {st?.images?.length > 0 && <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded bg-foreground/70 px-1.5 py-0.5 text-[10px] text-background"><Images className="h-3 w-3" />{st.images.length} Photos</span>}
                               </div>
-                              <details className="text-xs"><summary className="cursor-pointer font-medium">Cancellation policy</summary>
-                                {ci.pols.length ? <ul className="list-disc pl-4 mt-1">{ci.pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul> : <p>No penalties returned.</p>}
-                              </details>
-                              <details className="text-xs"><summary className="cursor-pointer font-medium">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
-                              {rp.remarks?.length > 0 && <details className="text-xs"><summary className="cursor-pointer font-medium">Rate remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
-                              <Button size="sm" className="w-full" variant={sel ? "default" : "outline"} disabled={!retail || (certification && !isFullyRefundable(rp))} onClick={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }}>{sel ? "Selected" : "Select"}</Button>
+                              <div className="min-w-0 space-y-1">
+                                <h3 className="text-lg font-bold text-primary">{room.roomName}</h3>
+                                <p className="text-xs text-muted-foreground">{[size ? `${size} m²` : null, roomBeds(st, room), Number(room.numberOfAvailableRooms) > 0 ? `${room.numberOfAvailableRooms} left` : null].filter(Boolean).join(" · ")}</p>
+                                {occ.length > 0 && <p className="text-xs text-muted-foreground">{occ.map(o => `${o.label}: ${o.value}`).join(" · ")}</p>}
+                                {rdesc && <p className="line-clamp-2 text-xs">{rdesc}</p>}
+                                {st?.facilities?.length > 0 && <details className="text-xs"><summary className="cursor-pointer font-medium text-primary">Room Details & Amenities</summary><p className="mt-1 text-muted-foreground">{st.facilities.map((f: any) => f.name).join(", ")}</p></details>}
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-sm font-semibold">Choose a Rate Plan</p>
+                                {room.ratePlans.filter(publicRate).map((rp: any) => {
+                                  const sell = rp.prices?.sell;
+                                  const retail = customerPrice(rp, currency);
+                                  const ci = cancelInfo(rp, checkIn, stat?.settings?.timezone, stat?.settings?.checkIn);
+                                  const sel = picked[i]?.rp === rp && isPicked;
+                                  const disabled = !retail || (certification && !isFullyRefundable(rp));
+                                  return (
+                                    <div key={`${rp.ratePlanId}-${rp.ratePlanCode}`} className={`rounded-lg border p-2.5 ${sel ? "border-primary bg-primary/5" : "border-border"}`}>
+                                      <label className={`flex gap-2 ${disabled ? "opacity-50" : "cursor-pointer"}`}>
+                                        <input type="radio" className="mt-1 accent-primary" name={`rate-${i}`} checked={sel} disabled={disabled} onChange={() => { setPicked({ ...picked, [i]: { room, rp } }); setPrebook(null); }} />
+                                        <span className="flex-1 min-w-0">
+                                          <span className="block text-sm font-semibold">{rp.ratePlanName}</span>
+                                          <span className="block text-[11px] text-muted-foreground">{BOARD[rp.board] ?? rp.board} | {ci.nonRef ? "Non-refundable" : ci.unknown ? "See cancellation policy" : ci.nowPenalty ? "Cancellation charges apply" : "Free cancellation"}{rp.ratePlanInfo?.isPromotion ? " | Promotion" : ""}</span>
+                                        </span>
+                                        <span className="text-right"><span className="block font-bold">{money(retail?.amount, retail?.currency ?? currency)}</span><span className="text-[10px] text-muted-foreground">{nights} night(s)</span></span>
+                                      </label>
+                                      <div className="mt-1 flex gap-3 pl-6 text-[11px]">
+                                        <details><summary className="cursor-pointer text-primary">Cancellation</summary>{ci.pols.length ? <ul className="list-disc pl-4 mt-1">{ci.pols.map((p: any, k: number) => <li key={k}>{polText(p)}</li>)}</ul> : <p>No penalties returned.</p>}</details>
+                                        <details><summary className="cursor-pointer text-primary">Taxes & fees</summary><div className="mt-1"><TaxLines node={{ taxes: sell?.taxes, fees: sell?.fees ?? rp.prices?.fees ?? rp.fees }} cur={currency} /></div></details>
+                                        {rp.remarks?.length > 0 && <details><summary className="cursor-pointer text-primary">Remarks</summary><ul className="list-disc pl-4 mt-1">{rp.remarks.map((r: any, k: number) => <li key={k} className="whitespace-pre-line">{typeof r === "string" ? r : r.remark ?? JSON.stringify(r)}</li>)}</ul></details>}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
                       </div>
-                    </CardContent></Card>
-                  );
-                })}
-              </div>
-            ))}
+                    ))}
+                  </section>
 
-            {prop && allPicked && !prebook && !confirmed && (
-              <Button size="lg" className="w-full" onClick={doPrebook} disabled={busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Continue to booking</Button>
-            )}
-            </>}
+                  {hotelFacilities.length > 0 && <div id="supplier-amenities" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-primary/5 p-4 text-sm"><span className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-5 w-5 text-primary" />What's Included in Your Stay?</span>{hotelFacilities.slice(0, 8).map((f: any) => <span key={f.id} className="flex items-center gap-1 text-xs"><CheckCircle2 className="h-3.5 w-3.5 text-primary" />{f.name}</span>)}</div>}
+                  {desc && <details className="rounded-xl border border-border p-4 text-sm"><summary className="cursor-pointer font-semibold">About this hotel</summary><p className="mt-2 whitespace-pre-line text-muted-foreground">{desc}</p></details>}
+                </div>
+
+                <aside className="space-y-4 lg:sticky lg:top-24">
+                  <Card><CardContent className="space-y-3 p-4">
+                    <h3 className="text-xl font-bold text-primary">Your Booking Summary</h3>
+                    <div className="flex gap-3">{photos[0] && <img src={photos[0]} alt={stat.name} className="h-16 w-20 shrink-0 rounded-md object-cover" />}<div className="min-w-0"><p className="font-bold text-primary">{stat.name}</p><p className="text-xs text-muted-foreground">{Number(stat.rating) > 0 ? `${stat.rating} Star · ` : ""}{stat.location?.city?.name}</p></div></div>
+                    <div className="grid grid-cols-2 gap-2 border-t pt-3 text-xs"><div><p className="text-muted-foreground">Check-in</p><p className="font-semibold">{fmtDay(checkIn)}</p></div><div><p className="text-muted-foreground">Check-out</p><p className="font-semibold">{fmtDay(addDays(checkIn, nights))}</p></div></div>
+                    <div className="text-xs"><p className="text-muted-foreground">Guests</p><p className="font-semibold">{totalAdults} Adults{totalKids ? `, ${totalKids} Children` : ""} · {rooms.length} Room{rooms.length > 1 ? "s" : ""}</p></div>
+                  </CardContent></Card>
+                  {first && <Card><CardContent className="space-y-3 p-4">
+                    <h3 className="font-bold text-primary">Selected Room & Rate Plan</h3>
+                    <div className="flex gap-3">{firstImg && <img src={firstImg} alt="" className="h-16 w-20 shrink-0 rounded-md object-cover" />}<div className="text-sm"><p className="font-semibold">{first.room.roomName}</p><p className="text-xs text-muted-foreground">{first.rp.ratePlanName}</p><p className="text-xs">× {nights} Night{nights > 1 ? "s" : ""}{pickedList.length > 1 ? ` · ${pickedList.length} rooms` : ""}</p></div></div>
+                    <div className="space-y-1 border-t pt-3 text-sm">
+                      <h4 className="font-bold text-primary">Price Details</h4>
+                      {pickedList.map((p, k) => <div key={k} className="flex justify-between text-xs"><span>{p.room.roomName}</span><span>{money(customerPrice(p.rp, currency)?.amount, customerPrice(p.rp, currency)?.currency ?? currency)}</span></div>)}
+                      <div className="mt-2 flex justify-between rounded-lg bg-primary/10 p-2 font-bold"><span>Total Amount</span><span className="text-primary">{money(pickedTotal, pickedCur)}</span></div>
+                      <p className="text-[10px] text-muted-foreground">Taxes and fees as shown on each rate.</p>
+                    </div>
+                  </CardContent></Card>}
+                  {(remarks.length > 0 || staticPolicies.length > 0 || stat.settings?.checkIn) && <Card id="supplier-policies"><CardContent className="space-y-2 p-4 text-sm">
+                    <h3 className="font-bold text-primary">Hotel Policies</h3>
+                    <ul className="list-disc space-y-1 pl-5 text-xs">
+                      {stat.settings?.checkIn && <li>Check-in: From {stat.settings.checkIn}</li>}
+                      {stat.settings?.checkOut && <li>Check-out: By {stat.settings.checkOut}</li>}
+                    </ul>
+                    {(staticPolicies.length > 0 || remarks.length > 0) && <details className="text-xs"><summary className="cursor-pointer font-medium text-primary">View All Policies</summary>
+                      {staticPolicies.map((p, k) => <div key={k} className="mt-1"><p className="font-medium">{p.title}</p><p className="whitespace-pre-line text-muted-foreground">{p.body}</p></div>)}
+                      {remarks.map((r, k) => <p key={k} className="mt-1 whitespace-pre-line">{r}</p>)}
+                    </details>}
+                  </CardContent></Card>}
+                  <Button size="lg" className="w-full" onClick={doPrebook} disabled={!prop || !allPicked || busy}>{busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Continue to Payment</Button>
+                  <p className="flex items-center justify-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Secure & Safe Payment</p>
+                  <Card className="bg-primary/5"><CardContent className="space-y-2 p-4 text-sm">
+                    <h3 className="font-bold text-primary">Why Book with Jaaga?</h3>
+                    {["Verified Hotels", "Best Price Guarantee", "Flexible Cancellation", "24×7 Customer Support", "Secure Payments"].map(t => <p key={t} className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</p>)}
+                  </CardContent></Card>
+                  {coords && <iframe title={`${stat.name} map`} loading="lazy" className="h-48 w-full rounded-xl border border-border" src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng - 0.01},${coords.lat - 0.006},${coords.lng + 0.01},${coords.lat + 0.006}&layer=mapnik&marker=${coords.lat},${coords.lng}`} />}
+                </aside>
+              </div>
+              );
+            })()}
 
             {prebook && !confirmed && (() => {
               const lines = prebook.rooms.map((r: any, i: number) => {
