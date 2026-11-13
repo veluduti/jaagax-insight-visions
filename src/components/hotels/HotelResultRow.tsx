@@ -57,7 +57,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
       <Button variant="ghost" className="block h-full min-h-28 w-full p-0" onClick={onDetails} aria-label={`View ${hotel.name}`}>
         {images[photo] ? <img src={images[photo]} alt={hotel.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full w-full items-center justify-center"><Hotel className="h-12 w-12 text-muted-foreground" /></div>}
       </Button>
-      {imageBadge && !grid && <Badge className="absolute left-2 top-2 border-0 bg-primary text-[9px] font-semibold text-primary-foreground shadow-sm">{imageBadge}</Badge>}
+      {imageBadge && <Badge className="absolute left-2 top-2 border-0 bg-primary text-[9px] font-semibold text-primary-foreground shadow-sm">{imageBadge}</Badge>}
       {images.length > 1 && <><Button size="icon" variant="secondary" className="absolute left-2 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full" aria-label={`Previous photo of ${hotel.name}`} onClick={() => setPhoto((photo + images.length - 1) % images.length)}><ChevronLeft className="h-3.5 w-3.5" /></Button><Button size="icon" variant="secondary" className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full" aria-label={`Next photo of ${hotel.name}`} onClick={() => setPhoto((photo + 1) % images.length)}><ChevronRight className="h-3.5 w-3.5" /></Button><Badge variant="secondary" className="absolute bottom-2 right-2 bg-background/80 text-[9px] backdrop-blur">{photoCounter(photo, images.length)}</Badge></>}
     </div>
   );
@@ -68,8 +68,8 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
 
   const priceBlock = (compact = false) => (
     <div className="min-w-0">
-      {!rental && hotel.lowest_room_type && <p className="mb-0.5 text-[10px] font-medium text-primary">From · {hotel.lowest_room_type}</p>}
-      <p className={`font-bold text-foreground ${compact ? "text-base" : "text-lg"}`}>{displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}` : "Price unavailable"}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{displayPrice != null && displayPrice > 0 ? `/ ${hotel.rental_period || "night"}` : ""}</span></p>
+      {!rental && hotel.lowest_room_type && <p className={`mb-0.5 text-[10px] font-medium text-primary ${compact ? "truncate" : ""}`} title={hotel.lowest_room_type}>From · {hotel.lowest_room_type}</p>}
+      <p className={`whitespace-nowrap font-bold ${compact ? "truncate text-base text-primary" : "text-lg text-foreground"}`}>{displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}` : "Price unavailable"}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{displayPrice != null && displayPrice > 0 ? `/ ${hotel.rental_period || "night"}` : ""}</span></p>
       {discount && originalPrice && <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]"><span className="text-muted-foreground line-through">₹{originalPrice.toLocaleString("en-IN")}</span><Badge className="border-0 bg-accent px-1.5 py-0 text-[9px] font-semibold text-primary">{discount}% OFF</Badge></p>}
       {!rental && !compact && !!nights && nights > 0 && <p className="mt-0.5 text-[11px] text-muted-foreground">{nights} {nights === 1 ? "night" : "nights"} · ₹{(hotel.price_per_night * nights).toLocaleString("en-IN", { maximumFractionDigits: 2 })} per room before taxes</p>}
     </div>
@@ -87,13 +87,16 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
         <div className="flex flex-wrap items-center gap-1.5">{hotel.star_rating ? <span className="flex items-center gap-0.5" aria-label={`${hotel.star_rating} star hotel`}>{Array.from({ length: 5 }, (_, i) => <Star key={i} className={`h-3 w-3 ${i < hotel.star_rating ? "hotel-star-filled" : "text-muted-foreground/30"}`} />)}</span> : null}{reviews}</div>
         {location}
         {specialties}
-        <div className="flex flex-wrap gap-1">{amenities.slice(0, visibleAmenities).map(a => <Badge key={a} variant="secondary" className="text-[9px] font-normal">{a}</Badge>)}{(amenities.length) > visibleAmenities && <Badge variant="secondary" className="text-[9px]">+{amenities.length - visibleAmenities}</Badge>}</div>
+        {!!amenities.length && <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          {amenities.slice(0, 3).map(a => { const Icon = amenityIcon(a); return <span key={a} className="flex items-center gap-1 text-[10px] text-muted-foreground"><Icon className="h-3 w-3 shrink-0 text-primary" />{amenityLabel(a)}</span>; })}
+          {amenities.length > 3 && <Badge variant="secondary" className="text-[9px]">+{amenities.length - 3}</Badge>}
+        </div>}
+        {benefits}
         {childItems}
       </div>
-      <div className="mt-auto flex flex-col gap-1.5 border-t border-border p-2.5">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border p-2.5">
         {priceBlock(true)}
-        {benefits}
-        <Button variant="link" onClick={onDetails} className="h-auto w-full justify-between gap-1 p-0 text-xs text-primary">View Details<ArrowRight className="h-3 w-3" /></Button>
+        <Button size="sm" onClick={onDetails} className="h-8 shrink-0 gap-1 bg-primary px-2.5 text-xs text-primary-foreground hover:bg-primary-dark">View Details<ArrowRight className="h-3 w-3" /></Button>
       </div>
     </article>;
   }
