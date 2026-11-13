@@ -1361,13 +1361,13 @@ const Hotels = () => {
         <div className="sticky top-16 z-30 -mt-6 bg-card pb-2 pt-2 xl:top-[68px]">
           <div className="mx-auto w-full max-w-[1600px] px-4 lg:px-8">
             {/* Advanced Search Bar */}
-            <div className="relative z-20 rounded-lg border border-primary/20 bg-accent p-3 text-card-foreground shadow-lg md:p-4">
-              <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
+            <div className="relative z-20 rounded-lg border border-primary/40 p-3 text-primary-foreground shadow-lg md:p-4" style={{ backgroundImage: "var(--gradient-search-card)" }}>
+              <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary-foreground" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary-foreground">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_1fr]">
                 {/* Location */}
                 <div ref={searchRef} className="relative col-span-2 lg:col-span-1">
-                  <label className="text-xs font-medium text-foreground block mb-1">
-                    <MapPin className="h-3 w-3 inline mr-1 text-muted-foreground" />
+                  <label className="text-xs font-medium text-primary-foreground block mb-1">
+                    <MapPin className="h-3 w-3 inline mr-1 text-primary-foreground/70" />
                     Where do you want to stay?
                   </label>
                   <div className="relative">
@@ -1485,8 +1485,8 @@ const Hotels = () => {
 
                 {/* Rooms & Guests */}
                 <div ref={guestSelectorRef} className="relative">
-                  <label className="text-xs font-medium text-foreground block mb-1">
-                    <Users className="h-3 w-3 inline mr-1 text-muted-foreground" />
+                  <label className="text-xs font-medium text-primary-foreground block mb-1">
+                    <Users className="h-3 w-3 inline mr-1 text-primary-foreground/70" />
                     Rooms & Guests
                   </label>
                   <Button variant="outline" aria-label="Rooms and guests" aria-expanded={showGuestSelector}
@@ -1663,9 +1663,9 @@ const Hotels = () => {
 
               {/* Intent-based AI search */}
               <div className="mt-3 flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Or</span>
-                <span className="h-px flex-1 bg-border" />
+                <span className="h-px flex-1 bg-primary-foreground/30" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/80">Or</span>
+                <span className="h-px flex-1 bg-primary-foreground/30" />
               </div>
               <form
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
