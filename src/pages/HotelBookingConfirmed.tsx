@@ -106,7 +106,7 @@ const HotelBookingConfirmed = () => {
               {cancelled ? <XCircle className="h-11 w-11" /> : <CheckCircle2 className="h-11 w-11" />}
             </span>
             <div className="min-w-0">
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{cancelled ? "Booking Cancelled" : isPaid ? "Booking Confirmed!" : "Booking Received"}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-primary md:text-4xl">{cancelled ? "Booking Cancelled" : isPaid ? "Booking Confirmed!" : "Booking Received"}</h1>
               <p className="mt-1 text-lg font-semibold text-foreground">Your stay at {hotelName} is {cancelled ? "cancelled" : isPaid ? "confirmed" : "awaiting payment confirmation"}.</p>
               <p className="text-sm text-muted-foreground">A confirmation has been sent to <b className="text-foreground">{booking.guest_email}</b>{booking.guest_phone ? <> and <b className="text-foreground">{booking.guest_phone}</b></> : null}.</p>
             </div>
@@ -130,7 +130,7 @@ const HotelBookingConfirmed = () => {
         {!cancelled && (
           <section className="grid gap-5 rounded-2xl bg-primary/5 p-5 lg:grid-cols-[minmax(0,1fr)_200px_220px]">
             <div className="space-y-3">
-              <h2 className="flex items-center gap-2 text-xl font-extrabold text-foreground"><IdCard className="h-6 w-6 text-primary" /> Pre Check-In (Before Arrival)</h2>
+              <h2 className="flex items-center gap-2 text-xl font-extrabold text-primary"><IdCard className="h-6 w-6 text-primary" /> Pre Check-In (Before Arrival)</h2>
               <p className="text-sm text-muted-foreground">Save time at the hotel by completing your check-in details online.</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[["Booking", "Confirmed", true], ["Pre Check-In", preDone ? "Completed" : "(Recommended)", preDone], ["Hotel Check-In", "(At Front Desk)", !!booking.actual_check_in_at], ["Enjoy", "Your Stay", !!booking.actual_check_in_at]].map(([a, b, d], i) => (

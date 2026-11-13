@@ -380,7 +380,7 @@ const HotelCheckout = () => {
             {step === "guest" && (<>
               {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
                 <section>
-                  <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><Sparkles className="h-5 w-5 text-primary" /> Enhance Your Stay (Optional)</h2>
+                  <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><Sparkles className="h-5 w-5 text-primary" /> Enhance Your Stay (Optional)</h2>
                   <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
                     <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
                     <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
@@ -388,7 +388,7 @@ const HotelCheckout = () => {
                 </section>
               )}
               <section>
-                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><User className="h-5 w-5 text-primary" /> Guest Details</h2>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><User className="h-5 w-5 text-primary" /> Guest Details</h2>
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <p className="mb-3 font-bold text-foreground">Primary Guest (Room 1)</p>
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -399,7 +399,7 @@ const HotelCheckout = () => {
                 </div>
               </section>
               <section>
-                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground"><FileText className="h-5 w-5 text-primary" /> Special Requests (Optional)</h2>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><FileText className="h-5 w-5 text-primary" /> Special Requests (Optional)</h2>
                 <div className="rounded-2xl border border-border bg-card p-3">
                   <Textarea rows={3} maxLength={300} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} placeholder="e.g., Early check-in, high floor, extra pillows, anniversary setup, etc." className="border-0 shadow-none focus-visible:ring-0" />
                   <p className="text-right text-xs text-muted-foreground">{specialRequests.length}/300</p>

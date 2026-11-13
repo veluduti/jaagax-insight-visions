@@ -286,7 +286,7 @@ const HotelDetail = () => {
           {hotel.description && <p className="text-sm leading-relaxed text-muted-foreground">{hotel.description}</p>}
 
           {!onlyLongStay && <section id="availability">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">Check Availability &amp; Select Room</h2>
+            <h2 className="text-2xl font-bold text-primary">Check Availability &amp; Select Room</h2>
             <p className="mb-4 text-sm text-muted-foreground">Choose your stay dates, guests and preferred room with a rate plan.</p>
             <div className="grid items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm md:grid-cols-[1fr_1fr_1.4fr_auto]">
               <label className="flex items-center gap-3 rounded-xl border border-input px-3 py-2">
@@ -315,7 +315,7 @@ const HotelDetail = () => {
           </section>}
 
           <section id="rooms" className="scroll-mt-24">
-            <h2 className="mb-4 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-primary">
               <BedDouble className="h-6 w-6 text-primary" />
               {onlyLongStay ? "Rooms & beds · Weekly / monthly stays" : "Available Rooms"}
             </h2>
@@ -358,7 +358,7 @@ const HotelDetail = () => {
 
         <aside className="space-y-4 lg:sticky lg:top-24">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <h3 className="mb-3 text-xl font-extrabold text-foreground">Your Booking Summary</h3>
+            <h3 className="mb-3 text-xl font-bold text-primary">Your Booking Summary</h3>
             <div className="flex gap-3">
               <img src={images[0]} alt="" className="h-16 w-20 rounded-lg object-cover" />
               <div className="min-w-0">
@@ -386,7 +386,7 @@ const HotelDetail = () => {
 
           {(hotel.check_in_time || hotel.check_out_time || policyEntries.length > 0) && (
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <h3 className="mb-2 flex items-center gap-2 font-bold text-foreground"><ShieldCheck className="h-5 w-5 text-primary" /> Hotel Policies</h3>
+              <h3 className="mb-2 flex items-center gap-2 font-bold text-primary"><ShieldCheck className="h-5 w-5 text-primary" /> Hotel Policies</h3>
               <ul className="list-disc space-y-1 pl-9 text-sm text-muted-foreground">
                 {hotel.check_in_time && <li>Check-in: From {hotel.check_in_time}</li>}
                 {hotel.check_out_time && <li>Check-out: By {hotel.check_out_time}</li>}

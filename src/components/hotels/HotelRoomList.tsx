@@ -389,11 +389,11 @@ export default function HotelRoomList({
         const lowStock = !cv.kind.longStay && hasDates && q && !q.loading && q.available > 0 && q.available <= 3;
 
         return (
-          <Card key={room.id} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="grid gap-0 sm:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_220px]">
+          <Card key={room.id} className="overflow-hidden rounded-xl border-border">
+            <CardContent className="p-3">
+              <div className="grid gap-4 md:grid-cols-[170px_minmax(0,1fr)_minmax(0,1.3fr)]">
                 {/* Gallery */}
-                <div className="relative bg-muted h-48 sm:h-full min-h-[200px] group">
+                <div className="relative h-40 md:h-32 overflow-hidden rounded-lg bg-muted group">
                   <img
                     src={photos[idx]}
                     alt={room.room_type}
@@ -412,18 +412,18 @@ export default function HotelRoomList({
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                         aria-label="Next photo"
                       ><ChevronRight className="h-4 w-4" /></button>
-                      <div className="absolute bottom-2 right-2 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded">
-                        {idx + 1}/{photos.length}
+                      <div className="absolute bottom-1.5 left-1.5 rounded bg-foreground/70 px-1.5 py-0.5 text-[10px] text-background">
+                        {photos.length} Photos
                       </div>
                     </>
                   )}
                 </div>
 
                 {/* Details */}
-                <div className="p-4 md:p-5 space-y-3">
+                <div className="min-w-0 space-y-2">
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-lg font-semibold">{cv.kind.emoji} {cv.title}</h3>
+                      <h3 className="text-lg font-bold text-primary">{cv.title}</h3>
                       {room.category && <Badge variant="outline" className="text-[10px]">{room.category}</Badge>}
                     </div>
                     {room.description && (
@@ -502,53 +502,62 @@ export default function HotelRoomList({
                   </div>
 
 
-                  {!cv.kind.longStay && plansForRoom(room.id).length > 0 && (
-                    <div className="space-y-1.5 pt-1">
-                      <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                        <Tag className="h-3 w-3" /> Choose a rate
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {plansForRoom(room.id).map((plan) => {
-                          const active = (selectedPlan[room.id] ?? plansForRoom(room.id)[0]?.id) === plan.id;
-                          const base = q && !q.loading ? q.perNight : Number(room.base_price);
-                          return (
-                            <button
-                              key={plan.id}
-                              type="button"
-                              onClick={() => setSelectedPlan((p) => ({ ...p, [room.id]: plan.id }))}
-                              className={`rounded-lg border px-3 py-1.5 text-left text-[11px] transition ${
-                                active ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
-                              }`}
-                            >
-                              <span className="block font-medium">{plan.rate_plan_name || plan.name}</span>
-                              <span className="block text-muted-foreground">
-                                {boardLabel(plan.board)} · {plan.is_refundable ? "Refundable" : "Non refundable"} · ₹
-                                {planPerNight(base, plan).toLocaleString()}/night
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {!cv.kind.longStay && hasDates && q && !q.loading && (
-                    <div className="pt-1">
-                      {soldOut ? (
-                        <Badge variant="destructive" className="text-[10px]">Sold out for these dates</Badge>
-                      ) : lowStock ? (
-                        <Badge className="bg-orange-500 hover:bg-orange-500 text-[10px]">Only {q.available} left</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-700">
-                          {q.available} rooms available
-                        </Badge>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 {/* Price / CTA */}
-                <div className="sm:col-span-2 xl:col-span-1 p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-border bg-muted/20 flex flex-row xl:flex-col items-end xl:items-stretch justify-between gap-3">
+                <div className="flex flex-col gap-2">
+                  {!cv.kind.longStay && (() => {
+                    const plans = plansForRoom(room.id);
+                    const base = q && !q.loading ? q.perNight : Number(room.base_price);
+                    const activeId = selectedPlan[room.id] ?? plans[0]?.id;
+                    const rows = plans.length ? plans : [null];
+                    return (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold">Choose a Rate Plan</p>
+                        {rows.map((plan: any) => {
+                          const sel = plan ? activeId === plan.id : true;
+                          const price = plan ? planPerNight(base, plan) : base;
+                          return (
+                            <label key={plan?.id ?? "base"} className={`flex cursor-pointer gap-2 rounded-lg border p-2.5 ${sel ? "border-primary bg-primary/5" : "border-border"}`}>
+                              <input type="radio" className="mt-1 accent-primary" name={`rate-${room.id}`} checked={sel}
+                                onChange={() => plan && setSelectedPlan((p) => ({ ...p, [room.id]: plan.id }))} />
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-semibold">{plan ? (plan.rate_plan_name || plan.name) : "Room Only"}</span>
+                                <span className="block text-[11px] text-muted-foreground">
+                                  {plan ? `${boardLabel(plan.board)} | ${plan.is_refundable ? "Free cancellation" : "Non-refundable"}` : (room.cancellation_policy || "Standard rate")}
+                                </span>
+                              </span>
+                              <span className="text-right">
+                                <span className="block font-bold">₹{Number(price || 0).toLocaleString("en-IN")}</span>
+                                <span className="text-[10px] text-muted-foreground">per night</span>
+                              </span>
+                            </label>
+                          );
+                        })}
+                        {hasDates && q && !q.loading && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {q.nights} night{q.nights > 1 ? "s" : ""} × {roomsWanted} {cv.noun}{roomsWanted > 1 ? "s" : ""}: <span className="font-semibold text-foreground">₹{q.total.toLocaleString("en-IN")}</span> incl. ₹{q.taxes.toLocaleString("en-IN")} taxes
+                          </p>
+                        )}
+                        {hasDates && q?.loading && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking availability…</div>
+                        )}
+                        {!cv.kind.longStay && hasDates && q && !q.loading && (
+                          <div className="pt-1">
+                            {soldOut ? (
+                              <Badge variant="destructive" className="text-[10px]">Sold out for these dates</Badge>
+                            ) : lowStock ? (
+                              <Badge className="bg-orange-500 hover:bg-orange-500 text-[10px]">Only {q.available} left</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-700">
+                                {q.available} rooms available
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {(() => { const ls = cv.kind.longStay; return ls ? (
                   <div>
                     <div className="text-[11px] text-muted-foreground">Rent per {cv.noun}</div>
@@ -557,39 +566,9 @@ export default function HotelRoomList({
                     {cv.weekly && <div className="text-xs font-medium mt-1">₹{cv.weekly.toLocaleString()} / week</div>}
                     <div className="text-[11px] text-muted-foreground">Pick a move-in date and plan</div>
                   </div>
-                  ) : (
-                  <div>
-                    {hasDates && q && !q.loading ? (
-                      <>
-                        <div className="text-[11px] text-muted-foreground">
-                          {q.nights} night{q.nights > 1 ? "s" : ""} × {roomsWanted} {cv.noun}{roomsWanted > 1 ? "s" : ""}
-                        </div>
-                        <div className="text-2xl font-bold text-foreground mt-1">
-                          ₹{q.total.toLocaleString()}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          ₹{q.perNight.toLocaleString()} {cv.perNightLabel} · +₹{q.taxes.toLocaleString()} taxes
-                        </div>
-                      </>
-                    ) : hasDates && q?.loading ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Checking availability…
-                      </div>
-                    ) : (
-                      <>
-                        <div className="text-[11px] text-muted-foreground">Starts from</div>
-                        <div className="text-2xl font-bold text-foreground mt-1">
-                          ₹{Number(room.base_price).toLocaleString()}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">{cv.perNightLabel} · taxes extra</div>
-                        {cv.weekly && <div className="text-xs font-medium mt-1">₹{cv.weekly.toLocaleString()} / week</div>}
-                        {cv.monthly && <div className="text-xs font-medium">₹{cv.monthly.toLocaleString()} / month</div>}
-                      </>
-                    )}
-                  </div>
-                  ); })()}
+                  ) : null; })()}
                   {soldOut && checkIn && checkOut && (
-                    <Button variant="outline" className="min-w-[140px] xl:w-full"
+                    <Button variant="outline" className="w-full"
                       onClick={() => joinWaitlist({ hotel_id: hotelId, room_id: room.id, check_in: checkIn, check_out: checkOut, guests: adults + children })
                         .then(() => toast.success("You're on the waitlist. We'll notify you if this frees up."))
                         .catch((e) => toast.error(e.message))}>
@@ -597,14 +576,14 @@ export default function HotelRoomList({
                     </Button>
                   )}
                   {cv.kind.longStay && (cv.monthly || cv.weekly) && (
-                    <Button variant="secondary" className="min-w-[140px] xl:w-full"
+                    <Button variant="secondary" className="w-full"
                       onClick={() => navigate(`/hotels/${hotelId}/long-stay?room=${room.id}`)}>
                       Book long stay
                     </Button>
                   )}
-                  {cv.kind.longStay && <Button variant="outline" className="xl:w-full" onClick={() => setDetailRoom(room)}>View all details</Button>}
+                  {cv.kind.longStay && <Button variant="outline" className="w-full" onClick={() => setDetailRoom(room)}>View all details</Button>}
                   {!cv.kind.longStay && <Button
-                    className="min-w-[140px] xl:w-full"
+                    className="w-full"
                     disabled={!!soldOut || (hasDates && (!quotesReady || Number(q?.available ?? 0) < roomsWanted))}
                     onClick={() =>
                       goCheckout(

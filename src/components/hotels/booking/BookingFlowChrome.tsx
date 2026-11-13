@@ -99,7 +99,7 @@ export function HotelHeroHeader(props: {
         ) : null}
       </button>
       <div className="min-w-0 space-y-2">
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">{props.name}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-primary md:text-3xl">{props.name}</h1>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {props.reviews ? (
             <><StarRow value={props.reviews.avg} /><span className="text-muted-foreground">{props.reviews.avg.toFixed(1)} ({props.reviews.count.toLocaleString("en-IN")} Reviews)</span></>
@@ -133,7 +133,7 @@ export function HotelHeroHeader(props: {
 export function WhyBookCard() {
   return (
     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
-      <h3 className="mb-3 text-lg font-bold text-foreground">Why Book with Jaaga?</h3>
+      <h3 className="mb-3 text-lg font-bold text-primary">Why Book with Jaaga?</h3>
       <ul className="space-y-2 text-sm">
         {["Verified Hotels", "Best Price Guarantee", "Flexible Cancellation", "24×7 Customer Support", "Secure Payments"].map((t) => (
           <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {t}</li>
