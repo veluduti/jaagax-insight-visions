@@ -28,6 +28,7 @@ const HotelBookingConfirmed = () => {
   const [room, setRoom] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [extras, setExtras] = useState<any[]>([]);
   const reviews = useHotelReviewStats(booking?.hotel_id);
 
   useEffect(() => {
@@ -46,6 +47,8 @@ const HotelBookingConfirmed = () => {
         ]);
         if (h) setHotel({ ...h, images: await resolveHotelImages((h as any).images) });
         setRoom(r);
+        const { data: ex } = await (supabase as any).from("hotel_extra_services").select("id,name,description,images,service_type,category").eq("hotel_id", data.hotel_id).eq("is_active", true).limit(4);
+        setExtras(ex || []);
       }
       setLoading(false);
     })();
@@ -195,7 +198,7 @@ const HotelBookingConfirmed = () => {
               <div className="relative h-32 overflow-hidden rounded-xl"><img src={hotelImg} alt="" className="h-full w-full object-cover" />
                 {hotel?.images?.length ? <span className="absolute bottom-2 left-2 rounded bg-foreground/70 px-2 text-xs text-background">{hotel.images.length} Photos</span> : null}</div>
               <div className="min-w-0">
-                <h2 className="text-2xl font-extrabold">{hotelName}</h2>
+                <h2 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold text-primary">{hotelName}<span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">✓ Verified Hotel</span></h2>
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   {reviews ? <><StarRow value={reviews.avg} /> {reviews.avg.toFixed(1)} ({reviews.count} Reviews)</> : hotel?.star_rating ? <StarRow value={hotel.star_rating} /> : null}
                 </div>
@@ -223,11 +226,11 @@ const HotelBookingConfirmed = () => {
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-border p-3 text-sm sm:grid-cols-5">
-                <div><p className="text-xs text-muted-foreground">Check-in</p><b>{fmtDay(booking.check_in)}</b></div>
-                <div><p className="text-xs text-muted-foreground">Check-out</p><b>{fmtDay(booking.check_out)}</b></div>
-                <div className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Guests</p><b>{adults + children}</b></div></div>
-                <div className="flex items-center gap-2"><Moon className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Nights</p><b>{nights}</b></div></div>
-                <div className="flex items-center gap-2"><BedDouble className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Rooms</p><b>{booking.num_rooms}</b></div></div>
+                <div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Check-in</p><b>{fmtDay(booking.check_in)}</b>{hotel?.check_in_time && <p className="text-xs">From {hotel.check_in_time}</p>}</div></div>
+                <div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Check-out</p><b>{fmtDay(booking.check_out)}</b>{hotel?.check_out_time && <p className="text-xs">By {hotel.check_out_time}</p>}</div></div>
+                <div className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Guests</p><b>{adults} Adult{adults > 1 ? "s" : ""}{children ? `, ${children} Child${children > 1 ? "ren" : ""}` : ""}</b></div></div>
+                <div className="flex items-center gap-2"><Moon className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Nights</p><b>{nights} Night{nights > 1 ? "s" : ""}</b></div></div>
+                <div className="flex items-center gap-2"><BedDouble className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Rooms</p><b>{booking.num_rooms} Room{booking.num_rooms > 1 ? "s" : ""}</b></div></div>
               </div>
             </div>
 
@@ -242,7 +245,7 @@ const HotelBookingConfirmed = () => {
               <div className="mt-2 flex items-center justify-between rounded-xl bg-primary/10 px-3 py-2"><span className="font-extrabold">{isPaid ? "Total Paid Amount" : "Grand Total"}</span><span className="text-2xl font-extrabold text-primary">{inr(booking.total_amount)}</span></div>
               {(booking.razorpay_payment_id || booking.payment_method) && (
                 <div className="mt-3 grid gap-3 rounded-xl border border-border p-3 text-sm sm:grid-cols-2">
-                  <div><p className="font-semibold capitalize">Paid via {booking.payment_method || "Razorpay"}</p>{booking.razorpay_payment_id && <p className="flex items-center gap-1 text-xs text-muted-foreground">Transaction ID: {booking.razorpay_payment_id}<button onClick={() => copy(booking.razorpay_payment_id)}><Copy className="h-3 w-3" /></button></p>}</div>
+                  <div><p className="font-semibold capitalize">Paid via {booking.payment_method || "Razorpay"}</p><p className="text-[11px] text-muted-foreground">Secured by Razorpay</p>{booking.razorpay_payment_id && <p className="flex items-center gap-1 text-xs text-muted-foreground">Transaction ID: {booking.razorpay_payment_id}<button onClick={() => copy(booking.razorpay_payment_id)}><Copy className="h-3 w-3" /></button></p>}</div>
                   <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /><div><p className="text-xs text-muted-foreground">Payment Time</p><b>{fmtDateTime(booking.payment_attempted_at || booking.updated_at)}</b></div></div>
                 </div>
               )}
@@ -293,6 +296,22 @@ const HotelBookingConfirmed = () => {
             ))}
           </div>
         </section>
+
+        {!cancelled && extras.length > 0 && (
+          <section className="print:hidden">
+            <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><BedDouble className="h-5 w-5" /> Enhance Your Stay</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {extras.map((x) => (
+                <div key={x.id} className="flex gap-3 rounded-2xl border border-border bg-card p-3">
+                  <img src={(Array.isArray(x.images) && x.images[0]) || hotelImg} onError={(e) => { e.currentTarget.src = FALLBACK; }} alt={x.name} className="h-20 w-24 shrink-0 rounded-lg object-cover" />
+                  <div className="min-w-0"><p className="truncate text-sm font-bold">{x.name}</p>
+                    {x.description && <p className="line-clamp-2 text-xs text-muted-foreground">{x.description}</p>}
+                    <Button asChild size="sm" variant="outline" className="mt-1 h-7 border-primary text-xs text-primary"><Link to={`/hotels/${booking.hotel_id}`}>Enquire Now →</Link></Button></div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="print:hidden">
           <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold"><Building2 className="h-5 w-5 text-primary" /> Explore More with Jaaga</h2>
