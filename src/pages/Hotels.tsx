@@ -1354,7 +1354,12 @@ const Hotels = () => {
               </div>
               {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${uniqueMode ? (resortCandidates.length === 1 ? "Unique Stay" : "Unique Stays") : corporateMode ? (resortCandidates.length === 1 ? "Corporate Stay" : "Corporate Stays") : luxuryMode ? (resortCandidates.length === 1 ? "Luxury Stay" : "Luxury Stays") : colivingMode ? "Co-living Spaces" : pgMode ? (resortCandidates.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <div className="hidden items-center gap-3 rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:flex"><ShieldCheck className="h-6 w-6" /><div><p className="text-sm font-bold">{loading ? "Loading…" : `${filteredAndSortedHotels.length.toLocaleString("en-IN")} ${filteredAndSortedHotels.length === 1 ? "hotel" : "hotels"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Best price guaranteed</p></div></div>}
             </div>
+          </div>
+        </section>
 
+        {/* Sticky search bar — stays fixed while results below scroll */}
+        <div className="sticky top-16 z-30 -mt-6 bg-background/95 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/85 xl:top-[68px]">
+          <div className="mx-auto w-full max-w-[1600px] px-4 lg:px-8">
             {/* Advanced Search Bar */}
             <div className="relative z-20 rounded-lg border border-primary/20 bg-card p-3 text-card-foreground shadow-lg md:p-4">
               <div className={`${colivingMode ? "hidden" : "mb-3 flex items-center gap-3"}`}><Sparkles className="h-7 w-7 shrink-0 text-primary" /><span className="shrink-0 whitespace-nowrap text-sm font-bold text-primary">Jaaga AI</span><div className="no-scrollbar flex gap-2 overflow-x-auto">{["Family vacation in Goa", "Business stay in Hyderabad", "Long stay for work", "Budget stay near me", "Resort with swimming pool"].map(text => <Button key={text} size="sm" variant="secondary" disabled={aiBusy} className="h-7 shrink-0 rounded-full text-xs" onClick={() => runAiSearch(text)}>{text}</Button>)}</div></div>
@@ -1684,7 +1689,7 @@ const Hotels = () => {
               </form>
             </div>
           </div>
-        </section>
+        </div>
 
         <div className="mx-auto w-full max-w-[1600px] px-4 pb-8 lg:px-8">
           {uniqueMode ? <UniqueCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : corporateMode ? <CorporateCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : luxuryMode ? <LuxuryCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : colivingMode ? <ColivingCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} images={colivingImages} onSelect={setResortTypes} /> : resortMode ? <ResortCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : pgMode ? <PgCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : aptMode ? <ApartmentCategoryTiles selected={resortTypes} counts={resortCounts} total={resortCandidates.length} onSelect={setResortTypes} /> : <StayCategoryTabs value={stayFilters} onChange={onStayFiltersChange} />}
