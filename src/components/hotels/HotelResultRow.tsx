@@ -67,9 +67,9 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
   );
 
   const priceBlock = (compact = false) => (
-    <div className="min-w-0">
+    <div className="min-w-0 flex-1">
       {!rental && hotel.lowest_room_type && <p className={`mb-0.5 text-[10px] font-medium text-primary ${compact ? "truncate" : ""}`} title={hotel.lowest_room_type}>From · {hotel.lowest_room_type}</p>}
-      <p className={`whitespace-nowrap font-bold ${compact ? "text-base text-primary" : "text-lg text-foreground"}`}>{displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN", { maximumFractionDigits: compact ? 0 : 2 })}` : "Price unavailable"}<span className={`ml-0.5 font-normal text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{displayPrice != null && displayPrice > 0 ? `/ ${hotel.rental_period || "night"}` : ""}</span></p>
+      <p className={`whitespace-nowrap font-bold ${compact ? "truncate text-[13px] text-primary" : "text-lg text-foreground"}`} title={displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN")} / ${hotel.rental_period || "night"}` : undefined}>{displayPrice != null && displayPrice > 0 ? `₹${displayPrice.toLocaleString("en-IN", { maximumFractionDigits: compact ? 0 : 2 })}` : "Price unavailable"}{!compact && <span className="ml-0.5 text-[11px] font-normal text-muted-foreground">{displayPrice != null && displayPrice > 0 ? `/ ${hotel.rental_period || "night"}` : ""}</span>}</p>
       {discount && originalPrice && <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]"><span className="text-muted-foreground line-through">₹{originalPrice.toLocaleString("en-IN")}</span><Badge className="border-0 bg-accent px-1.5 py-0 text-[9px] font-semibold text-primary">{discount}% OFF</Badge></p>}
       {!rental && !compact && !!nights && nights > 0 && <p className="mt-0.5 text-[11px] text-muted-foreground">{nights} {nights === 1 ? "night" : "nights"} · ₹{(hotel.price_per_night * nights).toLocaleString("en-IN", { maximumFractionDigits: 2 })} per room before taxes</p>}
     </div>
@@ -96,7 +96,7 @@ export default function HotelResultRow({ hotel, favorite, onFavorite, onDetails,
       </div>
       <div className="mt-auto flex items-center justify-between gap-2 border-t border-border p-2.5">
         {priceBlock(true)}
-        <Button size="sm" onClick={onDetails} className="h-8 shrink-0 gap-1 bg-primary px-2.5 text-xs text-primary-foreground hover:bg-primary-dark">View Details<ArrowRight className="h-3 w-3" /></Button>
+        <Button size="sm" onClick={onDetails} className="h-8 shrink-0 gap-1 bg-primary px-2 text-[11px] text-primary-foreground hover:bg-primary-dark">View Details<ArrowRight className="h-3 w-3" /></Button>
       </div>
     </article>;
   }
