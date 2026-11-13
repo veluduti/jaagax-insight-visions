@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
+import sql from "../../drizzle/migrations/0056_restrict_inventory_units_and_journey_members.sql?raw";
 import { describe, expect, it } from "vitest";
-
-const sql = readFileSync("drizzle/migrations/0056_restrict_inventory_units_and_journey_members.sql", "utf8");
 
 describe("selected inventory and journey exposure repairs", () => {
   it("removes both unrestricted read policies without touching other tables", () => {
