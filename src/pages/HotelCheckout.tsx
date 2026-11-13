@@ -128,6 +128,21 @@ const HotelCheckout = () => {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [arrivalTime, setArrivalTime] = useState("");
+  const childAgeList = (params.get("childAges") || "").split(",").filter(Boolean).map(Number);
+  // Companion guests (everyone except the lead), spread across rooms.
+  const companionSlots = useMemo(() => {
+    const slots: { type: "adult" | "child"; room: number; age?: number }[] = [];
+    for (let i = 1; i < adults; i++) slots.push({ type: "adult", room: (i % numRooms) + 1 });
+    for (let i = 0; i < children; i++) slots.push({ type: "child", room: (i % numRooms) + 1, age: childAgeList[i] });
+    return slots;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adults, children, numRooms]);
+  const [companions, setCompanions] = useState<{ first_name: string; last_name: string }[]>([]);
+  useEffect(() => { setCompanions((c) => companionSlots.map((_, i) => c[i] || { first_name: "", last_name: "" })); }, [companionSlots]);
+  useEffect(() => { setGuestName(`${firstName} ${lastName}`.trim()); }, [firstName, lastName]);
   const [rateIssue, setRateIssue] = useState<string | null>("Checking your selected rate…");
 
   const nights = useMemo(() => {
@@ -169,7 +184,8 @@ const HotelCheckout = () => {
       const qEmail = params.get("email") || "";
       const qPhone = params.get("phone") || "";
       const qNotes = params.get("notes") || "";
-      if (qName) setGuestName(qName);
+      const splitName = (n: string) => { const [f, ...r] = n.trim().split(/\s+/); setFirstName(f || ""); setLastName(r.join(" ")); };
+      if (qName) splitName(qName);
       if (qEmail) setGuestEmail(qEmail);
       if (qPhone) setGuestPhone(qPhone);
       if (qNotes) setSpecialRequests(qNotes);
@@ -178,7 +194,7 @@ const HotelCheckout = () => {
       if (user) {
         if (!qEmail) setGuestEmail(user.email || "");
         const { data: p } = await supabase.from("profiles").select("full_name,phone").eq("user_id", user.id).maybeSingle();
-        if (!qName && p?.full_name) setGuestName(p.full_name);
+        if (!qName && p?.full_name) splitName(p.full_name);
         if (!qPhone && (p as any)?.phone) setGuestPhone((p as any).phone);
       }
       setLoading(false);
@@ -253,7 +269,9 @@ const HotelCheckout = () => {
 
 
   const validateGuest = () => {
-    if (!guestName.trim() || guestName.trim().length < 2) return "Please enter your name";
+    if (!firstName.trim()) return "Please enter the guest's first name";
+    if (!lastName.trim()) return "Please enter the guest's last name";
+    if (firstName.length > 60 || lastName.length > 60) return "Names must be under 60 characters";
     if (!/^\S+@\S+\.\S+$/.test(guestEmail.trim())) return "Please enter a valid email";
     if (!/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) return "Please enter a valid phone number";
     return null;
@@ -287,7 +305,10 @@ const HotelCheckout = () => {
           guest_name: guestName.trim(),
           guest_email: guestEmail.trim(),
           guest_phone: guestPhone.trim(),
-          special_requests: specialRequests.trim() || null,
+          special_requests: [arrivalTime ? `Expected arrival: ${arrivalTime}` : "", specialRequests.trim()].filter(Boolean).join("\n") || null,
+          lead_first_name: firstName.trim(),
+          lead_last_name: lastName.trim(),
+          guests: companionSlots.map((slot, i) => ({ ...slot, ...companions[i] })).filter((g) => g.first_name?.trim()),
           user_id: user?.id || null,
           booked_by_agent_id: bookedByAgentId,
         },
@@ -359,6 +380,28 @@ const HotelCheckout = () => {
   const taxAmount = Number(displayPrice?.taxAmount || 0);
   const roomImg = room?.photos?.[0] || hotel?.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400";
 
+  const FALLBACK_ROOM = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400";
+  const StayOverview = () => (
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <h3 className="mb-3 flex items-center gap-2 font-extrabold"><CalendarDays className="h-5 w-5 text-primary" /> Your Stay</h3>
+      <div className="grid gap-3 text-sm sm:grid-cols-4">
+        <Info label="Check-in" value={`${fmtDay(checkIn)}${hotel?.check_in_time ? ` · ${hotel.check_in_time}` : ""}`} />
+        <Info label="Check-out" value={`${fmtDay(checkOut)}${hotel?.check_out_time ? ` · ${hotel.check_out_time}` : ""}`} />
+        <Info label="Guests" value={`${adults} Adult${adults > 1 ? "s" : ""}${children ? `, ${children} Child${children > 1 ? "ren" : ""}` : ""} · ${numRooms} Room${numRooms > 1 ? "s" : ""}`} />
+        <Info label="Duration" value={`${nights} Night${nights > 1 ? "s" : ""}`} />
+      </div>
+      <div className="mt-3 flex gap-3 border-t border-border pt-3">
+        <img src={roomImg} onError={(e) => { e.currentTarget.src = FALLBACK_ROOM; }} alt={room?.room_type || "Room"} className="h-16 w-20 rounded-lg object-cover" />
+        <div className="text-sm">
+          <p className="font-bold">{room?.room_type}</p>
+          {room?.bed_type && <p className="text-muted-foreground">{room.bed_type}{room?.max_occupancy ? ` · Up to ${room.max_occupancy} guests` : ""}</p>}
+          {selectedMeals.length > 0 && <p className="text-muted-foreground">With {selectedMeals.join(", ")}</p>}
+          {perNight > 0 && <p><b>{inr(perNight)}</b> per night</p>}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -387,15 +430,36 @@ const HotelCheckout = () => {
                   </div>
                 </section>
               )}
+              <StayOverview />
               <section>
                 <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold text-primary"><User className="h-5 w-5 text-primary" /> Guest Details</h2>
-                <div className="rounded-2xl border border-border bg-card p-4">
-                  <p className="mb-3 font-bold text-foreground">Primary Guest (Room 1)</p>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div><Label>Full Name <span className="text-destructive">*</span></Label><Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="As per ID" /></div>
-                    <div><Label>Mobile Number <span className="text-destructive">*</span></Label><Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
-                    <div><Label>Email ID <span className="text-destructive">*</span></Label><Input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
+                <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+                  <div>
+                    <p className="mb-3 font-bold text-foreground">Primary Guest (Room 1)</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div><Label>First Name <span className="text-destructive">*</span></Label><Input maxLength={60} value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="As per ID" /></div>
+                      <div><Label>Last Name <span className="text-destructive">*</span></Label><Input maxLength={60} value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="As per ID" /></div>
+                      <div><Label>Mobile Number <span className="text-destructive">*</span></Label><Input maxLength={20} value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="+91 98xxxxxxxx" /></div>
+                      <div><Label>Email ID <span className="text-destructive">*</span></Label><Input maxLength={255} type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="you@example.com" /></div>
+                      <div><Label>Expected Arrival Time (Optional)</Label><Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} /></div>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">Booking confirmation and voucher will be sent to this email and mobile.</p>
                   </div>
+                  {companionSlots.length > 0 && (
+                    <div className="border-t border-border pt-4">
+                      <p className="mb-1 font-bold text-foreground">Other Guests (Optional)</p>
+                      <p className="mb-3 text-xs text-muted-foreground">Add names as on ID so the hotel has your full guest list.</p>
+                      <div className="space-y-3">
+                        {companionSlots.map((slot, i) => (
+                          <div key={i} className="grid items-end gap-3 sm:grid-cols-[150px_1fr_1fr]">
+                            <p className="text-sm font-semibold">Room {slot.room} · {slot.type === "child" ? `Child${Number.isFinite(slot.age) ? ` (${slot.age} yrs)` : ""}` : `Adult ${i + 2}`}</p>
+                            <Input maxLength={60} placeholder="First name" value={companions[i]?.first_name || ""} onChange={(e) => setCompanions((c) => c.map((g, j) => j === i ? { ...g, first_name: e.target.value } : g))} />
+                            <Input maxLength={60} placeholder="Last name" value={companions[i]?.last_name || ""} onChange={(e) => setCompanions((c) => c.map((g, j) => j === i ? { ...g, last_name: e.target.value } : g))} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
               <section>
@@ -408,24 +472,41 @@ const HotelCheckout = () => {
               </section>
             </>)}
 
-            {step === "pay" && (
-              <Card className="border-primary"><CardContent className="space-y-3 p-5">
-                <h2 className="flex items-center gap-2 text-xl font-extrabold"><CreditCard className="h-5 w-5 text-primary" /> Review &amp; Pay</h2>
-                <div className="grid gap-2 text-sm sm:grid-cols-3">
-                  <div><p className="text-xs text-muted-foreground">Guest</p><p className="font-semibold">{guestName}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Mobile</p><p className="font-semibold">{guestPhone}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Email</p><p className="font-semibold break-all">{guestEmail}</p></div>
+            {step === "pay" && (<>
+              <h2 className="flex items-center gap-2 text-2xl font-extrabold text-primary"><CreditCard className="h-6 w-6" /> Pay &amp; Confirm Your Booking</h2>
+              <StayOverview />
+              <section className="rounded-2xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 font-extrabold"><User className="h-5 w-5 text-primary" /> Guest Details</h3>
+                  <button className="text-sm font-semibold text-primary" onClick={() => setStep("guest")}>Edit</button></div>
+                <div className="grid gap-3 text-sm sm:grid-cols-3">
+                  <Info label="Primary guest" value={guestName} />
+                  <Info label="Mobile" value={guestPhone} />
+                  <Info label="Email" value={guestEmail} />
+                  {arrivalTime && <Info label="Expected arrival" value={arrivalTime} />}
+                  {companions.filter((g) => g.first_name.trim()).length > 0 && <Info label="Other guests" value={companions.filter((g) => g.first_name.trim()).map((g) => `${g.first_name} ${g.last_name}`.trim()).join(", ")} />}
                 </div>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground"><Lock className="h-4 w-4" /> Secure payment via Razorpay · UPI, Cards, Netbanking</p>
-                <div className="rounded-lg bg-muted p-4 text-sm">You'll be charged <b>{inr(total)}</b> for {nights} night{nights > 1 ? "s" : ""} × {numRooms} room{numRooms > 1 ? "s" : ""}. The cancellation policy in your booking summary applies to this rate.</div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep("guest")} disabled={submitting}>Back</Button>
-                  <Button className="flex-1" onClick={handlePay} disabled={submitting || !!rateIssue}>
-                    {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</> : `Pay ${inr(total)}`}
-                  </Button>
+                {specialRequests.trim() && <p className="mt-3 rounded-lg bg-muted p-3 text-sm"><b>Special requests:</b> {specialRequests}</p>}
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-4">
+                <h3 className="mb-3 flex items-center gap-2 font-extrabold"><Lock className="h-5 w-5 text-primary" /> Payment Method</h3>
+                <div className="flex items-center gap-3 rounded-xl border-2 border-primary bg-primary/5 p-3">
+                  <span className="h-4 w-4 rounded-full border-4 border-primary" />
+                  <div className="flex-1"><p className="font-bold">Pay securely online</p><p className="text-xs text-muted-foreground">UPI, Credit / Debit Cards, Netbanking &amp; Wallets via Razorpay</p></div>
                 </div>
-              </CardContent></Card>
-            )}
+                <div className="mt-3"><PaymentBadges /></div>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-4 text-sm">
+                <p>You'll be charged <b>{inr(total)}</b> for {nights} night{nights > 1 ? "s" : ""} × {numRooms} room{numRooms > 1 ? "s" : ""}. The cancellation policy shown in your booking summary applies to this rate.</p>
+                <p className="mt-2 text-xs text-muted-foreground">By paying you agree to the hotel policies and JaagaX booking terms.</p>
+              </section>
+              <div className="flex flex-col gap-3 rounded-2xl border border-primary bg-primary/5 p-4 sm:flex-row sm:items-center">
+                <div className="flex-1"><p className="text-xs text-muted-foreground">Total payable</p><p className="text-2xl font-extrabold text-primary">{inr(total)}</p></div>
+                <Button variant="outline" onClick={() => setStep("guest")} disabled={submitting}><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>
+                <Button size="lg" className="font-bold" onClick={handlePay} disabled={submitting || !!rateIssue}>
+                  {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</> : <><Lock className="mr-1 h-4 w-4" /> Pay {inr(total)} Securely</>}
+                </Button>
+              </div>
+            </>)}
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-24">
@@ -442,7 +523,7 @@ const HotelCheckout = () => {
               <div className="mb-2 flex items-center justify-between"><h3 className="font-extrabold">Selected Room &amp; Rate Plan</h3>
                 <button className="text-sm font-semibold text-primary" onClick={() => navigate(`/hotels/${hotelId}?${params}`)}>Change</button></div>
               <div className="flex gap-3">
-                <img src={roomImg} alt="" className="h-16 w-20 rounded-lg object-cover" />
+                <img src={roomImg} onError={(e) => { e.currentTarget.src = FALLBACK_ROOM; }} alt={room?.room_type || "Room"} className="h-16 w-20 rounded-lg object-cover" />
                 <div className="text-sm">
                   <p className="font-bold">{room?.room_type}</p>
                   {selectedMeals.length > 0 && <p className="text-muted-foreground">With {selectedMeals.join(", ")}</p>}

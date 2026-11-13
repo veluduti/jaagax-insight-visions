@@ -235,6 +235,25 @@ Deno.serve(async (req) => {
       if (rows.length) await supabase.from("hotel_booking_addons").insert(rows);
     }
 
+    // Save every named guest (lead + companions) for the hotel's guest list.
+    const rawGuests = Array.isArray(body.guests) ? body.guests.slice(0, 40) : [];
+    const clean = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "") || null;
+    const [leadFirst, ...leadRest] = String(guest_name).trim().split(/\s+/);
+    const guestRows = [{
+      booking_id: bookingId, is_lead_guest: true, guest_type: "adult",
+      first_name: clean(body.lead_first_name, 60) ?? leadFirst ?? null,
+      last_name: clean(body.lead_last_name, 60) ?? (leadRest.join(" ") || null),
+      email: clean(guest_email, 255), phone: clean(guest_phone, 30),
+    }, ...rawGuests.map((g: any) => ({
+      booking_id: bookingId, is_lead_guest: false,
+      guest_type: g?.type === "child" ? "child" : "adult",
+      first_name: clean(g?.first_name, 60), last_name: clean(g?.last_name, 60),
+      age: g?.type === "child" && Number.isFinite(Number(g?.age)) ? Math.min(17, Math.max(0, Math.round(Number(g.age)))) : null,
+      raw: { room: Number(g?.room) || 1 },
+    })).filter((g: any) => g.first_name)];
+    const { error: gErr } = await supabase.from("booking_guests").insert(guestRows);
+    if (gErr) console.error("booking_guests insert failed", gErr.message);
+
     const amountPaise = Math.round(grandTotal * 100);
     const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
