@@ -1,0 +1,3 @@
+ALTER TABLE public.partner_businesses ADD COLUMN IF NOT EXISTS group_settings jsonb NOT NULL DEFAULT '{}'::jsonb;
+CREATE POLICY "owners read property group audit" ON public.hospitality_audit_log FOR SELECT TO authenticated
+USING (entity = 'property_group' AND EXISTS (SELECT 1 FROM public.partner_businesses b JOIN public.partner_accounts a ON a.id=b.partner_id WHERE b.id=hospitality_audit_log.entity_id AND a.owner_user_id=auth.uid()));

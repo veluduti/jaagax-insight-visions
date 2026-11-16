@@ -9833,6 +9833,7 @@ export type Database = {
       partner_businesses: {
         Row: {
           created_at: string
+          group_settings: Json
           gstin: string | null
           id: string
           legal_name: string
@@ -9843,6 +9844,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          group_settings?: Json
           gstin?: string | null
           id?: string
           legal_name: string
@@ -9853,6 +9855,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          group_settings?: Json
           gstin?: string | null
           id?: string
           legal_name?: string

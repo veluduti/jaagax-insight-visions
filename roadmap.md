@@ -88,3 +88,4 @@
 ## Separate HyperGuest page
 - [x] Add connector-backed property listing and a link from Hotels, keeping test inventory separate.
 - [x] Verify loaded property, search, detail navigation and mobile layout (live connector response, no page errors or mobile overflow; build OK).
+- Property Groups: group details, settings, team roles (via hotel teams), activity; reuses partner_businesses.group_settings.
