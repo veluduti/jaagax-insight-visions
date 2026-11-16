@@ -48,6 +48,18 @@ const Dashboard = () => {
   }, [user, role, loading, navigate]);
 
   // User is logged in but has no role — pending approval
+  if (!loading && user && !role && approvalStatus !== "pending") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="p-8 max-w-md w-full text-center space-y-4">
+          <h2 className="text-2xl font-bold">Unable to open your dashboard</h2>
+          <p className="text-muted-foreground">We couldn't verify your account access. Please try again or sign in again.</p>
+          <Button onClick={() => window.location.reload()}>Try again</Button>
+          <Button variant="outline" onClick={() => signOut()}>Sign Out</Button>
+        </Card>
+      </div>
+    );
+  }
   if (!loading && user && !role && approvalStatus === "pending") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">

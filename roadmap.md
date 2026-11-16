@@ -1,5 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
+## Admin dashboard loading recovery
+- [x] Resolve dashboard administrator access from active server-managed scopes rather than the retired role table.
+- [x] Prevent unresolved account access from leaving the dashboard on an endless loading message.
+- [ ] Run regression tests and verify authenticated dashboard navigation.
+
 ## Hotel reference cards
 - [x] Show lowest available matching room prices, real inclusions and quoted discounts without changing checkout prices; supplier prepaid safeguards remain unchanged.
 - [x] Match partner/name, compact area/city/distance, blue reviews and saved specialty highlights in grid/list cards; absent areas/ratings/specialties remain hidden.

@@ -13,7 +13,7 @@ export type AccessResolution = {
   resolvedDbRole: string | null;
   resolvedRole: AppUserRole | null;
   hasAssignedRole: boolean;
-  /** Every role assigned in `user_roles` (normalized) — used for dual agent+admin users. */
+  /** Assigned roles, including authoritative active admin scopes. */
   assignedRoles: string[];
 };
 
@@ -28,6 +28,7 @@ export const mapDbRoleToAppRole = (dbRole: string, _requestedRole?: string | nul
 
 export const normalizeDbRole = (role?: string | null) => {
   if (!role) return null;
+  if (role === "global_admin") return "admin";
   if (role === "buyer" || role === "seller" || role === "builder") return "customer";
   if (role === "hotel") return "hotel_manager";
   return role;
@@ -72,22 +73,33 @@ const getSignupSnapshotByEmail = async (email?: string | null): Promise<SignupSn
 };
 
 export const resolveUserAccess = async (userId: string, email?: string | null): Promise<AccessResolution> => {
-  const [{ data: roleRows, error: roleError }, signupByUserId, signupByEmail] = await Promise.all([
+  const [{ data: roleRows, error: roleError }, signupByUserId, signupByEmail, { data: adminScope, error: adminError }] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", userId),
     getSignupSnapshotByUserId(userId),
     getSignupSnapshotByEmail(email),
+    supabase.rpc("get_admin_role", { _user_id: userId }),
   ]);
 
-  if (roleError) {
+  if (roleError && roleError.code !== "PGRST205") {
     console.error("Error fetching user roles:", roleError);
   }
+  if (adminError) console.error("Error fetching admin scope:", adminError);
 
-  const assignedRoles = (roleRows ?? []).map((row) => row.role);
+  // Privileged access comes only from active server-managed scopes. Legacy
+  // assignments and signup requests must never grant an administrator role.
+  const adminRoles = new Set(["admin", "global_admin", "country_admin", "state_admin", "district_admin"]);
+  const assignedRoles: string[] = (roleRows ?? [])
+    .map((row) => normalizeDbRole(row.role))
+    .filter((role): role is string => Boolean(role) && !adminRoles.has(role ?? ""));
+  const scopedRole = typeof adminScope === "string" ? normalizeDbRole(adminScope) : null;
+  if (scopedRole && adminRoles.has(scopedRole)) assignedRoles.unshift(scopedRole);
   const assignedDbRole = pickPreferredDbRole(assignedRoles);
   const signupSnapshot = signupByUserId ?? signupByEmail;
   const requestedRole = signupSnapshot?.requested_role ?? null;
   const approvalStatus = signupSnapshot?.status ?? null;
-  const fallbackDbRole = approvalStatus === "approved" ? normalizeDbRole(requestedRole) : null;
+  const normalizedRequestedRole = normalizeDbRole(requestedRole);
+  const fallbackDbRole = approvalStatus === "approved" && normalizedRequestedRole && !adminRoles.has(normalizedRequestedRole)
+    ? normalizedRequestedRole : null;
   const resolvedDbRole = assignedDbRole ?? fallbackDbRole;
 
   return {
@@ -114,7 +126,7 @@ export const ensureApprovedRoleForUser = async (userId: string, requestedRole?: 
     role: dbRole,
   });
 
-  if (error && error.code !== "23505" && !error.message?.toLowerCase().includes("duplicate")) {
+  if (error && error.code !== "PGRST205" && error.code !== "23505" && !error.message?.toLowerCase().includes("duplicate")) {
     console.error("Error restoring approved user role:", error);
   }
 };

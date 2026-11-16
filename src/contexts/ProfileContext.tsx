@@ -38,12 +38,8 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
     setLoading(true);
     try {
       // Admins have no user-facing profile — hide the switcher entirely.
-      const { data: adminRoles } = await supabase
-        .from("user_roles" as any)
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin");
-      if ((adminRoles ?? []).length > 0) {
+      const { data: adminRole } = await supabase.rpc("get_admin_role", { _user_id: userId });
+      if (adminRole === "global_admin") {
         setProfiles([]);
         setActiveProfile(null);
         localStorage.removeItem(ACTIVE_KEY);
