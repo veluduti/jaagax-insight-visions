@@ -1,6 +1,7 @@
 # Roadmap — Agent Profile page rebuild
 
 ## Hotel price markup management
+- [x] Expose Hotel Price Markups in the main Global Admin Features menu using the existing pricing panel; regional flow-only menus remain unchanged.
 - [x] Add global-admin-only global and per-hotel markup configuration with audit history and inheritance/reset controls.
 - [x] Apply non-compounding prices to native quotes, long-stay quotes and supplier retail displays; preserve supplier payable amounts and existing bookings. Visible discovery/details refresh after changes and periodically across sessions.
 - [x] Add administration controls and regression coverage; verify real native/supplier results and regional-admin rejection.

@@ -13,6 +13,7 @@ import PricingSettingsPanel from "@/components/admin/PricingSettingsPanel";
 import AdminTestimonials from "@/pages/admin/Testimonials";
 import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
 import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
+import HotelMarkupPanel from "@/components/admin/HotelMarkupPanel";
 import {
   Shield,
   CheckCircle,
@@ -199,6 +200,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         { value: "quick-visits", label: "Quick Visits", icon: Zap },
         { value: "smart-visits", label: "Smart Visits", icon: Zap },
         { value: "hotel-coupons", label: "Hotel Coupons", icon: IndianRupee },
+        { value: "hotel-markups", label: "Hotel Price Markups", icon: IndianRupee },
       ],
     },
     {
@@ -716,6 +718,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           <TabsContent value="hotel-coupons" className="mt-4">
             <HotelCouponsPanel />
           </TabsContent>
+
+          {!flowOnly && (
+            <TabsContent value="hotel-markups" className="mt-4">
+              <HotelMarkupPanel />
+            </TabsContent>
+          )}
 
           {/* Price Drops */}
           <TabsContent value="price-drops" className="mt-4">
