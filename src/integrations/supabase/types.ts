@@ -5978,6 +5978,71 @@ export type Database = {
           },
         ]
       }
+      hotel_price_markup_audit: {
+        Row: {
+          actor_id: string | null
+          changed_at: string
+          hotel_id: string | null
+          id: string
+          new_percentage: number | null
+          old_percentage: number | null
+          scope: string
+        }
+        Insert: {
+          actor_id?: string | null
+          changed_at?: string
+          hotel_id?: string | null
+          id?: string
+          new_percentage?: number | null
+          old_percentage?: number | null
+          scope: string
+        }
+        Update: {
+          actor_id?: string | null
+          changed_at?: string
+          hotel_id?: string | null
+          id?: string
+          new_percentage?: number | null
+          old_percentage?: number | null
+          scope?: string
+        }
+        Relationships: []
+      }
+      hotel_price_markups: {
+        Row: {
+          hotel_id: string | null
+          id: string
+          percentage: number
+          scope: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          hotel_id?: string | null
+          id?: string
+          percentage?: number
+          scope: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          hotel_id?: string | null
+          id?: string
+          percentage?: number
+          scope?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_price_markups_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_pricing_rules: {
         Row: {
           adjustment_type: string
@@ -15397,6 +15462,7 @@ export type Database = {
         Args: { _new_price: number; _property_id: string }
         Returns: undefined
       }
+      effective_hotel_markup: { Args: { _hotel_id: string }; Returns: number }
       event_check_in: {
         Args: { _booking_id: string; _count: number }
         Returns: {
@@ -15560,6 +15626,13 @@ export type Database = {
       has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
+      }
+      hotel_public_markup_rates: {
+        Args: never
+        Returns: {
+          hotel_id: string
+          percentage: number
+        }[]
       }
       increment_balance: {
         Args: { _amount: number; _wallet_id: string }
@@ -15964,6 +16037,10 @@ export type Database = {
           _to_admin_id: string
         }
         Returns: string
+      }
+      set_hotel_price_markup: {
+        Args: { _hotel_id: string; _percentage: number }
+        Returns: undefined
       }
       slugify: { Args: { _input: string }; Returns: string }
       smart_stay_book: {

@@ -8,6 +8,7 @@ import { MARKETPLACE_IDS, LEGACY_LIVE_IDS, catalogRows, propertyFields, availabi
 import { supplierGuests, paxSignature, publicRate, customerPrice, bookingList, bookingContent, bookingStatus, redactSupplier, supplierDisclosures, payAtHotelSupported, matchingQuotedGuests } from "../_shared/channel/travelRules.ts";
 import { z } from "npm:zod@3.25.76";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
+import { loadHotelMarkup, markedPrice, supplierMarkupCollectable } from "../_shared/hotelMarkup.ts";
 
 import { AsyncLocalStorage } from "node:async_hooks";
 const TEST_KEY = Deno.env.get("HYPERGUEST_API_KEY") ?? "";
@@ -29,6 +30,20 @@ if (!backendUrl || !serviceKey) throw new Error("Backend configuration unavailab
 const sb = createClient(backendUrl, serviceKey);
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+async function applyRetailMarkups(properties: any[], currency: string) {
+  const { data: hotels, error } = await sb.from("partner_hotels").select("id,hyperguest_property_id").eq("source_channel", "hyperguest");
+  if (error) throw new Error("Hotel pricing unavailable");
+  const rates = new Map<string, number>();
+  await Promise.all((hotels ?? []).map(async h => rates.set(String(h.hyperguest_property_id), await loadHotelMarkup(sb, h.id))));
+  for (const property of properties) {
+    const percentage = rates.get(String(property.propertyId)) ?? 0;
+    for (const room of property.rooms ?? []) for (const rate of room.ratePlans ?? []) {
+      const base = customerPrice(rate, currency);
+      if (base) rate.jaagaxRetail = { amount: markedPrice(base.amount, percentage), currency, markupPercentage: percentage };
+    }
+  }
+}
 
 async function hg(op: ChannelOperation, url: string, body?: unknown, timeoutMs = 60_000, bookingRef?: string) {
   const ctrl = new AbortController();
@@ -165,6 +180,7 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     if (!hotels?.length) return json({ availability: [] });
     const qs = new URLSearchParams({ checkIn: parsed.data.checkIn, nights: String(parsed.data.nights), guests: guestsParam(parsed.data.rooms), hotelIds: hotels.map(h => h.hyperguest_property_id).join(","), customerNationality: parsed.data.nationality, currency: parsed.data.currency });
     const r = await hg("search", `${SEARCH}?${qs}`);
+    if (r.ok) await applyRetailMarkups(r.data?.results ?? [], parsed.data.currency);
     return r.ok ? json({ availability: availabilitySummary(r.data?.results ?? [], parsed.data.nights, parsed.data.rooms, parsed.data.currency) }) : json({ error: friendly(r.data) }, 502);
   }
 
@@ -189,6 +205,7 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     });
     const r = await hg("search", `${SEARCH}?${qs}`);
     if (r.ok) { for (const property of r.data?.results ?? []) { for (const room of property.rooms ?? []) room.ratePlans = (room.ratePlans ?? []).filter(publicRate); } }
+    if (r.ok) await applyRetailMarkups(r.data?.results ?? [], String(body.currency ?? "INR").toUpperCase());
     return r.ok ? json(r.data) : json({ error: friendly(r.data) }, 502);
   }
 
@@ -279,11 +296,13 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     const property = latest.data?.results?.find((p: any) => Number(p.propertyId) === body.search.propertyId);
     const used = new Map<string, number>();
     const selected: any[] = [];
+    const markupPercentage = marketplaceHotel ? await loadHotelMarkup(sb, marketplaceHotel.id) : 0;
     for (let i = 0; i < body.rooms.length; i++) {
       const choice = body.rooms[i];
       const room = property?.rooms?.find((r: any) => r.roomTypeCode === choice.roomCode && paxSignature(r.searchedPax) === paxSignature(body.search.pax[i]));
       const rate = room?.ratePlans?.find((r: any) => r.ratePlanCode === choice.rateCode && publicRate(r));
-      const retail = rate && customerPrice(rate, displayCurrency);
+      const baseRetail = rate && customerPrice(rate, displayCurrency);
+      const retail = baseRetail ? { ...baseRetail, amount: markedPrice(baseRetail.amount, markupPercentage) } : null;
       if (!rate || !retail) return json({ error: "The selected public rate is no longer available" }, 409);
       const id = String(room.roomId); used.set(id, (used.get(id) ?? 0) + 1);
       if ((used.get(id) ?? 0) > Number(room.numberOfAvailableRooms)) return json({ error: "Not enough rooms remain for this selection" }, 409);
@@ -294,10 +313,10 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
     const c = bookingContent(r.data);
     if (c?.rooms?.length !== selected.length) return json({ error: "Supplier could not quote every requested room" }, 409);
     if (c.rooms.some((r: any) => r.priceChange)) return json({ error: "The price changed. Update availability and select the current rate." }, 409);
-    const snapshot = { search: body.search, rooms: selected, customerCurrency: displayCurrency, customerTotal: selected.reduce((sum, r) => sum + r.retail.amount, 0) };
+    const snapshot = { search: body.search, rooms: selected, markupPercentage, markupCollectionRequired: !supplierMarkupCollectable(markupPercentage), customerCurrency: displayCurrency, customerTotal: Math.round(selected.reduce((sum, r) => sum + r.retail.amount, 0) * 100) / 100 };
     const { data: quote, error } = await sb.from("hyperguest_quotes").insert({ user_id: user.id, property_id: body.search.propertyId, snapshot }).select("id,expires_at").single();
     if (error || !quote) return json({ error: "Could not save verified room quote" }, 503);
-    return json({ ...c, quoteId: quote.id, expiresAt: quote.expires_at, customerTotal: snapshot.customerTotal, customerCurrency: displayCurrency, customerRooms: selected });
+    return json({ ...c, quoteId: quote.id, expiresAt: quote.expires_at, markupCollectionRequired: snapshot.markupCollectionRequired, customerTotal: snapshot.customerTotal, customerCurrency: displayCurrency, customerRooms: selected });
   }
 
   if (action === "book") {
@@ -340,6 +359,9 @@ async function handle(req: Request, body: any, live: boolean, managed = false) {
       const { data: quote } = await sb.from("hyperguest_quotes").select("*").eq("id", String(body.quoteId ?? "")).eq("user_id", user.id).maybeSingle();
       if (!quote || Date.parse(quote.expires_at) < Date.now() || Number(quote.property_id) !== Number(p.propertyId)) return json({ error: "Your room quote expired. Select the rooms again." }, 409);
       verified = quote.snapshot;
+      const currentMarkup = await loadHotelMarkup(sb, marketplaceHotel.id);
+      if (currentMarkup !== Number(verified.markupPercentage ?? 0)) return json({ error: "Hotel pricing changed. Refresh your room quote." }, 409);
+      if (!supplierMarkupCollectable(currentMarkup)) return json({ error: "JaagaX markup collection is not enabled for this supplier rate. No booking or payment has been made.", code: "MARKUP_COLLECTION_REQUIRED" }, 409);
       if (p.dates.from !== verified.search.dates.from || p.dates.to !== verified.search.dates.to || p.rooms.length !== verified.rooms.length || body.nationality !== verified.search.nationality) return json({ error: "Dates or guests changed. Request a fresh quote." }, 409);
       for (let i = 0; i < p.rooms.length; i++) {
         const selected = verified.rooms[i];

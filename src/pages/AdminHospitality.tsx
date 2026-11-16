@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import HospitalityOpsQueue from "@/components/admin/HospitalityOpsQueue";
 import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
 import HyperGuestMarketplacePanel from "@/components/admin/HyperGuestMarketplacePanel";
+import HotelMarkupPanel from "@/components/admin/HotelMarkupPanel";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,7 @@ export default function AdminHospitality() {
             <TabsList className="flex-wrap">
               <TabsTrigger value="ops">Ops queue</TabsTrigger>
               <TabsTrigger value="coupons">Coupons</TabsTrigger>
+              <TabsTrigger value="markups">Price Markups</TabsTrigger>
               <TabsTrigger value="hyperguest">HyperGuest Marketplace</TabsTrigger>
               <TabsTrigger value="review">Property review ({pending.length})</TabsTrigger>
               <TabsTrigger value="all">All properties</TabsTrigger>
@@ -71,6 +73,7 @@ export default function AdminHospitality() {
 
             <TabsContent value="ops"><HospitalityOpsQueue /></TabsContent>
             <TabsContent value="coupons"><HotelCouponsPanel /></TabsContent>
+            <TabsContent value="markups"><HotelMarkupPanel /></TabsContent>
             <TabsContent value="hyperguest"><HyperGuestMarketplacePanel /></TabsContent>
             <TabsContent value="review" className="space-y-2">
               {!pending.length && <p className="text-sm text-muted-foreground">Nothing waiting for review.</p>}

@@ -5,6 +5,8 @@ import { Star, MapPin, Heart, ArrowRight, ChevronLeft, ChevronRight, Image as Im
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { loadPublicMarkupRates, markRoom, markedPrice } from "@/services/hospitality/markupService";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 
 interface StayCard {
   id: string;
@@ -33,6 +35,7 @@ const FeaturedStays = () => {
   const scroller = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const markupRevision = useHotelMarkupRevision();
 
   useEffect(() => {
     let cancelled = false;
@@ -61,6 +64,8 @@ const FeaturedStays = () => {
           sb.from("hotel_reviews").select("hotel_id, rating").in("hotel_id", ids),
         ]);
 
+        const markupRates = await loadPublicMarkupRates();
+        roomsRes.data = (roomsRes.data ?? []).map((r: any) => markRoom(r, markupRates));
         const roomsByHotel = new Map<string, any[]>();
         (roomsRes.data ?? []).forEach((r: any) => {
           const list = roomsByHotel.get(r.hotel_id) ?? [];
@@ -103,7 +108,7 @@ const FeaturedStays = () => {
             price:
               nightly ??
               monthly ??
-              (typeof h.price_per_night === "number" && h.price_per_night > 0 ? h.price_per_night : null),
+              (typeof h.price_per_night === "number" && h.price_per_night > 0 ? markedPrice(h.price_per_night, markupRates[h.id] ?? 0) : null),
             priceUnit: nightly || h.price_per_night ? "/ night" : monthly ? "/ month" : "",
             rating: avg ?? (typeof h.star_rating === "number" && h.star_rating > 0 ? h.star_rating : null),
             reviewCount: ratings.length,
@@ -120,7 +125,7 @@ const FeaturedStays = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [markupRevision]);
 
   useEffect(() => {
     if (!user) return;

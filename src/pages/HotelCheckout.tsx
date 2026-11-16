@@ -19,6 +19,7 @@ import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hot
 import type { MealType } from "@/lib/hotelPricing";
 import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
 import RateDetailsPanel from "@/components/hotels/RateDetailsPanel";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 
 /** Turn backend booking errors into clear guest-facing messages. */
 function friendlyBookingError(raw?: string | null) {
@@ -225,9 +226,11 @@ const HotelCheckout = () => {
     setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
 
   // Re-quote from the server whenever the selection changes — backend stays authoritative.
+  const markupRevision = useHotelMarkupRevision();
   useEffect(() => {
     if (!hotelId || !roomId || !checkIn || !checkOut) return;
     let cancelled = false;
+    setQuote(null);
     (async () => {
       const { data } = await supabase.functions.invoke("booking-engine-quote", {
         body: {
@@ -239,7 +242,7 @@ const HotelCheckout = () => {
       if (!cancelled && data && !(data as any).error) setQuote(data);
     })();
     return () => { cancelled = true; };
-  }, [hotelId, roomId, ratePlanId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+  }, [hotelId, roomId, ratePlanId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(","), markupRevision]);
 
   const total = Number(quote?.grand_total ?? livePrice?.grandTotal ?? 0);
 

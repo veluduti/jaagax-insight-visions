@@ -20,6 +20,8 @@ import { buildRoomCombinations, comboLabel, toOccupancyRoom, allocationLabel, ty
 import { boardLabel } from "@/types/hotelCanonical";
 import RoomDetailsDialog from "@/components/hotels/RoomDetailsDialog";
 import { nativeRoomDetails, hasRoomDetails, type RoomDetails } from "@/lib/roomDetails";
+import { loadPublicMarkupRates, markRoom, markedPrice } from "@/services/hospitality/markupService";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
@@ -84,6 +86,7 @@ export default function HotelRoomList({
   onNightlyRoomsChange, onSelectionChange,
 }: Props) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
+  const markupRevision = useHotelMarkupRevision();
   const [roomPopup, setRoomPopup] = useState<RoomDetails | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [meals, setMeals] = useState<any[]>([]);
@@ -95,6 +98,7 @@ export default function HotelRoomList({
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [bizTypes, setBizTypes] = useState<string[]>([]);
+  const [markupPercentage, setMarkupPercentage] = useState(0);
   useEffect(() => {
     (supabase as any).from("partner_hotels").select("business_types").eq("id", hotelId).maybeSingle()
       .then(({ data }: any) => setBizTypes(data?.business_types || []));
@@ -116,10 +120,13 @@ export default function HotelRoomList({
         .eq("hotel_id", hotelId).eq("is_active", true)
         .order("base_price", { ascending: true });
       if (error) { console.error(error); setRooms([]); }
-      else setRooms((data || []) as Room[]);
+      else {
+        try { const rates = await loadPublicMarkupRates(); setMarkupPercentage(rates[hotelId] ?? 0); setRooms((data || []).map(r => markRoom(r, rates)) as Room[]); }
+        catch (e) { toast.error(e instanceof Error ? e.message : "Hotel prices unavailable"); setRooms([]); }
+      }
       setLoading(false);
     })();
-  }, [hotelId]);
+  }, [hotelId, markupRevision]);
 
   // Meal plans — `hotel_meals` is the single source of truth for meals.
   useEffect(() => {
@@ -151,8 +158,8 @@ export default function HotelRoomList({
     const value = Number(plan.adjustment_value) || 0;
     const adjusted = plan.adjustment_type === "percent"
       ? basePerNight * (1 + value / 100)
-      : basePerNight + value;
-    return Math.max(0, Math.round(adjusted));
+      : basePerNight + markedPrice(Math.abs(value), markupPercentage) * (value < 0 ? -1 : 1);
+    return Math.max(0, Math.round(adjusted * 100) / 100);
   };
 
   /** Room-level meal config overrides the hotel-level default. */

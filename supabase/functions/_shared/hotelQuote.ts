@@ -6,6 +6,7 @@ import {
   type MealType, type PricingResult, type LineItem,
 } from "./hotelPricing.ts";
 import { validateCoupon, distributeCouponDiscount } from "./hotelCoupon.ts";
+import { loadHotelMarkup, markedPrice } from "./hotelMarkup.ts";
 
 export interface QuoteRequest {
   hotel_id: string;
@@ -149,11 +150,12 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
     });
   }
 
+  const markup = await loadHotelMarkup(supabase, hotel_id);
   const baseInput = {
-    room: { ...room, base_price: applyPlan(Number(room.base_price ?? 0)) } as any,
+    room: { ...room, base_price: markedPrice(applyPlan(Number(room.base_price ?? 0)), markup) } as any,
     meals: mealConfigs as any,
     rateCalendar: (rateRows || []).map((r: any) => ({
-      date: r.date, price: applyPlan(Number(r.price)), stop_sell: r.stop_sell, available_units: r.available_units,
+      date: r.date, price: markedPrice(applyPlan(Number(r.price)), markup), stop_sell: r.stop_sell, available_units: r.available_units,
     })),
     checkIn: check_in,
     checkOut: check_out,

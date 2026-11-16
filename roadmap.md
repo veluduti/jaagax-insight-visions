@@ -1,5 +1,12 @@
 # Roadmap — Agent Profile page rebuild
 
+## Hotel price markup management
+- [x] Add global-admin-only global and per-hotel markup configuration with audit history and inheritance/reset controls.
+- [x] Apply non-compounding prices to native quotes, long-stay quotes and supplier retail displays; preserve supplier payable amounts and existing bookings. Visible discovery/details refresh after changes and periodically across sessions.
+- [x] Add administration controls and regression coverage; verify real native/supplier results and regional-admin rejection.
+- [ ] Global-admin save/reload verification requires selecting and approving a Global Admin test session; the requesting account is State Admin.
+- [ ] HyperGuest margin collection requires approved payment/settlement integration; nonzero markup bookings and supplier-prepaid rates remain blocked.
+
 ## Admin dashboard loading recovery
 - [x] Resolve dashboard administrator access from active server-managed scopes rather than the retired role table.
 - [x] Prevent unresolved account access from leaving the dashboard on an endless loading message.

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { loadPublicMarkupRates, markRoom, markedPrice } from "@/services/hospitality/markupService";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 import {
   computeBookingPrice, validateBookingSelection, nightsBetween, stayDates,
   type MealConfig, type MealType, type RoomConfig, type NightRate, type PricingResult,
@@ -12,6 +14,7 @@ import {
  * stays authoritative — this only powers instant UI updates.
  */
 export function useHotelPricingConfig(hotelId?: string | null, roomId?: string | null) {
+  const markupRevision = useHotelMarkupRevision();
   const [room, setRoom] = useState<RoomConfig | null>(null);
   const [meals, setMeals] = useState<MealConfig[]>([]);
   const [gstRate, setGstRate] = useState<number | null>(null);
@@ -30,7 +33,11 @@ export function useHotelPricingConfig(hotelId?: string | null, roomId?: string |
         (supabase as any).from("hotel_rate_calendar").select("*").eq("room_id", roomId),
       ]);
       if (cancelled) return;
-      setRoom(r.data || null);
+      let rates: Record<string, number>;
+      try { rates = await loadPublicMarkupRates(); }
+      catch { setRoom(null); setLoading(false); return; }
+      if (cancelled) return;
+      setRoom(r.data ? markRoom(r.data, rates) : null);
       // Room-level meal config overrides hotel-level defaults.
       const map = new Map<string, any>();
       for (const row of m.data || []) {
@@ -41,12 +48,12 @@ export function useHotelPricingConfig(hotelId?: string | null, roomId?: string |
       setMeals(Array.from(map.values()));
       setGstRate(h.data?.gst_rate ?? null);
       setRateCalendar((rc.data || []).map((x: any) => ({
-        date: x.date, price: Number(x.price), stop_sell: x.stop_sell, available_units: x.available_units,
+        date: x.date, price: markedPrice(Number(x.price), rates[hotelId] ?? 0), stop_sell: x.stop_sell, available_units: x.available_units,
       })));
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [hotelId, roomId]);
+  }, [hotelId, roomId, markupRevision]);
 
   return { room, meals, gstRate, rateCalendar, loading };
 }

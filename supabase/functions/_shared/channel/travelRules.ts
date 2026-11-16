@@ -7,6 +7,8 @@ export function customerPrice(rate: any, currency: string) {
   const read = (p: any) => Number.isFinite(p?.searchCurrency) && p.searchCurrency > 0 ? Number(p.searchCurrency) : p?.currency === currency && Number(p.price) > 0 ? Number(p.price) : null;
   const sell = read(rate.prices?.sell), bar = read(rate.prices?.bar);
   if (rate.prices?.bar?.price > 0 && bar == null) return null;
+  const retail = rate.jaagaxRetail;
+  if (retail?.currency === currency && Number.isFinite(retail.amount) && retail.amount > 0) return { amount: retail.amount, currency };
   return sell == null && bar == null ? null : { amount: Math.max(sell ?? 0, bar ?? 0), currency };
 }
 export function bookingContent(data: any) { return data?.content ?? data; }

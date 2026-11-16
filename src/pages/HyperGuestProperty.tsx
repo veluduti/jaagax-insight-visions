@@ -1,4 +1,5 @@
 import { customerPrice, publicRate, hotelLocalInstant, policyDeadline, supplierDisclosures } from "@/lib/supplierTravel";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readHotelSearchContext, hotelSearchParams } from "@/lib/hotelSearchContext";
 import { isValidDateRangeISO, CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
@@ -99,6 +100,7 @@ export default function HyperGuestProperty() {
   const nav = useNavigate();
   const loc = useLocation();
   const params = new URLSearchParams(loc.search);
+  const markupRevision = useHotelMarkupRevision();
   const marketplace = params.get("marketplace") === "1";
   const live = params.get("live") === "1" || marketplace;
   const certification = live && !marketplace;
@@ -198,7 +200,7 @@ export default function HyperGuestProperty() {
   useEffect(() => {
     if (marketplace) void search();
     return () => { searchRequest.current += 1; };
-  }, [propertyId]);
+  }, [propertyId, markupRevision]);
 
   const roomsFor = (i: number) => {
     const k = paxKey(rooms[i].adults, ages(rooms[i]));
@@ -464,7 +466,7 @@ export default function HyperGuestProperty() {
                 return { label: `${picked[i]?.room.roomName} – ${picked[i]?.rp.ratePlanName}`, amount: Number(a.amount ?? 0), cur: a.currency ?? currency };
               });
               const total = prebook.customerTotal ?? lines.reduce((s: number, l: any) => s + l.amount, 0);
-              const settlementRequired = marketplace && prebook.customerRooms?.some((r: any) => r.disclosures?.payment?.charge !== "customer");
+              const settlementRequired = marketplace && (prebook.markupCollectionRequired || prebook.customerRooms?.some((r: any) => r.disclosures?.payment?.charge !== "customer"));
               const cur = lines[0]?.cur ?? currency;
               const goPay = () => {
                 if (!lead.first.trim() || !lead.last.trim()) return toast.error("Enter the lead guest's first and last name");
@@ -584,7 +586,7 @@ export default function HyperGuestProperty() {
                             <p>Use test card <b>4111 1111 1111 1111</b>, any future expiry (e.g. 12/30), CVV 123.</p>
                             <Button size="sm" variant="secondary" onClick={() => setCard({ number: "4111 1111 1111 1111", expiry: "12/30", cvv: "123", name: `${lead.first} ${lead.last}`.trim() })}>Fill test card</Button>
                           </div>}
-                          {settlementRequired && <p role="alert" className="text-sm text-destructive">This rate requires JaagaX supplier settlement, which is not enabled. Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
+                          {settlementRequired && <p role="alert" className="text-sm text-destructive">{prebook.markupCollectionRequired ? "JaagaX markup collection is not enabled for this supplier rate." : "This rate requires JaagaX supplier settlement, which is not enabled."} Booking is unavailable until that payment arrangement is configured. No payment has been taken.</p>}
                           <Input placeholder="Card number" inputMode="numeric" maxLength={23} disabled={settlementRequired} value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 19).replace(/(\d{4})(?=\d)/g, "$1 ") })} />
                           <div className="grid grid-cols-2 gap-2">
                             <Input placeholder="MM/YY" disabled={settlementRequired} maxLength={5} value={card.expiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCard({ ...card, expiry: d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }); }} />

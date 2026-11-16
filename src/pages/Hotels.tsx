@@ -1,4 +1,6 @@
 import { loadSupplierAvailability, type SupplierDiscoveryOffer } from "@/services/hospitality/hyperguestDiscoveryService";
+import { loadPublicMarkupRates, markRoom } from "@/services/hospitality/markupService";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 import { currentHotelSearchDates, hotelSearchParams } from "@/lib/hotelSearchContext";
 import { hasRequestedRooms, exactHotelMatches } from "@/lib/hotelSearchEligibility";
 import { customerView, businessTypeForKind } from "@/config/accommodationTypes";
@@ -407,6 +409,7 @@ const Hotels = () => {
     setTempChildAges(newAges);
   }, [tempChildren]);
 
+  const markupRevision = useHotelMarkupRevision();
   // Fetch approved + active hotels that have at least one active room; compute
   // "starts from" price from the cheapest active room (not the legacy field).
   useEffect(() => {
@@ -425,6 +428,8 @@ const Hotels = () => {
           supabase.from("hotel_reviews").select("hotel_id, rating").gte("rating", 1).lte("rating", 5),
         ]);
 
+        const markupRates = await loadPublicMarkupRates();
+        roomsRes.data = (roomsRes.data || []).map(r => markRoom(r, markupRates));
         const minByHotel = new Map<string, number>();
         const occByHotel: Record<string, OccupancyRoom[]> = {};
         const units: Record<string, Set<string>> = {};
@@ -487,7 +492,7 @@ const Hotels = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [markupRevision]);
 
   // Auto-show hotels for the user's saved location before they search (once per visit)
   const autoCityAppliedRef = useRef(false);

@@ -12,6 +12,8 @@ import { quoteLongStay, reserveLongStay, payLongStay, type ServerQuote } from "@
 import { freeUnits } from "@/services/hospitality/availabilityService";
 import LongStayDetails, { type LongStayDetailRoom } from "@/components/hotels/LongStayDetails";
 import { customerView } from "@/config/accommodationTypes";
+import { loadPublicMarkupRates, markRoom } from "@/services/hospitality/markupService";
+import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
@@ -38,6 +40,7 @@ export default function LongStayBooking() {
   const [searchParams, setSearchParams] = useSearchParams();
   const roomId = searchParams.get("room") || "";
   const nav = useNavigate();
+  const markupRevision = useHotelMarkupRevision();
 
   const [hotel, setHotel] = useState<any>(null);
   const [rooms, setRooms] = useState<LongStayDetailRoom[]>([]);
@@ -54,13 +57,16 @@ export default function LongStayBooking() {
       ]);
       setHotel(h);
       setBizTypes(h?.business_types || []);
-      const list = (rs || []) as LongStayDetailRoom[];
+      let rates: Record<string, number>;
+      try { rates = await loadPublicMarkupRates(); }
+      catch { toast.error("Hotel prices could not be loaded"); setLoading(false); return; }
+      const list = (rs || []).map(r => markRoom(r, rates)) as LongStayDetailRoom[];
       setRooms(list);
       if (roomId && list.some((r) => r.id === roomId)) setRoom(list.find((r) => r.id === roomId) || null);
       else if (list.length === 1) { setRoom(list[0]); setSearchParams({ room: list[0].id }, { replace: true }); }
       setLoading(false);
     })();
-  }, [hotelId, roomId]);
+  }, [hotelId, roomId, markupRevision]);
 
   // Booking form state
   const hasMonthly = Number(room?.monthly_price) > 0 || Number(room?.weekly_price) > 0;

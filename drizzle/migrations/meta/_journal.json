@@ -400,6 +400,13 @@
       "when": 1794542176330,
       "tag": "0056_restrict_inventory_units_and_journey_members",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1794805980607,
+      "tag": "0057_hotel_price_markup_management",
+      "breakpoints": true
     }
   ]
 }
