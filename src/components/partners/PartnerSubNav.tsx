@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare, Star, LifeBuoy, Settings,
@@ -37,6 +38,7 @@ const more = [
 ] as const;
 
 export default function PartnerSubNav() {
+  const workspace = useContext(PartnerWorkspaceContext);
   const nav = useNavigate();
   const { pathname } = useLocation();
   const { modules, types, activeType, setActiveType, hotelId } = usePartnerBusinessTypes();
@@ -101,6 +103,7 @@ export default function PartnerSubNav() {
       active ? "bg-emerald-500/15 text-emerald-400" : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
     );
 
+  if (workspace) return null;
   return (
     <div className="border-b border-border/60 bg-background/70 backdrop-blur">
       {typeof window !== "undefined" && localStorage.getItem("partner_demo_hotel") && (

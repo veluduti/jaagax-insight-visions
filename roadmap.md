@@ -1,5 +1,11 @@
 # Roadmap — Agent Profile page rebuild
 
+## Hotel partner reference dashboard
+- [ ] Build the purple reference workspace, overview, sidebar and responsive shared header.
+- [ ] Reuse room, rates, inventory, booking, guest, payment, reporting and review tools inside the workspace.
+- [ ] Connect property editing, media, policies/FAQs, departments and service-category management to existing saved data.
+- [ ] Preserve onboarding, ownership, publication review and multi-property selection; verify real-account save/reload and responsive navigation.
+
 ## Pre-check-in ID images
 - [x] Open Edit Details in an on-page popup using the shared guest upload form. Real booking popup, close/reopen, missing-image validation and mobile fit verified; eleven tests passed. No real ID images submitted.
 - [x] Collect separate ID images per room guest; add Driving Licence, Voter ID Card and PAN Card. Eleven tests passed; real two-guest booking shows separate uploads and all five choices, with incomplete submissions blocked. No real ID images submitted.

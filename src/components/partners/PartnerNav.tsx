@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Building2, Menu, X, LayoutDashboard, LogOut, Home, ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ const nav = [
 ];
 
 export default function PartnerNav() {
+  const workspace = useContext(PartnerWorkspaceContext);
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [isPartner, setIsPartner] = useState(false);
@@ -106,6 +108,7 @@ export default function PartnerNav() {
   const desktopActions = userId ? (showPartnerActions ? partnerActions : customerActions) : guestActions;
 
 
+  if (workspace) return null;
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4 max-[399px]:px-2">

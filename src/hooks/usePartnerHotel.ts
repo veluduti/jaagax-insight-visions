@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,12 +17,14 @@ export type PartnerCtx = {
  * not approved → /partners/status; PMS not set → /partners/pms-setup.
  */
 export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requirePmsSetup: true }): PartnerCtx {
+  const workspace = useContext(PartnerWorkspaceContext);
   const nav = useNavigate();
   const [ctx, setCtx] = useState<PartnerCtx>({
     loading: true, userId: null, hotelId: null, hotelName: "Your property", applicationId: null,
   });
 
   useEffect(() => {
+    if (workspace) return;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { nav("/partners/login", { replace: true }); return; }
@@ -52,7 +55,7 @@ export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requireP
         applicationId: app.id,
       });
     })();
-  }, [nav, opts.requirePmsSetup]);
+  }, [nav, opts.requirePmsSetup, workspace]);
 
-  return ctx;
+  return workspace ?? ctx;
 }
