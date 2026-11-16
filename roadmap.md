@@ -1,5 +1,11 @@
 # Roadmap — Agent Profile page rebuild
 
+## Add New Property / Complete Setup reference
+- [ ] Build purple eleven-step setup with progress, property summary, notes, audit and draft/resume navigation.
+- [ ] Reuse property, compliance documents, rooms/rates, amenities/services, policies, payouts and staff records with owner-authorized saves and review submission.
+- [ ] Verify real-owner draft creation/save/resume, required-field checks, existing module links and desktop/mobile rendering; preserve bookings and remove verification fixtures.
+- [ ] External GST/PAN verification remains manual unless an approved verification service is configured; never label format checks as official verification.
+
 ## Dashboard error-log and QA repairs
 - [x] Current missing-status finding is stale: current screen no longer queries it. Both dashboards load with real vismayee owner records, no page errors; 695px portfolio has no overflow.
 - [x] Align legacy capacity and maintenance availability across calendars, booking checks and portfolio metrics. Live rolled-back SQL regression and owner maintenance/save/reload/restore verified; temporary unit deleted and all seven bookings retained.

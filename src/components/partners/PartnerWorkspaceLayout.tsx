@@ -34,8 +34,9 @@ export default function PartnerWorkspaceLayout() {
   useEffect(() => { setOpen(false); }, [location.pathname]);
   useEffect(() => {
     const match=location.pathname.match(/^\/partners\/properties\/([^/]+)$/);
-    if(match && hotels.some(h=>h.id===match[1])) {localStorage.setItem("partner_active_property",match[1]);setSelected(match[1]);}
-  },[location.pathname,hotels]);
+    const id=match?.[1] ?? (location.pathname==="/partners/property-setup" ? new URLSearchParams(location.search).get("hotel") : null);
+    if(id && hotels.some(h=>h.id===id)) {localStorage.setItem("partner_active_property",id);setSelected(id);}
+  },[location.pathname,location.search,hotels]);
   useEffect(() => {
     const refresh = () => { void load(); };
     const select = () => { setSelected(localStorage.getItem("partner_active_property")); };
@@ -44,7 +45,7 @@ export default function PartnerWorkspaceLayout() {
     return () => { window.removeEventListener("partner-property-updated", refresh); window.removeEventListener("partner-property-selected", select); };
   }, [load]);
   const hotel = hotels.find(h => h.id === selected) ?? hotels.find(h => h.id === ctx.hotelId) ?? hotels[0];
-  const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); };
+  const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); if(location.pathname==="/partners/property-setup")navigate(`/partners/property-setup?hotel=${id}`); };
   const value = {...ctx,hotelId:hotel?.id ?? null, hotelName:hotel?.name ?? ctx.hotelName};
   const matches = partnerWorkspaceNav.flatMap(item => [item,...(item.children ?? [])]).filter(item=>item.label.toLowerCase().includes(search.toLowerCase()));
   return <div className="partner-workspace">

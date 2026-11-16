@@ -41,7 +41,7 @@ export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requireP
       const { data: app } = await (supabase as any)
         .from("hotel_partner_applications")
         .select("id,status,pms_setup_completed,hotel_name,approved_hotel_id")
-        .eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+        .eq("user_id", user.id).is("setup_hotel_id", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
 
       if (!app) { nav("/partners/kyc", { replace: true }); return; }
       if (app.status !== "approved") { nav("/partners/status", { replace: true }); return; }

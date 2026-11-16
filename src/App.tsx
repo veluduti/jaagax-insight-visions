@@ -167,6 +167,7 @@ const PartnerPmsSetup = lazy(() => import("./pages/partners/PartnerPmsSetup"));
 const PartnerDashboard = lazy(() => import("./pages/partners/PartnerDashboard"));
 const PartnerWorkspaceLayout = lazy(() => import("./components/partners/PartnerWorkspaceLayout"));
 const PartnerPropertyOverview = lazy(() => import("./pages/partners/PartnerPropertyOverview"));
+const PartnerPropertySetup = lazy(() => import("./pages/partners/PartnerPropertySetup"));
 const PartnerServiceRequests = lazy(() => import("./pages/partners/PartnerServiceRequests"));
 const PartnerServiceWorkspace = lazy(() => import("./pages/partners/PartnerServiceWorkspace"));
 const PartnerHotelProfile = lazy(() => import("./pages/partners/PartnerHotelProfile"));
@@ -592,6 +593,7 @@ const App = () => (
                   <Route path="/partners/pms-setup" element={<PartnerPmsSetup />} />
                   <Route element={<PartnerWorkspaceLayout />}>
                   <Route path="/partners/dashboard" element={<PartnerPropertyOverview />} />
+                  <Route path="/partners/property-setup" element={<PartnerPropertySetup />} />
                   <Route path="/partners/workspace/:section" element={<PartnerServiceWorkspace />} />
                   <Route path="/partners/hotel-profile" element={<PartnerHotelProfile />} />
                   <Route path="/partners/rooms" element={<PartnerRooms />} />

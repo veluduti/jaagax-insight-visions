@@ -435,6 +435,20 @@
       "when": 1794821213256,
       "tag": "0061_align_hotel_maintenance_availability",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794821845526,
+      "tag": "0062_owner_property_setup_wizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1794822094571,
+      "tag": "0063_notify_property_setup_only_on_submission",
+      "breakpoints": true
     }
   ]
 }

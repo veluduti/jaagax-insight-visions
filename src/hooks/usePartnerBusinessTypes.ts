@@ -34,7 +34,7 @@ export function usePartnerBusinessTypes() {
       const { data } = await (supabase as any)
         .from("hotel_partner_applications")
         .select("id,business_types,business_type,approved_hotel_id")
-        .eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+        .eq("user_id", user.id).is("setup_hotel_id",null).order("created_at", { ascending: false }).limit(1).maybeSingle();
       let list: string[] = data?.business_types?.length
         ? data.business_types
         : data?.business_type ? String(data.business_type).split(",") : [];

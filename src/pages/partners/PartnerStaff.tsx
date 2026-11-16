@@ -140,11 +140,11 @@ export default function PartnerStaff() {
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
-            .select("id, full_name, avatar_url")
-            .in("id", userIds);
+            .select("user_id, full_name, avatar_url")
+            .in("user_id", userIds);
 
           const profileMap = new Map(
-            (profiles || []).map((p) => [p.id, { full_name: p.full_name, avatar_url: p.avatar_url }]),
+            (profiles || []).map((p) => [p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url }]),
           );
 
           setStaff(
@@ -195,20 +195,20 @@ export default function PartnerStaff() {
       // Look up existing user by email in profiles
       const { data: prof, error: profError } = await supabase
         .from("profiles")
-        .select("id, full_name")
+        .select("user_id, full_name")
         .eq("email", email.trim().toLowerCase())
-        .maybeSingle();
+        .limit(1).maybeSingle();
 
       if (profError) throw profError;
 
-      if (!prof?.id) {
+      if (!prof?.user_id) {
         toast.error("No JAAGA X user found with this email. Ask them to sign up first.");
         return;
       }
 
       const { error } = await supabase.from("hotel_staff").insert({
         hotel_id: hotelId,
-        user_id: prof.id,
+        user_id: prof.user_id,
         role,
         invited_email: email.trim().toLowerCase(),
         is_active: true,

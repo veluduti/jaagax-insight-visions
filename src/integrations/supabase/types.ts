@@ -5660,6 +5660,8 @@ export type Database = {
           reviewed_by: string | null
           room_categories: Json
           room_types: string[] | null
+          setup_details: Json
+          setup_hotel_id: string | null
           state: string | null
           status: string
           total_rooms: number | null
@@ -5717,6 +5719,8 @@ export type Database = {
           reviewed_by?: string | null
           room_categories?: Json
           room_types?: string[] | null
+          setup_details?: Json
+          setup_hotel_id?: string | null
           state?: string | null
           status?: string
           total_rooms?: number | null
@@ -5774,6 +5778,8 @@ export type Database = {
           reviewed_by?: string | null
           room_categories?: Json
           room_types?: string[] | null
+          setup_details?: Json
+          setup_hotel_id?: string | null
           state?: string | null
           status?: string
           total_rooms?: number | null
@@ -5781,7 +5787,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hotel_partner_applications_setup_hotel_id_fkey"
+            columns: ["setup_hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hotel_payout_batches: {
         Row: {
@@ -15774,6 +15788,10 @@ export type Database = {
       partner_delete_empty_draft: {
         Args: { _hotel_id: string }
         Returns: undefined
+      }
+      partner_save_property_setup: {
+        Args: { _data: Json; _hotel_id: string; _submit?: boolean }
+        Returns: string
       }
       property_admin_review_verification: {
         Args: { _approve: boolean; _notes?: string; _property_id: string }

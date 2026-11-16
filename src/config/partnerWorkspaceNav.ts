@@ -4,7 +4,7 @@ export const partnerWorkspaceNav = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/partners/dashboard" },
   { label: "Multi-Property", icon: Building2, to: "/partners/portfolio", children: [
     { label: "My Properties", icon: Building2, to: "/partners/portfolio" },
-    { label: "Add New Property", icon: Building2, to: "/partners/portfolio?section=add" },
+    { label: "Add New Property", icon: Building2, to: "/partners/property-setup" },
     { label: "Property Groups", icon: Building2, to: "/partners/portfolio?section=groups" },
     { label: "Brand / Chain Settings", icon: Settings, to: "/partners/portfolio?section=brand" },
   ] },
