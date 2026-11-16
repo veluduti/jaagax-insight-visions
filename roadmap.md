@@ -1,5 +1,8 @@
 # Roadmap — Agent Profile page rebuild
 
+## Pre-check-in ID images
+- [x] Replace ID-number entry with private Aadhaar/passport image uploads and atomic save/notification. Four tests and authenticated real-booking form/rejected-file checks passed; no real ID image was uploaded.
+
 ## Hotel price markup management
 - [x] Expose Hotel Price Markups in the main Global Admin Features menu using the existing pricing panel; regional flow-only menus remain unchanged.
 - [x] Add global-admin-only global and per-hotel markup configuration with audit history and inheritance/reset controls.

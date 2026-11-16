@@ -15970,6 +15970,10 @@ export type Database = {
         Args: { _check_in: string; _check_out: string; _room_id: string }
         Returns: number
       }
+      save_hotel_checkin_image: {
+        Args: { p_booking_id: string; p_info: Json }
+        Returns: undefined
+      }
       search_properties_in_bounds: {
         Args: {
           _limit?: number

@@ -77,8 +77,8 @@ const HotelBookingConfirmed = () => {
   const policyText = typeof policy === "string" ? policy : policy?.summary || policy?.text || null;
   const checkin = booking.checkin_info || {};
   const preSteps = [
-    { label: "Add Guest Details (ID Proof)", done: !!checkin.id_number, icon: UserCheck },
-    { label: "Upload ID Proof (Aadhaar / Passport / DL)", done: !!(checkin.id_url || checkin.id_document || checkin.id_number), icon: IdCard },
+    { label: "Select ID Document (Aadhaar / Passport)", done: !!checkin.id_type && !!checkin.id_document_path, icon: UserCheck },
+    { label: "Upload ID Image (Aadhaar / Passport)", done: !!checkin.id_document_path, icon: IdCard },
     { label: "Provide Expected Arrival Time", done: !!checkin.eta, icon: Clock },
   ];
   const preDone = preSteps.every((s) => s.done);

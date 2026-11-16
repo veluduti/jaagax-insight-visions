@@ -407,6 +407,13 @@
       "when": 1794805980607,
       "tag": "0057_hotel_price_markup_management",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1794813066218,
+      "tag": "0058_private_hotel_checkin_images",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import HotelReviewDialog from "@/components/hotels/HotelReviewDialog";
+import { saveCheckinImage, validateCheckinImage } from "@/services/hospitality/checkinService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function GuestPortal() {
   const { token } = useParams();
@@ -23,7 +25,8 @@ export default function GuestPortal() {
   const [hotel, setHotel] = useState<any>(null);
   const [addons, setAddons] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-  const [checkin, setCheckin] = useState<any>({ id_number: "", eta: "", requests: "" });
+  const [checkin, setCheckin] = useState<any>({ id_type: "aadhaar", eta: "", requests: "" });
+  const [idImage, setIdImage] = useState<File | null>(null);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -37,7 +40,7 @@ export default function GuestPortal() {
         .eq("guest_portal_token", token).maybeSingle();
       if (!b) { setLoading(false); return; }
       setBooking(b);
-      setCheckin(b.checkin_info || { id_number: "", eta: "", requests: "" });
+      setCheckin({ id_type: "aadhaar", eta: "", requests: "", ...(b.checkin_info as object || {}) });
       const [h, a, m, r] = await Promise.all([
         supabase.from("partner_hotels").select("*").eq("id", b.hotel_id).maybeSingle(),
         supabase.from("hotel_addons").select("*").eq("hotel_id", b.hotel_id).eq("is_active", true),
@@ -62,12 +65,16 @@ export default function GuestPortal() {
   }, [booking?.id]);
 
   const submitCheckin = async () => {
+    if (!idImage && !checkin.id_document_path) return toast.error("Please upload an Aadhaar or passport image");
     setBusy(true);
-    await supabase.from("hotel_bookings").update({ checkin_info: checkin }).eq("id", booking.id);
-    await supabase.from("guest_portal_requests").insert({
-      booking_id: booking.id, hotel_id: booking.hotel_id, request_type: "checkin", payload: checkin,
-    });
-    setBusy(false); toast.success("Check-in info sent to hotel");
+    try {
+      const saved = await saveCheckinImage(booking.id, checkin, idImage);
+      setCheckin(saved);
+      setIdImage(null);
+      toast.success("Check-in info sent to hotel");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save check-in details");
+    } finally { setBusy(false); }
   };
 
   const requestAddon = async (addon: any) => {
@@ -184,12 +191,26 @@ export default function GuestPortal() {
               <Card>
                 <CardHeader><CardTitle className="text-base">Digital check-in</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
-                  <div><Label>ID number (Aadhaar / passport)</Label>
-                    <Input value={checkin.id_number} onChange={e => setCheckin({ ...checkin, id_number: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="id-type">ID document</Label>
+                    <Select value={checkin.id_type} onValueChange={id_type => setCheckin({ ...checkin, id_type })} disabled={busy}>
+                      <SelectTrigger id="id-type"><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="aadhaar">Aadhaar</SelectItem><SelectItem value="passport">Passport</SelectItem></SelectContent>
+                    </Select>
+                    <Label htmlFor="id-image">Upload {checkin.id_type === "passport" ? "passport" : "Aadhaar"} image</Label>
+                    <Input id="id-image" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) { setIdImage(null); return; }
+                      const error = validateCheckinImage(file);
+                      if (error) { toast.error(error); e.target.value = ""; setIdImage(null); return; }
+                      setIdImage(file);
+                    }} />
+                    <p className="text-xs text-muted-foreground">JPG, PNG or WebP · Maximum 5 MB · Shared privately with your hotel</p>
+                    {checkin.id_document_path && <p className="text-sm text-primary">ID image saved</p>}
+                  </div>
                   <div><Label>Estimated time of arrival</Label>
                     <Input type="time" value={checkin.eta} onChange={e => setCheckin({ ...checkin, eta: e.target.value })} /></div>
                   <div><Label>Special requests</Label>
-                    <Textarea rows={3} value={checkin.requests} onChange={e => setCheckin({ ...checkin, requests: e.target.value })} /></div>
+                    <Textarea rows={3} maxLength={1000} value={checkin.requests} onChange={e => setCheckin({ ...checkin, requests: e.target.value })} /></div>
                   <Button onClick={submitCheckin} disabled={busy}>
                     {busy && <Loader2 className="animate-spin h-4 w-4 mr-2" />}<Check className="h-4 w-4 mr-2" /> Submit
                   </Button>
