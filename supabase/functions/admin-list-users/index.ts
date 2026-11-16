@@ -10,8 +10,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) throw new Error("Missing server configuration");
     const admin = createClient(supabaseUrl, serviceKey);
 
     const authHeader = req.headers.get("Authorization");
@@ -22,13 +23,12 @@ serve(async (req) => {
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    const { data: myRoles } = await admin
-      .from("user_roles").select("role").eq("user_id", user.id);
-    const roleSet = new Set((myRoles ?? []).map((r: any) => r.role));
-    const isGlobal = roleSet.has("admin");
-    const isCountry = roleSet.has("country_admin");
-    const isState = roleSet.has("state_admin");
-    const isDistrict = roleSet.has("district_admin");
+    const { data: callerRole, error: scopeError } = await admin.rpc("get_admin_role", { _user_id: user.id });
+    if (scopeError) throw scopeError;
+    const isGlobal = callerRole === "global_admin";
+    const isCountry = callerRole === "country_admin";
+    const isState = callerRole === "state_admin";
+    const isDistrict = callerRole === "district_admin";
     if (!isGlobal && !isCountry && !isState && !isDistrict) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -40,6 +40,7 @@ serve(async (req) => {
         .from("admin_scopes").select("*").eq("user_id", user.id).eq("is_active", true);
       const order = ["country_admin", "state_admin", "district_admin"];
       scope = (scopes ?? []).sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role))[0] ?? null;
+      if (!scope) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Page through auth.users
@@ -58,10 +59,17 @@ serve(async (req) => {
     const [{ data: signups }, { data: profiles }, { data: roles }] = await Promise.all([
       admin.from("signup_requests").select("*"),
       admin.from("profiles").select("*"),
-      admin.from("user_roles").select("user_id, role"),
+      admin.from("admin_scopes").select("user_id, role").eq("is_active", true),
     ]);
 
-    const users = authUsers.map((au) => {
+    const users = authUsers.filter((au) => {
+      if (isGlobal) return true;
+      // Regional operators see only users whose saved profile is in scope.
+      return (profiles ?? []).some((p: any) => p.user_id === au.id &&
+        (scope.country_id ? p.country_id === scope.country_id : Boolean(scope.country) && p.country === scope.country) &&
+        (!isState && !isDistrict || (scope.state_id ? p.state_id === scope.state_id : Boolean(scope.state) && p.state === scope.state)) &&
+        (!isDistrict || (scope.district_id ? p.district_id === scope.district_id : Boolean(scope.district) && p.district === scope.district)));
+    }).map((au) => {
       const meta = (au.user_metadata ?? {}) as any;
       const signup = (signups ?? []).find((s: any) => s.user_id === au.id) ?? null;
       const userProfiles = (profiles ?? []).filter((p: any) => p.user_id === au.id);
