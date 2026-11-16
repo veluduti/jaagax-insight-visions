@@ -1,9 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
 ## Add New Property / Complete Setup reference
-- [ ] Build purple eleven-step setup with progress, property summary, notes, audit and draft/resume navigation.
-- [ ] Reuse property, compliance documents, rooms/rates, amenities/services, policies, payouts and staff records with owner-authorized saves and review submission.
-- [ ] Verify real-owner draft creation/save/resume, required-field checks, existing module links and desktop/mobile rendering; preserve bookings and remove verification fixtures.
+- [x] Build purple eleven-step setup with progress, property summary, notes, audit and draft/resume navigation.
+- [x] Reuse property, private compliance documents, rooms/rates, amenities/services, policies, payouts and staff records with atomic owner-authorized saves and existing admin review submission. Approval updates the same hotel; account onboarding excludes property-specific applications.
+- [x] Eighteen focused tests and preview compilation passed; real-owner creation/save/reload/step resumption and room/rate/team/service popups/map dialog verified. Desktop/390px reviewed with no overflow/runtime errors; both test drafts removed and bookings unchanged.
+- [ ] Full compliance submission/administrator approval and real document/bank/team mutations remain unexecuted to avoid fabricated identity documents or publishing a test hotel.
 - [ ] External GST/PAN verification remains manual unless an approved verification service is configured; never label format checks as official verification.
 
 ## Dashboard error-log and QA repairs
