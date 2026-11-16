@@ -1,5 +1,11 @@
 # Roadmap — Agent Profile page rebuild
 
+## Dashboard error-log and QA repairs
+- [x] Current missing-status finding is stale: current screen no longer queries it. Both dashboards load with real vismayee owner records, no page errors; 695px portfolio has no overflow.
+- [x] Align legacy capacity and maintenance availability across calendars, booking checks and portfolio metrics. Live rolled-back SQL regression and owner maintenance/save/reload/restore verified; temporary unit deleted and all seven bookings retained.
+- [x] Remove hidden long-stay nightly defaults, improve property-load errors/account reads and detail-route switching; focused tests and current preview compilation pass. Three QA findings resolved and historical status finding marked stale.
+- [ ] Broader missing-user_roles/background property-review finding remains open: retired table is still absent; restoring it would change the project-wide role model beyond these dashboards. Dashboard access uses existing partner approval/ownership and loads successfully.
+
 ## Multi-property reference dashboard
 - [x] Match purple portfolio layout, property list/grid, filters, search and management navigation.
 - [x] Connect real cross-property metrics, occupancy/revenue charts, tasks/activity and group/brand settings to existing records; enable authorized live refresh and atomic empty-draft deletion.

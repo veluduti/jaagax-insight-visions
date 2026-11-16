@@ -1,11 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { roomCapacity } from "./inventoryRules";
 import { listManagedHotels, type ManagedHotel } from "./partnerDashboardService";
 import { getOrCreatePartnerAccount, listBusinesses, type PartnerAccount, type PartnerBusiness } from "./partnerService";
 
 const sb = supabase as any;
 export type PortfolioHotel = ManagedHotel & { business_id: string | null; created_at: string; updated_at: string };
-export type PortfolioRoom = { id:string; hotel_id:string; total_units:number|null; is_active:boolean|null };
+export type PortfolioRoom = { id:string; hotel_id:string; total_units:number|null; number_of_available_rooms?:number|null; is_active:boolean|null };
 export type PortfolioBooking = { id:string; hotel_id:string; status:string; currency:string|null; total_amount:number|null; num_rooms:number|null; check_in:string; check_out:string; created_at:string; updated_at:string; booking_reference:string|null };
 export type PortfolioReview = { id:string;hotel_id:string;rating:number;created_at:string;title:string|null };
 export type PortfolioTask = { id:string;hotel_id:string;title:string;status:string;priority:string;created_at:string;updated_at:string };
@@ -28,7 +29,7 @@ export async function loadPortfolio(userId:string):Promise<PortfolioData> {
   const ids=hotels.map(h=>h.id);
   if(!ids.length)return {account,businesses,hotels,rooms:[],bookings:[],reviews:[],tasks:[],requests:[],blocks:[]};
   const [rooms,bookings,reviews,tasks,requests,blocks]=await Promise.all([
-    allRows("hotel_rooms","id,hotel_id,total_units,is_active",ids),
+    allRows("hotel_rooms","id,hotel_id,total_units,number_of_available_rooms,is_active",ids),
     allRows("hotel_bookings","id,hotel_id,status,currency,total_amount,num_rooms,check_in,check_out,created_at,updated_at,booking_reference",ids),
     allRows("hotel_reviews","id,hotel_id,rating,created_at,title",ids),
     allRows("hotel_ops_tasks","id,hotel_id,title,status,priority,created_at,updated_at",ids),
@@ -53,7 +54,7 @@ export function portfolioMetrics(data:PortfolioData,days:number,now=new Date()) 
   const dates=periodDates(days,now),start=dates[0],end=dates[dates.length-1];
   return data.hotels.map(h=>{
     const rooms=data.rooms.filter(r=>r.hotel_id===h.id&&r.is_active!==false);
-    const capacity=rooms.reduce((sum,r)=>sum+Math.max(0,Number(r.total_units)||0),0);
+    const capacity=rooms.reduce((sum,r)=>sum+roomCapacity(r),0);
     const bookings=data.bookings.filter(b=>b.hotel_id===h.id&&countedStatus.has(b.status));
     const currencies=new Set(bookings.filter(b=>day(b.created_at)>=start&&day(b.created_at)<=end).map(b=>b.currency||h.default_currency||"INR"));
     const currency=currencies.size>1?null:[...currencies][0]||h.default_currency||"INR";

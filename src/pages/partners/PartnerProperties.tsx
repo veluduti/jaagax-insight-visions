@@ -26,11 +26,16 @@ export default function PartnerProperties() {
   const [props, setProps] = useState<PartnerProperty[]>([]);
   const [data, setData] = useState<WorkspaceData | null>(null);
   const [type, setType] = useState<string>("");
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     if (!ctx.userId) return;
-    listProperties(ctx.userId).then(setProps).catch(() => setProps([]));
-  }, [ctx.userId]);
+    let cancelled = false;
+    setError("");
+    listProperties(ctx.userId).then(p => { if (!cancelled) setProps(p); }).catch(() => { if (!cancelled) setError("Could not load your properties. Please try again."); });
+    return () => { cancelled = true; };
+  }, [ctx.userId, retry]);
 
   const typesOf = (p: PartnerProperty) => {
     const t = (p.business_types ?? []).map(normalizeCategory);
@@ -43,9 +48,11 @@ export default function PartnerProperties() {
 
   useEffect(() => {
     if (!selected) return;
+    let cancelled = false;
     setData(null);
-    loadWorkspace(selected.id).then(setData).catch(() => setData({ rooms: [], units: [], bookings: [] }));
-  }, [selected?.id]);
+    loadWorkspace(selected.id).then(d => { if (!cancelled) setData(d); }).catch(() => { if (!cancelled) setError("Could not load this property's inventory. Please try again."); });
+    return () => { cancelled = true; };
+  }, [selected?.id, retry]);
 
   const grouped = useMemo(() => {
     const g: Record<string, PartnerProperty[]> = {};
@@ -82,6 +89,7 @@ export default function PartnerProperties() {
   };
 
   if (ctx.loading) return <Shell><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></Shell>;
+  if (error) return <Shell><div role="alert" className="py-12 text-center"><p>{error}</p><Button className="mt-4" onClick={() => { setError(""); setRetry(n => n + 1); }}>Retry</Button></div></Shell>;
 
   const t = today();
   const residents = data?.bookings.filter((b) => b.check_in <= t && b.check_out > t && !["cancelled", "canceled"].includes(String(b.status))) ?? [];

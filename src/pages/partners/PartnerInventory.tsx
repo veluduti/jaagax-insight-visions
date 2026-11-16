@@ -16,6 +16,7 @@ import {
 } from "@/services/hospitality/inventoryService";
 import { listBlocks, blockDates, unblock } from "@/services/hospitality/availabilityService";
 import { formatUnitPrice } from "@/utils/suggestionEngine";
+import { calendarFreeUnits } from "@/services/hospitality/inventoryRules";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const DAYS = 14;
@@ -34,7 +35,7 @@ export default function PartnerInventory() {
   const load = useCallback(async () => {
     if (!ctx.hotelId) return;
     try {
-      const end = days[days.length - 1];
+      const end = iso(new Date(Date.parse(days[days.length - 1]) + 86400000));
       const [r, u, b] = await Promise.all([listRoomTypes(ctx.hotelId), listUnits(ctx.hotelId), listBlocks(ctx.hotelId, days[0], end)]);
       setRooms(r); setUnits(u); setBlocks(b);
     } catch (e: any) { toast.error(e.message); }
@@ -42,8 +43,7 @@ export default function PartnerInventory() {
   useEffect(() => { load(); }, [load]);
 
   const freeOn = (room: RoomType, day: string) => {
-    const used = blocks.filter((b) => b.room_id === room.id && b.start_date <= day && b.end_date > day).reduce((s, b) => s + b.units, 0);
-    return Math.max(0, (room.total_units ?? 1) - used);
+    return calendarFreeUnits(room, day, blocks, units);
   };
 
   if (ctx.loading) return <Shell><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></Shell>;
@@ -87,8 +87,8 @@ export default function PartnerInventory() {
               <Input type="date" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} />
               <Input type="number" min={1} value={form.units} onChange={(e) => setForm({ ...form, units: Math.max(1, Number(e.target.value) || 1) })} />
               <Button onClick={async () => {
-                if (!form.roomId) return toast.error("Choose a room type");
-                try { await blockDates({ hotelId: ctx.hotelId!, roomId: form.roomId, start: form.from, end: form.to, units: form.units, reason: form.reason, userId: ctx.userId! }); toast.success("Dates blocked"); load(); }
+                if (!form.roomId || !ctx.hotelId || !ctx.userId) return toast.error("Choose a room type");
+                try { await blockDates({ hotelId: ctx.hotelId, roomId: form.roomId, start: form.from, end: form.to, units: form.units, reason: form.reason, userId: ctx.userId }); toast.success("Dates blocked"); load(); }
                 catch (e: any) { toast.error(e.message); }
               }}><Lock className="mr-1 h-4 w-4" />Block</Button>
             </div>
@@ -98,7 +98,7 @@ export default function PartnerInventory() {
                 return (
                   <div key={b.id} className="flex items-center justify-between rounded border border-border p-2 text-sm">
                     <span>{r?.room_name || r?.room_type} · {b.start_date} → {b.end_date} · {b.units}</span>
-                    {b.booking_id ? <Badge>Booking</Badge> : <Button size="sm" variant="ghost" onClick={() => unblock(b.id).then(load).catch((e) => toast.error(e.message))}><Unlock className="mr-1 h-4 w-4" />Unblock</Button>}
+                    {b.booking_id || (b as any).long_stay_id || (b as any).smart_stay_reservation_id ? <Badge>Booking</Badge> : <Button size="sm" variant="ghost" onClick={() => unblock(b.id).then(load).catch((e) => toast.error(e.message))}><Unlock className="mr-1 h-4 w-4" />Unblock</Button>}
                   </div>
                 );
               })}
@@ -142,8 +142,8 @@ export default function PartnerInventory() {
               <Input placeholder="Label prefix" value={unitForm.prefix} onChange={(e) => setUnitForm({ ...unitForm, prefix: e.target.value })} />
               <Input type="number" min={1} placeholder="How many" value={unitForm.count} onChange={(e) => setUnitForm({ ...unitForm, count: Number(e.target.value) || 1 })} />
               <Button onClick={async () => {
-                if (!unitForm.roomId) return toast.error("Choose a room type");
-                try { await addUnits(ctx.hotelId!, unitForm.roomId, unitForm.kind, unitForm.prefix, unitForm.count, unitForm.kind === "room" ? unitForm.startAt : 1); toast.success("Added"); load(); }
+                if (!unitForm.roomId || !ctx.hotelId) return toast.error("Choose a room type");
+                try { await addUnits(ctx.hotelId, unitForm.roomId, unitForm.kind, unitForm.prefix, unitForm.count, unitForm.kind === "room" ? unitForm.startAt : 1); toast.success("Added"); load(); }
                 catch (e: any) { toast.error(e.message); }
               }}><Plus className="mr-1 h-4 w-4" />Add</Button>
             </div>
@@ -156,8 +156,8 @@ export default function PartnerInventory() {
                   <div className="flex flex-wrap gap-2">
                     {list.map((u) => (
                       <div key={u.id} className="flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs">
-                        <button onClick={() => setUnitStatus(u.id, u.status === "active" ? "maintenance" : "active").then(load)} className={u.status === "active" ? "text-primary" : "text-muted-foreground line-through"}>{u.label}</button>
-                        <button aria-label={`Delete ${u.label}`} onClick={() => deleteUnit(u.id).then(load)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                        <Button size="sm" variant="ghost" onClick={() => setUnitStatus(u.id, u.status === "active" ? "maintenance" : "active").then(load).catch(e => toast.error(e.message))} className={u.status === "active" ? "text-primary" : "text-muted-foreground line-through"}>{u.label}</Button>
+                        <Button size="icon" variant="ghost" aria-label={`Delete ${u.label}`} onClick={() => deleteUnit(u.id).then(load).catch(e => toast.error(e.message))}><Trash2 className="h-3 w-3 text-muted-foreground" /></Button>
                       </div>
                     ))}
                   </div>

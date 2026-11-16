@@ -13,10 +13,16 @@ export type QualityReport = { score: number; checks: Record<string, boolean> };
 
 /** Returns (creating if needed) the signed-in user's partner account. */
 export async function getOrCreatePartnerAccount(userId: string, fallbackName: string): Promise<PartnerAccount> {
-  const { data } = await sb.from("partner_accounts").select("*").eq("owner_user_id", userId).maybeSingle();
+  const { data, error: readError } = await sb.from("partner_accounts").select("*").eq("owner_user_id", userId).maybeSingle();
+  if (readError) throw readError;
   if (data) return data;
   const { data: created, error } = await sb.from("partner_accounts")
     .insert({ owner_user_id: userId, display_name: fallbackName || "My hospitality group" }).select().single();
+  if (error?.code === "23505") {
+    const existing = await sb.from("partner_accounts").select("*").eq("owner_user_id", userId).single();
+    if (existing.error) throw existing.error;
+    return existing.data;
+  }
   if (error) throw error;
   return created;
 }

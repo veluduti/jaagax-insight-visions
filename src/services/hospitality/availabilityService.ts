@@ -22,7 +22,7 @@ export async function blockDates(p: { hotelId: string; roomId: string; start: st
 }
 
 export async function unblock(blockId: string) {
-  const { error } = await sb.from("hotel_availability_blocks").delete().eq("id", blockId).is("booking_id", null);
+  const { error } = await sb.from("hotel_availability_blocks").delete().eq("id", blockId).is("booking_id", null).is("long_stay_id", null).is("smart_stay_reservation_id", null);
   if (error) throw error;
 }
 

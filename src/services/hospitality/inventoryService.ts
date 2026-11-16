@@ -4,6 +4,7 @@ const sb = supabase as any;
 
 export type RoomType = {
   id: string; room_type: string | null; room_name: string | null; total_units: number | null;
+  number_of_available_rooms: number | null; is_active: boolean | null;
   base_price: number | null; weekly_price: number | null; monthly_price: number | null;
   min_stay_nights: number | null; sell_by: string; max_occupancy: number | null;
 };
@@ -12,7 +13,7 @@ export type AvailabilityBlock = { id: string; room_id: string; unit_id: string |
 
 export async function listRoomTypes(hotelId: string): Promise<RoomType[]> {
   const { data, error } = await sb.from("hotel_rooms")
-    .select("id,room_type,room_name,total_units,base_price,weekly_price,monthly_price,min_stay_nights,sell_by,max_occupancy")
+    .select("id,room_type,room_name,total_units,number_of_available_rooms,is_active,base_price,weekly_price,monthly_price,min_stay_nights,sell_by,max_occupancy")
     .eq("hotel_id", hotelId).order("created_at");
   if (error) throw error;
   return data ?? [];

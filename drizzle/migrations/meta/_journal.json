@@ -428,6 +428,13 @@
       "when": 1794820587174,
       "tag": "0060_protect_portfolio_group_links_and_empty_draft_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1794821213256,
+      "tag": "0061_align_hotel_maintenance_availability",
+      "breakpoints": true
     }
   ]
 }

@@ -44,7 +44,7 @@ export default function PartnerWorkspaceLayout() {
     return () => { window.removeEventListener("partner-property-updated", refresh); window.removeEventListener("partner-property-selected", select); };
   }, [load]);
   const hotel = hotels.find(h => h.id === selected) ?? hotels.find(h => h.id === ctx.hotelId) ?? hotels[0];
-  const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); };
+  const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); };
   const value = {...ctx,hotelId:hotel?.id ?? null, hotelName:hotel?.name ?? ctx.hotelName};
   const matches = partnerWorkspaceNav.flatMap(item => [item,...(item.children ?? [])]).filter(item=>item.label.toLowerCase().includes(search.toLowerCase()));
   return <div className="partner-workspace">

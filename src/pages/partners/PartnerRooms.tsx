@@ -1,4 +1,5 @@
 import LongStayRentEditor from "@/components/partners/LongStayRentEditor";
+import { savedBasePrice } from "@/services/hospitality/inventoryRules";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
@@ -134,7 +135,7 @@ const emptyRoom: Partial<Room> = {
   room_type: "",
   category: "Deluxe",
   description: "",
-  base_price: 2500,
+  base_price: 0,
   max_occupancy: 3,
   total_units: 1,
   amenities: [],
@@ -390,7 +391,7 @@ export default function PartnerRooms() {
         room_type: editing.room_type,
         category: editing.category,
         description: editing.description,
-        base_price: Number(editing.base_price) || 0,
+        base_price: savedBasePrice(editing.base_price, editKind.longStay),
         max_occupancy: Number(editing.max_occupancy) || 1,
         total_units: Number(editing.total_units) || 1,
         stay_unit: editKind.unit,

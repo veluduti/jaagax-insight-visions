@@ -1,4 +1,5 @@
 import { loadSupplierAvailability, type SupplierDiscoveryOffer } from "@/services/hospitality/hyperguestDiscoveryService";
+import { discoveryNightlyPrice } from "@/services/hospitality/inventoryRules";
 import { loadPublicMarkupRates, markRoom } from "@/services/hospitality/markupService";
 import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
 import { currentHotelSearchDates, hotelSearchParams } from "@/lib/hotelSearchContext";
@@ -442,11 +443,8 @@ const Hotels = () => {
           });
           const cur = minByHotel.get(r.hotel_id);
           // Long-stay rooms (PG/Hostel/Co-living) may only have weekly/monthly rent.
-          const p =
-            Number(r.base_price) ||
-            Math.round(Number(r.monthly_price) / 30) ||
-            Math.round(Number(r.weekly_price) / 7) ||
-            0;
+          const businessTypes = hotelsRes.data?.find(h => h.id === r.hotel_id)?.business_types;
+          const p = discoveryNightlyPrice(r, customerView(r, businessTypes).kind.longStay);
           (occByHotel[r.hotel_id] ||= []).push(
             toOccupancyRoom(
               { ...r, room_type: r.room_type || "Room" },
