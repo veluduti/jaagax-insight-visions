@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import HotelReviewDialog from "@/components/hotels/HotelReviewDialog";
-import { saveCheckinImage, validateCheckinImage, bookingGuestCount, ID_LABELS } from "@/services/hospitality/checkinService";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import HotelCheckinForm from "@/components/hotels/HotelCheckinForm";
 
 export default function GuestPortal() {
   const { token } = useParams();
@@ -25,10 +24,7 @@ export default function GuestPortal() {
   const [hotel, setHotel] = useState<any>(null);
   const [addons, setAddons] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-  const [checkin, setCheckin] = useState<any>({ id_type: "aadhaar", eta: "", requests: "" });
-  const [idImages, setIdImages] = useState<Record<number, File>>({});
   const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [hasReview, setHasReview] = useState(false);
@@ -40,11 +36,6 @@ export default function GuestPortal() {
         .eq("guest_portal_token", token).maybeSingle();
       if (!b) { setLoading(false); return; }
       setBooking(b);
-      const info = (b.checkin_info || {}) as any;
-      setCheckin({ eta: info.eta || "", requests: info.requests || "", guests: Array.from({ length: bookingGuestCount(b) }, (_, guest_index) => ({
-        guest_index, room_number: Number(b.num_rooms) > 1 ? undefined : 1, id_type: "aadhaar",
-        ...(info.guests?.find((g: any) => g.guest_index === guest_index) || (guest_index === 0 ? { id_type: info.id_type || "aadhaar", id_document_path: info.id_document_path } : {})),
-      })) });
       const [h, a, m, r] = await Promise.all([
         supabase.from("partner_hotels").select("*").eq("id", b.hotel_id).maybeSingle(),
         supabase.from("hotel_addons").select("*").eq("hotel_id", b.hotel_id).eq("is_active", true),
@@ -67,19 +58,6 @@ export default function GuestPortal() {
       ).subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [booking?.id]);
-
-  const submitCheckin = async () => {
-    if (checkin.guests.some((g: any) => !idImages[g.guest_index] && !g.id_document_path)) return toast.error("Please upload an ID image for every guest");
-    setBusy(true);
-    try {
-      const saved = await saveCheckinImage(booking.id, checkin, idImages);
-      setCheckin(saved);
-      setIdImages({});
-      toast.success("Check-in info sent to hotel");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not save check-in details");
-    } finally { setBusy(false); }
-  };
 
   const requestAddon = async (addon: any) => {
     await supabase.from("guest_portal_requests").insert({
@@ -195,34 +173,7 @@ export default function GuestPortal() {
               <Card>
                 <CardHeader><CardTitle className="text-base">Digital check-in</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
-                  {(checkin.guests || []).map((guest: any, index: number) => {
-                    const updateGuest = (patch: object) => setCheckin((c: any) => ({ ...c, guests: c.guests.map((g: any, i: number) => i === index ? { ...g, ...patch } : g) }));
-                    return <div key={index} className="space-y-2 border-b border-border pb-4">
-                      <h3 className="text-sm font-semibold">Guest {index + 1}{index === 0 && booking.guest_name ? ` · ${booking.guest_name}` : ""}{Number(booking.num_rooms) <= 1 ? " · Room 1" : ""}</h3>
-                      {Number(booking.num_rooms) > 1 && <><Label htmlFor={`room-${index}`}>Room for Guest {index + 1}</Label><Select value={guest.room_number ? String(guest.room_number) : ""} disabled={busy} onValueChange={v => updateGuest({ room_number: Number(v) })}><SelectTrigger id={`room-${index}`}><SelectValue placeholder="Select room" /></SelectTrigger><SelectContent>{Array.from({ length: booking.num_rooms }, (_, i) => <SelectItem key={i} value={String(i + 1)}>Room {i + 1}</SelectItem>)}</SelectContent></Select></>}
-                      <Label htmlFor={`id-type-${index}`}>ID document for Guest {index + 1}</Label>
-                      <Select value={guest.id_type} onValueChange={id_type => updateGuest({ id_type, id_document_path: undefined })} disabled={busy}>
-                        <SelectTrigger id={`id-type-${index}`}><SelectValue /></SelectTrigger>
-                        <SelectContent>{Object.entries(ID_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <Label htmlFor={`id-image-${index}`}>Upload {ID_LABELS[guest.id_type]} image for Guest {index + 1}</Label>
-                      <Input id={`id-image-${index}`} type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={e => {
-                        const file = e.target.files?.[0];
-                        const error = file ? validateCheckinImage(file) : null;
-                        if (error) { toast.error(error); e.target.value = ""; }
-                        setIdImages(current => { const next = { ...current }; if (file && !error) next[index] = file; else delete next[index]; return next; });
-                      }} />
-                      <p className="text-xs text-muted-foreground">JPG, PNG or WebP · Maximum 5 MB · Shared privately with your hotel</p>
-                      {guest.id_document_path && <p className="text-sm text-primary">ID image saved</p>}
-                    </div>;
-                  })}
-                  <div><Label>Estimated time of arrival</Label>
-                    <Input type="time" value={checkin.eta} onChange={e => setCheckin({ ...checkin, eta: e.target.value })} /></div>
-                  <div><Label>Special requests</Label>
-                    <Textarea rows={3} maxLength={1000} value={checkin.requests} onChange={e => setCheckin({ ...checkin, requests: e.target.value })} /></div>
-                  <Button onClick={submitCheckin} disabled={busy}>
-                    {busy && <Loader2 className="animate-spin h-4 w-4 mr-2" />}<Check className="h-4 w-4 mr-2" /> Submit
-                  </Button>
+                  <HotelCheckinForm booking={booking} onSaved={info => setBooking({ ...booking, checkin_info: info })} />
                 </CardContent>
               </Card>
             </TabsContent>

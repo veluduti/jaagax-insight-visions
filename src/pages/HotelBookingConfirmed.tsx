@@ -14,6 +14,8 @@ import {
 import { BookingStepper, StarRow, TrustStrip, useHotelReviewStats } from "@/components/hotels/booking/BookingFlowChrome";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { guestDocumentsComplete } from "@/services/hospitality/checkinService";
+import HotelCheckinForm from "@/components/hotels/HotelCheckinForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const inr = (n: any) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDay = (iso?: string | null) => { if (!iso) return "—"; const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso); return Number.isNaN(+d) ? "—" : d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }); };
@@ -30,6 +32,7 @@ const HotelBookingConfirmed = () => {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [extras, setExtras] = useState<any[]>([]);
+  const [checkinOpen, setCheckinOpen] = useState(false);
   const reviews = useHotelReviewStats(booking?.hotel_id);
 
   useEffect(() => {
@@ -172,8 +175,8 @@ const HotelBookingConfirmed = () => {
               </ul>
               {portal && (
                 <div className="grid grid-cols-2 gap-2">
-                  <Button asChild className="font-bold"><Link to={portal}>{preDone ? "Pre Check-In Completed" : "Complete Pre Check-In"}</Link></Button>
-                  <Button asChild variant="outline"><Link to={portal}><PencilLine className="mr-2 h-4 w-4" /> Edit Details</Link></Button>
+                  <Button className="font-bold" onClick={() => setCheckinOpen(true)}>{preDone ? "Pre Check-In Completed" : "Complete Pre Check-In"}</Button>
+                  <Button variant="outline" onClick={() => setCheckinOpen(true)}><PencilLine className="mr-2 h-4 w-4" /> Edit Details</Button>
                 </div>
               )}
             </div>
@@ -334,6 +337,12 @@ const HotelBookingConfirmed = () => {
         <div className="print:hidden"><TrustStrip /></div>
       </div>
       <Footer />
+      <Dialog open={checkinOpen} onOpenChange={setCheckinOpen}>
+        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-xl">
+          <DialogHeader><DialogTitle>Edit Pre Check-In Details</DialogTitle><DialogDescription>{hotelName} · {ref}</DialogDescription></DialogHeader>
+          <HotelCheckinForm booking={booking} onSaved={info => { setBooking({ ...booking, checkin_info: info }); setCheckinOpen(false); }} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
