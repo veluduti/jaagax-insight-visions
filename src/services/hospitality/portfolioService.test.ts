@@ -10,4 +10,5 @@ describe("multi-property metrics",()=>{
   it("shows unknown occupancy when room capacity is absent",()=>{const d=fixture();d.rooms=[];expect(portfolioMetrics(d,2,new Date("2026-11-16"))[0].averageOccupancy).toBeNull();});
   it("keeps archived hotels separate from active hotels",()=>{const d=fixture();d.hotels[0].is_active=true;d.hotels[0].type_details={portfolio_archived:true};expect(propertyState(d.hotels[0])).toBe("archived");});
   it("validates property and group names before saving",()=>{expect(draftPropertySchema.safeParse({name:"",city:"Hyderabad",business_id:null}).success).toBe(false);expect(groupSchema.safeParse({legal_name:"Jaaga Hotels",gstin:""}).success).toBe(true);});
+  it("uses full booked room nights for booked ADR, separate from the occupancy window",()=>{const d=fixture();d.bookings[0].check_out="2026-11-20";const m=portfolioMetrics(d,2,new Date("2026-11-16"))[0];expect(m.bookedRoomNights).toBe(10);expect(m.roomNights).toBe(4);expect((m.revenue??0)/m.bookedRoomNights).toBe(200);});
 });

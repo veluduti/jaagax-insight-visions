@@ -67,14 +67,15 @@ export function portfolioMetrics(data:PortfolioData,days:number,now=new Date()) 
       return {date,occupied:Math.min(capacity,occupied),value:capacity?Math.min(100,occupied/capacity*100):null};
     });
     const roomNights=occupancy.reduce((s,o)=>s+o.occupied,0);
+    const bookedRoomNights=inPeriod.reduce((s,b)=>s+Math.max(0,(Date.parse(b.check_out)-Date.parse(b.check_in))/86400000)*Math.max(0,b.num_rooms??1),0);
     const reviews=data.reviews.filter(r=>r.hotel_id===h.id&&Number.isFinite(Number(r.rating)));
-    return {hotel:h,capacity,roomTypes:rooms.length,todayBookings:bookings.filter(b=>day(b.created_at)===end).length,bookings:inPeriod.length,revenue,currency,occupancy,roomNights,availableNights:capacity*days,averageOccupancy:capacity?roomNights/(capacity*days)*100:null,rating:reviews.length?reviews.reduce((s,r)=>s+Number(r.rating),0)/reviews.length:null,reviewCount:reviews.length};
+    return {hotel:h,capacity,roomTypes:rooms.length,todayBookings:bookings.filter(b=>day(b.created_at)===end).length,bookings:inPeriod.length,revenue,currency,occupancy,roomNights,bookedRoomNights,availableNights:capacity*days,averageOccupancy:capacity?roomNights/(capacity*days)*100:null,rating:reviews.length?reviews.reduce((s,r)=>s+Number(r.rating),0)/reviews.length:null,reviewCount:reviews.length};
   });
 }
 export const draftPropertySchema=z.object({name:z.string().trim().min(2).max(160),city:z.string().trim().min(1).max(120),business_id:z.string().uuid().nullable()});
 export async function createDraftProperty(userId:string,input:unknown) {
   const values=draftPropertySchema.parse(input);
-  const {data,error}=await sb.from("partner_hotels").insert({...values,manager_id:userId,is_active:false,onboarding_status:"draft",business_types:["hotel"],type_details:{},images:[],amenities:[]}).select("id").single();
+  const {data,error}=await sb.from("partner_hotels").insert({...values,locality:"",manager_id:userId,is_active:false,onboarding_status:"draft",business_types:["hotel"],type_details:{},images:[],amenities:[]}).select("id").single();
   if(error)throw error;return data.id as string;
 }
 export const groupSchema=z.object({legal_name:z.string().trim().min(2).max(160),gstin:z.string().trim().max(15)});
@@ -98,8 +99,5 @@ export async function archivePortfolioProperty(userId:string,hotel:PortfolioHote
   const result=await sb.from("partner_hotels").update({is_active:false,onboarding_status:"unpublished",type_details:{...data.type_details,portfolio_archived:archived},updated_at:new Date().toISOString()}).eq("id",hotel.id).eq("manager_id",userId).select("id").single();if(result.error)throw result.error;
 }
 export async function deleteEmptyDraft(userId:string,hotel:PortfolioHotel) {
-  const {data,error}=await sb.from("partner_hotels").select("is_active,onboarding_status").eq("id",hotel.id).eq("manager_id",userId).single();if(error)throw error;
-  if(data.is_active||data.onboarding_status!=="draft")throw new Error("Only empty draft properties can be deleted. Archive other properties to retain their history.");
-  for(const table of ["hotel_bookings","hotel_rooms"]){const result=await sb.from(table).select("id",{count:"exact",head:true}).eq("hotel_id",hotel.id);if(result.error)throw result.error;if(result.count)throw new Error("This property has room or booking records. Archive it instead.");}
-  const result=await sb.from("partner_hotels").delete().eq("id",hotel.id).eq("manager_id",userId).eq("is_active",false).eq("onboarding_status","draft").select("id").single();if(result.error)throw result.error;
+  const {error}=await sb.rpc("partner_delete_empty_draft",{_hotel_id:hotel.id});if(error)throw error;
 }

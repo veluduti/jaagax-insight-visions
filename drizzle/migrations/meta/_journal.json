@@ -421,6 +421,13 @@
       "when": 1794816375696,
       "tag": "0059_validate_partner_property_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794820587174,
+      "tag": "0060_protect_portfolio_group_links_and_empty_draft_delete",
+      "breakpoints": true
     }
   ]
 }

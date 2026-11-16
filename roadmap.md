@@ -1,9 +1,9 @@
 # Roadmap — Agent Profile page rebuild
 
 ## Multi-property reference dashboard
-- [ ] Match purple portfolio layout, property list/grid, filters, search and management navigation.
-- [ ] Connect real cross-property metrics, occupancy/revenue charts, tasks/activity and group/brand settings to existing records.
-- [ ] Verify calculations, owner isolation, property selection, saved settings and desktop/mobile flows; preserve existing inventory and bookings.
+- [x] Match purple portfolio layout, property list/grid, filters, search and management navigation.
+- [x] Connect real cross-property metrics, occupancy/revenue charts, tasks/activity and group/brand settings to existing records; enable authorized live refresh and atomic empty-draft deletion.
+- [x] Fourteen regression tests passed; real owner brand save/reload/restore, group creation/deletion, second-property creation/editor navigation, archive/restore and safe draft deletion verified. Temporary verification records removed; desktop/695px/390px have no overflow or runtime errors. Existing inventory/bookings retained; no publishing or payment executed. Revenue is confirmed booking value, not cash-settlement accounting.
 
 ## Hotel partner reference dashboard
 - [x] Build the purple reference workspace, overview, sidebar and responsive shared header.

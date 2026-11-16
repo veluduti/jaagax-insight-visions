@@ -77,6 +77,8 @@
 .pw-photo {position:relative;}
 .pw-photo img {aspect-ratio:4/3; object-fit:cover; width:100%; border-radius:6px}
 .pw-mobile-trigger {display:none}
+.mp-revenue-chart {position:relative}.mp-donut-total {position:absolute;left:50%;top:calc(50% - 9px);transform:translate(-50%,-50%);width:94px;pointer-events:none;text-align:center}.mp-donut-total strong {display:block;font-size:13px;overflow-wrap:anywhere}.mp-donut-total small {font-size:10px;color:hsl(var(--muted-foreground))}
+.mp-dashboard button,.mp-dashboard input {border-radius:5px}
 .mp-heading {padding:16px 12px; background:var(--partner-portfolio-gradient); border-radius:7px; border:1px solid hsl(var(--border));}
 .mp-kpis {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:12px 0}
 .mp-kpi {display:flex;align-items:center;gap:10px;border:1px solid hsl(var(--border));border-radius:7px;background:hsl(var(--card));padding:14px 10px;box-shadow:var(--partner-shadow);min-width:0}

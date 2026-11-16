@@ -15771,6 +15771,10 @@ export type Database = {
         Args: { _property_id: string }
         Returns: undefined
       }
+      partner_delete_empty_draft: {
+        Args: { _hotel_id: string }
+        Returns: undefined
+      }
       property_admin_review_verification: {
         Args: { _approve: boolean; _notes?: string; _property_id: string }
         Returns: Json
