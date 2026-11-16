@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BookingStepper, StarRow, TrustStrip, useHotelReviewStats } from "@/components/hotels/booking/BookingFlowChrome";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { guestDocumentsComplete } from "@/services/hospitality/checkinService";
 
 const inr = (n: any) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDay = (iso?: string | null) => { if (!iso) return "—"; const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso); return Number.isNaN(+d) ? "—" : d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }); };
@@ -77,8 +78,8 @@ const HotelBookingConfirmed = () => {
   const policyText = typeof policy === "string" ? policy : policy?.summary || policy?.text || null;
   const checkin = booking.checkin_info || {};
   const preSteps = [
-    { label: "Select ID Document (Aadhaar / Passport)", done: !!checkin.id_type && !!checkin.id_document_path, icon: UserCheck },
-    { label: "Upload ID Image (Aadhaar / Passport)", done: !!checkin.id_document_path, icon: IdCard },
+    { label: "Select ID Documents for All Guests", done: guestDocumentsComplete(booking, checkin), icon: UserCheck },
+    { label: "Upload ID Images for All Guests", done: guestDocumentsComplete(booking, checkin), icon: IdCard },
     { label: "Provide Expected Arrival Time", done: !!checkin.eta, icon: Clock },
   ];
   const preDone = preSteps.every((s) => s.done);

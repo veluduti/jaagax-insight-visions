@@ -1,6 +1,7 @@
 # Roadmap — Agent Profile page rebuild
 
 ## Pre-check-in ID images
+- [x] Collect separate ID images per room guest; add Driving Licence, Voter ID Card and PAN Card. Eleven tests passed; real two-guest booking shows separate uploads and all five choices, with incomplete submissions blocked. No real ID images submitted.
 - [x] Replace ID-number entry with private Aadhaar/passport image uploads and atomic save/notification. Four tests and authenticated real-booking form/rejected-file checks passed; no real ID image was uploaded.
 
 ## Hotel price markup management
