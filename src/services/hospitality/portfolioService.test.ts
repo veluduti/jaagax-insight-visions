@@ -1,0 +1,13 @@
+import {describe,it,expect,vi} from "vitest";
+vi.mock("@/integrations/supabase/client",()=>({supabase:{}}));
+import {portfolioMetrics,propertyState,draftPropertySchema,groupSchema,type PortfolioData} from "./portfolioService";
+const fixture=()=>({hotels:[{id:"h1",default_currency:"INR",onboarding_status:"draft",is_active:false,type_details:{}}],rooms:[{id:"r1",hotel_id:"h1",total_units:4,is_active:true}],bookings:[{id:"b1",hotel_id:"h1",currency:"INR",status:"confirmed",total_amount:2000,num_rooms:2,check_in:"2026-11-15",check_out:"2026-11-17",created_at:"2026-11-15T00:00:00Z"}],blocks:[],reviews:[],tasks:[],requests:[],businesses:[]} as unknown as PortfolioData);
+describe("multi-property metrics",()=>{
+  it("compares actual room capacity and occupied nights without counting checkout day",()=>{const m=portfolioMetrics(fixture(),2,new Date("2026-11-16T09:00:00Z"))[0];expect(m.averageOccupancy).toBe(50);expect(m.revenue).toBe(2000);expect(m.roomNights).toBe(4);expect(portfolioMetrics(fixture(),1,new Date("2026-11-17"))[0].averageOccupancy).toBe(0);});
+  it("does not count cancelled bookings or another hotel's bookings",()=>{const d=fixture();d.bookings.push({...d.bookings[0],id:"b2",hotel_id:"h2",total_amount:10000});d.bookings[0].status="cancelled";const m=portfolioMetrics(d,2,new Date("2026-11-16"))[0];expect(m.revenue).toBe(0);expect(m.averageOccupancy).toBe(0);});
+  it("uses calendar reservations without double-counting the same booking",()=>{const d=fixture();d.blocks=[{hotel_id:"h1",units:2,start_date:"2026-11-15",end_date:"2026-11-17",booking_id:"b1",long_stay_id:null,smart_stay_reservation_id:null}];expect(portfolioMetrics(d,2,new Date("2026-11-16"))[0].averageOccupancy).toBe(50);});
+  it("does not combine different booking currencies",()=>{const d=fixture();d.bookings.push({...d.bookings[0],id:"b2",currency:"USD"});expect(portfolioMetrics(d,2,new Date("2026-11-16"))[0].revenue).toBeNull();});
+  it("shows unknown occupancy when room capacity is absent",()=>{const d=fixture();d.rooms=[];expect(portfolioMetrics(d,2,new Date("2026-11-16"))[0].averageOccupancy).toBeNull();});
+  it("keeps archived hotels separate from active hotels",()=>{const d=fixture();d.hotels[0].is_active=true;d.hotels[0].type_details={portfolio_archived:true};expect(propertyState(d.hotels[0])).toBe("archived");});
+  it("validates property and group names before saving",()=>{expect(draftPropertySchema.safeParse({name:"",city:"Hyderabad",business_id:null}).success).toBe(false);expect(groupSchema.safeParse({legal_name:"Jaaga Hotels",gstin:""}).success).toBe(true);});
+});

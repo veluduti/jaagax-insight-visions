@@ -27,6 +27,7 @@ All colors MUST be HSL.
     --partner-header-gradient: linear-gradient(100deg, hsl(var(--partner-deep)), hsl(273 68% 29%), hsl(var(--partner-sidebar)));
     --partner-button-gradient: linear-gradient(180deg, hsl(281 90% 56%), hsl(var(--partner-primary)));
     --partner-shadow: 0 2px 5px hsl(var(--partner-deep) / .14);
+    --partner-portfolio-gradient: linear-gradient(105deg, hsl(var(--partner-muted)), hsl(var(--partner-light)), hsl(var(--partner-border) / .7));
     --why-green: 152 60% 36%;
     --why-orange: 28 92% 52%;
     --why-blue: 217 85% 55%;

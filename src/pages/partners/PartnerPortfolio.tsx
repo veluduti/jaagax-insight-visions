@@ -1,219 +1,76 @@
-import { useCallback, useEffect, useState } from "react";
-import PartnerNav from "@/components/partners/PartnerNav";
-import PartnerSubNav from "@/components/partners/PartnerSubNav";
-import { usePartnerHotel } from "@/hooks/usePartnerHotel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, CheckCircle2, Circle, ExternalLink, Loader2, Plus, Send } from "lucide-react";
-import { toast } from "sonner";
-import {
-  getOrCreatePartnerAccount, listBusinesses, createBusiness, listProperties, assignPropertyToBusiness,
-  getQuality, requestPublish, saveTypeDetails, updatePartnerAccount,
-  type PartnerAccount, type PartnerBusiness, type PartnerProperty, type QualityReport,
-} from "@/services/hospitality/partnerService";
-import { setupFieldsFor } from "@/config/hospitalityCategories";
-import { RESORT_TYPES, resortTypesOf } from "@/lib/resortDiscovery";
+import {useCallback,useEffect,useMemo,useState} from "react";
+import {useNavigate,useSearchParams} from "react-router-dom";
+import {usePartnerHotel} from "@/hooks/usePartnerHotel";
+import {supabase} from "@/integrations/supabase/client";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {Building2,BedDouble,CalendarDays,TrendingUp,Wallet,Star,Search,LayoutGrid,List,Plus,ArrowRight,MoreVertical,MapPin,Users,ConciergeBell,Layers,BarChart3,Bell,CheckCircle2,RefreshCw,Download,Loader2} from "lucide-react";
+import {LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,Legend} from "recharts";
+import {toast} from "sonner";
+import {loadPortfolio,portfolioMetrics,propertyState,archivePortfolioProperty,deleteEmptyDraft,type PortfolioData,type PortfolioHotel} from "@/services/hospitality/portfolioService";
+import PropertyPhoto from "@/components/partners/PropertyPhoto";
+import PortfolioSettings,{AddPortfolioProperty} from "./PortfolioSettings";
 
-const CHECK_LABELS: Record<string, string> = {
-  business: "Business linked", property: "Name & description (40+ chars)", location: "Map location",
-  type: "Property type chosen", amenities: "At least 3 amenities", photos: "At least 3 photos",
-  rooms: "Rooms / units / beds added", pricing: "Every room has a price", policies: "Check-in & check-out times",
-  verified: "Verified by JAAGA",
-};
-const STATUS_LABEL: Record<string, string> = { draft: "Draft", pending_review: "Waiting for JAAGA review", published: "Live", unpublished: "Unpublished" };
+const money=(n:number|null,currency:string|null="INR")=>n===null||!currency?"—":new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:0}).format(n);
+const pct=(n:number|null)=>n===null?"—":`${n.toFixed(0)}%`;
+const colors=["hsl(var(--partner-primary))","hsl(var(--why-blue))","hsl(var(--partner-success))","hsl(var(--hotel-star))","hsl(var(--why-orange))"];
+const labels:Record<string,string>={all:"All Properties",active:"Active",draft:"Draft",review:"Under Review",archived:"Archived"};
+const quick=[{label:"Manage Rooms",icon:BedDouble,to:"/partners/rooms"},{label:"Manage Rates & Plans",icon:CalendarDays,to:"/partners/rate-plans"},{label:"Dining & Menus",icon:ConciergeBell,to:"/partners/workspace/dining"},{label:"Services",icon:Layers,to:"/partners/extra-services"},{label:"Staff & Access",icon:Users,to:"/partners/staff"},{label:"View Bookings",icon:CalendarDays,to:"/partners/reservations"},{label:"Service Requests",icon:Bell,to:"/partners/service-requests"},{label:"Reports & Analytics",icon:BarChart3,to:"/partners/analytics"}];
 
-export default function PartnerPortfolio() {
-  const ctx = usePartnerHotel();
-  const [account, setAccount] = useState<PartnerAccount | null>(null);
-  const [businesses, setBusinesses] = useState<PartnerBusiness[]>([]);
-  const [properties, setProperties] = useState<PartnerProperty[]>([]);
-  const [quality, setQuality] = useState<Record<string, QualityReport | null>>({});
-  const [newBiz, setNewBiz] = useState({ name: "", gstin: "" });
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!ctx.userId) return;
-    try {
-      const acc = await getOrCreatePartnerAccount(ctx.userId, ctx.hotelName);
-      setAccount(acc);
-      const [b, p] = await Promise.all([listBusinesses(acc.id), listProperties(ctx.userId)]);
-      setBusinesses(b); setProperties(p);
-      const q: Record<string, QualityReport | null> = {};
-      await Promise.all(p.map(async (x) => { q[x.id] = await getQuality(x.id).catch(() => null); }));
-      setQuality(q);
-    } catch (e: any) { toast.error(e.message || "Could not load your portfolio"); }
-  }, [ctx.userId, ctx.hotelName]);
-
-  useEffect(() => { load(); }, [load]);
-
-  if (ctx.loading || !account) return <Shell><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></Shell>;
-
-  return (
-    <Shell>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader><CardTitle className="text-lg">Partner account</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div><Label>Group / partner name</Label>
-              <Input defaultValue={account.display_name} onBlur={async (e) => {
-                const v = e.target.value.trim(); if (!v || v === account.display_name) return;
-                await updatePartnerAccount(account.id, { display_name: v }).then(() => toast.success("Saved")).catch((er) => toast.error(er.message));
-              }} />
-            </div>
-            <p className="text-sm text-muted-foreground">{businesses.length} business(es) · {properties.length} propert{properties.length === 1 ? "y" : "ies"}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-lg">Businesses</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {businesses.map((b) => (
-              <div key={b.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" /><span className="font-medium">{b.legal_name}</span>{b.gstin && <span className="text-xs text-muted-foreground">GST {b.gstin}</span>}</div>
-                <Badge variant={b.verification_status === "verified" ? "default" : "secondary"}>{b.verification_status}</Badge>
-              </div>
-            ))}
-            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <Input placeholder="New business name (e.g. Ravi Nature Stays)" value={newBiz.name} onChange={(e) => setNewBiz({ ...newBiz, name: e.target.value })} />
-              <Input placeholder="GSTIN (optional)" value={newBiz.gstin} onChange={(e) => setNewBiz({ ...newBiz, gstin: e.target.value })} />
-              <Button disabled={busy} onClick={async () => {
-                setBusy(true);
-                try { await createBusiness(account.id, newBiz.name, newBiz.gstin); setNewBiz({ name: "", gstin: "" }); toast.success("Business added"); await load(); }
-                catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
-              }}><Plus className="mr-1 h-4 w-4" />Add</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {properties.map((p) => {
-          const q = quality[p.id];
-          const fields = setupFieldsFor(p.business_types ?? []);
-          const details = (p.type_details ?? {}) as Record<string, any>;
-          return (
-            <Card key={p.id}>
-              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-                <div>
-                  <CardTitle className="text-lg">{p.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{[p.locality, p.city].filter(Boolean).join(", ") || "Location not set"}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={p.onboarding_status === "published" ? "default" : "secondary"}>{STATUS_LABEL[p.onboarding_status] ?? p.onboarding_status}</Badge>
-                  <Button size="sm" variant="outline" onClick={() => window.open(`/hotels/${p.id}`, "_blank")}><ExternalLink className="mr-1 h-4 w-4" />View as customer</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div><Label>Business</Label>
-                    <Select value={p.business_id ?? undefined} onValueChange={async (v) => {
-                      try {
-                        let id = v;
-                        if (v === "__new") {
-                          const name = window.prompt("Business name", account.display_name || p.name)?.trim();
-                          if (!name) return;
-                          await createBusiness(account.id, name);
-                          const list = await listBusinesses(account.id);
-                          id = list[list.length - 1]?.id;
-                          if (!id) return;
-                        }
-                        await assignPropertyToBusiness(p.id, id);
-                        toast.success("Business linked");
-                      } catch (e: any) { toast.error(e.message); }
-                      load();
-                    }}>
-                      <SelectTrigger><SelectValue placeholder={businesses.length ? "Choose business" : "No business yet — create one"} /></SelectTrigger>
-                      <SelectContent>
-                        {businesses.map((b) => <SelectItem key={b.id} value={b.id}>{b.legal_name}</SelectItem>)}
-                        <SelectItem value="__new">+ Create new business</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Property types</Label><p className="pt-2 text-sm">{(p.business_types ?? []).join(", ") || "Set in Hotel Profile"}</p></div>
-                </div>
-
-                {(p.business_types ?? []).some((t) => t.toLowerCase() === "resort") && (
-                  <div>
-                    <p className="mb-2 text-sm font-medium">Resort categories <span className="font-normal text-muted-foreground">(customers filter resorts by these)</span></p>
-                    <div className="flex flex-wrap gap-2">
-                      {RESORT_TYPES.map((t) => {
-                        const cur = resortTypesOf(p);
-                        const on = cur.includes(t.key);
-                        return <Button key={t.key} type="button" size="sm" variant={on ? "default" : "outline"} className="h-8 rounded-full text-xs" aria-pressed={on} onClick={async () => {
-                          const next = on ? cur.filter((k) => k !== t.key) : [...cur, t.key];
-                          try { await saveTypeDetails(p.id, { ...details, resort_types: next }); toast.success("Resort categories saved"); load(); } catch (e: any) { toast.error(e.message); }
-                        }}>{t.label}</Button>;
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {q && (
-                  <div>
-                    <div className="mb-2 flex items-center justify-between text-sm"><span className="font-medium">Listing quality</span><span className="font-semibold text-primary">{q.score}/100</span></div>
-                    <Progress value={q.score} />
-                    <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-                      {Object.entries(q.checks).map(([k, ok]) => (
-                        <div key={k} className="flex items-center gap-2 text-sm">
-                          {ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
-                          <span className={ok ? "" : "text-muted-foreground"}>{CHECK_LABELS[k] ?? k}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <p className="mb-2 text-sm font-medium">Type-specific setup</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {fields.map((f) => (
-                      <div key={f.key}>
-                        <Label className="text-xs">{f.label}</Label>
-                        {f.kind === "boolean" ? (
-                          <div className="pt-2"><Switch defaultChecked={!!details[f.key]} onCheckedChange={(v) => saveTypeDetails(p.id, { ...details, [f.key]: v }).then(() => { details[f.key] = v; })} /></div>
-                        ) : f.kind === "select" ? (
-                          <Select defaultValue={details[f.key]} onValueChange={(v) => saveTypeDetails(p.id, { ...details, [f.key]: v }).then(() => { details[f.key] = v; toast.success("Saved"); })}>
-                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>{f.options!.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                          </Select>
-                        ) : (
-                          <Input type={f.kind === "number" ? "number" : "text"} defaultValue={details[f.key] ?? ""} onBlur={(e) => {
-                            const v = f.kind === "number" ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value;
-                            saveTypeDetails(p.id, { ...details, [f.key]: v }).then(() => { details[f.key] = v; toast.success("Saved"); });
-                          }} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {p.onboarding_status !== "published" && p.onboarding_status !== "pending_review" && (
-                  <Button disabled={!q || q.score < 70} onClick={async () => { await requestPublish(p.id).catch((e) => toast.error(e.message)); toast.success("Sent to JAAGA for review"); load(); }}>
-                    <Send className="mr-1 h-4 w-4" />Submit for publishing {q && q.score < 70 && "(needs 70+)"}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </Shell>
-  );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      <PartnerNav />
-      <PartnerSubNav />
-      <main className="container mx-auto max-w-5xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-bold">Businesses & Properties</h1>
-        {children}
-      </main>
-    </div>
-  );
+export default function PartnerPortfolio(){
+  const ctx=usePartnerHotel(),navigate=useNavigate(),[params,setParams]=useSearchParams();
+  const [data,setData]=useState<PortfolioData|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[search,setSearch]=useState(""),[status,setStatus]=useState("all"),[group,setGroup]=useState(""),[sort,setSort]=useState("name"),[view,setView]=useState("list"),[days,setDays]=useState(30),[currency,setCurrency]=useState("INR"),[add,setAdd]=useState(false),[showTasks,setShowTasks]=useState(false),[showActivity,setShowActivity]=useState(false);
+  const section=params.get("section");
+  useEffect(()=>{if(section==="add")setAdd(true);},[section]);
+  const load=useCallback(async()=>{if(!ctx.userId)return;try{setError("");const next=await loadPortfolio(ctx.userId);setData(next);setCurrency(current=>next.hotels.some(h=>(h.default_currency||"INR")===current)?current:next.hotels[0]?.default_currency||"INR");}catch(e){setError(e instanceof Error?e.message:"Could not load properties");}finally{setLoading(false);}},[ctx.userId]);
+  useEffect(()=>{void load();},[load]);
+  useEffect(()=>{
+    if(!ctx.userId)return;
+    const refresh=()=>{void load();};window.addEventListener("partner-property-updated",refresh);
+    const channel=supabase.channel(`portfolio-${crypto.randomUUID()}`);
+    for(const table of ["partner_hotels","hotel_rooms","hotel_bookings","hotel_reviews","hotel_ops_tasks","guest_portal_requests","partner_businesses","partner_accounts","hotel_availability_blocks"])channel.on("postgres_changes",{event:"*",schema:"public",table},refresh);
+    channel.subscribe();const timer=window.setInterval(refresh,60000);
+    return()=>{window.removeEventListener("partner-property-updated",refresh);window.clearInterval(timer);void supabase.removeChannel(channel);};
+  },[load,ctx.userId]);
+  const metrics=useMemo(()=>data?portfolioMetrics(data,days):[],[data,days]);
+  const shown=useMemo(()=>metrics.filter(m=>(status==="all"||propertyState(m.hotel)===status)&&(!group||m.hotel.business_id===group)&&[m.hotel.name,m.hotel.city,m.hotel.locality,m.hotel.id,m.hotel.type_details?.brand_name,m.hotel.type_details?.chain_name].filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase())).sort((a,b)=>sort==="revenue"?(b.revenue??-1)-(a.revenue??-1):sort==="occupancy"?(b.averageOccupancy??-1)-(a.averageOccupancy??-1):sort==="rating"?(b.rating??-1)-(a.rating??-1):a.hotel.name.localeCompare(b.hotel.name)),[metrics,status,group,search,sort]);
+  const selectedMetrics=metrics.filter(m=>!group||m.hotel.business_id===group);
+  const financial=selectedMetrics.filter(m=>m.currency===currency&&m.revenue!==null);
+  const revenue=financial.reduce((s,m)=>s+(m.revenue??0),0),availableNights=selectedMetrics.reduce((s,m)=>s+m.availableNights,0),roomNights=selectedMetrics.reduce((s,m)=>s+m.roomNights,0);
+  const trend=selectedMetrics[0]?.occupancy.map((o,i)=>Object.fromEntries([["date",o.date.slice(5)],...selectedMetrics.map(m=>[m.hotel.id,m.occupancy[i]?.value])]))??[];
+  const reviewCount=selectedMetrics.reduce((s,m)=>s+m.reviewCount,0),rating=reviewCount?selectedMetrics.reduce((s,m)=>s+(m.rating??0)*m.reviewCount,0)/reviewCount:null;
+  const go=(hotelId:string,to="/partners/dashboard")=>{if(!data?.hotels.some(h=>h.id===hotelId))return;localStorage.setItem("partner_active_property",hotelId);window.dispatchEvent(new Event("partner-property-selected"));navigate(to);};
+  const act=async(fn:()=>Promise<unknown>)=>{setBusy(true);try{await fn();toast.success("Property updated");await load();window.dispatchEvent(new Event("partner-property-updated"));}catch(e){toast.error(e instanceof Error?e.message:"Could not update property");}finally{setBusy(false);}};
+  const tasks=useMemo(()=>{
+    if(!data)return [];
+    const hotels=data.hotels.filter(h=>!group||h.business_id===group),ids=new Set(hotels.map(h=>h.id));
+    return [...hotels.filter(h=>propertyState(h)==="draft").map(h=>({id:`setup-${h.id}`,hotelId:h.id,title:`Complete setup for ${h.name}`,detail:"Property information, rooms, rates & publishing",status:"Draft",to:"/partners/dashboard"})),...data.tasks.filter(t=>ids.has(t.hotel_id)&&!["done","completed","cancelled"].includes(t.status)).map(t=>({id:t.id,hotelId:t.hotel_id,title:t.title,detail:hotels.find(h=>h.id===t.hotel_id)?.name??"",status:t.priority,to:"/partners/operations"})),...data.requests.filter(r=>ids.has(r.hotel_id)&&!["done","completed","cancelled"].includes(r.status)).map(r=>({id:r.id,hotelId:r.hotel_id,title:r.request_type.replace(/_/g," "),detail:hotels.find(h=>h.id===r.hotel_id)?.name??"",status:r.status,to:"/partners/service-requests"}))];
+  },[data,group]);
+  const activity=useMemo(()=>{
+    if(!data)return [];
+    const name=(id:string)=>data.hotels.find(h=>h.id===id)?.name??"Property",ids=new Set(data.hotels.filter(h=>!group||h.business_id===group).map(h=>h.id));
+    return [...data.bookings.filter(b=>ids.has(b.hotel_id)).map(b=>({id:`b-${b.id}`,hotelId:b.hotel_id,title:`Booking ${b.status.replace(/_/g," ")} — ${name(b.hotel_id)}`,detail:b.booking_reference??b.id.slice(0,8),date:b.updated_at||b.created_at,to:"/partners/reservations"})),...data.reviews.filter(r=>ids.has(r.hotel_id)).map(r=>({id:`r-${r.id}`,hotelId:r.hotel_id,title:`New review — ${name(r.hotel_id)}`,detail:`${r.rating}/5${r.title?` · ${r.title}`:""}`,date:r.created_at,to:"/partners/inbox?tab=reviews"})),...data.requests.filter(r=>ids.has(r.hotel_id)).map(r=>({id:`s-${r.id}`,hotelId:r.hotel_id,title:`Service request — ${name(r.hotel_id)}`,detail:`${r.request_type.replace(/_/g," ")} · ${r.status}`,date:r.updated_at||r.created_at,to:"/partners/service-requests"})),...data.hotels.filter(h=>ids.has(h.id)).map(h=>({id:`h-${h.id}`,hotelId:h.id,title:`Property updated — ${h.name}`,detail:propertyState(h),date:h.updated_at||h.created_at,to:"/partners/dashboard"}))].sort((a,b)=>b.date.localeCompare(a.date));
+  },[data,group]);
+  const exportCsv=()=>{const escape=(v:unknown)=>`"${String(v??"").replace(/"/g,'""')}"`;const rows=[["Property","City","Rooms","Bookings","Occupancy (%)","Revenue","Currency","Rating"],...shown.map(m=>[m.hotel.name,m.hotel.city,m.capacity,m.bookings,m.averageOccupancy,m.revenue,m.currency,m.rating])];const url=URL.createObjectURL(new Blob([rows.map(r=>r.map(escape).join(",")).join("\n")],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download=`jaagax-properties-${days}-days.csv`;a.click();URL.revokeObjectURL(url);};
+  if(ctx.loading||loading)return <div className="py-24 flex justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div>;
+  if(error)return <div role="alert" className="py-16 text-center"><h1 className="text-lg font-semibold">Properties could not be loaded</h1><p className="my-3 text-muted-foreground">{error}</p><Button onClick={load}><RefreshCw className="h-4 w-4 mr-2"/>Retry</Button></div>;
+  if(!data||!ctx.userId)return null;
+  const setSection=(s:string)=>{setParams(s?{section:s}:{});};
+  return <div className="mp-dashboard"><div className="mp-heading pw-heading"><div><h1>Multi-Property Management</h1><p>Manage all your hotel properties, performance, inventory and operations from one place.</p></div><div className="pw-actions"><Button onClick={()=>setAdd(true)}><Plus className="h-4 w-4 mr-2"/>Add New Property</Button></div></div>
+    {section==="groups"||section==="brand"?<PortfolioSettings section={section} data={data} userId={ctx.userId} refresh={load}/>:<>
+    <div className="mp-kpis">{[{icon:Building2,label:"Total Properties",value:metrics.length},{icon:BedDouble,label:"Total Rooms",value:metrics.reduce((s,m)=>s+m.capacity,0)},{icon:CalendarDays,label:"Today's Bookings",value:metrics.reduce((s,m)=>s+m.todayBookings,0)},{icon:TrendingUp,label:"Occupancy (Overall)",value:pct(availableNights?roomNights/availableNights*100:null)},{icon:Wallet,label:`Revenue (${days} Days)`,value:money(revenue,currency)}].map(k=><div key={k.label} className="mp-kpi"><k.icon/><div><span>{k.label}</span><strong>{k.value}</strong></div></div>)}</div>
+    <div className="mp-toolbar"><div className="mp-status-tabs">{Object.entries(labels).map(([key,label])=><Button key={key} variant={status===key?"default":"outline"} size="sm" onClick={()=>setStatus(key)}>{label} ({key==="all"?metrics.length:metrics.filter(m=>propertyState(m.hotel)===key).length})</Button>)}</div><div className="mp-search"><Search className="h-4 w-4"/><Input aria-label="Search properties" placeholder="Search property (name, city, ID)…" value={search} onChange={e=>setSearch(e.target.value)}/></div><div className="flex gap-1"><Button variant={view==="grid"?"default":"outline"} size="icon" aria-label="Grid view" onClick={()=>setView("grid")}><LayoutGrid className="h-4 w-4"/></Button><Button variant={view==="list"?"default":"outline"} size="icon" aria-label="List view" onClick={()=>setView("list")}><List className="h-4 w-4"/></Button></div></div>
+    <div className="mp-section-heading"><h2>My Properties</h2><div className="flex gap-2 flex-wrap"><select aria-label="Filter property group" className="mp-select" value={group} onChange={e=>setGroup(e.target.value)}><option value="">All groups</option>{data.businesses.map(b=><option key={b.id} value={b.id}>{b.legal_name}</option>)}</select><select aria-label="Sort properties" className="mp-select" value={sort} onChange={e=>setSort(e.target.value)}><option value="name">Property Name</option><option value="revenue">Revenue</option><option value="occupancy">Occupancy</option><option value="rating">Rating</option></select></div></div>
+    <div className={`mp-properties ${view==="grid"?"is-grid":""}`}>{shown.map(m=>{const h=m.hotel,state=propertyState(h);return <article key={h.id} className="mp-property"><div className="mp-property-photo"><PropertyPhoto src={h.images?.[0]??""} alt={h.name}/></div><div className="mp-property-info"><h3><Button variant="link" className="h-auto p-0 whitespace-normal text-left font-bold" onClick={()=>go(h.id)}>{h.name}</Button>{h.type_details?.brand_name&&<span className="mp-brand-badge">{h.type_details.brand_name}</span>}</h3>{m.rating!==null&&<div className="mp-rating"><Star className="h-3 w-3"/>{m.rating.toFixed(1)} <span>({m.reviewCount} reviews)</span></div>}<p><MapPin className="h-3 w-3"/>{[h.locality,h.city].filter(Boolean).join(", ")||"Location not set"}</p><p><BedDouble className="h-3 w-3"/>{m.capacity} Rooms <Building2 className="h-3 w-3 ml-2"/>{m.roomTypes} Room Types</p></div><div className="mp-property-stats"><div><span>Occupancy</span><strong>{pct(m.averageOccupancy)}</strong></div><div><span>Today's Bookings</span><strong>{m.todayBookings}</strong></div><div><span>Revenue ({days} Days)</span><strong>{money(m.revenue,m.currency)}</strong></div></div><div className="mp-property-actions"><span className={`mp-state state-${state}`}>{state==="active"?"Published (Live)":state==="review"?"Under Review":state==="archived"?"Archived":"Draft"}</span><Button variant="outline" size="sm" onClick={()=>go(h.id)}>{state==="draft"?"Continue Setup":"Manage Property"}<ArrowRight className="h-3 w-3 ml-2"/></Button></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Actions for ${h.name}`}><MoreVertical className="h-4 w-4"/></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onSelect={()=>go(h.id,"/partners/workspace/basic")}>Edit property</DropdownMenuItem><DropdownMenuItem onSelect={()=>go(h.id,"/partners/rooms")}>Rooms & inventory</DropdownMenuItem><DropdownMenuItem onSelect={()=>go(h.id,"/partners/reservations")}>Bookings</DropdownMenuItem>{h.is_active&&<DropdownMenuItem onSelect={()=>window.open(`/hotels/${h.id}`,"_blank","noopener,noreferrer")}>Customer preview</DropdownMenuItem>}<DropdownMenuItem onSelect={()=>{setSection("brand");}}>Brand & group settings</DropdownMenuItem><DropdownMenuItem disabled={busy} onSelect={()=>{if(window.confirm(state==="archived"?`Restore ${h.name} as an unpublished property?`:`Archive ${h.name}? Existing bookings are retained; the customer listing will be hidden.`))void act(()=>archivePortfolioProperty(ctx.userId??"",h,state!=="archived"));}}>{state==="archived"?"Restore property":"Archive property"}</DropdownMenuItem>{h.onboarding_status==="draft"&&<DropdownMenuItem disabled={busy} onSelect={()=>{if(window.confirm(`Delete the empty draft ${h.name}? This cannot be undone.`))void act(()=>deleteEmptyDraft(ctx.userId??"",h));}}>Delete empty draft</DropdownMenuItem>}</DropdownMenuContent></DropdownMenu></article>;})}</div>
+    {!shown.length&&<div className="py-10 text-center text-muted-foreground">{metrics.length?"No properties match your filters.":"No properties yet. Add your first property."}</div>}
+    <div className="mp-section-heading mt-5"><h2>Group Performance ({group?data.businesses.find(b=>b.id===group)?.legal_name:"All Properties"})</h2><div className="flex gap-2 flex-wrap"><select className="mp-select" aria-label="Revenue currency" value={currency} onChange={e=>setCurrency(e.target.value)}>{Array.from(new Set(metrics.map(m=>m.currency).filter((c):c is string=>Boolean(c)))).concat(currency).filter((c,i,a)=>a.indexOf(c)===i).map(c=><option key={c} value={c}>{c}</option>)}</select><select className="mp-select" aria-label="Performance period" value={days} onChange={e=>setDays(Number(e.target.value))}><option value={7}>Last 7 Days</option><option value={30}>Last 30 Days</option><option value={90}>Last 90 Days</option></select><Button variant="outline" size="icon" aria-label="Export property performance" onClick={exportCsv}><Download className="h-4 w-4"/></Button></div></div>
+    <div className="mp-kpis">{[{icon:Wallet,label:`Total Revenue (${currency})`,value:money(revenue,currency)},{icon:CalendarDays,label:"Total Bookings",value:selectedMetrics.reduce((s,m)=>s+m.bookings,0)},{icon:TrendingUp,label:"Avg. Occupancy",value:pct(availableNights?roomNights/availableNights*100:null)},{icon:Wallet,label:"Booked ADR",value:money(financial.reduce((s,m)=>s+m.roomNights,0)?revenue/financial.reduce((s,m)=>s+m.roomNights,0):null,currency)},{icon:Star,label:`Avg. Rating (${reviewCount} reviews)`,value:rating===null?"—":`${rating.toFixed(1)} / 5`}].map(k=><div className="mp-kpi" key={k.label}><k.icon/><div><span>{k.label}</span><strong>{k.value}</strong></div></div>)}</div>
+    <div className="mp-chart-grid"><section className="pw-panel"><h2 className="font-bold mb-3">Occupancy Trend</h2><div className="mp-chart">{trend.length&&selectedMetrics.some(m=>m.capacity)?<ResponsiveContainer width="100%" height="100%"><LineChart data={trend}><CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3"/><XAxis dataKey="date" tick={{fontSize:10}} minTickGap={22}/><YAxis domain={[0,100]} tick={{fontSize:10}} width={36} unit="%"/><Tooltip/><Legend wrapperStyle={{fontSize:10}}/>{selectedMetrics.map((m,i)=><Line key={m.hotel.id} name={m.hotel.name} dataKey={m.hotel.id} stroke={colors[i%colors.length]} strokeWidth={2} dot={false}/>)}</LineChart></ResponsiveContainer>:<p className="mp-chart-empty">Add room inventory to calculate occupancy.</p>}</div></section><section className="pw-panel"><h2 className="font-bold mb-3">Revenue by Property ({currency})</h2><div className="mp-chart">{revenue>0?<ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={financial.filter(m=>(m.revenue??0)>0).map(m=>({name:m.hotel.name,value:m.revenue}))} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>{financial.filter(m=>(m.revenue??0)>0).map((m,i)=><Cell key={m.hotel.id} fill={colors[i%colors.length]}/>)}</Pie><Tooltip/><Legend wrapperStyle={{fontSize:10}}/></PieChart></ResponsiveContainer>:<p className="mp-chart-empty">No confirmed booking revenue in this period.</p>}</div></section></div>
+    <section className="mt-5"><h2 className="mp-title">Quick Management</h2><div className="mp-quick">{quick.map(q=><Button key={q.label} variant="outline" onClick={()=>{if(ctx.hotelId)go(ctx.hotelId,q.to);}} disabled={!ctx.hotelId}><q.icon/><span>{q.label}</span></Button>)}</div></section>
+    <div className="mp-chart-grid mt-5"><section className="pw-panel"><div className="mp-section-heading"><h2>Upcoming & Important Actions</h2>{tasks.length>4&&<Button size="sm" variant="ghost" onClick={()=>setShowTasks(!showTasks)}>{showTasks?"Show Less":"View All"}</Button>}</div>{tasks.slice(0,showTasks?undefined:4).map(t=><Button key={t.id} className="mp-feed-row" variant="ghost" onClick={()=>go(t.hotelId,t.to)}><Bell/><span><strong>{t.title}</strong><small>{t.detail}</small></span><em>{t.status}</em><ArrowRight className="h-3 w-3"/></Button>)}{!tasks.length&&<p className="pw-empty">No pending tasks or service requests.</p>}</section><section className="pw-panel"><div className="mp-section-heading"><h2>Recent Activity (All Properties)</h2>{activity.length>4&&<Button size="sm" variant="ghost" onClick={()=>setShowActivity(!showActivity)}>{showActivity?"Show Less":"View All"}</Button>}</div>{activity.slice(0,showActivity?undefined:4).map(a=><Button variant="ghost" className="mp-feed-row" key={a.id} onClick={()=>go(a.hotelId,a.to)}><CheckCircle2/><span><strong>{a.title}</strong><small>{a.detail}</small></span><time>{new Date(a.date).toLocaleDateString()}</time></Button>)}{!activity.length&&<p className="pw-empty">No recent activity.</p>}</section></div>
+    </>}
+    {section&&<Button className="mt-5" variant="outline" onClick={()=>setSection("")}><ArrowRight className="h-4 w-4 rotate-180 mr-2"/>Back to My Properties</Button>}
+    <AddPortfolioProperty open={add} onOpenChange={v=>{setAdd(v);if(!v&&section==="add")setSection("");}} userId={ctx.userId} data={data} onCreated={id=>{void load().then(()=>{localStorage.setItem("partner_active_property",id);window.dispatchEvent(new Event("partner-property-updated"));window.dispatchEvent(new Event("partner-property-selected"));navigate("/partners/workspace/basic");});}}/>
+  </div>;
 }

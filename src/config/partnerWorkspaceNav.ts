@@ -2,7 +2,12 @@ import { LayoutDashboard, Building2, BedDouble, CalendarRange, Sparkles, Utensil
 
 export const partnerWorkspaceNav = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/partners/dashboard" },
-  { label: "Multi-Property", icon: Building2, to: "/partners/portfolio" },
+  { label: "Multi-Property", icon: Building2, to: "/partners/portfolio", children: [
+    { label: "My Properties", icon: Building2, to: "/partners/portfolio" },
+    { label: "Add New Property", icon: Building2, to: "/partners/portfolio?section=add" },
+    { label: "Property Groups", icon: Building2, to: "/partners/portfolio?section=groups" },
+    { label: "Brand / Chain Settings", icon: Settings, to: "/partners/portfolio?section=brand" },
+  ] },
   { label: "Property Setup", icon: Info, to: "/partners/dashboard", children: [
     { label: "Basic Information", icon: Info, to: "/partners/workspace/basic" },
     { label: "Photos & Media", icon: Image, to: "/partners/workspace/photos" },

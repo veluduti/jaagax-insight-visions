@@ -33,9 +33,15 @@ export default function PartnerWorkspaceLayout() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { setOpen(false); }, [location.pathname]);
   useEffect(() => {
+    const match=location.pathname.match(/^\/partners\/properties\/([^/]+)$/);
+    if(match && hotels.some(h=>h.id===match[1])) {localStorage.setItem("partner_active_property",match[1]);setSelected(match[1]);}
+  },[location.pathname,hotels]);
+  useEffect(() => {
     const refresh = () => { void load(); };
+    const select = () => { setSelected(localStorage.getItem("partner_active_property")); };
     window.addEventListener("partner-property-updated", refresh);
-    return () => window.removeEventListener("partner-property-updated", refresh);
+    window.addEventListener("partner-property-selected", select);
+    return () => { window.removeEventListener("partner-property-updated", refresh); window.removeEventListener("partner-property-selected", select); };
   }, [load]);
   const hotel = hotels.find(h => h.id === selected) ?? hotels.find(h => h.id === ctx.hotelId) ?? hotels[0];
   const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); };
@@ -60,7 +66,7 @@ export default function PartnerWorkspaceLayout() {
     <div className="pw-layout">
       <aside className={`pw-sidebar ${open ? "is-open" : ""}`}>
         <div className="pw-property-mini">{hotel?.images?.[0] && <div className="w-12 shrink-0"><PropertyPhoto src={hotel.images[0]} alt={hotel.name}/></div>}<div className="min-w-0"><strong className="block text-xs truncate">{hotel?.name ?? "Your property"}</strong><p className="text-[10px] mt-1">Hotel ID: {hotel?.id.slice(0,8) ?? "—"}</p><span className="pw-success inline-block mt-1">{hotel?.is_active ? "Live" : "Not published"}</span></div></div>
-        <nav aria-label="Hotel management">{partnerWorkspaceNav.map(item => item.children ? <details key={item.label} open><summary><item.icon/>{item.label}</summary>{item.children.map(child=><NavLink key={child.label} to={child.to}>{child.label}</NavLink>)}</details> : <NavLink key={item.label} to={item.to} end><item.icon/>{item.label}{item.label === "Multi-Property" && ` (${hotels.length})`}</NavLink>)}</nav>
+        <nav aria-label="Hotel management">{partnerWorkspaceNav.map(item => item.children ? <details key={item.label} open><summary><item.icon/>{item.label}</summary>{item.children.map(child=><NavLink key={child.label} to={child.to} className={()=>location.pathname+location.search===child.to?"active":""}>{child.label}</NavLink>)}</details> : <NavLink key={item.label} to={item.to} end><item.icon/>{item.label}</NavLink>)}</nav>
         <div className="mt-auto border-t border-border/30 pt-3"><HelpCircle className="h-5 w-5 ml-2"/><strong className="block text-sm px-2 mt-1">Need Help?</strong><Link to="/contact">Contact Jaaga</Link></div>
       </aside>
       <main className="pw-content">

@@ -1,5 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
+## Multi-property reference dashboard
+- [ ] Match purple portfolio layout, property list/grid, filters, search and management navigation.
+- [ ] Connect real cross-property metrics, occupancy/revenue charts, tasks/activity and group/brand settings to existing records.
+- [ ] Verify calculations, owner isolation, property selection, saved settings and desktop/mobile flows; preserve existing inventory and bookings.
+
 ## Hotel partner reference dashboard
 - [x] Build the purple reference workspace, overview, sidebar and responsive shared header.
 - [x] Reuse room, rates, inventory, booking, guest, payment, reporting and review tools inside the workspace.
