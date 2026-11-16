@@ -1,10 +1,10 @@
 # Roadmap — Agent Profile page rebuild
 
 ## Hotel partner reference dashboard
-- [ ] Build the purple reference workspace, overview, sidebar and responsive shared header.
-- [ ] Reuse room, rates, inventory, booking, guest, payment, reporting and review tools inside the workspace.
-- [ ] Connect property editing, media, policies/FAQs, departments and service-category management to existing saved data.
-- [ ] Preserve onboarding, ownership, publication review and multi-property selection; verify real-account save/reload and responsive navigation.
+- [x] Build the purple reference workspace, overview, sidebar and responsive shared header.
+- [x] Reuse room, rates, inventory, booking, guest, payment, reporting and review tools inside the workspace.
+- [x] Connect property editing, media, policies/FAQs, departments and service-category management to existing saved data; add guest-request status management.
+- [x] Preserve onboarding, ownership, publication review and multi-property selection; real-owner save/reload/restore, room/rate/calendar/service/review routes and desktop/mobile navigation verified; six validation tests passed. Existing records retained; no payment or publishing action executed. End-to-end verification of every legacy module and a multi-property account remains unavailable in the single-property test account.
 
 ## Pre-check-in ID images
 - [x] Open Edit Details in an on-page popup using the shared guest upload form. Real booking popup, close/reopen, missing-image validation and mobile fit verified; eleven tests passed. No real ID images submitted.

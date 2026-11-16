@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { supabase } from "@/integrations/supabase/client";
 import { modulesFor, normalizeCategory, type PartnerModule } from "@/config/hospitalityCategories";
 
@@ -7,6 +8,7 @@ const ACTIVE_EVT = "partner-active-type-change";
 
 /** Loads the signed-in partner's selected business types and derived dashboard modules. */
 export function usePartnerBusinessTypes() {
+  const workspace = useContext(PartnerWorkspaceContext);
   const [types, setTypes] = useState<string[]>([]);
   const [appId, setAppId] = useState<string | null>(null);
   const [hotelId, setHotelId] = useState<string | null>(null);
@@ -23,6 +25,12 @@ export function usePartnerBusinessTypes() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      if(workspace?.hotelId) {
+        const {data:h}=await (supabase as any).from("partner_hotels").select("business_types").eq("id",workspace.hotelId).single();
+        if(!alive)return;
+        setTypes(Array.from(new Set((h?.business_types ?? []).map(normalizeCategory))) as string[]);
+        setHotelId(workspace.hotelId);setAppId(null);return;
+      }
       const { data } = await (supabase as any)
         .from("hotel_partner_applications")
         .select("id,business_types,business_type,approved_hotel_id")
@@ -43,7 +51,7 @@ export function usePartnerBusinessTypes() {
       setHotelId(hid);
     })();
     return () => { alive = false; };
-  }, []);
+  }, [workspace?.hotelId]);
 
   const save = async (next: string[]) => {
     setTypes(next);

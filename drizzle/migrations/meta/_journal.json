@@ -414,6 +414,13 @@
       "when": 1794813066218,
       "tag": "0058_private_hotel_checkin_images",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794816375696,
+      "tag": "0059_validate_partner_property_setup",
+      "breakpoints": true
     }
   ]
 }

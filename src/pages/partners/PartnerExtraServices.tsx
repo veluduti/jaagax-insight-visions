@@ -102,9 +102,16 @@ const CANCELLATION_POLICIES = [
   { value: "non_refundable", label: "Non-refundable" },
 ];
 
-export default function PartnerExtraServices() {
+export default function PartnerExtraServices({ group }: {group?:string}) {
   const { loading: ctxLoading, hotelId } = usePartnerHotel();
   const [services, setServices] = useState<any[]>([]);
+  const groups:Record<string,{title:string;types:string[];category:string}>={
+    dining:{title:"Dining & Restaurants",types:["restaurant","pub"],category:"catering"},
+    events:{title:"Events & Banquets",types:["banquet_hall","conference_hall","event_lawn"],category:"venue"},
+    experiences:{title:"Experiences & Activities",types:["spa","pool","gym"],category:"recreation"},
+    services:{title:"Hotel Services",types:["other","parking"],category:"business"},
+  };
+  const activeGroup=group?groups[group]:undefined;
   const [enquiries, setEnquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<any>(null);
@@ -153,10 +160,10 @@ export default function PartnerExtraServices() {
         .order("created_at", { ascending: false })
         .limit(50),
     ]);
-    setServices(s || []);
+    setServices(activeGroup ? (s || []).filter((v:any)=>activeGroup.types.includes(v.service_type) || v.category===activeGroup.category) : s || []);
     setEnquiries(e || []);
     setLoading(false);
-  }, [hotelId]);
+  }, [hotelId, group]);
 
   useEffect(() => {
     load();
@@ -309,13 +316,13 @@ export default function PartnerExtraServices() {
       <main className="container mx-auto space-y-6 px-4 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold">Extra Services</h1>
+            <h1 className="text-2xl font-semibold">{activeGroup?.title ?? "Extra Services"}</h1>
             <p className="text-sm text-muted-foreground">
               Banquet halls, conference rooms, pubs and other venues. These are JAAGA-only and are never sent to
               connected channels.
             </p>
           </div>
-          <Button onClick={() => setEditing({ ...blank })}>
+          <Button onClick={() => setEditing({ ...blank, service_type:activeGroup?.types[0] ?? blank.service_type, category:activeGroup?.category ?? blank.category })}>
             <Plus className="mr-1.5 h-4 w-4" /> Add service
           </Button>
         </div>

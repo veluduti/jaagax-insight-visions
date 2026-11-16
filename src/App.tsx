@@ -165,6 +165,10 @@ const PartnerKYC = lazy(() => import("./pages/partners/PartnerKYC"));
 const PartnerStatus = lazy(() => import("./pages/partners/PartnerStatus"));
 const PartnerPmsSetup = lazy(() => import("./pages/partners/PartnerPmsSetup"));
 const PartnerDashboard = lazy(() => import("./pages/partners/PartnerDashboard"));
+const PartnerWorkspaceLayout = lazy(() => import("./components/partners/PartnerWorkspaceLayout"));
+const PartnerPropertyOverview = lazy(() => import("./pages/partners/PartnerPropertyOverview"));
+const PartnerServiceRequests = lazy(() => import("./pages/partners/PartnerServiceRequests"));
+const PartnerServiceWorkspace = lazy(() => import("./pages/partners/PartnerServiceWorkspace"));
 const PartnerHotelProfile = lazy(() => import("./pages/partners/PartnerHotelProfile"));
 const PartnerRooms = lazy(() => import("./pages/partners/PartnerRooms"));
 const PartnerReservations = lazy(() => import("./pages/partners/PartnerReservations"));
@@ -586,7 +590,9 @@ const App = () => (
                   <Route path="/partners/kyc" element={<PartnerKYC />} />
                   <Route path="/partners/status" element={<PartnerStatus />} />
                   <Route path="/partners/pms-setup" element={<PartnerPmsSetup />} />
-                  <Route path="/partners/dashboard" element={<PartnerDashboard />} />
+                  <Route element={<PartnerWorkspaceLayout />}>
+                  <Route path="/partners/dashboard" element={<PartnerPropertyOverview />} />
+                  <Route path="/partners/workspace/:section" element={<PartnerServiceWorkspace />} />
                   <Route path="/partners/hotel-profile" element={<PartnerHotelProfile />} />
                   <Route path="/partners/rooms" element={<PartnerRooms />} />
                   <Route path="/partners/reservations" element={<PartnerReservations />} />
@@ -596,6 +602,7 @@ const App = () => (
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
                   <Route path="/partners/staff" element={<PartnerStaff />} />
                   <Route path="/partners/operations" element={<PartnerOperations />} />
+                  <Route path="/partners/service-requests" element={<PartnerServiceRequests />} />
                   <Route path="/partners/long-stays" element={<PartnerLongStays />} />
                   <Route path="/partners/growth" element={<PartnerGrowth />} />
                   <Route path="/partners/demo" element={<PartnerDemo />} />
@@ -604,12 +611,14 @@ const App = () => (
                   <Route path="/partners/properties/:id" element={<PartnerProperties />} />
                   <Route path="/partners/inventory" element={<PartnerInventory />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />
-                  <Route path="/admin/hospitality" element={<HospitalityAdminAccess><AdminHospitality /></HospitalityAdminAccess>} />
                   <Route path="/partners/pricing" element={<PartnerPricing />} />
                   <Route path="/partners/addons" element={<PartnerAddons />} />
                   <Route path="/partners/rate-plans" element={<PartnerRatePlans />} />
                   <Route path="/partners/extra-services" element={<PartnerExtraServices />} />
                   <Route path="/partners/booking-engine" element={<PartnerBookingEngine />} />
+                  <Route path="/partners/smart-stays" element={<PartnerSmartStays />} />
+                  </Route>
+                  <Route path="/admin/hospitality" element={<HospitalityAdminAccess><AdminHospitality /></HospitalityAdminAccess>} />
                   <Route path="/book/:hotelId" element={<BookingEngine />} />
                   <Route path="/stay/:token" element={<GuestPortal />} />
                   <Route path="/my-trips" element={<MyTrips />} />
@@ -618,7 +627,6 @@ const App = () => (
                   <Route path="/smart-stays/:id" element={<SmartStayDetail />} />
                   <Route path="/my-smart-stays" element={<MySmartStays />} />
                   <Route path="/dashboard/agent/smart-stays" element={<ProtectedRoute allowedRole="agent"><AgentSmartStays /></ProtectedRoute>} />
-                  <Route path="/partners/smart-stays" element={<PartnerSmartStays />} />
                   <Route path="/dashboard/agent/smart-visits" element={<ProtectedRoute allowedRole="agent"><AgentSmartVisits /></ProtectedRoute>} />
 
                   <Route path="/promotions" element={<Promotions />} />
@@ -818,19 +826,12 @@ const App = () => (
                   <Route path="/admin/nl-kyc" element={<Navigate to="/admin?tab=nl-kyc" replace />} />
 
 
-                  <Route
-                    path="/partners/dashboard"
-                    element={
-                      <ProtectedRoute allowedRole="hotel_manager">
-                        <HotelManagerDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                  <Route path="/dashboard/hotel-manager" element={<Navigate to="/partners/dashboard" replace />} />
                   <Route
                     path="/dashboard/hotel"
                     element={
                       <ProtectedRoute allowedRole="hotel_manager">
-                        <HotelManagerDashboard />
+                        <Navigate to="/partners/dashboard" replace />
                       </ProtectedRoute>
                     }
                   />

@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Send, MessageCircle, Star, Search, Phone, User } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 type Booking = {
   id: string; guest_name: string; guest_phone: string | null;
@@ -34,7 +35,9 @@ type Review = {
 
 export default function PartnerInbox() {
   const ctx = usePartnerHotel();
-  const [tab, setTab] = useState("messages");
+  const [params,setParams]=useSearchParams();
+  const tab=params.get("tab")==="reviews"?"reviews":"messages";
+  const setTab=(value:string)=>setParams(value==="reviews"?{tab:"reviews"}:{});
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [messages, setMessages] = useState<Msg[]>([]);

@@ -29,7 +29,7 @@ export const partnerWorkspaceNav = [
   ] },
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },
   { label: "Bookings & Guests", icon: Users, to: "/partners/reservations" },
-  { label: "Orders & Service Requests", icon: ClipboardList, to: "/partners/operations" },
+  { label: "Orders & Service Requests", icon: ClipboardList, to: "/partners/service-requests" },
   { label: "Billing & Payments", icon: Wallet, to: "/partners/payouts" },
   { label: "Reports & Analytics", icon: BarChart3, to: "/partners/analytics" },
   { label: "Reviews & Ratings", icon: Star, to: "/partners/inbox?tab=reviews" },

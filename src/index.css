@@ -14,6 +14,19 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    --partner-primary: 278 88% 43%;
+    --partner-deep: 275 66% 17%;
+    --partner-background: 256 100% 99%;
+    --partner-foreground: 257 61% 18%;
+    --partner-muted: 262 75% 97%;
+    --partner-border: 265 54% 85%;
+    --partner-sidebar: 276 69% 12%;
+    --partner-light: 0 0% 100%;
+    --partner-success: 123 78% 34%;
+    --partner-success-soft: 117 64% 94%;
+    --partner-header-gradient: linear-gradient(100deg, hsl(var(--partner-deep)), hsl(273 68% 29%), hsl(var(--partner-sidebar)));
+    --partner-button-gradient: linear-gradient(180deg, hsl(281 90% 56%), hsl(var(--partner-primary)));
+    --partner-shadow: 0 2px 5px hsl(var(--partner-deep) / .14);
     --why-green: 152 60% 36%;
     --why-orange: 28 92% 52%;
     --why-blue: 217 85% 55%;
