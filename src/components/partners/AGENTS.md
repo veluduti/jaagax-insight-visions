@@ -1,3 +1,4 @@
+- Brands reuse `partner_businesses.brand_settings` and independent `partner_hotels.brand_id`; atomic owner-authorized actions apply approved policy defaults while preserving property groups, overrides, supplier conditions and bookings.
 - Hotel partner pages use the shared workspace layout and validated owner-property context so switching properties updates every editor.
 - Load and save setup through hospitality services using existing `partner_hotels.policies` and `type_details`; do not create parallel property inventories.
 - Portfolio analytics use owner-scoped hospitality services and calendar reservations, keep currencies separate, and reuse partner accounts/businesses plus property metadata for groups and brands so individual dashboards share the same records.

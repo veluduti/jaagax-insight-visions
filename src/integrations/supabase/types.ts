@@ -9832,6 +9832,7 @@ export type Database = {
       }
       partner_businesses: {
         Row: {
+          brand_settings: Json | null
           created_at: string
           group_settings: Json
           gstin: string | null
@@ -9843,6 +9844,7 @@ export type Database = {
           verification_status: string
         }
         Insert: {
+          brand_settings?: Json | null
           created_at?: string
           group_settings?: Json
           gstin?: string | null
@@ -9854,6 +9856,7 @@ export type Database = {
           verification_status?: string
         }
         Update: {
+          brand_settings?: Json | null
           created_at?: string
           group_settings?: Json
           gstin?: string | null
@@ -9878,6 +9881,7 @@ export type Database = {
         Row: {
           address: string | null
           amenities: string[] | null
+          brand_id: string | null
           business_id: string | null
           business_types: string[]
           check_in_time: string | null
@@ -9928,6 +9932,7 @@ export type Database = {
         Insert: {
           address?: string | null
           amenities?: string[] | null
+          brand_id?: string | null
           business_id?: string | null
           business_types?: string[]
           check_in_time?: string | null
@@ -9978,6 +9983,7 @@ export type Database = {
         Update: {
           address?: string | null
           amenities?: string[] | null
+          brand_id?: string | null
           business_id?: string | null
           business_types?: string[]
           check_in_time?: string | null
@@ -10026,6 +10032,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "partner_hotels_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "partner_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "partner_hotels_business_id_fkey"
             columns: ["business_id"]
@@ -15787,6 +15800,16 @@ export type Database = {
       owner_request_verification: {
         Args: { _property_id: string }
         Returns: undefined
+      }
+      partner_brand_action: {
+        Args: {
+          _action: string
+          _brand_id?: string
+          _hotel_ids?: string[]
+          _partner_id: string
+          _settings?: Json
+        }
+        Returns: string
       }
       partner_delete_empty_draft: {
         Args: { _hotel_id: string }

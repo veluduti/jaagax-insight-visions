@@ -456,6 +456,20 @@
       "when": 1794823582322,
       "tag": "0064_property_group_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1794892939107,
+      "tag": "0065_partner_brand_chain_management",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1794893247121,
+      "tag": "0066_brand_governance_and_policy_restoration",
+      "breakpoints": true
     }
   ]
 }

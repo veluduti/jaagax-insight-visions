@@ -1,3 +1,9 @@
+## Brand / Chain Settings reference
+- [x] Build purple brand profile, assets, standards, policy templates, shared settings, mapping, governance and communication.
+- [x] Reuse partner businesses for brands; atomic owner saves, Global Admin approval queue, inherited manual-hotel policies/check-in times, overrides and audit preserve bookings and supplier prices.
+- [x] Twenty tests pass; owner creation/save/reload/mapping/unmapping, unauthorized-account and direct-write rejection verified; desktop/390px render without overflow or page errors. Temporary brands removed; seven bookings retained.
+- [ ] Brand tax/currency/meal/payment defaults are stored but do not reconfigure financial or supplier contracts; enforcement of operational standards needs real property inspection records. Logo upload and Global Admin approval clicks remain unverified.
+
 # Roadmap — Agent Profile page rebuild
 
 ## Add New Property / Complete Setup reference
