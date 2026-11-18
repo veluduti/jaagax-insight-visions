@@ -14,6 +14,7 @@ import AdminTestimonials from "@/pages/admin/Testimonials";
 import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
 import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
 import HotelMarkupPanel from "@/components/admin/HotelMarkupPanel";
+import IntegrationReviewPanel from "@/components/admin/IntegrationReviewPanel";
 import {
   Shield,
   CheckCircle,
@@ -201,6 +202,8 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
         { value: "smart-visits", label: "Smart Visits", icon: Zap },
         { value: "hotel-coupons", label: "Hotel Coupons", icon: IndianRupee },
         { value: "hotel-markups", label: "Hotel Price Markups", icon: IndianRupee },
+        { value: "hotel-integrations", label: "Hotel Integrations (OTA/PMS)", icon: Building2 },
+        { value: "hospitality-admin", label: "Hospitality Admin", icon: Building2 },
       ],
     },
     {
@@ -627,7 +630,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
                       return (
                         <DropdownMenuItem
                           key={item.value}
-                          onClick={() => setActiveTab(item.value)}
+                          onClick={() => item.value === "hospitality-admin" ? navigate("/admin/hospitality") : setActiveTab(item.value)}
                           className={`flex items-center gap-2 cursor-pointer ${
                             activeTab === item.value ? "bg-primary/10 text-primary" : ""
                           }`}
@@ -722,6 +725,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false, flowOnly = false }
           {!flowOnly && (
             <TabsContent value="hotel-markups" className="mt-4">
               <HotelMarkupPanel />
+            </TabsContent>
+          )}
+
+          {!flowOnly && (
+            <TabsContent value="hotel-integrations" className="mt-4">
+              <IntegrationReviewPanel />
             </TabsContent>
           )}
 
