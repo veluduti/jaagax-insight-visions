@@ -3,6 +3,7 @@ import { BadgeCheck, CheckCircle2, Copy, Eye, KeyRound, Loader2, Play, RefreshCw
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { integrationRequest, integrationStatusLabel, loadIntegrationOverview, type IntegrationAccessDetails, type IntegrationConnection, type IntegrationOverview } from "@/services/hospitality/integrationService";
@@ -25,6 +26,16 @@ export default function IntegrationReviewPanel() {
   const [selectedScopes, setSelectedScopes] = useState<string[]>(defaultScopes);
   const [handover, setHandover] = useState<IntegrationAccessDetails | null>(null);
   const [handoverName, setHandoverName] = useState("");
+  const [provider, setProvider] = useState<Record<string, { external_property_id: string; api_endpoint: string; api_key: string; api_secret: string; webhook_url: string }>>({});
+  const field = (c: IntegrationConnection) => provider[c.id] ?? { external_property_id: c.channel_property_id ?? "", api_endpoint: c.settings?.api_endpoint ?? "", api_key: "", api_secret: "", webhook_url: c.settings?.webhook_url ?? "" };
+  const setField = (c: IntegrationConnection, key: string, value: string) => setProvider(p => ({ ...p, [c.id]: { ...field(c), [key]: value } }));
+  const saveProvider = async (c: IntegrationConnection) => {
+    const f = field(c);
+    if (!f.external_property_id.trim()) return toast.error("Enter the OTA's property ID for this hotel");
+    if (c.direction !== "inbound" && c.channel !== "hyperguest" && (!f.api_endpoint.trim() || (!f.api_key && c.credentials_status !== "configured"))) return toast.error("Enter the provider API endpoint and API key");
+    await act(c, "credentials", { external_property_id: f.external_property_id.trim(), api_endpoint: f.api_endpoint.trim() || undefined, webhook_url: f.webhook_url.trim() || undefined, api_key: f.api_key || undefined, access_token: f.api_key || undefined, api_secret: f.api_secret || undefined });
+    setProvider(p => { const n = { ...p }; delete n[c.id]; return n; });
+  };
 
   const load = useCallback(async () => {
     try { setError(""); setData(await loadIntegrationOverview()); }
@@ -90,6 +101,19 @@ export default function IntegrationReviewPanel() {
       {c.last_test_details?.checks?.map(check => <div key={check.name} className="flex items-center justify-between gap-3 border-b border-border py-1 text-xs"><span>{check.name} · {check.detail}</span>{check.ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-destructive" />}</div>)}
       {c.review_notes && <p className="text-xs">Review note: {c.review_notes}</p>}
       {!data?.providers.find(p => p.key === c.channel)?.live_adapter && !inbound && <p className="text-xs text-muted-foreground">Configuration can be reviewed, but activation remains blocked until this provider's approved live adapter is available.</p>}
+      {c.review_status !== "active" && c.channel !== "hyperguest" && <div className="rounded-md border border-border p-3 space-y-2">
+        <p className="text-xs font-semibold">Provider details for this hotel (entered by Global Admin)</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div><Label className="text-xs">OTA property ID</Label><Input value={field(c).external_property_id} onChange={e => setField(c, "external_property_id", e.target.value)} placeholder="Hotel ID in the OTA system" /></div>
+          {inbound && c.direction === "inbound" ? null : <>
+            <div><Label className="text-xs">Provider API endpoint (HTTPS)</Label><Input type="url" value={field(c).api_endpoint} onChange={e => setField(c, "api_endpoint", e.target.value)} placeholder="https://..." /></div>
+            <div><Label className="text-xs">API key / access token</Label><Input type="password" autoComplete="off" value={field(c).api_key} onChange={e => setField(c, "api_key", e.target.value)} placeholder={c.credentials_status === "configured" ? "Saved — leave blank to keep" : "From the OTA"} /></div>
+            <div><Label className="text-xs">API secret (if required)</Label><Input type="password" autoComplete="off" value={field(c).api_secret} onChange={e => setField(c, "api_secret", e.target.value)} placeholder="Never shown again" /></div>
+            <div className="sm:col-span-2"><Label className="text-xs">Provider booking webhook URL (optional)</Label><Input type="url" value={field(c).webhook_url} onChange={e => setField(c, "webhook_url", e.target.value)} placeholder="https://..." /></div>
+          </>}
+        </div>
+        <Button size="sm" variant="outline" disabled={!!busy} onClick={() => saveProvider(c)}>{busy === `${c.id}:credentials` ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}Save provider details</Button>
+      </div>}
       <Textarea aria-label={`Review notes for ${providerName(c)}`} placeholder="Verification notes or rejection reason" value={notes[c.id] ?? ""} onChange={e => setNotes(n => ({ ...n, [c.id]: e.target.value }))} />
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" disabled={!!busy} onClick={() => act(c, "test")}>{busy === `${c.id}:test` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}Run real test</Button>
@@ -127,7 +151,7 @@ export default function IntegrationReviewPanel() {
       <div className="mt-3"><Label>Permissions for the next issued credential</Label><div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">{integrationScopes.map(scope => <label key={scope} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selectedScopes.includes(scope)} onChange={e => setSelectedScopes(current => e.target.checked ? [...current, scope] : current.filter(item => item !== scope))} />{scope}</label>)}</div><p className="mt-2 text-xs text-muted-foreground">Rotating credentials immediately revokes the previous client and its access tokens.</p></div>
     </div>
     <h3 className="font-medium">Waiting for review ({pending.length})</h3>{pending.map(card)}{!pending.length && <p className="text-sm text-muted-foreground">No submitted connections are waiting.</p>}
-    <h3 className="pt-3 font-medium">All connections ({others.length})</h3>{others.map(card)}{!others.length && !pending.length && <p className="text-sm text-muted-foreground">No integration connection requests have been created. A hotel partner must first configure and submit a provider connection.</p>}
+    <h3 className="pt-3 font-medium">All connections ({others.length})</h3>{others.map(card)}{!others.length && !pending.length && <p className="text-sm text-muted-foreground">No integration connection requests have been created. A hotel partner first requests a connection from Partner Dashboard → Integrations; it then appears here for you to add provider details, test, approve and activate.</p>}
 
     <Dialog open={!!handover} onOpenChange={open => { if (!open) setHandover(null); }}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{handoverName} · JAAGA X connection details</DialogTitle><DialogDescription>Provide these details to the OTA integration team. {handover?.client_secret ? "Copy both secrets now; they cannot be shown again after closing." : "Existing secrets are never displayed again. Rotate credentials if the OTA needs a new copy."}</DialogDescription></DialogHeader>

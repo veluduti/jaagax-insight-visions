@@ -21,6 +21,7 @@ const credentialSchema = z.object({
   api_key: z.string().max(4000).optional(), api_secret: z.string().max(4000).optional(),
   access_token: z.string().max(6000).optional(), client_id: z.string().max(500).optional(),
   client_secret: z.string().max(4000).optional(),
+  external_property_id: z.string().trim().max(160).optional(),
 });
 const mappingSchema = z.object({
   rooms: z.array(z.object({ room_id: z.string().uuid(), external_room_id: z.string().trim().min(1).max(160) })).max(500),
@@ -156,7 +157,9 @@ Deno.serve(async req => {
     if (!connection) return json({ error: "Connection not found or access denied" }, 404);
 
     if (action === "credentials") {
-      if (["active", "pending_review"].includes(connection.review_status)) return json({ error: "Suspend or return the connection to draft before replacing credentials" }, 409);
+      // Provider endpoints and keys are maintained by JAAGA X Global Admin for every hotel (HyperGuest is platform-managed).
+      if (!actor.admin && connection.channel !== "hyperguest") return json({ error: "Only JAAGA X Global Admin can enter provider endpoints and credentials" }, 403);
+      if (connection.review_status === "active") return json({ error: "Suspend or return the connection to draft before replacing credentials" }, 409);
       const input = credentialSchema.parse(body);
       const previous = await loadCredentials(connection.id);
       const credentials: Record<string, unknown> = { ...previous };
@@ -166,7 +169,7 @@ Deno.serve(async req => {
       if (connection.direction !== "inbound" && connection.channel !== "hyperguest" && !credentials.access_token && !credentials.api_key) return json({ error: "An API key or access token is required" }, 400);
       const settings = { ...connection.settings, api_endpoint: httpsUrl(input.api_endpoint) ?? connection.settings?.api_endpoint ?? null, webhook_url: httpsUrl(input.webhook_url) ?? connection.settings?.webhook_url ?? null };
       await saveCredentials(connection.id, credentials);
-      await sb.from("hotel_channel_connections").update({ credentials_status: "configured", settings, last_test_status: null, last_test_details: {}, updated_at: new Date().toISOString() }).eq("id", connection.id);
+      await sb.from("hotel_channel_connections").update({ credentials_status: "configured", settings, ...(input.external_property_id ? { channel_property_id: input.external_property_id } : {}), last_test_status: null, last_test_details: {}, updated_at: new Date().toISOString() }).eq("id", connection.id);
       await auditIntegration(sb, actor.id, connection, "credentials_saved");
       return json({ success: true });
     }
@@ -207,7 +210,7 @@ Deno.serve(async req => {
     if (action === "test") return json(await runConnectionTest(actor, connection));
     if (action === "submit") {
       const { count } = await sb.from("hotel_room_channel_mappings").select("id", { count: "exact", head: true }).eq("connection_id", connection.id);
-      if (connection.credentials_status !== "configured" || !count || connection.last_test_status !== "success" || !connection.channel_property_id) return json({ error: "Configure credentials, an external property ID, room mappings and a successful test first" }, 409);
+      if (!count) return json({ error: "Map at least one room type before submitting the request" }, 409);
       if (!["draft", "rejected"].includes(connection.review_status)) return json({ error: "This connection has already been submitted" }, 409);
       await sb.from("hotel_channel_connections").update({ review_status: "pending_review", status: "pending_review", submitted_at: new Date().toISOString(), review_notes: null }).eq("id", connection.id);
       await auditIntegration(sb, actor.id, connection, "submitted_for_review");
@@ -217,7 +220,7 @@ Deno.serve(async req => {
       if (!actor.admin) return json({ error: "Global Admin access required" }, 403);
       const decision = z.enum(["approved", "rejected"]).parse(body.decision);
       if (connection.review_status !== "pending_review") return json({ error: "Only submitted connections can be reviewed" }, 409);
-      if (decision === "approved" && connection.last_test_status !== "success") return json({ error: "Run a successful connection test before approval" }, 409);
+      if (decision === "approved" && (connection.credentials_status !== "configured" || !connection.channel_property_id || connection.last_test_status !== "success")) return json({ error: "Save provider details and the external property ID, then run a successful test before approval" }, 409);
       await sb.from("hotel_channel_connections").update({ review_status: decision, status: decision, review_notes: String(body.notes ?? "").slice(0, 2000) || null, reviewed_at: new Date().toISOString(), reviewed_by: actor.id, ...(decision === "approved" ? { approved_at: new Date().toISOString(), approved_by: actor.id } : {}) }).eq("id", connection.id);
       await auditIntegration(sb, actor.id, connection, decision, { notes: String(body.notes ?? "").slice(0, 2000) });
       return json({ success: true });
