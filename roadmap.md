@@ -1,5 +1,4 @@
 ## OTA, PMS & Channel Manager integration platform
-- [x] Make Global Admin the integration manager: show OTA connection purpose/details, issue and rotate JAAGA X client credentials, signing secrets, scoped endpoints and webhook setup; keep secrets one-time and remove partner-side issuance. Nine permission tests and temporary Global Admin issue/read-back verified; secrets hidden afterward, test data removed and seven bookings preserved.
 - [x] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
 - [x] Reuse central hotel, room, rate, availability and booking records; add reviewed connections, credentials, mappings, signed API access, webhooks, retries and reconciliation.
 - [x] Add Global Admin review/test/approval controls and partner monitoring; keep unapproved providers inactive.

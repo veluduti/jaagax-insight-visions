@@ -14,9 +14,7 @@ import "./partner-workspace.css";
 import PropertyPhoto from "./PropertyPhoto";
 
 export default function PartnerWorkspaceLayout() {
-  const location = useLocation();
-  // The integrations page is the PMS onboarding step itself, so it must not redirect back to onboarding.
-  const ctx = usePartnerHotel({ requirePmsSetup: !location.pathname.startsWith("/partners/integrations") });
+  const ctx = usePartnerHotel();
   const { user } = useAuth();
   const [hotels, setHotels] = useState<ManagedHotel[]>([]);
   const [selected, setSelected] = useState<string | null>(() => localStorage.getItem("partner_active_property"));
@@ -24,6 +22,7 @@ export default function PartnerWorkspaceLayout() {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
   const load = useCallback(async () => {
     if (!ctx.userId) return;
