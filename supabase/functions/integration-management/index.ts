@@ -52,12 +52,13 @@ async function saveCredentials(connectionId: string, credentials: Record<string,
 }
 
 async function overview(actor: any, hotelId?: string) {
+  if (!actor.admin && !hotelId) throw new Error("A managed property ID is required");
   let query = sb.from("hotel_channel_connections").select("*").order("updated_at", { ascending: false });
   if (hotelId) query = query.eq("hotel_id", hotelId);
   const [{ data: providers }, { data: connections }, { data: hotels }] = await Promise.all([
     sb.from("integration_provider_catalog").select("key,name,kind,live_adapter,configuration_enabled,description").order("name"),
     query.limit(200),
-    actor.admin ? sb.from("partner_hotels").select("id,name,city,manager_id").order("name").limit(500) : sb.from("partner_hotels").select("id,name,city,manager_id").order("name").limit(100),
+    actor.admin ? sb.from("partner_hotels").select("id,name,city,manager_id").order("name").limit(500) : sb.from("partner_hotels").select("id,name,city,manager_id").eq("id", hotelId).order("name").limit(1),
   ]);
   const ids = (connections ?? []).map(c => c.id);
   const hotelIds = hotelId ? [hotelId] : [...new Set((connections ?? []).map(c => c.hotel_id))];
@@ -197,9 +198,11 @@ Deno.serve(async req => {
     if (action === "settings") {
       const input = settingsSchema.parse(body);
       const settings = { ...connection.settings, ...input, webhook_url: httpsUrl(input.webhook_url) ?? null };
-      await sb.from("hotel_channel_connections").update({ settings, last_test_status: null, updated_at: new Date().toISOString() }).eq("id", connection.id);
-      await auditIntegration(sb, actor.id, connection, "sync_settings_saved");
-      return json({ success: true });
+      const reset = ["active", "approved"].includes(connection.review_status);
+      await sb.from("hotel_channel_connections").update({ settings, ...(reset ? { review_status: "draft", status: "draft", is_active: false, approved_at: null, approved_by: null, activated_at: null } : {}), last_test_status: null, updated_at: new Date().toISOString() }).eq("id", connection.id);
+      if (reset) await sb.from("integration_access_tokens").update({ revoked_at: new Date().toISOString() }).eq("connection_id", connection.id).is("revoked_at", null);
+      await auditIntegration(sb, actor.id, connection, "sync_settings_saved", { review_reset: reset });
+      return json({ success: true, review_reset: reset });
     }
     if (action === "test") return json(await runConnectionTest(actor, connection));
     if (action === "submit") {
@@ -239,6 +242,7 @@ Deno.serve(async req => {
     if (action === "issue_client") {
       if (!connection.is_active || connection.review_status !== "active" || connection.direction === "outbound") return json({ error: "An active inbound or bidirectional connection is required" }, 409);
       await sb.from("integration_api_clients").update({ is_active: false, revoked_at: new Date().toISOString() }).eq("connection_id", connection.id).is("revoked_at", null);
+      await sb.from("integration_access_tokens").update({ revoked_at: new Date().toISOString() }).eq("connection_id", connection.id).is("revoked_at", null);
       const clientId = `jx_${randomToken(18)}`;
       const clientSecret = `jxs_${randomToken(42)}`;
       const requested = cleanScopes(body.scopes);
@@ -246,7 +250,7 @@ Deno.serve(async req => {
       const { error } = await sb.from("integration_api_clients").insert({ connection_id: connection.id, client_id: clientId, secret_hash: await sha256(clientSecret), scopes: granted });
       if (error) throw error;
       const credentials = await loadCredentials(connection.id);
-      const webhookSecret = String(credentials.webhook_secret ?? randomToken(48));
+      const webhookSecret = randomToken(48);
       await saveCredentials(connection.id, { ...credentials, webhook_secret: webhookSecret });
       await sb.from("hotel_channel_connections").update({ client_id: clientId }).eq("id", connection.id);
       await auditIntegration(sb, actor.id, connection, "api_client_issued", { scopes: granted });
@@ -255,6 +259,16 @@ Deno.serve(async req => {
     }
     if (action === "sync" || action === "reconcile") {
       if (!connection.is_active || connection.review_status !== "active") return json({ error: "Activate the connection before synchronization" }, 409);
+      if (connection.channel === "hyperguest") {
+        if (action === "reconcile") return json({ error: "HyperGuest pending reservations are reconciled by its existing scheduled service" }, 409);
+        const { data: job } = await sb.from("integration_sync_jobs").insert({ connection_id: connection.id, hotel_id: connection.hotel_id, kind: "supplier_content_sync", direction: "outbound", status: "running", payload: { propertyId: Number(connection.channel_property_id) }, idempotency_key: randomToken(16), attempts: 1 }).select("*").single();
+        const base = Deno.env.get("SUPABASE_URL") ?? "";
+        const response = await fetch(`${base}/functions/v1/hyperguest`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${actor.token}`, apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "" }, body: JSON.stringify({ action: "sync", propertyId: Number(connection.channel_property_id) }) });
+        const result = await response.json();
+        await sb.from("integration_sync_jobs").update({ status: response.ok ? "success" : "failed", result, completed_at: new Date().toISOString(), last_error: response.ok ? null : String(result.error ?? "Supplier sync failed") }).eq("id", job.id);
+        await sb.from("hotel_channel_connections").update({ last_sync_at: new Date().toISOString(), last_sync_status: response.ok ? "success" : "failed", last_sync_error: response.ok ? null : String(result.error ?? "Supplier sync failed") }).eq("id", connection.id);
+        return response.ok ? json({ success: true, job: { ...job, status: "success", result } }) : json({ error: result.error ?? "HyperGuest synchronization failed" }, 409);
+      }
       const kind = action === "reconcile" ? "reconcile" : "full_sync";
       const snapshot = await integrationSnapshot(sb, connection);
       const { data: job, error } = await sb.from("integration_sync_jobs").insert({ connection_id: connection.id, hotel_id: connection.hotel_id, kind, direction: "outbound", payload: snapshot, idempotency_key: randomToken(16), status: "pending" }).select("*").single();

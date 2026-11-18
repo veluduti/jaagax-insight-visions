@@ -491,6 +491,20 @@
       "when": 1794992302000,
       "tag": "0069_integration_reservation_currency_correction",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1794992908599,
+      "tag": "0070_integration_outbound_event_triggers",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794993324509,
+      "tag": "0071_integration_provider_catalog_service_read",
+      "breakpoints": true
     }
   ]
 }

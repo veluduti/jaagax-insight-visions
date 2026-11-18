@@ -47,6 +47,11 @@ export async function signPayload(secret: string, raw: string) {
 }
 
 export async function verifySignature(secret: string, raw: string, signature: string) {
-  try { return await crypto.subtle.verify("HMAC", await hmacKey(secret), encoder.encode(raw), fromBase64(signature)); }
-  catch { return false; }
+  try {
+    const expected = await signPayload(secret, raw);
+    if (expected.length !== signature.length) return false;
+    let difference = 0;
+    for (let i = 0; i < expected.length; i++) difference |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+    return difference === 0;
+  } catch { return false; }
 }

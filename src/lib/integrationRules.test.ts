@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canActivateConnection, canSubmitConnection, canUseIntegrationApi, mappingChangeRequiresReview, nextRetryStatus, normalizeScopes, retryDelayMs } from "./integrationRules";
+import { canActivateConnection, canSubmitConnection, canUseIntegrationApi, mappingChangeRequiresReview, nextRetryStatus, normalizeScopes, retryDelayMs, syncMasterChangeRequiresReview } from "./integrationRules";
 
 const base = { review_status: "approved", is_active: false, credentials_status: "configured", last_test_status: "success", direction: "outbound" as const };
 
@@ -41,6 +41,12 @@ describe("integration activation safeguards", () => {
     expect(mappingChangeRequiresReview("active")).toBe(true);
     expect(mappingChangeRequiresReview("approved")).toBe(true);
     expect(mappingChangeRequiresReview("draft")).toBe(false);
+  });
+
+  it("requires fresh approval when synchronization ownership changes", () => {
+    expect(syncMasterChangeRequiresReview("active")).toBe(true);
+    expect(syncMasterChangeRequiresReview("approved")).toBe(true);
+    expect(syncMasterChangeRequiresReview("draft")).toBe(false);
   });
 
   it("removes unknown and duplicate API scopes", () => {

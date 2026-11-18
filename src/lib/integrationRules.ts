@@ -42,6 +42,10 @@ export function mappingChangeRequiresReview(currentStatus: string) {
   return ["approved", "active"].includes(currentStatus);
 }
 
+export function syncMasterChangeRequiresReview(currentStatus: string) {
+  return mappingChangeRequiresReview(currentStatus);
+}
+
 export const integrationScopes = [
   "properties:read", "inventory:read", "inventory:write", "rates:read", "rates:write",
   "reservations:read", "reservations:write",

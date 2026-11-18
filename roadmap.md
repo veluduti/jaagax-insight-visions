@@ -1,9 +1,10 @@
 ## OTA, PMS & Channel Manager integration platform
-- [ ] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
-- [ ] Reuse central hotel, room, rate, availability and booking records; add reviewed connections, credentials, mappings, signed API access, webhooks, retries and reconciliation.
-- [ ] Add Global Admin review/test/approval controls and partner monitoring; keep unapproved providers inactive.
-- [ ] Preserve HyperGuest as the first live outbound adapter; other named providers require their own approved documentation and credentials.
-- [ ] Verify permissions, idempotency, inventory/booking continuity, responsive UI and regression tests without making live bookings.
+- [x] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
+- [x] Reuse central hotel, room, rate, availability and booking records; add reviewed connections, credentials, mappings, signed API access, webhooks, retries and reconciliation.
+- [x] Add Global Admin review/test/approval controls and partner monitoring; keep unapproved providers inactive.
+- [x] Preserve HyperGuest as the first live outbound adapter; other named providers require their own approved documentation and credentials.
+- [x] Verify scoped tokens, idempotent creation/modification/cancellation, signed webhooks, scheduled processing, inventory-master blocking, responsive UI and 34 regression tests using a temporary hotel. Temporary records removed; original seven bookings preserved.
+- [ ] Live adapters for Booking.com, MakeMyTrip, Agoda, Expedia, Hotelogix, eZee, OPERA, Cloudbeds, SiteMinder and RateGain require each provider's approved API documentation, commercial access and credentials; configuration/review is available but outbound activation remains blocked.
 
 ## Brand / Chain Settings reference
 - [x] Build purple brand profile, assets, standards, policy templates, shared settings, mapping, governance and communication.
