@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canActivateConnection, canSubmitConnection, canUseIntegrationApi, mappingChangeRequiresReview, nextRetryStatus, normalizeScopes, retryDelayMs, syncMasterChangeRequiresReview } from "./integrationRules";
+import { canActivateConnection, canIssueIntegrationCredentials, canSubmitConnection, canUseIntegrationApi, mappingChangeRequiresReview, nextRetryStatus, normalizeScopes, retryDelayMs, syncMasterChangeRequiresReview } from "./integrationRules";
 
 const base = { review_status: "approved", is_active: false, credentials_status: "configured", last_test_status: "success", direction: "outbound" as const };
 
@@ -19,6 +19,15 @@ describe("integration activation safeguards", () => {
   it("allows an approved inbound API connection after a real test", () => {
     expect(canActivateConnection({ ...base, direction: "inbound" }, false, 1)).toBe(true);
     expect(canActivateConnection({ ...base, direction: "inbound", last_test_status: null }, false, 1)).toBe(false);
+  });
+
+  it("allows only Global Admin to issue credentials for an active inbound or bidirectional connection", () => {
+    const activeInbound = { ...base, review_status: "active", is_active: true, direction: "inbound" as const };
+    expect(canIssueIntegrationCredentials(true, activeInbound)).toBe(true);
+    expect(canIssueIntegrationCredentials(true, { ...activeInbound, direction: "bidirectional" })).toBe(true);
+    expect(canIssueIntegrationCredentials(false, activeInbound)).toBe(false);
+    expect(canIssueIntegrationCredentials(true, { ...activeInbound, direction: "outbound" })).toBe(false);
+    expect(canIssueIntegrationCredentials(true, { ...activeInbound, review_status: "approved", is_active: false })).toBe(false);
   });
 
   it("rejects expired tokens, missing scopes and inactive connections", () => {

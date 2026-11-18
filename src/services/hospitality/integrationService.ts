@@ -14,6 +14,12 @@ export type IntegrationOverview = {
   rate_plans: { id: string; hotel_id: string; room_id: string | null; name: string | null; rate_plan_name: string | null; rate_plan_code: string | null; is_active: boolean | null }[];
   room_mappings: any[]; rate_mappings: any[]; jobs: any[]; webhook_events: any[]; deliveries: any[]; issues: any[];
 };
+export type IntegrationAccessDetails = {
+  connection_id: string; hotel_id: string; direction: IntegrationConnection["direction"]; environment: IntegrationConnection["environment"];
+  external_property_id: string | null; jaagax_property_id: string; client_id: string | null; scopes: string[];
+  credentials_issued: boolean; credentials_issued_at?: string | null; client_secret?: string; webhook_secret?: string;
+  token_url: string; api_base_url: string; webhook_url: string | null;
+};
 
 export async function integrationRequest<T = any>(body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke("integration-management", { body });

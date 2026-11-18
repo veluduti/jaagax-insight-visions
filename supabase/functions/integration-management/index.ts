@@ -239,7 +239,22 @@ Deno.serve(async req => {
       await auditIntegration(sb, actor.id, connection, "activated");
       return json({ success: true });
     }
+    if (action === "access_details") {
+      if (!actor.admin) return json({ error: "Global Admin access required" }, 403);
+      if (!connection.is_active || connection.review_status !== "active" || connection.direction === "outbound") return json({ error: "An active inbound or bidirectional connection is required" }, 409);
+      const { data: client } = await sb.from("integration_api_clients").select("client_id,scopes,created_at").eq("connection_id", connection.id).eq("is_active", true).is("revoked_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const base = Deno.env.get("SUPABASE_URL") ?? "";
+      const clientId = client?.client_id ?? connection.client_id;
+      return json({
+        connection_id: connection.id, hotel_id: connection.hotel_id, direction: connection.direction, environment: connection.environment,
+        external_property_id: connection.channel_property_id, jaagax_property_id: connection.hotel_id,
+        client_id: clientId, scopes: client?.scopes ?? [], credentials_issued: Boolean(client), credentials_issued_at: client?.created_at ?? null,
+        token_url: `${base}/functions/v1/integration-api/oauth/token`, api_base_url: `${base}/functions/v1/integration-api/v1`,
+        webhook_url: clientId ? `${base}/functions/v1/integration-webhooks/${clientId}` : null,
+      });
+    }
     if (action === "issue_client") {
+      if (!actor.admin) return json({ error: "Only Global Admin can issue JAAGA X API credentials" }, 403);
       if (!connection.is_active || connection.review_status !== "active" || connection.direction === "outbound") return json({ error: "An active inbound or bidirectional connection is required" }, 409);
       await sb.from("integration_api_clients").update({ is_active: false, revoked_at: new Date().toISOString() }).eq("connection_id", connection.id).is("revoked_at", null);
       await sb.from("integration_access_tokens").update({ revoked_at: new Date().toISOString() }).eq("connection_id", connection.id).is("revoked_at", null);
@@ -255,7 +270,12 @@ Deno.serve(async req => {
       await sb.from("hotel_channel_connections").update({ client_id: clientId }).eq("id", connection.id);
       await auditIntegration(sb, actor.id, connection, "api_client_issued", { scopes: granted });
       const base = Deno.env.get("SUPABASE_URL") ?? "";
-      return json({ client_id: clientId, client_secret: clientSecret, webhook_secret: webhookSecret, scopes: granted, token_url: `${base}/functions/v1/integration-api/oauth/token`, api_base_url: `${base}/functions/v1/integration-api/v1`, webhook_url: `${base}/functions/v1/integration-webhooks/${clientId}` });
+      return json({
+        connection_id: connection.id, hotel_id: connection.hotel_id, direction: connection.direction, environment: connection.environment,
+        external_property_id: connection.channel_property_id, jaagax_property_id: connection.hotel_id,
+        client_id: clientId, client_secret: clientSecret, webhook_secret: webhookSecret, scopes: granted, credentials_issued: true,
+        token_url: `${base}/functions/v1/integration-api/oauth/token`, api_base_url: `${base}/functions/v1/integration-api/v1`, webhook_url: `${base}/functions/v1/integration-webhooks/${clientId}`,
+      });
     }
     if (action === "sync" || action === "reconcile") {
       if (!connection.is_active || connection.review_status !== "active") return json({ error: "Activate the connection before synchronization" }, 409);

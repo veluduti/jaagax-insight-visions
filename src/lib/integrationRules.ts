@@ -24,6 +24,10 @@ export function canActivateConnection(
     && (providerHasLiveAdapter || inboundOnly);
 }
 
+export function canIssueIntegrationCredentials(isGlobalAdmin: boolean, connection: Pick<IntegrationConnection, "review_status" | "is_active" | "direction">) {
+  return isGlobalAdmin && connection.review_status === "active" && connection.is_active && connection.direction !== "outbound";
+}
+
 export function canUseIntegrationApi(connection: Pick<IntegrationConnection, "review_status" | "is_active">, tokenExpiresAt: string, scopes: string[], requiredScope: string, now = Date.now()) {
   return connection.review_status === "active" && connection.is_active
     && Date.parse(tokenExpiresAt) > now && scopes.includes(requiredScope);
