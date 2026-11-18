@@ -10,6 +10,23 @@ import { integrationRequest, integrationStatusLabel, loadIntegrationOverview, ty
 import { integrationScopes } from "@/lib/integrationRules";
 import "@/pages/partners/integration-workspace.css";
 
+const apiRoot = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+const otaEndpoints: [string, string, string, string][] = [
+  ["POST", "/integration-api/oauth/token", "Get an access token with the JAAGA X client ID and secret", "—"],
+  ["GET", "/integration-api/v1/properties", "Hotel listing details (name, address, location, policies)", "properties:read"],
+  ["GET", "/integration-api/v1/rooms", "Room types of the hotel", "inventory:read"],
+  ["GET", "/integration-api/v1/rate-plans", "Rate plans of the hotel", "rates:read"],
+  ["GET", "/integration-api/v1/availability?from=YYYY-MM-DD&to=YYYY-MM-DD", "Rooms available per date", "inventory:read"],
+  ["GET", "/integration-api/v1/rates?from=YYYY-MM-DD&to=YYYY-MM-DD", "Prices per date", "rates:read"],
+  ["PUT", "/integration-api/v1/availability", "Update availability (if allowed)", "inventory:write"],
+  ["PUT", "/integration-api/v1/rates", "Update prices (if allowed)", "rates:write"],
+  ["POST", "/integration-api/v1/reservations", "Create a booking", "reservations:write"],
+  ["GET", "/integration-api/v1/reservations/{id}", "Read a booking", "reservations:read"],
+  ["PATCH", "/integration-api/v1/reservations/{id}", "Modify a booking", "reservations:write"],
+  ["POST", "/integration-api/v1/reservations/{id}/cancel", "Cancel a booking", "reservations:write"],
+  ["POST", "/integration-webhooks/{client_id}", "OTA sends signed booking events to JAAGA X", "signed webhook"],
+];
+
 const defaultScopes = ["properties:read", "inventory:read", "rates:read", "reservations:read", "reservations:write"];
 
 function integrationPurpose(connection: IntegrationConnection) {
@@ -145,6 +162,11 @@ export default function IntegrationReviewPanel() {
 
   return <section className="space-y-4">
     <div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Integration Review & OTA Access Manager</h2><p className="text-xs text-muted-foreground">Global Admin verifies connections and provides the JAAGA X API details that an OTA uses to connect back.</p></div><Button variant="outline" size="icon" aria-label="Refresh integrations" onClick={load}><RefreshCw className="h-4 w-4" /></Button></div>
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">JAAGA X OTA API endpoints (give these to the OTA)</h3><Button size="sm" variant="outline" onClick={() => copy(otaEndpoints.map(([m, path, d]) => `${m} ${apiRoot}${path}  — ${d}`).join("\n"))}><Copy className="h-4 w-4" />Copy all</Button></div>
+      <p className="mt-1 text-xs text-muted-foreground">Base URL: <code className="break-all">{apiRoot}</code>. The OTA first gets a token, then calls the other endpoints with <code>Authorization: Bearer &lt;token&gt;</code>. Each token only sees the one hotel it was issued for, so the OTA needs client credentials per hotel (issued below after approval).</p>
+      <div className="mt-3 overflow-x-auto"><table className="w-full text-xs"><thead><tr className="text-left text-muted-foreground"><th className="py-1 pr-2">Method</th><th className="pr-2">Endpoint</th><th className="pr-2">Purpose</th><th>Permission</th></tr></thead><tbody>{otaEndpoints.map(([m, path, d, sc]) => <tr key={m + path} className="border-t border-border"><td className="py-1.5 pr-2 font-semibold">{m}</td><td className="pr-2"><code className="break-all">{apiRoot}{path}</code></td><td className="pr-2">{d}</td><td>{sc}</td></tr>)}</tbody></table></div>
+    </div>
     <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
       <h3 className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="h-4 w-4 text-primary" />Details provided by JAAGA X Global Admin</h3>
       <p className="mt-1 text-xs text-muted-foreground">For Provider → JAAGA X or Bidirectional connections, approve and activate the request, select only the permissions required, then provide the client ID, one-time client secret, token URL, API base URL and signed webhook details to the OTA.</p>
