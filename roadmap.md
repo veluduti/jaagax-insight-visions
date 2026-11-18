@@ -1,3 +1,10 @@
+## OTA, PMS & Channel Manager integration platform
+- [ ] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
+- [ ] Reuse central hotel, room, rate, availability and booking records; add reviewed connections, credentials, mappings, signed API access, webhooks, retries and reconciliation.
+- [ ] Add Global Admin review/test/approval controls and partner monitoring; keep unapproved providers inactive.
+- [ ] Preserve HyperGuest as the first live outbound adapter; other named providers require their own approved documentation and credentials.
+- [ ] Verify permissions, idempotency, inventory/booking continuity, responsive UI and regression tests without making live bookings.
+
 ## Brand / Chain Settings reference
 - [x] Build purple brand profile, assets, standards, policy templates, shared settings, mapping, governance and communication.
 - [x] Reuse partner businesses for brands; atomic owner saves, Global Admin approval queue, inherited manual-hotel policies/check-in times, overrides and audit preserve bookings and supplier prices.
