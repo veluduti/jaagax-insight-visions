@@ -4697,51 +4697,99 @@ export type Database = {
       }
       hotel_channel_connections: {
         Row: {
+          activated_at: string | null
+          approved_at: string | null
+          approved_by: string | null
           channel: string
           channel_property_id: string | null
+          client_id: string | null
           connected_at: string | null
+          connection_kind: string
           created_at: string
           credentials_ref: string | null
+          credentials_status: string
+          direction: string
+          environment: string
           hotel_id: string
           id: string
           is_active: boolean
           last_sync_at: string | null
           last_sync_error: string | null
           last_sync_status: string | null
+          last_test_details: Json
+          last_test_status: string | null
+          last_tested_at: string | null
+          review_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           settings: Json
           status: string
+          submitted_at: string | null
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           channel: string
           channel_property_id?: string | null
+          client_id?: string | null
           connected_at?: string | null
+          connection_kind?: string
           created_at?: string
           credentials_ref?: string | null
+          credentials_status?: string
+          direction?: string
+          environment?: string
           hotel_id: string
           id?: string
           is_active?: boolean
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
+          last_test_details?: Json
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           settings?: Json
           status?: string
+          submitted_at?: string | null
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           channel?: string
           channel_property_id?: string | null
+          client_id?: string | null
           connected_at?: string | null
+          connection_kind?: string
           created_at?: string
           credentials_ref?: string | null
+          credentials_status?: string
+          direction?: string
+          environment?: string
           hotel_id?: string
           id?: string
           is_active?: boolean
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
+          last_test_details?: Json
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           settings?: Json
           status?: string
+          submitted_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -6261,6 +6309,71 @@ export type Database = {
           },
         ]
       }
+      hotel_rate_channel_mappings: {
+        Row: {
+          connection_id: string
+          created_at: string
+          external_rate_plan_id: string
+          hotel_id: string
+          id: string
+          rate_plan_id: string
+          room_id: string
+          sync_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          external_rate_plan_id: string
+          hotel_id: string
+          id?: string
+          rate_plan_id: string
+          room_id: string
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          external_rate_plan_id?: string
+          hotel_id?: string
+          id?: string
+          rate_plan_id?: string
+          room_id?: string
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_rate_channel_mappings_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_rate_channel_mappings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_rate_channel_mappings_rate_plan_id_fkey"
+            columns: ["rate_plan_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rate_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_rate_channel_mappings_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_rate_plans: {
         Row: {
           adjustment_type: string
@@ -6540,6 +6653,7 @@ export type Database = {
         Row: {
           channel: string
           commission_percent: number | null
+          connection_id: string | null
           created_at: string
           external_rate_plan_id: string | null
           external_room_id: string | null
@@ -6555,6 +6669,7 @@ export type Database = {
         Insert: {
           channel: string
           commission_percent?: number | null
+          connection_id?: string | null
           created_at?: string
           external_rate_plan_id?: string | null
           external_room_id?: string | null
@@ -6570,6 +6685,7 @@ export type Database = {
         Update: {
           channel?: string
           commission_percent?: number | null
+          connection_id?: string | null
           created_at?: string
           external_rate_plan_id?: string | null
           external_room_id?: string | null
@@ -6583,6 +6699,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "hotel_room_channel_mappings_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "hotel_room_channel_mappings_hotel_id_fkey"
             columns: ["hotel_id"]
@@ -7071,6 +7194,459 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hyperguest_sync_logs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_access_tokens: {
+        Row: {
+          connection_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          scopes: string[]
+          token_hash: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_access_tokens_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_api_clients: {
+        Row: {
+          client_id: string
+          connection_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          revoked_at: string | null
+          rotated_at: string | null
+          scopes: string[]
+          secret_hash: string
+        }
+        Insert: {
+          client_id: string
+          connection_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          revoked_at?: string | null
+          rotated_at?: string | null
+          scopes?: string[]
+          secret_hash: string
+        }
+        Update: {
+          client_id?: string
+          connection_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          revoked_at?: string | null
+          rotated_at?: string | null
+          scopes?: string[]
+          secret_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_api_clients_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_booking_links: {
+        Row: {
+          booking_id: string
+          connection_id: string
+          created_at: string
+          external_booking_id: string
+          external_version: number
+          id: string
+          raw_snapshot: Json | null
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          connection_id: string
+          created_at?: string
+          external_booking_id: string
+          external_version?: number
+          id?: string
+          raw_snapshot?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          connection_id?: string
+          created_at?: string
+          external_booking_id?: string
+          external_version?: number
+          id?: string
+          raw_snapshot?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_booking_links_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_booking_links_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_credentials: {
+        Row: {
+          ciphertext: string
+          connection_id: string
+          iv: string
+          key_version: number
+          updated_at: string
+        }
+        Insert: {
+          ciphertext: string
+          connection_id: string
+          iv: string
+          key_version?: number
+          updated_at?: string
+        }
+        Update: {
+          ciphertext?: string
+          connection_id?: string
+          iv?: string
+          key_version?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_credentials_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_provider_catalog: {
+        Row: {
+          configuration_enabled: boolean
+          created_at: string
+          description: string
+          key: string
+          kind: string
+          live_adapter: boolean
+          name: string
+        }
+        Insert: {
+          configuration_enabled?: boolean
+          created_at?: string
+          description?: string
+          key: string
+          kind: string
+          live_adapter?: boolean
+          name: string
+        }
+        Update: {
+          configuration_enabled?: boolean
+          created_at?: string
+          description?: string
+          key?: string
+          kind?: string
+          live_adapter?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      integration_reconciliation_issues: {
+        Row: {
+          connection_id: string
+          details: string | null
+          detected_at: string
+          entity_id: string
+          entity_type: string
+          hotel_id: string
+          id: string
+          issue_type: string
+          local_snapshot: Json | null
+          remote_snapshot: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          connection_id: string
+          details?: string | null
+          detected_at?: string
+          entity_id: string
+          entity_type: string
+          hotel_id: string
+          id?: string
+          issue_type: string
+          local_snapshot?: Json | null
+          remote_snapshot?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          connection_id?: string
+          details?: string | null
+          detected_at?: string
+          entity_id?: string
+          entity_type?: string
+          hotel_id?: string
+          id?: string
+          issue_type?: string
+          local_snapshot?: Json | null
+          remote_snapshot?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_reconciliation_issues_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_reconciliation_issues_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_sync_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          connection_id: string
+          created_at: string
+          direction: string
+          hotel_id: string
+          id: string
+          idempotency_key: string | null
+          kind: string
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string
+          payload: Json
+          result: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          connection_id: string
+          created_at?: string
+          direction: string
+          hotel_id: string
+          id?: string
+          idempotency_key?: string | null
+          kind: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload?: Json
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          connection_id?: string
+          created_at?: string
+          direction?: string
+          hotel_id?: string
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload?: Json
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_jobs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sync_jobs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_webhook_deliveries: {
+        Row: {
+          attempts: number
+          connection_id: string
+          created_at: string
+          delivered_at: string | null
+          event_type: string
+          hotel_id: string
+          id: string
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string
+          payload: Json
+          response_status: number | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          connection_id: string
+          created_at?: string
+          delivered_at?: string | null
+          event_type: string
+          hotel_id: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload: Json
+          response_status?: number | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          connection_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          event_type?: string
+          hotel_id?: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload?: Json
+          response_status?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_webhook_deliveries_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_webhook_deliveries_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_webhook_events: {
+        Row: {
+          attempts: number
+          connection_id: string
+          event_type: string
+          external_event_id: string
+          hotel_id: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          payload: Json
+          processed_at: string | null
+          received_at: string
+          signature_verified: boolean
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          connection_id: string
+          event_type: string
+          external_event_id: string
+          hotel_id: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          payload: Json
+          processed_at?: string | null
+          received_at?: string
+          signature_verified?: boolean
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          connection_id?: string
+          event_type?: string
+          external_event_id?: string
+          hotel_id?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          processed_at?: string | null
+          received_at?: string
+          signature_verified?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_webhook_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_webhook_events_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -15680,6 +16256,38 @@ export type Database = {
           _user_id: string
         }
         Returns: number
+      }
+      integration_cancel_reservation: {
+        Args: {
+          _connection_id: string
+          _external_booking_id: string
+          _reason: string
+          _version: number
+        }
+        Returns: Json
+      }
+      integration_connection_access: {
+        Args: { _connection_id: string }
+        Returns: boolean
+      }
+      integration_create_reservation: {
+        Args: {
+          _connection_id: string
+          _idempotency_key: string
+          _quote: Json
+          _reservation: Json
+        }
+        Returns: Json
+      }
+      integration_modify_reservation: {
+        Args: {
+          _connection_id: string
+          _external_booking_id: string
+          _quote: Json
+          _reservation: Json
+          _version: number
+        }
+        Returns: Json
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_booking_participant: {

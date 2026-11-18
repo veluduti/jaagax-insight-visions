@@ -470,6 +470,27 @@
       "when": 1794893247121,
       "tag": "0066_brand_governance_and_policy_restoration",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1794992075613,
+      "tag": "0067_integration_control_plane",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1794992134210,
+      "tag": "0068_integration_api_clients_and_reservation_modification",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1794992302000,
+      "tag": "0069_integration_reservation_currency_correction",
+      "breakpoints": true
     }
   ]
 }

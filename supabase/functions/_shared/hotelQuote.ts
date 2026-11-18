@@ -29,6 +29,7 @@ export interface QuoteRequest {
 
 export interface ServerQuote {
   error?: string;
+  coupon_error?: boolean;
   status?: number;
   result?: PricingResult;
   room?: any;
@@ -219,6 +220,7 @@ export interface GroupRequest {
 
 export interface MultiQuote {
   error?: string;
+  coupon_error?: boolean;
   status?: number;
   hotel?: any;
   promo?: { id: string; code: string; discount: number } | null;

@@ -4,6 +4,7 @@ import HotelCouponsPanel from "@/components/admin/HotelCouponsPanel";
 import HyperGuestMarketplacePanel from "@/components/admin/HyperGuestMarketplacePanel";
 import HotelMarkupPanel from "@/components/admin/HotelMarkupPanel";
 import BrandApprovalsPanel from "@/components/admin/BrandApprovalsPanel";
+import IntegrationReviewPanel from "@/components/admin/IntegrationReviewPanel";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,6 +66,7 @@ export default function AdminHospitality() {
               <TabsTrigger value="coupons">Coupons</TabsTrigger>
               <TabsTrigger value="markups">Price Markups</TabsTrigger>
               <TabsTrigger value="hyperguest">HyperGuest Marketplace</TabsTrigger>
+              <TabsTrigger value="integrations">Integration Review</TabsTrigger>
               <TabsTrigger value="review">Property review ({pending.length})</TabsTrigger>
               <TabsTrigger value="all">All properties</TabsTrigger>
               <TabsTrigger value="biz">Businesses</TabsTrigger>
@@ -78,6 +80,7 @@ export default function AdminHospitality() {
             <TabsContent value="markups"><HotelMarkupPanel /></TabsContent>
             <TabsContent value="brands"><BrandApprovalsPanel /></TabsContent>
             <TabsContent value="hyperguest"><HyperGuestMarketplacePanel /></TabsContent>
+            <TabsContent value="integrations"><IntegrationReviewPanel /></TabsContent>
             <TabsContent value="review" className="space-y-2">
               {!pending.length && <p className="text-sm text-muted-foreground">Nothing waiting for review.</p>}
               {pending.map((p) => <PropRow key={p.id} p={p} onSet={setPropStatus} />)}

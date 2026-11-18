@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, BedDouble, CalendarRange, Sparkles, Utensils, PartyPopper, Compass, ConciergeBell, Contact, Users, ClipboardList, Wallet, BarChart3, Star, Settings, Image, MapPin, ShieldCheck, Tag, CalendarDays, Info } from "lucide-react";
+import { LayoutDashboard, Building2, BedDouble, CalendarRange, Sparkles, Utensils, PartyPopper, Compass, ConciergeBell, Contact, Users, ClipboardList, Wallet, BarChart3, Star, Settings, Image, MapPin, ShieldCheck, Tag, CalendarDays, Info, Cable, Globe2, RefreshCw } from "lucide-react";
 
 export const partnerWorkspaceNav = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/partners/dashboard" },
@@ -31,6 +31,11 @@ export const partnerWorkspaceNav = [
     { label: "Spa & Wellness", icon: Sparkles, to: "/partners/workspace/experiences" },
     { label: "Transport & Transfers", icon: Compass, to: "/partners/workspace/services" },
     { label: "Other Services", icon: ConciergeBell, to: "/partners/extra-services" },
+  ] },
+  { label: "Integrations", icon: Cable, to: "/partners/integrations", children: [
+    { label: "OTA Connections", icon: Globe2, to: "/partners/integrations" },
+    { label: "PMS Integrations", icon: Cable, to: "/partners/integrations" },
+    { label: "Channel Manager", icon: RefreshCw, to: "/partners/integrations" },
   ] },
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },
   { label: "Bookings & Guests", icon: Users, to: "/partners/reservations" },
