@@ -1,3 +1,4 @@
+import { LONG_STAY_COPY, TITLE } from "@/config/dashboardModes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
@@ -13,9 +14,9 @@ const CHART = ["hsl(var(--primary))", "hsl(var(--partner-chart-2, 199 89% 48%))"
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-type Props = { hotel: any; rooms: PgRoom[]; onSwitchToHotel?: () => void };
+type Props = { mode?: "pg" | "hostel" | "coliving"; hotel: any; rooms: PgRoom[]; onSwitchToHotel?: () => void };
 
-export default function PgOwnerDashboard({ hotel, rooms, onSwitchToHotel }: Props) {
+export default function PgOwnerDashboard({ mode = "pg", hotel, rooms, onSwitchToHotel }: Props) {
   const [data, setData] = useState<{ stays: PgStay[]; dues: PgDue[]; maint: number; waitlist: number; requests: number } | null>(null);
   const [err, setErr] = useState("");
   const qrRef = useRef<HTMLDivElement>(null);
@@ -50,20 +51,21 @@ export default function PgOwnerDashboard({ hotel, rooms, onSwitchToHotel }: Prop
   if (err) return <div role="alert" className="py-12 text-center">{err}<Button onClick={load} className="ml-3">Retry</Button></div>;
   if (!m || !data) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
-  const tabs = [["Overview", "/partners/dashboard"], ["Residents", "/partners/long-stays"], ["Applications", "/partners/long-stays"], ["Beds & Rooms", "/partners/inventory"], ["Rent & Payments", "/partners/long-stays"], ["Mess / Dining", "/partners/workspace/dining"], ["Housekeeping", "/partners/operations"], ["Maintenance", "/partners/operations"], ["Requests", "/partners/service-requests"]];
+  const copy = LONG_STAY_COPY[mode];
+  const tabs = [["Overview", "/partners/dashboard"], [copy.people, "/partners/long-stays"], ["Applications", "/partners/long-stays"], ["Beds & Rooms", "/partners/inventory"], ["Rent & Payments", "/partners/long-stays"], mode === "hostel" ? ["Facilities", "/partners/workspace/amenities"] : ["Mess / Dining", "/partners/workspace/dining"], ["Housekeeping", "/partners/operations"], ["Maintenance", "/partners/operations"], ["Requests", "/partners/service-requests"]];
   const occPie = [{ v: m.occupied }, { v: m.available }, { v: m.maintenance }].map((x, i) => ({ ...x, i }));
   const Row = ({ icon: I, label, value, tone = "" }: any) => <div className="pg-row"><I className={tone} /><span>{label}</span><strong className={tone}>{value}</strong></div>;
 
   return <div className="pg-dash">
-    <div className="pw-heading"><div><h1>PG / Hostel Owner Dashboard</h1><p>Manage residents, beds, rent, mess, services and the resident app.</p></div>
+    <div className="pw-heading"><div><h1>{TITLE[mode]}</h1><p>{copy.subtitle}</p></div>
       <div className="pw-actions items-center">
         {onSwitchToHotel && <Button size="sm" variant="outline" onClick={onSwitchToHotel}><Building2 className="h-3.5 w-3.5 mr-1" />Switch to Hotel view</Button>}
         <span className="pg-chip"><CalendarDays className="h-3.5 w-3.5" />Today, {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
       </div></div>
 
     <div className="pg-top">
-      <div className="pg-hero">{hotel.images?.[0] ? <PropertyPhoto src={hotel.images[0]} alt={hotel.name} /> : null}<div><span className="pg-badge">PG / Hostel</span><h2>{hotel.name}</h2><p><MapPin className="h-3.5 w-3.5" />{[hotel.locality, hotel.city].filter(Boolean).join(", ") || "Location not set"}</p></div></div>
-      {[[BedDouble, m.totalBeds, "Total Beds"], [BedDouble, m.occupied, `Occupied (${m.occupancyPct}%)`], [BedDouble, m.available, `Available (${m.totalBeds ? Math.round(m.available / m.totalBeds * 100) : 0}%)`], [Users, m.residents, "Residents"], [UserPlus, m.newJoins, "New Join (This Month)"]].map(([I, v, l]: any) => <div key={l} className="pg-stat"><I /><div><strong>{v}</strong><span>{l}</span></div></div>)}
+      <div className="pg-hero">{hotel.images?.[0] ? <PropertyPhoto src={hotel.images[0]} alt={hotel.name} /> : null}<div><span className="pg-badge">{copy.badge}</span><h2>{hotel.name}</h2><p><MapPin className="h-3.5 w-3.5" />{[hotel.locality, hotel.city].filter(Boolean).join(", ") || "Location not set"}</p></div></div>
+      {[[BedDouble, m.totalBeds, "Total Beds"], [BedDouble, m.occupied, `Occupied (${m.occupancyPct}%)`], [BedDouble, m.available, `Available (${m.totalBeds ? Math.round(m.available / m.totalBeds * 100) : 0}%)`], [Users, m.residents, copy.people], [UserPlus, m.newJoins, "New Join (This Month)"]].map(([I, v, l]: any) => <div key={l} className="pg-stat"><I /><div><strong>{v}</strong><span>{l}</span></div></div>)}
     </div>
 
     <nav className="pw-tabs" aria-label="PG sections">{tabs.map(([l, to], i) => <Link key={l} to={to} className={i === 0 ? "active" : ""}>{l}</Link>)}</nav>

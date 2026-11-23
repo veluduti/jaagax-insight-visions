@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePartnerHotel } from "@/hooks/usePartnerHotel";
 import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { listManagedHotels, type ManagedHotel } from "@/services/hospitality/partnerDashboardService";
-import { partnerWorkspaceNav } from "@/config/partnerWorkspaceNav";
+import { MODE_LABEL, TITLE, modesForTypes, navForMode, type DashboardMode } from "@/config/dashboardModes";
+import { setDashboardMode, useDashboardMode } from "@/hooks/useDashboardMode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bell, Menu, Search, X, Loader2, LogOut, HelpCircle } from "lucide-react";
@@ -46,15 +47,29 @@ export default function PartnerWorkspaceLayout() {
   }, [load]);
   const hotel = hotels.find(h => h.id === selected) ?? hotels.find(h => h.id === ctx.hotelId) ?? hotels[0];
   const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); if(location.pathname==="/partners/property-setup")navigate(`/partners/property-setup?hotel=${id}`); };
+  const mode = useDashboardMode(hotel?.id, hotel?.business_types);
+  const nav = navForMode(mode);
+  const allModes = Array.from(new Set(hotels.flatMap(h => modesForTypes(h.business_types)))) as DashboardMode[];
+  const chooseMode = (m: DashboardMode) => {
+    if (!hotel) return;
+    // Stay on this property when it supports the type; otherwise open the owner's first property of that type.
+    const target = modesForTypes(hotel.business_types).includes(m) ? hotel : hotels.find(h => modesForTypes(h.business_types).includes(m));
+    if (!target) return;
+    setDashboardMode(target.id, m);
+    if (target.id !== hotel.id) choose(target.id);
+  };
   const value = {...ctx,hotelId:hotel?.id ?? null, hotelName:hotel?.name ?? ctx.hotelName};
-  const matches = partnerWorkspaceNav.flatMap(item => [item,...(item.children ?? [])]).filter(item=>item.label.toLowerCase().includes(search.toLowerCase()));
+  const matches = nav.flatMap(item => [item,...(item.children ?? [])]).filter(item=>item.label.toLowerCase().includes(search.toLowerCase()));
   return <div className="partner-workspace">
     <header className="pw-header">
       <Button variant="ghost" size="icon" className="pw-mobile-trigger" aria-label={open ? "Close sidebar" : "Open sidebar"} onClick={()=>setOpen(!open)}>{open ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}</Button>
       <Link to="/" className="pw-brand">JAAGA <span>X</span></Link>
-      <strong className="pw-header-title text-sm">Hotel Partner Dashboard</strong>
+      <strong className="pw-header-title text-sm">{TITLE[mode]}</strong>
+      <select aria-label="Property type" value={mode} onChange={e=>chooseMode(e.target.value as DashboardMode)}>
+        {(allModes.length ? allModes : [mode]).map(m=><option key={m} value={m}>{MODE_LABEL[m]}</option>)}
+      </select>
       <select aria-label="Active property" value={hotel?.id ?? ""} onChange={e=>choose(e.target.value)}>
-        {!hotels.length && <option value="">Your property</option>}{hotels.map(h=><option key={h.id} value={h.id}>{h.name}</option>)}
+        {!hotels.length && <option value="">Your property</option>}{hotels.map(h=><option key={h.id} value={h.id}>{h.name} · {modesForTypes(h.business_types).map(m=>MODE_LABEL[m]).join(", ")}</option>)}
       </select>
       <form className="ml-auto relative" onSubmit={e=>{e.preventDefault();if(matches[0] && search.trim()) navigate(matches[0].to);}}>
         <Input aria-label="Search dashboard modules" placeholder="Search modules…" value={search} onChange={e=>setSearch(e.target.value)} />
@@ -66,8 +81,8 @@ export default function PartnerWorkspaceLayout() {
     </header>
     <div className="pw-layout">
       <aside className={`pw-sidebar ${open ? "is-open" : ""}`}>
-        <div className="pw-property-mini">{hotel?.images?.[0] && <div className="w-12 shrink-0"><PropertyPhoto src={hotel.images[0]} alt={hotel.name}/></div>}<div className="min-w-0"><strong className="block text-xs truncate">{hotel?.name ?? "Your property"}</strong><p className="text-[10px] mt-1">Hotel ID: {hotel?.id.slice(0,8) ?? "—"}</p><span className="pw-success inline-block mt-1">{hotel?.is_active ? "Live" : "Not published"}</span></div></div>
-        <nav aria-label="Hotel management">{partnerWorkspaceNav.map(item => item.children ? <details key={item.label} open><summary><item.icon/>{item.label}</summary>{item.children.map(child=><NavLink key={child.label} to={child.to} className={()=>location.pathname+location.search===child.to?"active":""}>{child.label}</NavLink>)}</details> : <NavLink key={item.label} to={item.to} end><item.icon/>{item.label}</NavLink>)}</nav>
+        <div className="pw-property-mini">{hotel?.images?.[0] && <div className="w-12 shrink-0"><PropertyPhoto src={hotel.images[0]} alt={hotel.name}/></div>}<div className="min-w-0"><strong className="block text-xs truncate">{hotel?.name ?? "Your property"}</strong><p className="text-[10px] mt-1">{MODE_LABEL[mode]} ID: {hotel?.id.slice(0,8) ?? "—"}</p><span className="pw-success inline-block mt-1">{hotel?.is_active ? "Live" : "Not published"}</span></div></div>
+        <nav aria-label={`${MODE_LABEL[mode]} management`}>{nav.map(item => item.children ? <details key={item.label} open><summary><item.icon/>{item.label}</summary>{item.children.map(child=><NavLink key={child.label} to={child.to} className={()=>location.pathname+location.search===child.to?"active":""}>{child.label}</NavLink>)}</details> : <NavLink key={item.label} to={item.to} end><item.icon/>{item.label}</NavLink>)}</nav>
         <div className="mt-auto border-t border-border/30 pt-3"><HelpCircle className="h-5 w-5 ml-2"/><strong className="block text-sm px-2 mt-1">Need Help?</strong><Link to="/contact">Contact Jaaga</Link></div>
       </aside>
       <main className="pw-content">
