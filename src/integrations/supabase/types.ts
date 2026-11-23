@@ -8006,6 +8006,224 @@ export type Database = {
           },
         ]
       }
+      hotel_visitor_blacklist: {
+        Row: {
+          active: boolean
+          added_by: string | null
+          created_at: string
+          hotel_id: string
+          id: string
+          name: string
+          phone: string | null
+          reason: string
+          removed_at: string | null
+          removed_by: string | null
+          removed_reason: string | null
+        }
+        Insert: {
+          active?: boolean
+          added_by?: string | null
+          created_at?: string
+          hotel_id: string
+          id?: string
+          name: string
+          phone?: string | null
+          reason: string
+          removed_at?: string | null
+          removed_by?: string | null
+          removed_reason?: string | null
+        }
+        Update: {
+          active?: boolean
+          added_by?: string | null
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          reason?: string
+          removed_at?: string | null
+          removed_by?: string | null
+          removed_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_visitor_blacklist_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_visitor_settings: {
+        Row: {
+          categories: string[] | null
+          hotel_id: string
+          max_duration_minutes: number
+          max_per_host: number
+          pass_note: string | null
+          pass_validity_hours: number
+          require_approval: boolean
+          require_id: boolean
+          restricted_areas: string[]
+          retention_days: number
+          updated_at: string
+          visiting_end: string
+          visiting_start: string
+        }
+        Insert: {
+          categories?: string[] | null
+          hotel_id: string
+          max_duration_minutes?: number
+          max_per_host?: number
+          pass_note?: string | null
+          pass_validity_hours?: number
+          require_approval?: boolean
+          require_id?: boolean
+          restricted_areas?: string[]
+          retention_days?: number
+          updated_at?: string
+          visiting_end?: string
+          visiting_start?: string
+        }
+        Update: {
+          categories?: string[] | null
+          hotel_id?: string
+          max_duration_minutes?: number
+          max_per_host?: number
+          pass_note?: string | null
+          pass_validity_hours?: number
+          require_approval?: boolean
+          require_id?: boolean
+          restricted_areas?: string[]
+          retention_days?: number
+          updated_at?: string
+          visiting_end?: string
+          visiting_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_visitor_settings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: true
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_visitors: {
+        Row: {
+          area: string | null
+          booking_id: string | null
+          category: string
+          checked_in_at: string | null
+          checked_out_at: string | null
+          created_at: string
+          created_by: string | null
+          entry_type: string
+          expected_at: string | null
+          expected_out: string | null
+          host_name: string | null
+          hotel_id: string
+          id: string
+          id_type: string | null
+          id_verified: boolean
+          long_stay_id: string | null
+          name: string
+          notes: string | null
+          pass_code: string
+          pass_valid_until: string | null
+          phone: string | null
+          purpose: string | null
+          rating: number | null
+          status: string
+          timeline: Json
+          updated_at: string
+          visitor_code: string | null
+        }
+        Insert: {
+          area?: string | null
+          booking_id?: string | null
+          category?: string
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_type?: string
+          expected_at?: string | null
+          expected_out?: string | null
+          host_name?: string | null
+          hotel_id: string
+          id?: string
+          id_type?: string | null
+          id_verified?: boolean
+          long_stay_id?: string | null
+          name: string
+          notes?: string | null
+          pass_code?: string
+          pass_valid_until?: string | null
+          phone?: string | null
+          purpose?: string | null
+          rating?: number | null
+          status?: string
+          timeline?: Json
+          updated_at?: string
+          visitor_code?: string | null
+        }
+        Update: {
+          area?: string | null
+          booking_id?: string | null
+          category?: string
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_type?: string
+          expected_at?: string | null
+          expected_out?: string | null
+          host_name?: string | null
+          hotel_id?: string
+          id?: string
+          id_type?: string | null
+          id_verified?: boolean
+          long_stay_id?: string | null
+          name?: string
+          notes?: string | null
+          pass_code?: string
+          pass_valid_until?: string | null
+          phone?: string | null
+          purpose?: string | null
+          rating?: number | null
+          status?: string
+          timeline?: Json
+          updated_at?: string
+          visitor_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_visitors_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_visitors_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_visitors_long_stay_id_fkey"
+            columns: ["long_stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_waitlist: {
         Row: {
           check_in: string
