@@ -44,6 +44,7 @@ export const partnerWorkspaceNav = [
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },
   { label: "Guests & Enquiries", icon: Contact, to: "/partners/residents" },
   { label: "Bookings & Guests", icon: Users, to: "/partners/reservations" },
+  { label: "Booking Enquiries & Leads", icon: ClipboardList, to: "/partners/applications" },
   { label: "Orders & Service Requests", icon: ClipboardList, to: "/partners/service-requests" },
   { label: "Billing & Payments", icon: Wallet, to: "/partners/rent-payments" },
   { label: "Payouts", icon: Wallet, to: "/partners/payouts" },

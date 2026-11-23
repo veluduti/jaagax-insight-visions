@@ -46,7 +46,7 @@ const longStayNav = (unit: string): NavItem[] => [
   ] },
   { label: `${unit} & Leads`, icon: Users, to: "/partners/residents", children: [
     { label: `${unit} & Leads`, icon: Users, to: "/partners/residents" },
-    { label: "Applications", icon: FileText, to: "/partners/residents?tab=applications" },
+    { label: "Applications & Leads", icon: FileText, to: "/partners/applications" },
     { label: "Move-in / Move-out", icon: DoorOpen, to: "/partners/residents?tab=moves" },
     { label: "Rent Collection", icon: IndianRupee, to: "/partners/rent-payments" },
   ] },
@@ -70,6 +70,7 @@ const NAV: Record<DashboardMode, NavItem[]> = {
       { label: "Rate Plans", icon: Wallet, to: "/partners/rate-plans" },
     ] },
     { label: "Guests, Tenants & Leads", icon: Users, to: "/partners/residents" },
+    { label: "Enquiries & Applications", icon: FileText, to: "/partners/applications" },
     { label: "Long Stays", icon: Users, to: "/partners/long-stays" },
     base("Amenities & Facilities"),
     { label: "Housekeeping", icon: Wrench, to: "/partners/operations" },

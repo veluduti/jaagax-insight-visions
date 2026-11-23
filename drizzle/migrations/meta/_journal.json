@@ -547,6 +547,13 @@
       "when": 1795439968484,
       "tag": "0077_visitor_management",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1795440428835,
+      "tag": "0078_applications_leads_fields",
+      "breakpoints": true
     }
   ]
 }

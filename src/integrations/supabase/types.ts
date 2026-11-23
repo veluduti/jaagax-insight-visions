@@ -5588,72 +5588,102 @@ export type Database = {
       }
       hotel_leads: {
         Row: {
+          application_code: string | null
           assignee_name: string | null
           budget: number | null
+          check_out_date: string | null
+          company: string | null
           converted_booking_id: string | null
           converted_stay_id: string | null
           created_at: string
           created_by: string | null
           email: string | null
           follow_up_at: string | null
+          guests: number | null
           hotel_id: string
           id: string
           interest: string | null
+          last_activity_at: string
+          lead_type: string
           lost_reason: string | null
           name: string
           notes: string | null
+          occupation: string | null
           phone: string | null
           preferred_move_in: string | null
+          preferred_unit: string | null
           source: string
           stage: string
+          stay_type: string | null
           timeline: Json
           updated_at: string
+          verification: Json
           visit_at: string | null
         }
         Insert: {
+          application_code?: string | null
           assignee_name?: string | null
           budget?: number | null
+          check_out_date?: string | null
+          company?: string | null
           converted_booking_id?: string | null
           converted_stay_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
           follow_up_at?: string | null
+          guests?: number | null
           hotel_id: string
           id?: string
           interest?: string | null
+          last_activity_at?: string
+          lead_type?: string
           lost_reason?: string | null
           name: string
           notes?: string | null
+          occupation?: string | null
           phone?: string | null
           preferred_move_in?: string | null
+          preferred_unit?: string | null
           source?: string
           stage?: string
+          stay_type?: string | null
           timeline?: Json
           updated_at?: string
+          verification?: Json
           visit_at?: string | null
         }
         Update: {
+          application_code?: string | null
           assignee_name?: string | null
           budget?: number | null
+          check_out_date?: string | null
+          company?: string | null
           converted_booking_id?: string | null
           converted_stay_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
           follow_up_at?: string | null
+          guests?: number | null
           hotel_id?: string
           id?: string
           interest?: string | null
+          last_activity_at?: string
+          lead_type?: string
           lost_reason?: string | null
           name?: string
           notes?: string | null
+          occupation?: string | null
           phone?: string | null
           preferred_move_in?: string | null
+          preferred_unit?: string | null
           source?: string
           stage?: string
+          stay_type?: string | null
           timeline?: Json
           updated_at?: string
+          verification?: Json
           visit_at?: string | null
         }
         Relationships: [
