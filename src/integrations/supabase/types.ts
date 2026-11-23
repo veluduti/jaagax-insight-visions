@@ -6233,6 +6233,63 @@ export type Database = {
           },
         ]
       }
+      hotel_purchase_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expected_at: string | null
+          hotel_id: string
+          id: string
+          lines: Json
+          po_number: string
+          received_at: string | null
+          status: string
+          supplier_id: string | null
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expected_at?: string | null
+          hotel_id: string
+          id?: string
+          lines?: Json
+          po_number: string
+          received_at?: string | null
+          status?: string
+          supplier_id?: string | null
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expected_at?: string | null
+          hotel_id?: string
+          id?: string
+          lines?: Json
+          po_number?: string
+          received_at?: string | null
+          status?: string
+          supplier_id?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_purchase_orders_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_supply_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_rate_calendar: {
         Row: {
           available_units: number | null
@@ -6959,6 +7016,170 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_staff_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_supply_items: {
+        Row: {
+          category_key: string
+          created_at: string
+          current_stock: number
+          hotel_id: string
+          id: string
+          last_purchase_at: string | null
+          location: string | null
+          min_level: number
+          name: string
+          reorder_level: number
+          sku: string | null
+          supplier_id: string | null
+          unit: string
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          category_key: string
+          created_at?: string
+          current_stock?: number
+          hotel_id: string
+          id?: string
+          last_purchase_at?: string | null
+          location?: string | null
+          min_level?: number
+          name: string
+          reorder_level?: number
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          category_key?: string
+          created_at?: string
+          current_stock?: number
+          hotel_id?: string
+          id?: string
+          last_purchase_at?: string | null
+          location?: string | null
+          min_level?: number
+          name?: string
+          reorder_level?: number
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_supply_items_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_supply_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_supply_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_supply_movements: {
+        Row: {
+          balance_after: number | null
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          item_id: string
+          kind: string
+          note: string | null
+          quantity: number
+          reference: string | null
+          unit_cost: number | null
+        }
+        Insert: {
+          balance_after?: number | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          item_id: string
+          kind: string
+          note?: string | null
+          quantity: number
+          reference?: string | null
+          unit_cost?: number | null
+        }
+        Update: {
+          balance_after?: number | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          item_id?: string
+          kind?: string
+          note?: string | null
+          quantity?: number
+          reference?: string | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_supply_movements_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_supply_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_supply_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_supply_suppliers: {
+        Row: {
+          category_keys: string[]
+          created_at: string
+          email: string | null
+          hotel_id: string
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          category_keys?: string[]
+          created_at?: string
+          email?: string | null
+          hotel_id: string
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          category_keys?: string[]
+          created_at?: string
+          email?: string | null
+          hotel_id?: string
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_supply_suppliers_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -16523,6 +16744,7 @@ export type Database = {
         Args: { _amount: number; _duration_days: number; _package_type: string }
         Returns: Json
       }
+      receive_purchase_order: { Args: { _po: string }; Returns: undefined }
       redeem_cashback: { Args: { _user_id: string }; Returns: number }
       reject_agent_admin_upgrade: {
         Args: { _notes?: string; _request_id: string }

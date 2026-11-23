@@ -505,6 +505,13 @@
       "when": 1794993324509,
       "tag": "0071_integration_provider_catalog_service_read",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1795434052437,
+      "tag": "0072_hotel_supplies_inventory",
+      "breakpoints": true
     }
   ]
 }
