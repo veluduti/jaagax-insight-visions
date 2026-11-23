@@ -5417,6 +5417,175 @@ export type Database = {
           },
         ]
       }
+      hotel_invoice_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          idempotency_key: string
+          invoice_id: string
+          kind: string
+          method: string
+          note: string | null
+          receipt_no: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          idempotency_key: string
+          invoice_id: string
+          kind?: string
+          method?: string
+          note?: string | null
+          receipt_no?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          idempotency_key?: string
+          invoice_id?: string
+          kind?: string
+          method?: string
+          note?: string | null
+          receipt_no?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_invoice_payments_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_invoices: {
+        Row: {
+          adjustments: number
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          discount: number
+          due_date: string
+          hotel_id: string
+          id: string
+          invoice_no: string | null
+          kind: string
+          lines: Json
+          long_stay_id: string | null
+          notes: string | null
+          paid_amount: number
+          party_email: string | null
+          party_name: string
+          party_phone: string | null
+          period_end: string | null
+          period_start: string | null
+          refunded_amount: number
+          room_label: string | null
+          room_type: string | null
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+        }
+        Insert: {
+          adjustments?: number
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due_date?: string
+          hotel_id: string
+          id?: string
+          invoice_no?: string | null
+          kind?: string
+          lines?: Json
+          long_stay_id?: string | null
+          notes?: string | null
+          paid_amount?: number
+          party_email?: string | null
+          party_name: string
+          party_phone?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          refunded_amount?: number
+          room_label?: string | null
+          room_type?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Update: {
+          adjustments?: number
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due_date?: string
+          hotel_id?: string
+          id?: string
+          invoice_no?: string | null
+          kind?: string
+          lines?: Json
+          long_stay_id?: string | null
+          notes?: string | null
+          paid_amount?: number
+          party_email?: string | null
+          party_name?: string
+          party_phone?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          refunded_amount?: number
+          room_label?: string | null
+          room_type?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_invoices_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_invoices_long_stay_id_fkey"
+            columns: ["long_stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_long_stays: {
         Row: {
           advance: number

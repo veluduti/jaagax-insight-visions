@@ -172,6 +172,7 @@ const PartnerPropertySetup = lazy(() => import("./pages/partners/PartnerProperty
 const PartnerServiceRequests = lazy(() => import("./pages/partners/PartnerServiceRequests"));
 const PartnerMaintenance = lazy(() => import("./pages/partners/PartnerMaintenance"));
 const PartnerMess = lazy(() => import("./pages/partners/PartnerMess"));
+const PartnerRentPayments = lazy(() => import("./pages/partners/PartnerRentPayments"));
 const PartnerSupplies = lazy(() => import("./pages/partners/PartnerSupplies"));
 const PartnerServiceWorkspace = lazy(() => import("./pages/partners/PartnerServiceWorkspace"));
 const PartnerHotelProfile = lazy(() => import("./pages/partners/PartnerHotelProfile"));
@@ -620,6 +621,7 @@ const App = () => (
                   <Route path="/partners/supplies" element={<PartnerSupplies />} />
                   <Route path="/partners/maintenance" element={<PartnerMaintenance />} />
                   <Route path="/partners/mess" element={<PartnerMess />} />
+                  <Route path="/partners/rent-payments" element={<PartnerRentPayments />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />
                   <Route path="/partners/pricing" element={<PartnerPricing />} />
                   <Route path="/partners/addons" element={<PartnerAddons />} />

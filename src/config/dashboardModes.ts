@@ -47,14 +47,14 @@ const longStayNav = (unit: string): NavItem[] => [
   { label: unit, icon: Users, to: "/partners/long-stays", children: [
     { label: "Applications", icon: FileText, to: "/partners/long-stays" },
     { label: "Move-in / Move-out", icon: DoorOpen, to: "/partners/long-stays" },
-    { label: "Rent Collection", icon: IndianRupee, to: "/partners/long-stays" },
+    { label: "Rent Collection", icon: IndianRupee, to: "/partners/rent-payments" },
   ] },
   { label: "Mess & Dining", icon: Utensils, to: "/partners/mess" },
   { label: "Facilities", icon: Sparkles, to: "/partners/workspace/amenities" },
   { label: "Housekeeping", icon: Wrench, to: "/partners/operations?tab=housekeeping" },
   { label: "Visitors & Requests", icon: ClipboardList, to: "/partners/service-requests" },
   ...common,
-  base("Billing & Payments"), base("Reports & Analytics"), base("Reviews & Ratings"), base("Settings"),
+  { ...base("Billing & Payments"), label: "Rent & Payments" }, base("Payouts"), base("Reports & Analytics"), base("Reviews & Ratings"), base("Settings"),
 ];
 
 const NAV: Record<DashboardMode, NavItem[]> = {
@@ -72,7 +72,7 @@ const NAV: Record<DashboardMode, NavItem[]> = {
     base("Amenities & Facilities"),
     { label: "Housekeeping", icon: Wrench, to: "/partners/operations" },
     { ...base("Hotel Services"), label: "Apartment Services" },
-    ...common, base("Bookings & Guests"), base("Orders & Service Requests"), base("Billing & Payments"), base("Reports & Analytics"), base("Reviews & Ratings"), base("Settings"),
+    ...common, base("Bookings & Guests"), base("Orders & Service Requests"), { ...base("Billing & Payments"), label: "Rent & Payments" }, base("Payouts"), base("Reports & Analytics"), base("Reviews & Ratings"), base("Settings"),
   ],
   pg: longStayNav("Residents"),
   hostel: longStayNav("Students & Residents"),

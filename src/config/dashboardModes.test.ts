@@ -13,7 +13,8 @@ describe("dashboard modes", () => {
   it("PG sidebar has residents and mess, not banquets", () => {
     const labels = navForMode("pg").map(i => i.label);
     expect(labels).toContain("Residents");
-    expect(labels).toContain("Mess / Dining");
+    expect(labels).toContain("Mess & Dining");
+    expect(labels).toContain("Rent & Payments");
     expect(labels).not.toContain("Events & Banquets");
   });
 });
