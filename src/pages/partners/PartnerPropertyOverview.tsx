@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Mail, Globe, BedDouble, Image, Sparkles, Utensils, PartyPopper, Compass, ConciergeBell, ShieldCheck, Star, Building2, Check, Circle, Eye, Loader2, ClipboardList, Users, BarChart3, Settings, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import PropertyPhoto from "@/components/partners/PropertyPhoto";
+import PgOwnerDashboard from "@/components/partners/PgOwnerDashboard";
+import { isLongStayProperty } from "@/lib/pgDashboardMetrics";
 
 function Panel({title,icon:Icon,to,action="Edit",children,className=""}:{title:string;icon:typeof BedDouble;to:string;action?:string;children:React.ReactNode;className?:string}) {
   return <section className={`pw-panel ${className}`}><div className="pw-panel-title"><h2><Icon/>{title}</h2><Link to={to}>{action}</Link></div>{children}</section>;
@@ -18,11 +20,13 @@ export default function PartnerPropertyOverview() {
   const [error,setError]=useState("");
   const [publishing,setPublishing]=useState(false);
   const [period,setPeriod]=useState(30);
+  const [view,setView]=useState<"auto"|"hotel">("auto");
   const load=useCallback(async()=>{if(!ctx.hotelId)return;try{setError("");setData(await loadPartnerOverview(ctx.hotelId));}catch{setError("Could not load property information. Please try again.");}},[ctx.hotelId]);
   useEffect(()=>{void load();const timer=window.setInterval(load,30000);return()=>window.clearInterval(timer);},[load]);
   if(error)return <div role="alert" className="py-12 text-center">{error}<Button onClick={load} className="ml-3">Retry</Button></div>;
   if(!data)return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary"/></div>;
   const {hotel,rooms,rates,services,reviews,bookings,requests}=data;
+  if(view==="auto" && isLongStayProperty(hotel.business_types)) return <PgOwnerDashboard hotel={hotel} rooms={rooms as any} onSwitchToHotel={()=>setView("hotel")}/>;
   const readiness=propertyReadiness(data);
   const publish=async()=>{if(!ctx.hotelId)return;setPublishing(true);try{await requestPublish(ctx.hotelId);toast.success("Property submitted for publishing review");await load();window.dispatchEvent(new Event("partner-property-updated"));}catch{toast.error("Could not submit your property");}finally{setPublishing(false);}};
   const money=(v:number)=>new Intl.NumberFormat("en-IN",{style:"currency",currency:hotel.default_currency || "INR",maximumFractionDigits:0}).format(v);
