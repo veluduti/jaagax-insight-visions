@@ -37,6 +37,7 @@ export const partnerWorkspaceNav = [
     { label: "PMS Integrations", icon: Cable, to: "/partners/integrations" },
     { label: "Channel Manager", icon: RefreshCw, to: "/partners/integrations" },
   ] },
+  { label: "Meals & Dining Ops", icon: Utensils, to: "/partners/mess" },
   { label: "Maintenance", icon: Wrench, to: "/partners/maintenance" },
   { label: "Inventory & Supplies", icon: Package, to: "/partners/supplies" },
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },

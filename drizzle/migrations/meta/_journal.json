@@ -519,6 +519,13 @@
       "when": 1795434852462,
       "tag": "0073_maintenance_management",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1795436269683,
+      "tag": "0074_mess_dining_management",
+      "breakpoints": true
     }
   ]
 }

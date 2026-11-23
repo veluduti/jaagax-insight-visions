@@ -5629,6 +5629,337 @@ export type Database = {
           },
         ]
       }
+      hotel_meal_attendance: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          is_guest_meal: boolean
+          meal: string
+          person_name: string | null
+          served_on: string
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          is_guest_meal?: boolean
+          meal: string
+          person_name?: string | null
+          served_on?: string
+          status?: string
+          subscription_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          is_guest_meal?: boolean
+          meal?: string
+          person_name?: string | null
+          served_on?: string
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_attendance_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_meal_attendance_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_meal_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meal_menus: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          hotel_id: string
+          id: string
+          is_special: boolean
+          items: string[]
+          meal: string
+          menu_date: string | null
+          start_time: string | null
+          weekday: number | null
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          hotel_id: string
+          id?: string
+          is_special?: boolean
+          items?: string[]
+          meal: string
+          menu_date?: string | null
+          start_time?: string | null
+          weekday?: number | null
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          hotel_id?: string
+          id?: string
+          is_special?: boolean
+          items?: string[]
+          meal?: string
+          menu_date?: string | null
+          start_time?: string | null
+          weekday?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_menus_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meal_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          method: string
+          paid_on: string
+          period: string | null
+          reference: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          method?: string
+          paid_on?: string
+          period?: string | null
+          reference?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          method?: string
+          paid_on?: string
+          period?: string | null
+          reference?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_payments_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_meal_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_meal_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meal_plans: {
+        Row: {
+          created_at: string
+          diet: string
+          hotel_id: string
+          id: string
+          is_active: boolean
+          meals: string[]
+          name: string
+          period: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          diet?: string
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          meals?: string[]
+          name: string
+          period?: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          diet?: string
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          meals?: string[]
+          name?: string
+          period?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_plans_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          for_date: string
+          hotel_id: string
+          id: string
+          kind: string
+          meal: string | null
+          notes: string | null
+          person_name: string
+          quantity: number
+          rating: number | null
+          room_label: string | null
+          status: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          for_date?: string
+          hotel_id: string
+          id?: string
+          kind?: string
+          meal?: string | null
+          notes?: string | null
+          person_name: string
+          quantity?: number
+          rating?: number | null
+          room_label?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          for_date?: string
+          hotel_id?: string
+          id?: string
+          kind?: string
+          meal?: string | null
+          notes?: string | null
+          person_name?: string
+          quantity?: number
+          rating?: number | null
+          room_label?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_requests_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meal_subscriptions: {
+        Row: {
+          created_at: string
+          diet: string
+          end_date: string | null
+          hotel_id: string
+          id: string
+          long_stay_id: string | null
+          meal_credits: number
+          notes: string | null
+          paused_until: string | null
+          person_name: string
+          plan_id: string | null
+          price: number
+          room_label: string | null
+          start_date: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          diet?: string
+          end_date?: string | null
+          hotel_id: string
+          id?: string
+          long_stay_id?: string | null
+          meal_credits?: number
+          notes?: string | null
+          paused_until?: string | null
+          person_name: string
+          plan_id?: string | null
+          price?: number
+          room_label?: string | null
+          start_date?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          diet?: string
+          end_date?: string | null
+          hotel_id?: string
+          id?: string
+          long_stay_id?: string | null
+          meal_credits?: number
+          notes?: string | null
+          paused_until?: string | null
+          person_name?: string
+          plan_id?: string | null
+          price?: number
+          room_label?: string | null
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meal_subscriptions_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_meal_subscriptions_long_stay_id_fkey"
+            columns: ["long_stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_meal_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_meal_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_meals: {
         Row: {
           adult_price: number

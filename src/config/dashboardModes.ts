@@ -49,7 +49,7 @@ const longStayNav = (unit: string): NavItem[] => [
     { label: "Move-in / Move-out", icon: DoorOpen, to: "/partners/long-stays" },
     { label: "Rent Collection", icon: IndianRupee, to: "/partners/long-stays" },
   ] },
-  { label: "Mess / Dining", icon: Utensils, to: "/partners/workspace/dining" },
+  { label: "Mess & Dining", icon: Utensils, to: "/partners/mess" },
   { label: "Facilities", icon: Sparkles, to: "/partners/workspace/amenities" },
   { label: "Housekeeping", icon: Wrench, to: "/partners/operations?tab=housekeeping" },
   { label: "Visitors & Requests", icon: ClipboardList, to: "/partners/service-requests" },
