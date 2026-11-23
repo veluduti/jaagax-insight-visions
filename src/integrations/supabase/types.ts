@@ -5586,23 +5586,124 @@ export type Database = {
           },
         ]
       }
+      hotel_leads: {
+        Row: {
+          assignee_name: string | null
+          budget: number | null
+          converted_booking_id: string | null
+          converted_stay_id: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          follow_up_at: string | null
+          hotel_id: string
+          id: string
+          interest: string | null
+          lost_reason: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          preferred_move_in: string | null
+          source: string
+          stage: string
+          timeline: Json
+          updated_at: string
+          visit_at: string | null
+        }
+        Insert: {
+          assignee_name?: string | null
+          budget?: number | null
+          converted_booking_id?: string | null
+          converted_stay_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          follow_up_at?: string | null
+          hotel_id: string
+          id?: string
+          interest?: string | null
+          lost_reason?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_move_in?: string | null
+          source?: string
+          stage?: string
+          timeline?: Json
+          updated_at?: string
+          visit_at?: string | null
+        }
+        Update: {
+          assignee_name?: string | null
+          budget?: number | null
+          converted_booking_id?: string | null
+          converted_stay_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          follow_up_at?: string | null
+          hotel_id?: string
+          id?: string
+          interest?: string | null
+          lost_reason?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_move_in?: string | null
+          source?: string
+          stage?: string
+          timeline?: Json
+          updated_at?: string
+          visit_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_leads_converted_booking_id_fkey"
+            columns: ["converted_booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_leads_converted_stay_id_fkey"
+            columns: ["converted_stay_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_long_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_leads_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_long_stays: {
         Row: {
           advance: number
           amount_due: number | null
           booking_ref: string | null
+          checkout_notes: string | null
+          company: string | null
           created_at: string
           created_by: string | null
           deposit: number
+          dob: string | null
+          documents: Json
           duration: number | null
+          gender: string | null
           hold_expires_at: string | null
           hotel_id: string
           id: string
+          kyc_status: string
           monthly_rent: number
           move_in: string
           move_out: string | null
           notes: string | null
           occupants: number
+          occupation: string | null
           paid_at: string | null
           payment_status: string
           quote: Json | null
@@ -5616,6 +5717,7 @@ export type Database = {
           room_id: string | null
           special_requests: string | null
           status: string
+          timeline: Json
           unit_label: string | null
           updated_at: string
           user_id: string | null
@@ -5624,18 +5726,25 @@ export type Database = {
           advance?: number
           amount_due?: number | null
           booking_ref?: string | null
+          checkout_notes?: string | null
+          company?: string | null
           created_at?: string
           created_by?: string | null
           deposit?: number
+          dob?: string | null
+          documents?: Json
           duration?: number | null
+          gender?: string | null
           hold_expires_at?: string | null
           hotel_id: string
           id?: string
+          kyc_status?: string
           monthly_rent?: number
           move_in: string
           move_out?: string | null
           notes?: string | null
           occupants?: number
+          occupation?: string | null
           paid_at?: string | null
           payment_status?: string
           quote?: Json | null
@@ -5649,6 +5758,7 @@ export type Database = {
           room_id?: string | null
           special_requests?: string | null
           status?: string
+          timeline?: Json
           unit_label?: string | null
           updated_at?: string
           user_id?: string | null
@@ -5657,18 +5767,25 @@ export type Database = {
           advance?: number
           amount_due?: number | null
           booking_ref?: string | null
+          checkout_notes?: string | null
+          company?: string | null
           created_at?: string
           created_by?: string | null
           deposit?: number
+          dob?: string | null
+          documents?: Json
           duration?: number | null
+          gender?: string | null
           hold_expires_at?: string | null
           hotel_id?: string
           id?: string
+          kyc_status?: string
           monthly_rent?: number
           move_in?: string
           move_out?: string | null
           notes?: string | null
           occupants?: number
+          occupation?: string | null
           paid_at?: string | null
           payment_status?: string
           quote?: Json | null
@@ -5682,6 +5799,7 @@ export type Database = {
           room_id?: string | null
           special_requests?: string | null
           status?: string
+          timeline?: Json
           unit_label?: string | null
           updated_at?: string
           user_id?: string | null

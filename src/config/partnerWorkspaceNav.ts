@@ -41,6 +41,7 @@ export const partnerWorkspaceNav = [
   { label: "Maintenance", icon: Wrench, to: "/partners/maintenance" },
   { label: "Inventory & Supplies", icon: Package, to: "/partners/supplies" },
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },
+  { label: "Guests & Enquiries", icon: Contact, to: "/partners/residents" },
   { label: "Bookings & Guests", icon: Users, to: "/partners/reservations" },
   { label: "Orders & Service Requests", icon: ClipboardList, to: "/partners/service-requests" },
   { label: "Billing & Payments", icon: Wallet, to: "/partners/rent-payments" },

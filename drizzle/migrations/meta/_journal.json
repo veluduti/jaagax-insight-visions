@@ -533,6 +533,13 @@
       "when": 1795437142055,
       "tag": "0075_rent_payments_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795437940336,
+      "tag": "0076_residents_leads_management",
+      "breakpoints": true
     }
   ]
 }

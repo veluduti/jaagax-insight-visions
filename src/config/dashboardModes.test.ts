@@ -12,7 +12,7 @@ describe("dashboard modes", () => {
   it("lists each supported dashboard once", () => expect(modesForTypes(["hotel", "boutique", "hostel"])).toEqual(["hotel", "hostel"]));
   it("PG sidebar has residents and mess, not banquets", () => {
     const labels = navForMode("pg").map(i => i.label);
-    expect(labels).toContain("Residents");
+    expect(labels).toContain("Residents & Leads");
     expect(labels).toContain("Mess & Dining");
     expect(labels).toContain("Rent & Payments");
     expect(labels).not.toContain("Events & Banquets");
