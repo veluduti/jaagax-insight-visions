@@ -5534,6 +5534,101 @@ export type Database = {
           },
         ]
       }
+      hotel_maintenance_assets: {
+        Row: {
+          category_key: string
+          created_at: string
+          hotel_id: string
+          id: string
+          installed_on: string | null
+          location: string | null
+          name: string
+          serial_no: string | null
+          status: string
+          vendor_id: string | null
+          warranty_until: string | null
+        }
+        Insert: {
+          category_key: string
+          created_at?: string
+          hotel_id: string
+          id?: string
+          installed_on?: string | null
+          location?: string | null
+          name: string
+          serial_no?: string | null
+          status?: string
+          vendor_id?: string | null
+          warranty_until?: string | null
+        }
+        Update: {
+          category_key?: string
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          installed_on?: string | null
+          location?: string | null
+          name?: string
+          serial_no?: string | null
+          status?: string
+          vendor_id?: string | null
+          warranty_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_maintenance_assets_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_maintenance_assets_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_maintenance_vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_maintenance_vendors: {
+        Row: {
+          category_keys: string[]
+          created_at: string
+          email: string | null
+          hotel_id: string
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          category_keys?: string[]
+          created_at?: string
+          email?: string | null
+          hotel_id: string
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          category_keys?: string[]
+          created_at?: string
+          email?: string | null
+          hotel_id?: string
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_maintenance_vendors_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_meals: {
         Row: {
           adult_price: number
@@ -5593,52 +5688,97 @@ export type Database = {
       }
       hotel_ops_tasks: {
         Row: {
+          asset_id: string | null
           assigned_to: string | null
+          assignee_name: string | null
+          attachments: Json
           booking_id: string | null
+          category_key: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
+          due_at: string | null
+          estimated_cost: number | null
+          floor: string | null
           hotel_id: string
           id: string
+          is_work_order: boolean
           kind: string
           notes: string | null
           priority: string
+          rating: number | null
+          requester_name: string | null
+          requester_type: string | null
           room_label: string | null
+          scheduled_for: string | null
           status: string
+          ticket_no: string | null
+          timeline: Json
           title: string
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
+          asset_id?: string | null
           assigned_to?: string | null
+          assignee_name?: string | null
+          attachments?: Json
           booking_id?: string | null
+          category_key?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          due_at?: string | null
+          estimated_cost?: number | null
+          floor?: string | null
           hotel_id: string
           id?: string
+          is_work_order?: boolean
           kind?: string
           notes?: string | null
           priority?: string
+          rating?: number | null
+          requester_name?: string | null
+          requester_type?: string | null
           room_label?: string | null
+          scheduled_for?: string | null
           status?: string
+          ticket_no?: string | null
+          timeline?: Json
           title: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
+          asset_id?: string | null
           assigned_to?: string | null
+          assignee_name?: string | null
+          attachments?: Json
           booking_id?: string | null
+          category_key?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          due_at?: string | null
+          estimated_cost?: number | null
+          floor?: string | null
           hotel_id?: string
           id?: string
+          is_work_order?: boolean
           kind?: string
           notes?: string | null
           priority?: string
+          rating?: number | null
+          requester_name?: string | null
+          requester_type?: string | null
           room_label?: string | null
+          scheduled_for?: string | null
           status?: string
+          ticket_no?: string | null
+          timeline?: Json
           title?: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -6036,6 +6176,67 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "hotel_partner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_preventive_schedules: {
+        Row: {
+          asset_id: string | null
+          category_key: string
+          created_at: string
+          every_days: number
+          hotel_id: string
+          id: string
+          last_done: string | null
+          next_due: string
+          title: string
+          vendor_id: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          category_key: string
+          created_at?: string
+          every_days?: number
+          hotel_id: string
+          id?: string
+          last_done?: string | null
+          next_due: string
+          title: string
+          vendor_id?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          category_key?: string
+          created_at?: string
+          every_days?: number
+          hotel_id?: string
+          id?: string
+          last_done?: string | null
+          next_due?: string
+          title?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_preventive_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_maintenance_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_preventive_schedules_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_preventive_schedules_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_maintenance_vendors"
             referencedColumns: ["id"]
           },
         ]

@@ -35,7 +35,7 @@ export function resolveMode(types: string[] | null | undefined, saved: string | 
 }
 
 const base = (label: string) => partnerWorkspaceNav.find(i => i.label === label) as NavItem;
-const common = ["Inventory & Supplies", "Integrations", "Contacts & Departments"].map(base);
+const common = ["Maintenance", "Inventory & Supplies", "Integrations", "Contacts & Departments"].map(base);
 
 const longStayNav = (unit: string): NavItem[] => [
   base("Dashboard"), base("Multi-Property"), base("Property Setup"),
@@ -51,7 +51,7 @@ const longStayNav = (unit: string): NavItem[] => [
   ] },
   { label: "Mess / Dining", icon: Utensils, to: "/partners/workspace/dining" },
   { label: "Facilities", icon: Sparkles, to: "/partners/workspace/amenities" },
-  { label: "Housekeeping & Maintenance", icon: Wrench, to: "/partners/operations" },
+  { label: "Housekeeping", icon: Wrench, to: "/partners/operations?tab=housekeeping" },
   { label: "Visitors & Requests", icon: ClipboardList, to: "/partners/service-requests" },
   ...common,
   base("Billing & Payments"), base("Reports & Analytics"), base("Reviews & Ratings"), base("Settings"),

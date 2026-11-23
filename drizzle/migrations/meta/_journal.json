@@ -512,6 +512,13 @@
       "when": 1795434052437,
       "tag": "0072_hotel_supplies_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1795434852462,
+      "tag": "0073_maintenance_management",
+      "breakpoints": true
     }
   ]
 }
