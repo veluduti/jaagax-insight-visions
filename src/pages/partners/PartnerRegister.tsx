@@ -306,7 +306,7 @@ export default function PartnerRegister() {
   const typePhoto = TYPE_PHOTO[form.property_type] ?? DEFAULT_PHOTO;
 
   const left = [
-    { title: <>List Your Property on <span className="text-[hsl(var(--js-purple))]">Jaaga Stays</span></>, sub: "Hotels, Resorts, PGs, Hostels, Co-living, Service Apartments, Villas and More.", head: "Why List on Jaaga?", items: ["Reach more guests & residents", "Get bookings and income", "Manage your property digitally", "Secure payments & support"], icons: [BarChart3, CalendarCheck, Settings, ShieldCheck], photo: TYPE_PHOTO.resort },
+    { title: <>List Your Hotel on <span className="text-[hsl(var(--js-purple))]">Jaaga Stays</span></>, sub: "Hotels, Resorts, PGs, Hostels, Co-living, Service Apartments, Villas and More.", head: "Why List on Jaaga?", items: ["Reach more guests & residents", "Get bookings and income", "Manage your property digitally", "Secure payments & support"], icons: [BarChart3, CalendarCheck, Settings, ShieldCheck], photo: TYPE_PHOTO.resort },
     { title: <>Verify Your <span className="text-[hsl(var(--js-purple))]">Contact Details</span></>, sub: "We've sent a one-time password (OTP) to your email address. Verify it to continue.", head: "Why Verify?", items: ["Keep your account secure", "Receive important updates", "Enable property listings and payments"], photo: null },
     { title: <>Choose Your <span className="text-[hsl(var(--js-purple))]">Property Type</span></>, sub: "Select the type of property you want to list on Jaaga Stays. You can add more property types later from your dashboard.", head: "Why List on Jaaga?", items: ["Create your property profile", "Get more bookings and residents", "Manage bookings, stays and payments", "Grow your business with Jaaga"], photo: typePhoto },
     { title: <>Set Up Your <span className="text-[hsl(var(--js-purple))]">Business Profile</span></>, sub: `Add your basic business details for your ${typeLabel} operation.`, head: "What We'll Create", items: ["Your Jaaga Partner Profile", `${typeLabel} business setup`, "A dedicated owner dashboard", "You can add property details later"], photo: typePhoto },
@@ -321,7 +321,7 @@ export default function PartnerRegister() {
             <Home className="h-7 w-7 text-[hsl(var(--js-purple))]" />
             <span className="text-lg font-extrabold tracking-tight">JAAGA <span className="text-[hsl(var(--js-purple))]">STAYS</span></span>
             <span className="hidden h-6 w-px bg-[hsl(var(--js-line))] sm:block" />
-            <span className="hidden font-semibold sm:block">List Your Property</span>
+            <span className="hidden font-semibold sm:block">List Your Hotel</span>
           </Link>
           <div className="flex gap-2">
             <a href="mailto:support@jaagax.com" className="hidden items-center gap-1.5 rounded-lg border border-[hsl(var(--js-purple))] px-3 py-1.5 text-sm font-semibold sm:inline-flex"><HelpCircle className="h-4 w-4" /> Need Help?</a>
@@ -380,7 +380,7 @@ export default function PartnerRegister() {
           <section className="rounded-3xl border border-[hsl(var(--js-line))] bg-[hsl(var(--js-white))] p-5 shadow-sm sm:p-8">
             {step === 0 && (
               <form onSubmit={(e) => { e.preventDefault(); createAccount(); }} noValidate>
-                <Heading icon={UserPlus} title="Create Your Jaaga Account" sub="Get started in less than a minute and list your property." />
+                <Heading icon={UserPlus} title="Create Your Jaaga Account" sub="Get started in less than a minute and list your hotel." />
                 {duplicateEmail && (
                   <div role="alert" className="mb-4 rounded-xl border border-[hsl(var(--js-purple))]/40 bg-[hsl(var(--js-lavender))] p-4 text-sm">
                     <p className="font-semibold">{duplicateEmail} already has a Jaaga partner account.</p>

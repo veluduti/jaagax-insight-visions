@@ -23,6 +23,7 @@ import {
   Users,
   IndianRupee,
 } from "lucide-react";
+import "./partner-register.css";
 
 const benefits = [
   {
@@ -136,45 +137,40 @@ export default function PartnerLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-950/20 text-foreground">
+    <div className="js-landing min-h-screen">
       <PartnerNav />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
+          <div className="js-glow absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full blur-[120px]" />
         </div>
         <div className="container mx-auto grid gap-12 px-4 py-2 md:py-2 lg:grid-cols-2 lg:items-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <Badge className="mb-4 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/10">
+            <Badge className="js-chip mb-4 hover:bg-transparent">
               JAAGA X Partner Hub · India's fastest-growing hotel network
             </Badge>
-            <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="js-ink-text text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Grow your hotel with the{" "}
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-                world's smartest booking platform
-              </span>
+              <span className="js-grad-text">world's smartest booking platform</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+            <p className="js-muted-text mt-6 max-w-xl text-lg">
               List once. Sell everywhere. Powerful pricing tools, real-time inventory sync, and AI-driven insights —
               built for independent hotels, resorts, and multi-property chains.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/partners/register">
-                <Button
-                  size="lg"
-                  className="bg-emerald-500 text-white shadow-xl shadow-emerald-500/40 hover:bg-emerald-600"
-                >
+                <Button size="lg" className="js-btn border-0">
                   List your hotel <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <a href="#contact">
-                <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline" className="js-outline-btn">
                   Talk to sales
                 </Button>
               </a>
             </div>
-            <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+            <div className="js-muted-text mt-8 flex flex-wrap items-center gap-6 text-sm">
               <Stat n="18,000+" l="Hotels onboarded" />
               <Stat n="₹1,200 Cr+" l="Bookings processed" />
               <Stat n="4.8/5" l="Partner rating" />
@@ -187,13 +183,13 @@ export default function PartnerLanding() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="relative"
           >
-            <Card className="border border-emerald-500/20 bg-gradient-to-br from-background/80 to-emerald-950/20 shadow-2xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="js-card">
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <Building2 className="h-4 w-4 text-emerald-400" /> Partner Dashboard
+                  <div className="js-ink-text flex items-center gap-2 text-sm font-semibold">
+                    <Building2 className="js-purple-text h-4 w-4" /> Partner Dashboard
                   </div>
-                  <Badge variant="outline" className="border-emerald-500/40 text-emerald-300">
+                  <Badge variant="outline" className="js-chip">
                     Live
                   </Badge>
                 </div>
@@ -203,9 +199,9 @@ export default function PartnerLanding() {
                     { l: "Revenue", v: "₹2.4L" },
                     { l: "Occupancy", v: "92%" },
                   ].map((k) => (
-                    <div key={k.l} className="rounded-lg border border-border/60 bg-background/40 p-3">
-                      <p className="text-xs text-muted-foreground">{k.l}</p>
-                      <p className="mt-1 text-2xl font-bold">{k.v}</p>
+                    <div key={k.l} className="js-panel rounded-lg border js-line-b p-3">
+                      <p className="js-muted-text text-xs">{k.l}</p>
+                      <p className="js-ink-text mt-1 text-2xl font-bold">{k.v}</p>
                     </div>
                   ))}
                 </div>
@@ -213,9 +209,9 @@ export default function PartnerLanding() {
                   {["Channel sync healthy", "3 new reviews (4.9★)", "Weekend rates optimized by AI"].map((s) => (
                     <div
                       key={s}
-                      className="flex items-center gap-2 rounded-md border border-border/40 bg-background/30 px-3 py-2 text-sm"
+                      className="js-ink-text flex items-center gap-2 rounded-md border js-line-b bg-white px-3 py-2 text-sm"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {s}
+                      <CheckCircle2 className="js-purple-text h-4 w-4" /> {s}
                     </div>
                   ))}
                 </div>
@@ -241,13 +237,13 @@ export default function PartnerLanding() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
             >
-              <Card className="group h-full border border-border/60 bg-gradient-to-br from-background to-emerald-950/10 transition hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10">
+              <Card className="js-card js-card-hover group h-full transition">
                 <CardContent className="p-6">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 transition group-hover:bg-emerald-500/20">
+                  <div className="js-icon-box mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg transition">
                     <b.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-base font-semibold">{b.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{b.desc}</p>
+                  <h3 className="js-ink-text text-base font-semibold">{b.title}</h3>
+                  <p className="js-muted-text mt-2 text-sm">{b.desc}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -260,14 +256,14 @@ export default function PartnerLanding() {
         <SectionHeader eyebrow="Built for growth" title="Powerful tools, zero complexity" />
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {detail.map((d) => (
-            <Card key={d.title} className="border border-border/60 bg-background/40">
+            <Card key={d.title} className="js-card">
               <CardContent className="flex gap-4 p-6">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <div className="js-btn flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                   <d.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{d.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{d.body}</p>
+                  <h3 className="js-ink-text font-semibold">{d.title}</h3>
+                  <p className="js-muted-text mt-1 text-sm">{d.body}</p>
                 </div>
               </CardContent>
             </Card>
@@ -286,31 +282,31 @@ export default function PartnerLanding() {
           {plans.map((p) => (
             <Card
               key={p.name}
-              className={`relative flex h-full flex-col border ${p.featured ? "border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent shadow-2xl shadow-emerald-500/20" : "border-border/60"}`}
+              className={`js-card relative flex h-full flex-col ${p.featured ? "js-panel !border-[hsl(var(--js-purple))]" : ""}`}
             >
               {p.featured && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white">
+                <Badge className="js-btn absolute -top-3 left-1/2 -translate-x-1/2 border-0">
                   Most popular
                 </Badge>
               )}
               <CardContent className="flex flex-1 flex-col p-6">
-                <p className="text-sm font-semibold text-emerald-400">{p.name}</p>
+                <p className="js-purple-text text-sm font-semibold">{p.name}</p>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{p.price}</span>
-                  {p.price !== "Custom" && <span className="text-sm text-muted-foreground">commission</span>}
+                  <span className="js-ink-text text-4xl font-bold">{p.price}</span>
+                  {p.price !== "Custom" && <span className="js-muted-text text-sm">commission</span>}
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{p.tag}</p>
-                <ul className="mt-6 flex-1 space-y-3 text-sm">
+                <p className="js-muted-text mt-1 text-xs">{p.tag}</p>
+                <ul className="js-ink-text mt-6 flex-1 space-y-3 text-sm">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
+                      <CheckCircle2 className="js-purple-text mt-0.5 h-4 w-4 flex-shrink-0" />
                       <span>{f}</span>
                     </li>
                   ))}
                 </ul>
                 <Link to="/partners/register" className="mt-6 block">
                   <Button
-                    className={`w-full ${p.featured ? "bg-emerald-500 text-white hover:bg-emerald-600" : ""}`}
+                    className={`w-full ${p.featured ? "js-btn border-0" : "js-outline-btn"}`}
                     variant={p.featured ? "default" : "outline"}
                   >
                     {p.cta}
@@ -327,9 +323,9 @@ export default function PartnerLanding() {
         <SectionHeader eyebrow="Frequently asked" title="Everything you wanted to know" />
         <Accordion type="single" collapsible className="mt-8">
           {faq.map((f, i) => (
-            <AccordionItem key={i} value={String(i)} className="border-border/60">
-              <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+            <AccordionItem key={i} value={String(i)} className="js-line-b">
+              <AccordionTrigger className="js-ink-text text-left text-base">{f.q}</AccordionTrigger>
+              <AccordionContent className="js-muted-text">{f.a}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
@@ -363,20 +359,20 @@ export default function PartnerLanding() {
               />
             </div>
           </div>
-          <Card className="border border-emerald-500/20 bg-background/60 backdrop-blur">
+          <Card className="js-card">
             <CardContent className="p-6">
               <form onSubmit={submitContact} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <Input required placeholder="Full name" />
-                  <Input required placeholder="Hotel / company" />
+                  <Input required placeholder="Full name" className="js-input" />
+                  <Input required placeholder="Hotel / company" className="js-input" />
                 </div>
-                <Input required type="email" placeholder="Work email" />
-                <Input required type="tel" placeholder="Phone number" />
-                <Textarea required rows={4} placeholder="Tell us about your property (number of rooms, city, etc.)" />
-                <Button type="submit" className="w-full bg-emerald-500 text-white hover:bg-emerald-600">
+                <Input required type="email" placeholder="Work email" className="js-input" />
+                <Input required type="tel" placeholder="Phone number" className="js-input" />
+                <Textarea required rows={4} placeholder="Tell us about your property (number of rooms, city, etc.)" className="js-input" />
+                <Button type="submit" className="js-btn w-full border-0">
                   Request a callback
                 </Button>
-                <p className="text-xs text-muted-foreground">By submitting, you agree to our Terms & Privacy policy.</p>
+                <p className="js-muted-text text-xs">By submitting, you agree to our Terms & Privacy policy.</p>
               </form>
             </CardContent>
           </Card>
@@ -385,16 +381,13 @@ export default function PartnerLanding() {
 
       {/* CTA */}
       <section className="container mx-auto px-4 pb-24">
-        <div className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-600/20 via-teal-600/10 to-background p-10 text-center md:p-16">
-          <h2 className="text-3xl font-bold sm:text-4xl">Ready to fill more rooms?</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+        <div className="js-panel relative overflow-hidden rounded-3xl border p-10 text-center md:p-16" style={{ borderColor: "hsl(var(--js-purple) / 0.35)" }}>
+          <h2 className="js-ink-text text-3xl font-bold sm:text-4xl">Ready to fill more rooms?</h2>
+          <p className="js-muted-text mx-auto mt-3 max-w-2xl">
             Join 18,000+ hotels growing with JAAGA X. Free to list. Live in 24 hours.
           </p>
           <Link to="/partners/register" className="mt-6 inline-block">
-            <Button
-              size="lg"
-              className="bg-emerald-500 text-white shadow-xl shadow-emerald-500/40 hover:bg-emerald-600"
-            >
+            <Button size="lg" className="js-btn border-0">
               List your hotel <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
@@ -409,7 +402,7 @@ export default function PartnerLanding() {
 function Stat({ n, l }: { n: string; l: string }) {
   return (
     <div>
-      <p className="text-xl font-bold text-foreground">{n}</p>
+      <p className="js-ink-text text-xl font-bold">{n}</p>
       <p className="text-xs">{l}</p>
     </div>
   );
@@ -429,22 +422,22 @@ function SectionHeader({
   const cn = align === "center" ? "text-center mx-auto" : "text-left";
   return (
     <div className={`${cn} max-w-2xl`}>
-      <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">{eyebrow}</p>
-      <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
-      {subtitle && <p className="mt-3 text-muted-foreground">{subtitle}</p>}
+      <p className="js-purple-text text-xs font-semibold uppercase tracking-widest">{eyebrow}</p>
+      <h2 className="js-ink-text mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+      {subtitle && <p className="js-muted-text mt-3">{subtitle}</p>}
     </div>
   );
 }
 
 function ContactItem({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-border/50 bg-background/30 p-4">
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
+    <div className="js-card flex gap-3 rounded-lg p-4">
+      <div className="js-icon-box flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md">
         <Icon className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-muted-foreground">{body}</p>
+        <p className="js-ink-text text-sm font-semibold">{title}</p>
+        <p className="js-muted-text text-xs">{body}</p>
       </div>
     </div>
   );

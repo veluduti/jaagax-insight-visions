@@ -16,3 +16,38 @@
 .js-register .js-panel { background: linear-gradient(180deg, hsl(var(--js-lavender-strong)), hsl(var(--js-lavender))); }
 .js-register .js-input { border-color: hsl(var(--js-line)); background: hsl(var(--js-white)); color: hsl(var(--js-ink)); }
 .js-register .js-input:focus-within { border-color: hsl(var(--js-purple)); }
+
+/* Shared Jaaga Stays partner theme (register page purple) */
+.js-btn { background: linear-gradient(90deg, hsl(var(--js-purple, 268 84% 52%)), hsl(var(--js-purple-deep, 252 85% 48%))); color: hsl(0 0% 100%); box-shadow: 0 12px 24px -12px hsl(268 84% 52% / 0.55); }
+.js-btn:hover { filter: brightness(1.06); }
+.js-nav { background: hsl(0 0% 100% / 0.88); border-color: hsl(var(--js-line, 250 20% 88%)); }
+.js-nav .js-navlink { color: hsl(var(--js-muted, 240 8% 40%)); }
+.js-nav .js-navlink:hover { color: hsl(var(--js-ink, 240 30% 12%)); }
+
+.js-landing {
+  --js-purple: 268 84% 52%;
+  --js-purple-deep: 252 85% 48%;
+  --js-lavender: 266 100% 97%;
+  --js-lavender-strong: 266 85% 90%;
+  --js-ink: 240 30% 12%;
+  --js-muted: 240 8% 40%;
+  --js-line: 250 20% 88%;
+  --js-white: 0 0% 100%;
+  background: hsl(250 40% 99%);
+  color: hsl(var(--js-ink));
+}
+.js-landing .js-grad-text { background: linear-gradient(90deg, hsl(var(--js-purple)), hsl(var(--js-purple-deep))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.js-landing .js-glow { background: hsl(var(--js-purple) / 0.16); }
+.js-landing .js-card { background: hsl(var(--js-white)); border: 1px solid hsl(var(--js-line)); box-shadow: 0 14px 34px -22px hsl(var(--js-purple) / 0.35); }
+.js-landing .js-card-hover:hover { border-color: hsl(var(--js-purple) / 0.45); box-shadow: 0 18px 40px -20px hsl(var(--js-purple) / 0.45); }
+.js-landing .js-panel { background: linear-gradient(180deg, hsl(var(--js-lavender-strong)), hsl(var(--js-lavender))); }
+.js-landing .js-chip { border: 1px solid hsl(var(--js-purple) / 0.35); background: hsl(var(--js-lavender)); color: hsl(var(--js-purple)); }
+.js-landing .js-icon-box { background: hsl(var(--js-lavender-strong)); color: hsl(var(--js-purple)); }
+.js-landing .js-muted-text { color: hsl(var(--js-muted)); }
+.js-landing .js-ink-text { color: hsl(var(--js-ink)); }
+.js-landing .js-purple-text { color: hsl(var(--js-purple)); }
+.js-landing .js-line-b { border-color: hsl(var(--js-line)); }
+.js-landing .js-outline-btn { border: 1px solid hsl(var(--js-purple) / 0.45); color: hsl(var(--js-purple)); background: hsl(var(--js-white)); }
+.js-landing .js-outline-btn:hover { background: hsl(var(--js-lavender)); }
+.js-landing .js-input { border-color: hsl(var(--js-line)); background: hsl(var(--js-white)); color: hsl(var(--js-ink)); }
+.js-landing .js-input:focus { border-color: hsl(var(--js-purple)); }

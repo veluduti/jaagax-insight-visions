@@ -6,6 +6,7 @@ import { PartnerWorkspaceContext } from "@/contexts/PartnerWorkspaceContext";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import "@/pages/partners/partner-register.css";
 
 
 const nav = [
@@ -80,7 +81,7 @@ export default function PartnerNav() {
         </Button>
       </Link>
       <Link to="/partners/register">
-        <Button size="sm" className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">
+        <Button size="sm" className="js-btn border-0">
           List your hotel
         </Button>
       </Link>
@@ -93,7 +94,7 @@ export default function PartnerNav() {
         <Button variant="ghost" size="sm">Log in</Button>
       </Link>
       <Link to="/partners/register">
-        <Button size="sm" className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">
+        <Button size="sm" className="js-btn border-0">
           List your hotel
         </Button>
       </Link>
@@ -110,16 +111,16 @@ export default function PartnerNav() {
 
   if (workspace) return null;
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+    <header className="js-nav sticky top-0 z-40 border-b backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4 max-[399px]:px-2">
         <div className="flex min-w-0 items-center gap-1">
         {!onLanding && <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 shrink-0" aria-label="Go back" onClick={() => window.history.length > 1 ? nav_(-1) : nav_("/partners")}><ArrowLeft className="h-5 w-5" /></Button>}
         <Link to="/partners" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[hsl(268,84%,52%)] to-[hsl(252,85%,48%)] shadow-lg shadow-purple-500/30">
             <Building2 className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg truncate">
-            JAAGA X <span className="text-emerald-400">Partners</span>
+            JAAGA X <span className="text-[hsl(268,84%,52%)]">Partners</span>
           </span>
         </Link>
         </div>
@@ -127,7 +128,7 @@ export default function PartnerNav() {
         {onLanding && (
           <nav className="hidden items-center gap-7 md:flex">
             {nav.map((n) => (
-              <a key={n.href} href={n.href} className="text-sm text-muted-foreground transition hover:text-foreground">
+              <a key={n.href} href={n.href} className="js-navlink text-sm transition">
                 {n.label}
               </a>
             ))}
@@ -145,10 +146,10 @@ export default function PartnerNav() {
       </div>
 
       {open && (
-        <div className={cn("border-t border-border/60 bg-background/95 backdrop-blur-xl md:hidden")}>
+        <div className={cn("js-nav border-t backdrop-blur-xl md:hidden")}>
           <div className="container mx-auto flex flex-col gap-3 px-4 py-4">
             {onLanding && nav.map((n) => (
-              <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="text-sm text-muted-foreground">
+              <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="js-navlink text-sm">
                 {n.label}
               </a>
             ))}
@@ -160,7 +161,7 @@ export default function PartnerNav() {
                   </Button>
                 </Link>
                 <Button
-                  className="w-full bg-emerald-500 text-white hover:bg-emerald-600"
+                  className="w-full js-btn border-0"
                   onClick={() => { setOpen(false); handleSignOut(); }}
                 >
                   <LogOut className="mr-1.5 h-4 w-4" /> Sign out
@@ -174,7 +175,7 @@ export default function PartnerNav() {
                   </Button>
                 </Link>
                 <Link to="/partners/register" onClick={() => setOpen(false)}>
-                  <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
+                  <Button className="w-full js-btn border-0">List your hotel</Button>
                 </Link>
               </>
             ) : (
@@ -183,7 +184,7 @@ export default function PartnerNav() {
                   <Button variant="outline" className="w-full">Log in</Button>
                 </Link>
                 <Link to="/partners/register" onClick={() => setOpen(false)}>
-                  <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
+                  <Button className="w-full js-btn border-0">List your hotel</Button>
                 </Link>
               </>
             )}
