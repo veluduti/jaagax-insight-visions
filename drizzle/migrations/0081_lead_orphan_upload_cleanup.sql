@@ -1,0 +1,1 @@
+ALTER POLICY "members preview private lead files" ON storage.objects USING (bucket_id='lead-documents' AND (public.can_access_lead_document(name) OR (owner_id=auth.uid()::text AND NOT EXISTS (SELECT 1 FROM public.hotel_lead_documents d WHERE d.storage_path=name))));

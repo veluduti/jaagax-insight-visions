@@ -1,0 +1,1 @@
+ALTER POLICY "members remove unlinked lead uploads" ON storage.objects USING (bucket_id='lead-documents' AND owner_id=auth.uid()::text AND NOT EXISTS (SELECT 1 FROM public.hotel_lead_documents d WHERE d.storage_path=name));

@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import LeadDocumentsTab from "@/components/partners/LeadDocumentsTab";
 
 const db = supabase as any;
 type Lead = any;
@@ -27,7 +28,6 @@ const ago = (s: string) => { const m = Math.round((Date.now() - new Date(s).getT
 const entry = (label: string, note?: string) => ({ at: new Date().toISOString(), label, ...(note ? { note } : {}) });
 const srcLabel = (k: string) => LEAD_SOURCES.find(s => s[0] === k)?.[1] ?? k;
 const RANGES: [string, string, number][] = [["7", "Last 7 Days", 7], ["30", "Last 30 Days", 30], ["90", "Last 90 Days", 90], ["all", "All time", 0]];
-const DOC_STATES = ["pending", "uploaded", "verified", "rejected"];
 
 export default function PartnerApplications() {
   const { hotelId } = usePartnerHotel();
@@ -95,7 +95,6 @@ export default function PartnerApplications() {
       else await act(() => upd(l, { stage: "converted" }, "Converted", "Booking confirmed"), "Marked booking confirmed");
     }
     setDlg(null); };
-  const setDoc = (l: Lead, key: string, v: string) => act(() => upd(l, { verification: { ...(l.verification ?? {}), [key]: v } }, `${cfg.docs.find(x => x[0] === key)?.[1]}: ${v}`), "Verification updated");
   const csv = (list: Lead[]) => { const head = ["Application ID", "Name", "Phone", "Email", "Type", "Source", "Stay Type", cfg.unit, "Budget", cfg.date, "Stage", "Assigned", "Last Activity"]; const body = [head, ...list.map(l => [l.application_code, l.name, l.phone, l.email, l.lead_type, srcLabel(l.source), l.stay_type, l.preferred_unit, l.budget, l.preferred_move_in, stageLabel(stageOf(l)), l.assignee_name, l.last_activity_at])].map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n"); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([body], { type: "text/csv" })); a.download = "applications-leads.csv"; a.click(); };
   const bulk = (patch: any, label: string) => act(async () => { for (const l of (leads ?? []).filter(x => picked.includes(x.id))) await upd(l, patch, label); setPicked([]); }, `${label} (${picked.length})`);
 
@@ -169,9 +168,7 @@ export default function PartnerApplications() {
           <div className="flex">{current.phone && <Button size="icon" variant="ghost" asChild aria-label="Call"><a href={`tel:${current.phone}`}><Phone className="h-4 w-4" /></a></Button>}<Button size="icon" variant="ghost" aria-label="Close" onClick={() => setSel(null)}><X className="h-4 w-4" /></Button></div></div>
         <div className="flex gap-1 overflow-x-auto">{["overview", "documents", "visits", "notes", "activity"].map(t => <Button key={t} size="sm" variant={panelTab === t ? "default" : "ghost"} className="capitalize" onClick={() => setPanelTab(t)}>{t}</Button>)}</div>
         {panelTab === "overview" && <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">{[["Property", hotel?.name], ["Stay Type", current.stay_type], [cfg.unit, current.preferred_unit], ["Budget", inr(current.budget)], [cfg.date, d(current.preferred_move_in)], ...(!cfg.long ? [["Check-out", d(current.check_out_date)], ["Guests", current.guests]] : []), ["Mobile", current.phone], ["Email", current.email], ["Occupation", current.occupation], ["Company", current.company], ["Source", srcLabel(current.source)], ["Assigned To", current.assignee_name], ["Interest", current.interest], ["Created", dt(current.created_at)]].map(([kk, v]) => <Fragment key={kk as string}><dt className="text-muted-foreground">{kk}</dt><dd>{v || "—"}</dd></Fragment>)}</dl>}
-        {panelTab === "documents" && <ul className="space-y-2 text-sm">{cfg.docs.map(([key, l]) => { const v = current.verification?.[key] ?? "pending"; return <li key={key} className="flex items-center justify-between gap-2">{v === "verified" ? <CheckCircle className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4 text-muted-foreground" />}<span className="flex-1">{l}</span>
-          <Select value={v} onValueChange={nv => setDoc(current, key, nv)}><SelectTrigger className="h-8 w-[110px] capitalize"><SelectValue /></SelectTrigger><SelectContent>{DOC_STATES.map(s => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}</SelectContent></Select></li>; })}
-          <p className="text-xs text-muted-foreground">Track document status here. ID images uploaded at check-in appear in Reservations.</p></ul>}
+        {panelTab === "documents" && <LeadDocumentsTab key={current.id} hotelId={hotelId} leadId={current.id} categories={cfg.docs} onChanged={load} />}
         {panelTab === "visits" && <div className="space-y-2 text-sm"><p>Visit scheduled: <b>{dt(current.visit_at)}</b></p><p>Follow-up: <b>{dt(current.follow_up_at)}</b></p>
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setDlg({ kind: "visit", l: current, text: "" })}>{current.visit_at ? "Reschedule" : "Schedule Visit"}</Button>{current.visit_at && <Button size="sm" disabled={busy} onClick={() => act(() => upd(current, { stage: cfg.long ? "application" : current.stage }, "Visited"), "Marked as visited")}>Mark as Visited</Button>}</div></div>}
         {panelTab === "notes" && <div className="space-y-2"><p className="whitespace-pre-wrap rounded bg-muted p-2 text-sm">{current.notes || "No notes yet."}</p><Button size="sm" variant="outline" onClick={() => setDlg({ kind: "note", l: current, text: "" })}>Add Note</Button></div>}

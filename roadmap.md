@@ -1,6 +1,6 @@
 ## Secure lead documents
-- [ ] Add private property-scoped uploads, previews and persisted review history in each lead's Documents tab.
-- [ ] Verify uploads, status/save/reload, access isolation and mobile layout without changing bookings.
+- [x] Add private property-scoped image/PDF uploads, short-lived previews, review notes and server-owned history synchronized with lead verification/activity.
+- [x] Ten tests passed; signed-in owner upload/image preview/rejection validation/save/reload/history, anonymous access denial, foreign-lead upload denial, linked-file deletion protection and 390px layout verified. Temporary lead/files removed; no bookings changed.
 
 ## OTA, PMS & Channel Manager integration platform
 - [x] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
