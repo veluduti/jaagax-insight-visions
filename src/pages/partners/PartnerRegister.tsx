@@ -95,6 +95,9 @@ export default function PartnerRegister() {
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
   const [otp, setOtp] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneSent, setPhoneSent] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -240,6 +243,26 @@ export default function PartnerRegister() {
     const { data, error } = await resendSignupOtp(form.email.trim());
     const msg = errMessage(error, data);
     msg ? toast.error(msg) : toast.success("New code sent");
+  };
+
+  const sendPhoneOtp = async () => {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-mobile-otp", { body: { action: "send", phone: form.phone } });
+      const msg = errMessage(error, data);
+      if (msg) throw new Error(msg);
+      setPhoneSent(true); setPhoneOtp(""); toast.success("Code sent to your mobile");
+    } catch (e) { fail(e); } finally { setBusy(false); }
+  };
+
+  const verifyPhone = async () => {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-mobile-otp", { body: { action: "verify", otp: phoneOtp } });
+      const msg = errMessage(error, data);
+      if (msg) throw new Error(msg);
+      setPhoneVerified(true); toast.success("Mobile verified");
+    } catch (e) { fail(e); } finally { setBusy(false); }
   };
 
   const continueFromVerify = async () => {
@@ -421,7 +444,7 @@ export default function PartnerRegister() {
 
             {step === 1 && (
               <div>
-                <Heading icon={ShieldCheck} title="Verify Your Contact" sub="Enter the OTP sent to your email address." />
+                <Heading icon={ShieldCheck} title="Verify Your Contact" sub="Enter the OTPs sent to your email and mobile." />
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="rounded-2xl border border-[hsl(var(--js-line))] p-5">
                     <CardHead icon={Mail} title="Email Verification" status={emailVerified ? "Verified" : undefined}>OTP sent to <b className="text-[hsl(var(--js-purple))]">{form.email}</b></CardHead>
@@ -441,12 +464,24 @@ export default function PartnerRegister() {
                     )}
                   </div>
                   <div className="rounded-2xl border border-[hsl(var(--js-line))] p-5">
-                    <CardHead icon={Phone} title="Mobile Number" status={undefined}>Saved as <b className="text-[hsl(var(--js-purple))]">+91 {form.phone}</b></CardHead>
-                    <p className="mt-4 text-sm text-[hsl(var(--js-muted))]">Your mobile number is checked by SMS during document verification, before your property goes live.</p>
+                    <CardHead icon={Phone} title="Mobile Verification" status={phoneVerified ? "Verified" : undefined}>OTP to <b className="text-[hsl(var(--js-purple))]">+91 {form.phone}</b></CardHead>
+                    {phoneVerified ? <p className="mt-4 flex items-center gap-2 text-sm font-semibold"><CheckCircle2 className="h-5 w-5 text-[hsl(var(--js-ok))]" /> Mobile verified</p> : !emailVerified ? <p className="mt-4 text-sm text-[hsl(var(--js-muted))]">Verify your email first, then we'll send a code to your mobile.</p> : !phoneSent ? (
+                      <button type="button" onClick={sendPhoneOtp} disabled={busy} className="js-grad mt-4 flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold disabled:opacity-50">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send OTP to Mobile"}</button>
+                    ) : (
+                      <div className="mt-4 space-y-3">
+                        <div className="flex justify-center">
+                          <InputOTP maxLength={6} value={phoneOtp} onChange={(v) => setPhoneOtp(v.replace(/\D/g, ""))} aria-label="Mobile verification code">
+                            <InputOTPGroup>{Array.from({ length: 6 }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-11 w-10 text-lg" />)}</InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <button type="button" onClick={verifyPhone} disabled={busy || phoneOtp.length < 6} className="js-grad flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold disabled:opacity-50">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify Mobile"}</button>
+                        <button type="button" onClick={sendPhoneOtp} disabled={busy} className="mx-auto block text-sm font-semibold text-[hsl(var(--js-purple))] underline">Resend OTP</button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {emailVerified && <p className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--js-ok-soft))] px-4 py-3 font-semibold"><CheckCircle2 className="h-6 w-6 text-[hsl(var(--js-ok))]" /> Email verified successfully!</p>}
-                <PrimaryButton busy={false} disabled={!emailVerified} onClick={continueFromVerify}>Continue to Choose Property Type</PrimaryButton>
+                <PrimaryButton busy={false} disabled={!emailVerified || !phoneVerified} onClick={continueFromVerify}>Continue to Choose Property Type</PrimaryButton>
                 <button type="button" onClick={() => { setStep(0); setEmailVerified(false); }} className="mx-auto mt-4 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--js-purple))] underline"><ArrowLeft className="h-4 w-4" /> Change Contact Details</button>
               </div>
             )}

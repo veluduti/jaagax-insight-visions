@@ -11974,6 +11974,36 @@ export type Database = {
           },
         ]
       }
+      partner_mobile_otps: {
+        Row: {
+          attempts: number
+          expires_at: string
+          last_sent_at: string
+          otp_hash: string
+          phone: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          expires_at: string
+          last_sent_at?: string
+          otp_hash: string
+          phone: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          expires_at?: string
+          last_sent_at?: string
+          otp_hash?: string
+          phone?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           base_amount: number
