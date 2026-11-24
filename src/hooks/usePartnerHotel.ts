@@ -43,7 +43,12 @@ export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requireP
         .select("id,status,pms_setup_completed,hotel_name,approved_hotel_id")
         .eq("user_id", user.id).is("setup_hotel_id", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
 
-      if (!app) { nav("/partners/kyc", { replace: true }); return; }
+      if (!app) {
+        // Newly registered partners (account + business profile) land on the onboarding dashboard.
+        const { data: acct } = await (supabase as any).from("partner_accounts").select("id").eq("owner_user_id", user.id).maybeSingle();
+        if (acct) { setCtx({ loading: false, userId: user.id, hotelId: null, hotelName: "Your property", applicationId: null }); return; }
+        nav("/partners/kyc", { replace: true }); return;
+      }
       if (app.status !== "approved") { nav("/partners/status", { replace: true }); return; }
       if (opts.requirePmsSetup && !app.pms_setup_completed) { nav("/partners/pms-setup", { replace: true }); return; }
 

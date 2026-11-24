@@ -86,7 +86,7 @@ export default function PartnerWorkspaceLayout() {
         <div className="mt-auto border-t border-border/30 pt-3"><HelpCircle className="h-5 w-5 ml-2"/><strong className="block text-sm px-2 mt-1">Need Help?</strong><Link to="/contact">Contact Jaaga</Link></div>
       </aside>
       <main className="pw-content">
-        {ctx.loading || loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div> : error ? <div role="alert" className="py-16 text-center"><p>{error}</p><Button onClick={load} className="mt-4">Retry</Button></div> : !hotel && location.pathname!=="/partners/portfolio" ? <div className="py-20 text-center"><h1 className="text-xl font-semibold">No managed properties</h1><Link to="/partners/portfolio" className="text-primary underline">Manage your properties</Link></div> : <PartnerWorkspaceContext.Provider value={value}><Outlet key={hotel?.id??"portfolio"}/></PartnerWorkspaceContext.Provider>}
+        {ctx.loading || loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div> : error ? <div role="alert" className="py-16 text-center"><p>{error}</p><Button onClick={load} className="mt-4">Retry</Button></div> : !hotel && !["/partners/portfolio","/partners/dashboard","/partners/property-setup"].includes(location.pathname) ? <div className="py-20 text-center"><h1 className="text-xl font-semibold">No managed properties</h1><Link to="/partners/portfolio" className="text-primary underline">Manage your properties</Link></div> : <PartnerWorkspaceContext.Provider value={value}><Outlet key={hotel?.id??"portfolio"}/></PartnerWorkspaceContext.Provider>}
       </main>
     </div>
   </div>;
