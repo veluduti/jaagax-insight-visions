@@ -22,24 +22,7 @@ const LEGAL_STRUCTURES = ["Individual / Proprietorship", "Partnership", "LLP", "
 const DRAFT_KEY = "partner_register_draft_v2";
 const GOOGLE_FLOW_KEY = "partner_register_google";
 
-/** Presentation photos for property types; any new type in the shared config falls back to the default. */
-const TYPE_PHOTO: Record<string, string> = {
-  hotel: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=70",
-  resort: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=70",
-  pg: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=70",
-  hostel: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=70",
-  coliving: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600&q=70",
-  serviced_apartment: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=70",
-  apartment: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=70",
-  villa: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=70",
-  homestay: "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&q=70",
-  farm_stay: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=70",
-  luxury: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&q=70",
-  corporate: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=70",
-  guest_house: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=70",
-  boutique: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=70",
-};
-const DEFAULT_PHOTO = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=70";
+import { TYPE_PHOTO, DEFAULT_PHOTO } from "@/config/propertyTypeOnboarding";
 const TYPE_BLURB: Record<string, string> = {
   hotel: "Rooms, bookings and hotel operations", resort: "Stays, experiences and packages",
   pg: "Beds, residents and rent", hostel: "Beds, residents and rent", coliving: "Managed living and memberships",

@@ -7,14 +7,9 @@ import { CATEGORY_BY_KEY } from "@/config/hospitalityCategories";
 import { onboardingSteps, listingStatus, type OnboardingInput } from "@/lib/partnerOnboarding";
 import { Button } from "@/components/ui/button";
 import PropertyPhoto from "./PropertyPhoto";
+import { TYPE_PHOTO, DEFAULT_PHOTO, onboardingCopy } from "@/config/propertyTypeOnboarding";
 import { Check, Lock, ArrowRight, ShieldCheck, FileText, UserCheck, Phone, ListChecks, Building2, Home, BedDouble, Upload, Rocket, IdCard, Landmark, Users, Loader2 } from "lucide-react";
 
-const ownerLabel = (types: string[]) => {
-  if (types.some(t => ["pg", "hostel", "coliving", "co_living", "student_housing"].includes(t))) return "Configure Rooms & Beds";
-  if (types.some(t => ["banquet", "event_venue", "banquet_hall"].includes(t))) return "Configure Event Spaces";
-  if (types.some(t => ["service_apartment", "villa", "homestay", "vacation_rental", "apartment"].includes(t))) return "Configure Units";
-  return "Configure Rooms & Rates";
-};
 const STATUS_TEXT: Record<string, string> = { profile_completed: "Profile Completed", property_setup: "Property Setup", under_verification: "Under Verification", changes_requested: "Changes Requested", rejected: "Rejected", approved: "Approved", live: "Live" };
 
 export default function PartnerOnboardingHome({ hotelId, onOpenOverview }: { hotelId: string | null; onOpenOverview?: () => void }) {
@@ -39,6 +34,7 @@ export default function PartnerOnboardingHome({ hotelId, onOpenOverview }: { hot
   const profile = meta.partner_business_profile ?? {};
   const types: string[] = wizard?.form.property.business_types.length ? wizard.form.property.business_types : profile.property_type ? [profile.property_type] : [];
   const typeLabel = types.map(t => CATEGORY_BY_KEY[t]?.label ?? t.replace(/_/g, " ")).join(", ") || "Property";
+  const copy = onboardingCopy(types[0]);
   const ready = wizard ? wizardReadiness(wizard.form, wizard.overview) : [];
   const docs = wizard?.form.documents ?? {};
   const input: OnboardingInput = {
@@ -52,14 +48,14 @@ export default function PartnerOnboardingHome({ hotelId, onOpenOverview }: { hot
   const setup = hotelId ? `/partners/property-setup?hotel=${hotelId}` : "/partners/property-setup";
   const name = meta.full_name || profile.owner_name || user?.email?.split("@")[0] || "Partner";
   const business = wizard?.overview.hotel.name || accountName || profile.hotel_name || "Your business";
-  const cover = wizard?.overview.hotel.images?.[0];
+  const cover = wizard?.overview.hotel.images?.[0] || TYPE_PHOTO[types[0]] || DEFAULT_PHOTO;
   const steps = [
     { t: "Create Partner Account", d: "Your Jaaga partner account is created.", i: UserCheck },
     { t: "Verify Contact", d: input.contactVerified ? "Mobile and email verified." : "Verify your email and mobile number.", i: Phone, to: "/partners/register" },
     { t: "Choose Property Type", d: `${typeLabel} selected.`, i: ListChecks, to: "/partners/register" },
     { t: "Business Profile", d: input.businessProfile ? "Your business profile is completed." : "Add your business details.", i: Building2, to: "/partners/register" },
-    { t: "Add Property Details", d: "Add your property, location and basic information.", i: Home, to: setup, cta: wizard ? "Edit Property" : "Add Property", lock: "" },
-    { t: ownerLabel(types), d: "Add room/unit types, count, prices, occupancy and facilities.", i: BedDouble, to: hotelId ? "/partners/rooms" : setup, cta: "Configure", lock: "After adding property" },
+    { t: "Add Property Details", d: `Add your ${typeLabel} property, location and basic information.`, i: Home, to: setup, cta: wizard ? "Edit Property" : "Add Property", lock: "" },
+    { t: copy.inventoryTitle, d: copy.inventoryDesc, i: BedDouble, to: hotelId ? "/partners/rooms" : setup, cta: "Configure", lock: "After adding property" },
     { t: "Upload Documents & Bank Details", d: "Submit KYC, business and bank details for verification.", i: Upload, to: setup, cta: "Upload", lock: "After configuring rooms" },
     { t: "Submit for Verification", d: "Our Jaaga team will review and verify your details.", i: ShieldCheck, to: setup, cta: "Submit", lock: "After documents & bank" },
     { t: "Go Live on Jaaga", d: "Once verified, your property will be live and available for bookings.", i: Rocket, to: hotelId ? "/partners/dashboard" : setup, cta: "Track", lock: "After approval" },
@@ -70,6 +66,7 @@ export default function PartnerOnboardingHome({ hotelId, onOpenOverview }: { hot
     { l: "Identity Proof (Aadhaar / PAN)", i: IdCard, ok: !!docs.identity_proof_url || !!docs.id_proof_url },
     { l: "Business Proof (GSTIN / Registration / Udyam)", i: Building2, ok: !!docs.business_registration_url },
     { l: "Property Proof (Lease / Ownership / Agreement)", i: Home, ok: !!docs.address_proof_url },
+    ...copy.proofs.map(l => ({ l, i: FileText, ok: !!docs.trade_license_url })),
     { l: "Bank Account Details (for settlements)", i: Landmark, ok: !!ready[8] },
   ];
   const top = ["Account Created", "Contact Verified", `Property Type (${typeLabel})`, "Business Profile", "Property Setup & Verification", "Go Live"];
@@ -77,13 +74,13 @@ export default function PartnerOnboardingHome({ hotelId, onOpenOverview }: { hot
 
   return <div className="space-y-4">
     <section className="relative overflow-hidden rounded-2xl border border-border bg-accent">
-      <div className="relative z-10 max-w-xl p-6"><h1 className="text-2xl font-bold">Welcome, {name}! 👋</h1><p className="mt-2 text-sm text-muted-foreground">Your {typeLabel} partner dashboard for <strong className="text-foreground">{business}</strong> is ready. Complete the setup below to get your property verified and go live on Jaaga Stays.</p></div>
+      <div className="relative z-10 max-w-xl p-6"><span className="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{typeLabel} {copy.owner}</span><h1 className="text-2xl font-bold">Welcome, {name}! 👋</h1><p className="mt-2 text-sm text-muted-foreground">Your {typeLabel} partner dashboard for <strong className="text-foreground">{business}</strong> is ready. Complete the setup below to get verified, go live on Jaaga Stays and {copy.listingGoal}.</p></div>
       {cover && <div className="absolute inset-y-0 right-0 hidden w-2/5 md:block"><PropertyPhoto src={cover} alt={business} /></div>}
     </section>
     <ol className="flex flex-wrap gap-2 rounded-2xl border border-border bg-card p-3">{top.map((t, n) => { const current = !topDone[n] && topDone.slice(0, n).every(Boolean); return <li key={t} className={`flex flex-1 min-w-[140px] items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium ${current ? "bg-accent text-primary" : ""}`}><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${topDone[n] || current ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{topDone[n] ? <Check className="h-4 w-4" /> : n + 1}</span>{t}</li>; })}</ol>
     <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
       <section className="rounded-2xl border border-border bg-card p-4">
-        <div className="mb-3 flex items-start gap-3"><FileText className="h-8 w-8 text-primary" /><div className="flex-1"><h2 className="text-lg font-bold">Get Your Property Listed on Jaaga Stays</h2><p className="text-xs text-muted-foreground">Complete these steps. Once you submit, our team will verify and activate your property.</p></div>{onOpenOverview && <Button size="sm" variant="outline" onClick={onOpenOverview}>Property overview</Button>}</div>
+        <div className="mb-3 flex items-start gap-3"><FileText className="h-8 w-8 text-primary" /><div className="flex-1"><h2 className="text-lg font-bold">Get Your {typeLabel} Listed on Jaaga Stays</h2><p className="text-xs text-muted-foreground">Complete these steps. Once you submit, our team will verify and activate your property.</p></div>{onOpenOverview && <Button size="sm" variant="outline" onClick={onOpenOverview}>Property overview</Button>}</div>
         <ul className="space-y-2">{steps.map((s, n) => { const st = states[n]; return <li key={s.t} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${st === "action" ? "bg-accent/50" : ""}`}>
           <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${st === "done" ? "bg-primary text-primary-foreground" : st === "action" ? "bg-primary/80 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{st === "done" ? <Check className="h-4 w-4" /> : n + 1}</span>
           <s.i className="h-5 w-5 shrink-0 text-muted-foreground" />

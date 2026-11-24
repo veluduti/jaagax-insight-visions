@@ -47,7 +47,8 @@ export default function PartnerWorkspaceLayout() {
   }, [load]);
   const hotel = hotels.find(h => h.id === selected) ?? hotels.find(h => h.id === ctx.hotelId) ?? hotels[0];
   const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); if(location.pathname==="/partners/property-setup")navigate(`/partners/property-setup?hotel=${id}`); };
-  const mode = useDashboardMode(hotel?.id, hotel?.business_types);
+  const signupType = (user?.user_metadata as any)?.partner_business_profile?.property_type as string | undefined;
+  const mode = useDashboardMode(hotel?.id, hotel?.business_types ?? (signupType ? [signupType] : undefined));
   const nav = navForMode(mode);
   const allModes = Array.from(new Set(hotels.flatMap(h => modesForTypes(h.business_types)))) as DashboardMode[];
   const chooseMode = (m: DashboardMode) => {
