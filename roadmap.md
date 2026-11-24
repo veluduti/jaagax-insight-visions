@@ -1,3 +1,7 @@
+## Secure lead documents
+- [ ] Add private property-scoped uploads, previews and persisted review history in each lead's Documents tab.
+- [ ] Verify uploads, status/save/reload, access isolation and mobile layout without changing bookings.
+
 ## OTA, PMS & Channel Manager integration platform
 - [x] Replace simulated PMS onboarding with one secure integration workspace matching the supplied purple references.
 - [x] Reuse central hotel, room, rate, availability and booking records; add reviewed connections, credentials, mappings, signed API access, webhooks, retries and reconciliation.

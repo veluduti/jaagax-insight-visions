@@ -5586,6 +5586,68 @@ export type Database = {
           },
         ]
       }
+      hotel_lead_documents: {
+        Row: {
+          created_at: string
+          document_key: string
+          file_name: string
+          file_size: number
+          id: string
+          lead_id: string
+          mime_type: string
+          review_note: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          status_history: Json
+          storage_path: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          document_key: string
+          file_name: string
+          file_size: number
+          id?: string
+          lead_id: string
+          mime_type: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          status_history?: Json
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Update: {
+          created_at?: string
+          document_key?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          lead_id?: string
+          mime_type?: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          status_history?: Json
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_lead_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_leads: {
         Row: {
           application_code: string | null
@@ -17273,6 +17335,7 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      can_access_lead_document: { Args: { _path: string }; Returns: boolean }
       can_edit_property_pricing: {
         Args: { _property: string; _user: string }
         Returns: boolean

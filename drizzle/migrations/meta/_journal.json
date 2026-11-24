@@ -554,6 +554,13 @@
       "when": 1795440428835,
       "tag": "0078_applications_leads_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1795497076623,
+      "tag": "0079_secure_lead_documents",
+      "breakpoints": true
     }
   ]
 }
