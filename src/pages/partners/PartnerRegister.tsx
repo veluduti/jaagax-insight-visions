@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { HOSPITALITY_CATEGORIES, CATEGORY_BY_KEY } from "@/config/hospitalityCategories";
 import { getExistingAccount, GOOGLE_ALREADY_REGISTERED_MESSAGE } from "@/lib/accountExistence";
+import MapLocationModal, { type MapPickedLocation } from "@/components/location/MapLocationModal";
 import "./partner-register.css";
 
 const STEPS = ["Create Account", "Verify Contact", "Choose Property Type", "Business Profile", "Go to Dashboard"];
@@ -96,6 +97,8 @@ export default function PartnerRegister() {
   const [account, setAccount] = useState<{ id: string; email: string } | null>(null);
   const [otp, setOtp] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
+  const [pin, setPin] = useState<MapPickedLocation | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const [phoneSent, setPhoneSent] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
@@ -275,11 +278,12 @@ export default function PartnerRegister() {
     if (busy) return;
     try {
       const parsed = businessSchema.parse(form);
+      if (!pin) { toast.error("Pin your exact business location on the map"); return; }
       setBusy(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Your session ended. Please log in to finish.");
       const typeLabel = CATEGORY_BY_KEY[form.property_type]?.label ?? form.property_type;
-      const profile = { ...parsed, property_type: form.property_type, property_type_label: typeLabel, saved_at: new Date().toISOString() };
+      const profile = { ...parsed, property_type: form.property_type, property_type_label: typeLabel, address: pin.address, pincode: pin.pincode, latitude: pin.latitude, longitude: pin.longitude, place_id: pin.place_id ?? null, saved_at: new Date().toISOString() };
 
       // Partner profile + role on this same account (no duplicate identity).
       const { data: existingProfile } = await (supabase as any).from("profiles").select("id").eq("user_id", user.id).eq("type", "hotel_manager").maybeSingle();
@@ -297,7 +301,7 @@ export default function PartnerRegister() {
       sessionStorage.setItem("partner_signup_snapshot", JSON.stringify({
         owner_name: form.owner_name, phone: `+91${form.phone}`, email: form.email, hotel_name: parsed.hotel_name,
         company_name: parsed.hotel_name, business_type: typeLabel, business_types: [form.property_type],
-        country: parsed.country, state: parsed.state, city: parsed.city,
+        country: parsed.country, state: parsed.state, city: parsed.city, address: pin.address, latitude: pin.latitude, longitude: pin.longitude,
       }));
       toast.success("Business profile saved");
       setStep(4);
@@ -549,6 +553,21 @@ export default function PartnerRegister() {
                   </div>
                   <IconField id="state" label="State" icon={MapPin} value={form.state} onChange={set("state")} placeholder="Enter state" required />
                   <IconField id="city" label="City" icon={Building2} value={form.city} onChange={set("city")} placeholder="Enter city" required />
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <span className="text-sm font-semibold">Exact Business Location <span className="text-destructive">*</span></span>
+                    <button type="button" onClick={() => setMapOpen(true)} className="js-input flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm">
+                      <MapPin className="h-5 w-5 shrink-0 text-[hsl(var(--js-purple))]" />
+                      {pin ? <span className="flex-1"><b className="block">{pin.address}</b><span className="text-xs text-[hsl(var(--js-muted))]">Pinned at {pin.latitude.toFixed(5)}, {pin.longitude.toFixed(5)}</span></span> : <span className="flex-1 text-[hsl(var(--js-muted))]">Pin your business on the map</span>}
+                      <span className="font-semibold text-[hsl(var(--js-purple))]">{pin ? "Change" : "Open map"}</span>
+                    </button>
+                  </div>
+                  <MapLocationModal open={mapOpen} onOpenChange={setMapOpen} initial={pin ?? undefined} onConfirm={(loc) => {
+                    setPin(loc);
+                    if (loc.state_name) set("state")(loc.state_name);
+                    if (loc.city || loc.district) set("city")(loc.city || loc.district);
+                    if (loc.country && countries.includes(loc.country)) set("country")(loc.country);
+                    setMapOpen(false);
+                  }} />
                 </Section>
                 <Section n={3} title="Business Contact" optional>
                   <IconField id="business_phone" label="Business Phone (Optional)" icon={Phone} value={form.business_phone} onChange={set("business_phone")} placeholder="Enter landline or business number" />
