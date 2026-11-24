@@ -613,6 +613,7 @@ function PasswordHints({ password, confirm }: { password: string; confirm: strin
   return (
     <ul className="grid grid-cols-2 gap-1 text-xs sm:col-span-2 sm:grid-cols-3">
       {checks.map(([l, ok]) => <li key={l} className={`flex items-center gap-1 ${ok ? "text-[hsl(var(--js-ok))]" : "text-[hsl(var(--js-muted))]"}`}><CheckCircle2 className={`h-3.5 w-3.5 ${ok ? "" : "opacity-30"}`} />{l}</li>)}
+      <li className="col-span-2 text-[hsl(var(--js-muted))] sm:col-span-3">Use a new, unique password. Passwords found in public data leaks are not accepted, even if they meet all rules above.</li>
     </ul>
   );
 }
