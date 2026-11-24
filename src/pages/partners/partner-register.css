@@ -1,0 +1,18 @@
+.js-register {
+  --js-purple: 268 84% 52%;
+  --js-purple-deep: 252 85% 48%;
+  --js-lavender: 266 100% 97%;
+  --js-lavender-strong: 266 85% 90%;
+  --js-ink: 240 30% 12%;
+  --js-muted: 240 8% 40%;
+  --js-line: 250 20% 88%;
+  --js-ok: 142 70% 40%;
+  --js-ok-soft: 120 60% 95%;
+  --js-white: 0 0% 100%;
+  background: hsl(250 40% 99%);
+  color: hsl(var(--js-ink));
+}
+.js-register .js-grad { background: linear-gradient(90deg, hsl(var(--js-purple)), hsl(var(--js-purple-deep))); color: hsl(var(--js-white)); }
+.js-register .js-panel { background: linear-gradient(180deg, hsl(var(--js-lavender-strong)), hsl(var(--js-lavender))); }
+.js-register .js-input { border-color: hsl(var(--js-line)); background: hsl(var(--js-white)); color: hsl(var(--js-ink)); }
+.js-register .js-input:focus-within { border-color: hsl(var(--js-purple)); }
