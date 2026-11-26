@@ -10,6 +10,7 @@ import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import PartnershipEnquiriesPanel from "@/components/admin/PartnershipEnquiriesPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -63,6 +64,7 @@ export default function AdminHospitality() {
           <Tabs defaultValue="ops">
             <TabsList className="flex-wrap">
               <TabsTrigger value="ops">Ops queue</TabsTrigger>
+              <TabsTrigger value="partnerships">Partnerships</TabsTrigger>
               <TabsTrigger value="coupons">Coupons</TabsTrigger>
               <TabsTrigger value="markups">Price Markups</TabsTrigger>
               <TabsTrigger value="hyperguest">HyperGuest Marketplace</TabsTrigger>
@@ -76,6 +78,7 @@ export default function AdminHospitality() {
             </TabsList>
 
             <TabsContent value="ops"><HospitalityOpsQueue /></TabsContent>
+            <TabsContent value="partnerships"><PartnershipEnquiriesPanel /></TabsContent>
             <TabsContent value="coupons"><HotelCouponsPanel /></TabsContent>
             <TabsContent value="markups"><HotelMarkupPanel /></TabsContent>
             <TabsContent value="brands"><BrandApprovalsPanel /></TabsContent>

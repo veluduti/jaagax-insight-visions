@@ -589,6 +589,13 @@
       "when": 1795687676580,
       "tag": "0083_automatic_permanent_property_references",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795695476409,
+      "tag": "0084_partnership_enquiries",
+      "breakpoints": true
     }
   ]
 }

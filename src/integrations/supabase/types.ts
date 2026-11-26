@@ -12007,6 +12007,72 @@ export type Database = {
         }
         Relationships: []
       }
+      partnership_enquiries: {
+        Row: {
+          admin_notes: string | null
+          cities: string
+          commercial_model: string | null
+          company_name: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          integration_requirements: string | null
+          message: string | null
+          mobile: string
+          onboarding_progress: number
+          partner_category: string | null
+          partnership_type: string
+          reference: string
+          relationship_manager: string | null
+          stage: string
+          submitted_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          cities: string
+          commercial_model?: string | null
+          company_name: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          integration_requirements?: string | null
+          message?: string | null
+          mobile: string
+          onboarding_progress?: number
+          partner_category?: string | null
+          partnership_type: string
+          reference?: string
+          relationship_manager?: string | null
+          stage?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          cities?: string
+          commercial_model?: string | null
+          company_name?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          integration_requirements?: string | null
+          message?: string | null
+          mobile?: string
+          onboarding_progress?: number
+          partner_category?: string | null
+          partnership_type?: string
+          reference?: string
+          relationship_manager?: string | null
+          stage?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           base_amount: number
@@ -17602,6 +17668,18 @@ export type Database = {
         }[]
       }
       get_or_create_referral_code: { Args: never; Returns: string }
+      get_partnership_enquiry_status: {
+        Args: { _email: string; _reference: string }
+        Returns: {
+          company_name: string
+          created_at: string
+          onboarding_progress: number
+          partnership_type: string
+          reference: string
+          stage: string
+          updated_at: string
+        }[]
+      }
       get_platform_stats: { Args: never; Returns: Json }
       get_posting_entitlement: { Args: { _user_id: string }; Returns: Json }
       get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
@@ -18155,6 +18233,19 @@ export type Database = {
       submit_kyc: {
         Args: { _aadhaar: string; _pan: string; _selfie: string }
         Returns: undefined
+      }
+      submit_partnership_enquiry: {
+        Args: {
+          _category: string
+          _cities: string
+          _company: string
+          _email: string
+          _full_name: string
+          _message: string
+          _mobile: string
+          _type: string
+        }
+        Returns: string
       }
       submit_property_pricing: {
         Args: { _content: Json; _property: string }

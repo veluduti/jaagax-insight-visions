@@ -156,6 +156,7 @@ const HospitalityAdminAccess = lazy(() => import("./components/admin/Hospitality
 const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
 const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
+const PartnerWithJaaga = lazy(() => import("./pages/partners/PartnerWithJaaga"));
 const PartnerLanding = lazy(() => import("./pages/partners/PartnerLanding"));
 const PartnerRegister = lazy(() => import("./pages/partners/PartnerRegister"));
 const PartnerLogin = lazy(() => import("./pages/partners/PartnerLogin"));
@@ -593,6 +594,7 @@ const App = () => (
                   <Route path="/hotels/:id/long-stay" element={<LongStayBooking />} />
                   <Route path="/hotels/booking/:bookingId/confirmed" element={<HotelBookingConfirmed />} />
                   <Route path="/partners" element={<PartnerLanding />} />
+                  <Route path="/partners/partner-with-jaaga" element={<PartnerWithJaaga />} />
                   <Route path="/partners/register" element={<PartnerRegister />} />
                   <Route path="/partners/login" element={<PartnerLogin />} />
                   <Route path="/partners/forgot-password" element={<PartnerForgotPassword />} />

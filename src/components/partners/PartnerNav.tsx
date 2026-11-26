@@ -10,11 +10,11 @@ import "@/pages/partners/partner-register.css";
 
 
 const nav = [
-  { label: "For Property Owners", href: "#owners" },
-  { label: "Partner with Jaaga", href: "#partner" },
-  { label: "Solutions", href: "#benefits" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Resources", href: "#faq" },
+  { label: "For Property Owners", href: "/partners#owners" },
+  { label: "Partner with Jaaga", href: "/partners/partner-with-jaaga" },
+  { label: "Solutions", href: "/partners#benefits" },
+  { label: "Pricing", href: "/partners#pricing" },
+  { label: "Resources", href: "/partners#faq" },
 ];
 
 export default function PartnerNav() {
@@ -24,7 +24,7 @@ export default function PartnerNav() {
   const [isPartner, setIsPartner] = useState(false);
   const loc = useLocation();
   const nav_ = useNavigate();
-  const onLanding = loc.pathname === "/partners";
+  const onLanding = loc.pathname === "/partners" || loc.pathname === "/partners/partner-with-jaaga";
 
   const loadPartnerStatus = async (uid: string | null) => {
     if (!uid) { setIsPartner(false); return; }
@@ -102,7 +102,7 @@ export default function PartnerNav() {
   );
 
   // Public partner marketing/onboarding pages where a customer may land
-  const publicPartnerPaths = ["/partners", "/partners/login", "/partners/register", "/partners/welcome", "/partners/verify-otp", "/partners/forgot-password"];
+  const publicPartnerPaths = ["/partners", "/partners/partner-with-jaaga", "/partners/login", "/partners/register", "/partners/welcome", "/partners/verify-otp", "/partners/forgot-password"];
   const inPartnerWorkspace = loc.pathname.startsWith("/partners") && !publicPartnerPaths.includes(loc.pathname);
 
   const showPartnerActions = !!userId && (isPartner || inPartnerWorkspace);
@@ -128,7 +128,7 @@ export default function PartnerNav() {
         {onLanding && (
           <nav className="hidden items-center gap-7 md:flex">
             {nav.map((n) => (
-              <a key={n.href} href={n.href} className="js-navlink text-sm transition">
+              <a key={n.href} href={n.href} className={cn("js-navlink text-sm transition", loc.pathname === n.href && "font-bold text-[hsl(268,84%,52%)] underline underline-offset-8")}>
                 {n.label}
               </a>
             ))}
