@@ -70,7 +70,9 @@ export default function PartnerRegister() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Form>(() => {
     const returnEmail = (location.state as { email?: string } | null)?.email;
-    return returnEmail ? { ...initialForm, email: returnEmail } : initialForm;
+    const preType = new URLSearchParams(location.search).get("type");
+    const base = preType && CATEGORY_BY_KEY[preType] ? { ...initialForm, property_type: preType } : initialForm;
+    return returnEmail ? { ...base, email: returnEmail } : base;
   });
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);

@@ -23,7 +23,23 @@ import {
   Users,
   IndianRupee,
 } from "lucide-react";
+import { useState } from "react";
+import { UserRound, Handshake, Check, Play, BedDouble, Palmtree, Hotel, Building, Home, Castle, CalendarDays } from "lucide-react";
+import { TYPE_PHOTO, DEFAULT_PHOTO } from "@/config/propertyTypeOnboarding";
+import ownerImg from "@/assets/hero-hotel.jpg";
+import partnerImg from "@/assets/resort-luxury.jpg";
 import "./partner-register.css";
+
+const propertyTypes = [
+  { key: "hotel", photo: "hotel", label: "Hotel", icon: BedDouble },
+  { key: "resort", photo: "resort", label: "Resort", icon: Palmtree },
+  { key: "pg", photo: "pg", label: "PG / Hostel", icon: Hotel },
+  { key: "coliving", photo: "coliving", label: "Co-living", icon: Users },
+  { key: "serviced_apartment", photo: "serviced_apartment", label: "Service Apartment", icon: Building },
+  { key: "homestay", photo: "homestay", label: "Homestay", icon: Home },
+  { key: "villa", photo: "villa", label: "Villa / Holiday Home", icon: Castle },
+  { key: "other", photo: "", label: "Event / Banquet", icon: CalendarDays },
+];
 
 const benefits = [
   {
@@ -130,6 +146,7 @@ const faq = [
 ];
 
 export default function PartnerLanding() {
+  const [hover, setHover] = useState("pg");
   const submitContact = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Thanks! Our partnerships team will reach out within 24 hours.");
@@ -140,84 +157,89 @@ export default function PartnerLanding() {
     <div className="js-landing min-h-screen">
       <PartnerNav />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="js-glow absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full blur-[120px]" />
+      {/* HUB HERO */}
+      <section className="container mx-auto grid gap-5 px-4 pt-5 lg:grid-cols-2">
+        <div id="owners" className="js-card relative overflow-hidden rounded-3xl">
+          <img src={ownerImg} alt="Hotel with pool" className="absolute inset-y-0 right-0 hidden h-full w-[55%] object-cover sm:block" style={{ maskImage: "linear-gradient(to right, transparent, black 35%)", WebkitMaskImage: "linear-gradient(to right, transparent, black 35%)" }} />
+          <div className="relative p-6 sm:max-w-[60%] sm:p-7">
+            <span className="js-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"><UserRound className="h-3.5 w-3.5" /> For Property Owners</span>
+            <h1 className="js-ink-text mt-4 text-2xl font-extrabold leading-tight lg:text-[34px]">List &amp; Manage Your Property on <span className="js-grad-text">Jaaga</span></h1>
+            <p className="js-muted-text mt-3 text-sm">Register your property, set up inventory, get bookings and manage operations — all in one place.</p>
+            <ul className="js-ink-text mt-4 space-y-2 text-sm">
+              {["List your property (Hotel, PG, Resort, Co-living, etc.)", "Manage rooms, pricing and availability", "Receive bookings and payments", "Use built-in operations tools (PMS, housekeeping, etc.)"].map((t) => (
+                <li key={t} className="flex gap-2"><CheckCircle2 className="js-purple-text mt-0.5 h-4 w-4 shrink-0" />{t}</li>
+              ))}
+            </ul>
+            <div className="mt-6 flex flex-wrap gap-3 [&_button]:whitespace-nowrap">
+              <Link to="/partners/register"><Button className="js-btn border-0">List Your Property <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+              <a href="#benefits"><Button variant="outline" className="js-outline-btn">Explore Owner Tools</Button></a>
+            </div>
+          </div>
         </div>
-        <div className="container mx-auto grid gap-12 px-4 py-2 md:py-2 lg:grid-cols-2 lg:items-center">
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <Badge className="js-chip mb-4 hover:bg-transparent">
-              JAAGA X Partner Hub · India's fastest-growing hotel network
-            </Badge>
-            <h1 className="js-ink-text text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Grow your hotel with the{" "}
-              <span className="js-grad-text">world's smartest booking platform</span>
-            </h1>
-            <p className="js-muted-text mt-6 max-w-xl text-lg">
-              List once. Sell everywhere. Powerful pricing tools, real-time inventory sync, and AI-driven insights —
-              built for independent hotels, resorts, and multi-property chains.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/partners/register">
-                <Button size="lg" className="js-btn border-0">
-                  List your hotel <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <a href="#contact">
-                <Button size="lg" variant="outline" className="js-outline-btn">
-                  Talk to sales
-                </Button>
-              </a>
-            </div>
-            <div className="js-muted-text mt-8 flex flex-wrap items-center gap-6 text-sm">
-              <Stat n="18,000+" l="Hotels onboarded" />
-              <Stat n="₹1,200 Cr+" l="Bookings processed" />
-              <Stat n="4.8/5" l="Partner rating" />
-            </div>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="relative"
-          >
-            <Card className="js-card">
-              <CardContent className="p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="js-ink-text flex items-center gap-2 text-sm font-semibold">
-                    <Building2 className="js-purple-text h-4 w-4" /> Partner Dashboard
-                  </div>
-                  <Badge variant="outline" className="js-chip">
-                    Live
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { l: "Today's bookings", v: "38" },
-                    { l: "Revenue", v: "₹2.4L" },
-                    { l: "Occupancy", v: "92%" },
-                  ].map((k) => (
-                    <div key={k.l} className="js-panel rounded-lg border js-line-b p-3">
-                      <p className="js-muted-text text-xs">{k.l}</p>
-                      <p className="js-ink-text mt-1 text-2xl font-bold">{k.v}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 space-y-2">
-                  {["Channel sync healthy", "3 new reviews (4.9★)", "Weekend rates optimized by AI"].map((s) => (
-                    <div
-                      key={s}
-                      className="js-ink-text flex items-center gap-2 rounded-md border js-line-b bg-white px-3 py-2 text-sm"
-                    >
-                      <CheckCircle2 className="js-purple-text h-4 w-4" /> {s}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+        <div id="partner" className="relative overflow-hidden rounded-3xl text-primary-foreground" style={{ background: "linear-gradient(120deg, hsl(var(--js-purple)), hsl(265 60% 22%))" }}>
+          <img src={partnerImg} alt="Resort at dusk" className="absolute inset-y-0 right-0 hidden h-full w-[55%] object-cover opacity-90 sm:block" style={{ maskImage: "linear-gradient(to right, transparent, black 40%)", WebkitMaskImage: "linear-gradient(to right, transparent, black 40%)" }} />
+          <div className="relative p-6 sm:max-w-[60%] sm:p-7">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground"><Handshake className="js-purple-text h-3.5 w-3.5" /> Partner with Jaaga</span>
+            <h2 className="mt-4 text-2xl font-extrabold leading-tight lg:text-[34px]">Partner with Jaaga for Greater Growth</h2>
+            <p className="mt-3 text-sm opacity-90">A strategic partnership for hotels, hotel groups, chains, real estate operators and large inventory owners.</p>
+            <ul className="mt-4 space-y-2 text-sm">
+              {["Access wider distribution (OTAs, corporate & long-stays)", "Commercial models (Commission, Subscription, Enterprise)", "Integrations (PMS, Channel Manager, API)", "Dedicated onboarding & account support"].map((t) => (
+                <li key={t} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />{t}</li>
+              ))}
+            </ul>
+            <div className="mt-6 flex flex-wrap gap-3 [&_button]:whitespace-nowrap">
+              <a href="#contact"><Button variant="outline" className="border-0 bg-background text-foreground hover:bg-background/90">Become a Partner <ArrowRight className="ml-2 h-4 w-4" /></Button></a>
+              <a href="#pricing"><Button variant="outline" className="border-current bg-transparent hover:bg-background/10">View Partnership Benefits</Button></a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHICH IS RIGHT */}
+      <section className="container mx-auto px-4 pt-5">
+        <div className="js-card grid gap-4 rounded-2xl p-5 md:grid-cols-[auto_1fr_1fr] md:items-center md:divide-x">
+          <div className="js-ink-text flex items-center gap-3 pr-4 text-xl font-bold"><Users className="js-purple-text h-7 w-7" /> Which is right for you?</div>
+          <a href="#owners" className="flex gap-3 md:px-5"><Users className="js-purple-text h-8 w-8 shrink-0" /><div><p className="js-purple-text font-bold">For Property Owners</p><p className="js-muted-text text-xs">Ideal for individual property owners, PG/hostel operators, boutique hotels and service apartments who want to list and manage their property on Jaaga.</p></div></a>
+          <a href="#partner" className="flex gap-3 md:px-5"><Handshake className="js-purple-text h-8 w-8 shrink-0" /><div><p className="js-purple-text font-bold">Partner with Jaaga</p><p className="js-muted-text text-xs">Ideal for hotel chains, groups, large operators, real estate portfolios and businesses looking for a long-term commercial partnership and wider distribution.</p></div></a>
+        </div>
+      </section>
+
+      {/* STEPS + WHY CHOOSE */}
+      <section className="container mx-auto grid gap-5 px-4 py-5 lg:grid-cols-[1.6fr_1fr]">
+        <div className="js-card rounded-2xl p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="js-ink-text text-xl font-bold">List Your Property in 4 Simple Steps</h2>
+            <ol className="flex items-start gap-2 sm:gap-6">
+              {["Select Property Type", "Basic Details", "Location", "Verify & Create"].map((t, i) => (
+                <li key={t} className="flex w-16 flex-col items-center text-center sm:w-20">
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold ${i === 0 ? "js-btn border-transparent" : "js-ink-text js-line-b"}`}>{i + 1}</span>
+                  <span className={`mt-1 text-[11px] ${i === 0 ? "js-purple-text font-semibold" : "js-muted-text"}`}>{t}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {propertyTypes.map((t) => (
+              <Link key={t.label} to={`/partners/register?type=${t.key}`} onMouseEnter={() => setHover(t.key)} className={`group relative overflow-hidden rounded-xl border p-2 transition ${hover === t.key ? "js-panel !border-[hsl(var(--js-purple))]" : "js-line-b bg-background"}`}>
+                <img src={TYPE_PHOTO[t.photo] ?? DEFAULT_PHOTO} alt={t.label} loading="lazy" className="h-16 w-full rounded-lg object-cover" />
+                {hover === t.key && <span className="js-btn absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full"><Check className="h-4 w-4" /></span>}
+                <span className="js-ink-text mt-2 flex items-center gap-2 px-1 text-sm font-bold"><t.icon className="js-purple-text h-4 w-4" />{t.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="js-card rounded-2xl p-6">
+          <h2 className="js-ink-text text-xl font-bold">Why Choose Jaaga?</h2>
+          <ul className="js-ink-text mt-4 space-y-3 text-sm">
+            {["Reach more guests and residents", "Increase occupancy and revenue", "Manage operations in one platform", "Secure payments and timely settlements", "Integrate with PMS and channel managers", "Dedicated support and onboarding"].map((t) => (
+              <li key={t} className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />{t}</li>
+            ))}
+          </ul>
+          <a href="#benefits" className="mt-5 flex items-center gap-3">
+            <span className="js-btn flex h-9 w-9 items-center justify-center rounded-full"><Play className="h-4 w-4" /></span>
+            <span><span className="js-ink-text block font-bold">See How It Works</span><span className="js-muted-text text-xs">Owner tools overview</span></span>
+          </a>
         </div>
       </section>
 
@@ -399,6 +421,7 @@ export default function PartnerLanding() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function Stat({ n, l }: { n: string; l: string }) {
   return (
     <div>

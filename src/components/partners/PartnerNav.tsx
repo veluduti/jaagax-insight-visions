@@ -10,11 +10,11 @@ import "@/pages/partners/partner-register.css";
 
 
 const nav = [
-  { label: "Why Partner", href: "#why" },
-  { label: "Benefits", href: "#benefits" },
+  { label: "For Property Owners", href: "#owners" },
+  { label: "Partner with Jaaga", href: "#partner" },
+  { label: "Solutions", href: "#benefits" },
   { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact Sales", href: "#contact" },
+  { label: "Resources", href: "#faq" },
 ];
 
 export default function PartnerNav() {
