@@ -15,7 +15,7 @@ export const propertySetupSchema = z.object({
   images: z.array(z.union([z.string().url().startsWith("https://"),z.string().regex(/^[a-f0-9-]{36}\/[\w.-]+$/i)])).max(100),
 });
 export type SetupFields = z.infer<typeof propertySetupSchema>;
-export type ManagedHotel = SetupFields & { id: string; manager_id: string; is_active: boolean; onboarding_status: string; business_types: string[]; type_details: Record<string, any> | null; policies: Record<string, any> | null; default_currency: string | null };
+export type ManagedHotel = SetupFields & { id: string; property_reference?: string; manager_id: string; is_active: boolean; onboarding_status: string; business_types: string[]; type_details: Record<string, any> | null; policies: Record<string, any> | null; default_currency: string | null };
 export type OverviewData = { hotel: ManagedHotel; rooms: any[]; rates: any[]; services: any[]; reviews: any[]; bookings: any[]; requests: any[] };
 
 export async function listManagedHotels(userId: string): Promise<ManagedHotel[]> {

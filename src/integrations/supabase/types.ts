@@ -11838,6 +11838,7 @@ export type Database = {
           partner_since: string | null
           policies: Json | null
           price_per_night: number
+          property_reference: string | null
           property_type: string | null
           property_type_name: string | null
           published_at: string | null
@@ -11889,6 +11890,7 @@ export type Database = {
           partner_since?: string | null
           policies?: Json | null
           price_per_night?: number
+          property_reference?: string | null
           property_type?: string | null
           property_type_name?: string | null
           published_at?: string | null
@@ -11940,6 +11942,7 @@ export type Database = {
           partner_since?: string | null
           policies?: Json | null
           price_per_night?: number
+          property_reference?: string | null
           property_type?: string | null
           property_type_name?: string | null
           published_at?: string | null
@@ -13084,6 +13087,7 @@ export type Database = {
           price_dropped_at: string | null
           price_negotiable: boolean | null
           property_age: string | null
+          property_reference: string | null
           published_at: string | null
           queue_expires_at: string | null
           queue_level: string | null
@@ -13221,6 +13225,7 @@ export type Database = {
           price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
+          property_reference?: string | null
           published_at?: string | null
           queue_expires_at?: string | null
           queue_level?: string | null
@@ -13358,6 +13363,7 @@ export type Database = {
           price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
+          property_reference?: string | null
           published_at?: string | null
           queue_expires_at?: string | null
           queue_level?: string | null
@@ -17874,6 +17880,7 @@ export type Database = {
       }
       property_pricing_creator: { Args: { _property: string }; Returns: string }
       property_pricing_public: { Args: { _property: string }; Returns: boolean }
+      property_reference_prefix: { Args: { _type: string }; Returns: string }
       property_reject_review: {
         Args: { _property_id: string; _reason: string }
         Returns: Json

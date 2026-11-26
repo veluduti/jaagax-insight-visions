@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { HOSPITALITY_CATEGORIES } from "@/config/hospitalityCategories";
 import { roomCapacity } from "./inventoryRules";
 import { listManagedHotels, type ManagedHotel } from "./partnerDashboardService";
 import { getOrCreatePartnerAccount, listBusinesses, type PartnerAccount, type PartnerBusiness } from "./partnerService";
@@ -73,10 +74,10 @@ export function portfolioMetrics(data:PortfolioData,days:number,now=new Date()) 
     return {hotel:h,capacity,roomTypes:rooms.length,todayBookings:bookings.filter(b=>day(b.created_at)===end).length,bookings:inPeriod.length,revenue,currency,occupancy,roomNights,bookedRoomNights,availableNights:capacity*days,averageOccupancy:capacity?roomNights/(capacity*days)*100:null,rating:reviews.length?reviews.reduce((s,r)=>s+Number(r.rating),0)/reviews.length:null,reviewCount:reviews.length};
   });
 }
-export const draftPropertySchema=z.object({name:z.string().trim().min(2).max(160),city:z.string().trim().min(1).max(120),business_id:z.string().uuid().nullable()});
+export const draftPropertySchema=z.object({name:z.string().trim().min(2).max(160),city:z.string().trim().min(1).max(120),business_id:z.string().uuid().nullable(),property_type:z.string().refine(v=>HOSPITALITY_CATEGORIES.some(c=>c.key===v),"Select a valid property type").default("hotel")});
 export async function createDraftProperty(userId:string,input:unknown) {
-  const values=draftPropertySchema.parse(input);
-  const {data,error}=await sb.from("partner_hotels").insert({...values,locality:"",manager_id:userId,is_active:false,onboarding_status:"draft",business_types:["hotel"],type_details:{},images:[],amenities:[]}).select("id").single();
+  const {property_type,...values}=draftPropertySchema.parse(input);
+  const {data,error}=await sb.from("partner_hotels").insert({...values,locality:"",manager_id:userId,is_active:false,onboarding_status:"draft",business_types:[property_type],type_details:{},images:[],amenities:[]}).select("id").single();
   if(error)throw error;return data.id as string;
 }
 export const groupSchema=z.object({legal_name:z.string().trim().min(2).max(160),gstin:z.string().trim().max(15)});

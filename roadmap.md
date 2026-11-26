@@ -1,3 +1,8 @@
+## Automatic Property IDs
+- [x] Assign permanent server-generated type-prefixed sequential references without replacing UUIDs or supplier IDs; all 34 existing properties have unique references.
+- [x] Show read-only references in property setup and portfolio; use selected types when creating drafts.
+- [x] Nineteen focused tests and rolled-back database tests passed; real signed-in PG creation/read-back/manual-edit rejection/safe deletion verified. Setup and portfolio visual checks remain unavailable because this account redirects to mandatory KYC; no bookings changed.
+
 ## Secure lead documents
 - [x] Add private property-scoped image/PDF uploads, short-lived previews, review notes and server-owned history synchronized with lead verification/activity.
 - [x] Ten tests passed; signed-in owner upload/image preview/rejection validation/save/reload/history, anonymous access denial, foreign-lead upload denial, linked-file deletion protection and 390px layout verified. Temporary lead/files removed; no bookings changed.

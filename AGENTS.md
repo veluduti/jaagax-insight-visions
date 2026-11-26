@@ -43,3 +43,4 @@
 - Lead files use private `lead-documents` storage with property/lead/UUID paths and `hotel_lead_documents` metadata; member-scoped RLS and server-owned review history synchronize existing verification and activity, while previews use short-lived signed links to avoid public document exposure.
 - Rate-plan adjustment controls use the shared `ratePlanAdjustment` options and guard (`percent`/`flat`) so fixed-rupee saves match the existing database constraint.
 - Property setup readiness uses the save schema and field-specific errors; normalize bank/tax codes before validation so completion cannot conceal rejected values.
+- Property references are assigned and protected by database triggers using a shared non-cycling sequence; keep UUID keys and external supplier IDs unchanged so bookings and integrations retain their links. Draft creation must save the selected category before assignment, and references remain unchanged after category edits.
