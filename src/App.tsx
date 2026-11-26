@@ -223,6 +223,9 @@ const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
 const PartnerOperations = lazy(() => import("./pages/partners/PartnerOperations"));
 const PartnerLongStays = lazy(() => import("./pages/partners/PartnerLongStays"));
+const PartnerSolutions = lazy(() => import("./pages/partners/PartnerSolutions"));
+const PartnerPlans = lazy(() => import("./pages/partners/PartnerPlans"));
+const PartnerResources = lazy(() => import("./pages/partners/PartnerResources"));
 const PartnerGrowth = lazy(() => import("./pages/partners/PartnerGrowth"));
 const PartnerDemo = lazy(() => import("./pages/partners/PartnerDemo"));
 const PartnerPortfolio = lazy(() => import("./pages/partners/PartnerPortfolio"));
@@ -595,6 +598,9 @@ const App = () => (
                   <Route path="/hotels/booking/:bookingId/confirmed" element={<HotelBookingConfirmed />} />
                   <Route path="/partners" element={<PartnerLanding />} />
                   <Route path="/partners/partner-with-jaaga" element={<PartnerWithJaaga />} />
+                  <Route path="/partners/solutions" element={<PartnerSolutions />} />
+                  <Route path="/partners/plans" element={<PartnerPlans />} />
+                  <Route path="/partners/resources" element={<PartnerResources />} />
                   <Route path="/partners/register" element={<PartnerRegister />} />
                   <Route path="/partners/login" element={<PartnerLogin />} />
                   <Route path="/partners/forgot-password" element={<PartnerForgotPassword />} />

@@ -12007,6 +12007,108 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      partner_plans: {
+        Row: {
+          commission_max: number | null
+          commission_min: number | null
+          comparison: Json
+          features: Json
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          monthly_price: number | null
+          name: string
+          plan_key: string
+          property_limit: number | null
+          property_types: string[]
+          sort_order: number
+          support_level: string | null
+          tagline: string | null
+          updated_at: string
+          yearly_price: number | null
+        }
+        Insert: {
+          commission_max?: number | null
+          commission_min?: number | null
+          comparison?: Json
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          monthly_price?: number | null
+          name: string
+          plan_key: string
+          property_limit?: number | null
+          property_types?: string[]
+          sort_order?: number
+          support_level?: string | null
+          tagline?: string | null
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Update: {
+          commission_max?: number | null
+          commission_min?: number | null
+          comparison?: Json
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          monthly_price?: number | null
+          name?: string
+          plan_key?: string
+          property_limit?: number | null
+          property_types?: string[]
+          sort_order?: number
+          support_level?: string | null
+          tagline?: string | null
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Relationships: []
+      }
+      partner_webinar_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          webinar_key: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          webinar_key: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          webinar_key?: string
+        }
+        Relationships: []
+      }
       partnership_enquiries: {
         Row: {
           admin_notes: string | null

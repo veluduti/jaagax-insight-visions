@@ -12,10 +12,28 @@ import "@/pages/partners/partner-register.css";
 const nav = [
   { label: "For Property Owners", href: "/partners#owners" },
   { label: "Partner with Jaaga", href: "/partners/partner-with-jaaga" },
-  { label: "Solutions", href: "/partners#benefits" },
-  { label: "Pricing", href: "/partners#pricing" },
-  { label: "Resources", href: "/partners#faq" },
+  { label: "Solutions", href: "/partners/solutions" },
+  { label: "Pricing", href: "/partners/plans" },
+  { label: "Resources", href: "/partners/resources" },
 ];
+
+const MEGA: Record<string, { t: string; d: string; to: string }[]> = {
+  Solutions: [
+    { t: "Solutions Overview", d: "Explore the complete Jaaga solutions", to: "/partners/solutions" },
+    { t: "By Property Type", d: "Hotels, Resorts, PGs, Co-living & more", to: "/partners/solutions#types" },
+    { t: "By Business Need", d: "Bookings, Operations, Payments, Growth", to: "/partners/solutions#needs" },
+    { t: "By User / Role", d: "Owners, Operators, Agents, Corporates", to: "/partners/solutions#roles" },
+    { t: "Platform & Integrations", d: "PMS, Channel Manager, OTAs, APIs", to: "/partners/solutions#integrations" },
+    { t: "All Solutions", d: "View everything we offer", to: "/partners/solutions#cover" },
+  ],
+  Resources: [
+    { t: "Resource Center", d: "All resources in one place", to: "/partners/resources" },
+    { t: "Guides & How-to", d: "Step-by-step setup and operations", to: "/partners/resources#guides" },
+    { t: "Videos & Tutorials", d: "Product demos and practical guides", to: "/partners/resources#videos" },
+    { t: "Webinars & Events", d: "Training sessions and live events", to: "/partners/resources#webinars" },
+    { t: "Downloads & Templates", d: "Checklists, SOPs and useful templates", to: "/partners/resources#downloads" },
+  ],
+};
 
 export default function PartnerNav() {
   const workspace = useContext(PartnerWorkspaceContext);
@@ -24,7 +42,7 @@ export default function PartnerNav() {
   const [isPartner, setIsPartner] = useState(false);
   const loc = useLocation();
   const nav_ = useNavigate();
-  const onLanding = loc.pathname === "/partners" || loc.pathname === "/partners/partner-with-jaaga";
+  const onLanding = ["/partners", "/partners/partner-with-jaaga", "/partners/solutions", "/partners/plans", "/partners/resources"].includes(loc.pathname);
 
   const loadPartnerStatus = async (uid: string | null) => {
     if (!uid) { setIsPartner(false); return; }
@@ -102,7 +120,7 @@ export default function PartnerNav() {
   );
 
   // Public partner marketing/onboarding pages where a customer may land
-  const publicPartnerPaths = ["/partners", "/partners/partner-with-jaaga", "/partners/login", "/partners/register", "/partners/welcome", "/partners/verify-otp", "/partners/forgot-password"];
+  const publicPartnerPaths = ["/partners", "/partners/partner-with-jaaga", "/partners/solutions", "/partners/plans", "/partners/resources", "/partners/login", "/partners/register", "/partners/welcome", "/partners/verify-otp", "/partners/forgot-password"];
   const inPartnerWorkspace = loc.pathname.startsWith("/partners") && !publicPartnerPaths.includes(loc.pathname);
 
   const showPartnerActions = !!userId && (isPartner || inPartnerWorkspace);
@@ -128,9 +146,23 @@ export default function PartnerNav() {
         {onLanding && (
           <nav className="hidden items-center gap-7 md:flex">
             {nav.map((n) => (
-              <a key={n.href} href={n.href} className={cn("js-navlink text-sm transition", loc.pathname === n.href && "font-bold text-[hsl(268,84%,52%)] underline underline-offset-8")}>
-                {n.label}
-              </a>
+              <div key={n.href} className="group relative">
+                <Link to={n.href} className={cn("js-navlink text-sm transition", loc.pathname === n.href && "font-bold text-[hsl(268,84%,52%)] underline underline-offset-8")}>
+                  {n.label}
+                </Link>
+                {MEGA[n.label] && (
+                  <div className="invisible absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                    <div className="rounded-xl border bg-white p-2 shadow-2xl">
+                      {MEGA[n.label].map((m) => (
+                        <Link key={m.t} to={m.to} className="block rounded-lg px-3 py-2 hover:bg-[hsl(268,80%,96%)]">
+                          <span className="block text-sm font-bold text-[hsl(255,40%,14%)]">{m.t}</span>
+                          <span className="block text-xs text-[hsl(260,15%,45%)]">{m.d}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
         )}
@@ -149,7 +181,7 @@ export default function PartnerNav() {
         <div className={cn("js-nav border-t backdrop-blur-xl md:hidden")}>
           <div className="container mx-auto flex flex-col gap-3 px-4 py-4">
             {onLanding && nav.map((n) => (
-              <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="js-navlink text-sm">
+              <a key={n.href} href={n.href.startsWith("/partners#") ? n.href : n.href} onClick={() => setOpen(false)} className="js-navlink text-sm">
                 {n.label}
               </a>
             ))}
