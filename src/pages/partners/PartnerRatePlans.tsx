@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2, Plus, Pencil, Trash2, Tag, ShieldCheck, Link2 } from "lucide-react";
+import { isRatePlanAdjustmentType, RATE_PLAN_ADJUSTMENT_TYPES } from "@/lib/ratePlanAdjustment";
 
 const BOARDS = [
   { value: "RO", label: "Room Only" },
@@ -78,6 +79,10 @@ export default function PartnerRatePlans() {
 
   const save = async () => {
     if (!editing?.rate_plan_name?.trim()) { toast.error("Rate plan name is required"); return; }
+    if (!isRatePlanAdjustmentType(editing.adjustment_type)) {
+      toast.error("Choose Percent or Fixed ₹ for the price adjustment");
+      return;
+    }
     setSaving(true);
     const sb: any = supabase;
     const payload = {
@@ -283,8 +288,9 @@ export default function PartnerRatePlans() {
                   <Select value={editing.adjustment_type} onValueChange={(v) => setEditing({ ...editing, adjustment_type: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="percent">Percent</SelectItem>
-                      <SelectItem value="fixed">Fixed ₹</SelectItem>
+                      {RATE_PLAN_ADJUSTMENT_TYPES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
