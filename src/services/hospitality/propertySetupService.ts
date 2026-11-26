@@ -4,17 +4,29 @@ import { HOSPITALITY_CATEGORIES } from "@/config/hospitalityCategories";
 import { propertySetupSchema, loadPartnerOverview, type OverviewData } from "./partnerDashboardService";
 
 const sb = supabase as any;
-const optionalPattern = (pattern: RegExp) => z.union([z.string().regex(pattern), z.literal("")]);
+const optionalPattern = (pattern: RegExp, message: string) => z.string().trim().toUpperCase().refine(value => value === "" || pattern.test(value), message);
 export const wizardSchema = z.object({
   property: propertySetupSchema.extend({ business_types: z.array(z.string().refine(v => HOSPITALITY_CATEGORIES.some(c => c.key === v))).min(1), summary: z.string().max(250), brand_name: z.string().max(160), property_code: z.string().max(60), website: z.union([z.string().url().startsWith("https://"), z.literal("")]), policies: z.record(z.string().max(100), z.string().max(3000)) }),
-  business: z.object({ owner_name: z.string().max(160), legal_name: z.string().max(160), entity_type: z.string().max(100), cin: z.string().max(30), registered_address: z.string().max(500), gst_number: optionalPattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/), pan_number: optionalPattern(/^[A-Z]{5}[0-9]{4}[A-Z]$/) }),
+  business: z.object({ owner_name: z.string().max(160), legal_name: z.string().max(160), entity_type: z.string().max(100), cin: z.string().max(30), registered_address: z.string().max(500), gst_number: optionalPattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/, "Enter a valid 15-character GSTIN."), pan_number: optionalPattern(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Enter a valid 10-character PAN (5 letters, 4 digits, 1 letter).") }),
   documents: z.record(z.string(), z.string().max(500)),
-  bank: z.object({ account_holder_name: z.string().max(160), bank_name: z.string().max(160), account_number: optionalPattern(/^\d{6,24}$/), ifsc_code: optionalPattern(/^[A-Z]{4}0[A-Z0-9]{6}$/), upi_id: z.string().max(100), account_type: z.enum(["Current", "Savings"]) }),
+  bank: z.object({ account_holder_name: z.string().max(160), bank_name: z.string().max(160), account_number: optionalPattern(/^\d{6,24}$/, "Enter a bank account number containing 6–24 digits."), ifsc_code: optionalPattern(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Enter the 11-character IFSC from your bank: 4 letters, 0, then 6 letters or digits."), upi_id: z.string().max(100), account_type: z.enum(["Current", "Savings"]) }),
   settings: z.object({ step: z.number().int().min(0).max(10), notes: z.string().max(500), require_manual_review: z.boolean(), publish_after_approval: z.boolean() }),
 });
 export type WizardData = z.infer<typeof wizardSchema>;
 export const setupSteps = ["Property Type", "Basic Information", "Business & Verification", "Location & Contact", "Media & Gallery", "Inventory & Pricing", "Amenities & Services", "Policies & Settings", "Bank & Payout", "Access & Team", "Review & Publish"];
 export const documentSlots = [{ key: "business_registration_url", label: "Business Registration" }, { key: "gst_certificate_url", label: "GST Certificate" }, { key: "id_proof_url", label: "PAN Card" }, { key: "identity_proof_url", label: "Owner Identity" }, { key: "cancelled_cheque_url", label: "Cancelled Cheque" }, { key: "address_proof_url", label: "Address Proof" }, { key: "trade_license_url", label: "Trade Licence" }];
+
+export function wizardValidationIssues(input: WizardData) {
+  const result = wizardSchema.safeParse(input);
+  if (result.success) return [];
+  const labels: Record<string, string> = { ifsc_code: "IFSC Code", account_number: "Account Number", gst_number: "GST Number", pan_number: "PAN Number", contact_email: "Official Email", website: "Website (HTTPS)", images: "Property Photos" };
+  const steps: Record<string, number> = { business_types: 0, name: 1, description: 1, summary: 1, brand_name: 1, property_code: 1, images: 4, amenities: 6, policies: 7, check_in_time: 7, check_out_time: 7 };
+  return result.error.issues.map(issue => {
+    const section = String(issue.path[0]), key = String(issue.path[1] ?? "");
+    const step = section === "bank" ? 8 : section === "business" || section === "documents" ? 2 : section === "settings" ? 10 : steps[key] ?? 3;
+    return { path: issue.path.join("."), key, step, label: labels[key] ?? key.replace(/_/g, " "), message: issue.message };
+  });
+}
 
 export async function loadPropertyWizard(hotelId: string) {
   const [overview, application, payout, staff, audit] = await Promise.all([
@@ -32,7 +44,9 @@ export async function loadPropertyWizard(hotelId: string) {
   return { overview, form, application: a, staff: staff.data ?? [], audit: audit.data ?? [] };
 }
 export function wizardReadiness(f: WizardData, overview: OverviewData) {
-  return [f.property.business_types.length > 0, f.property.name.trim().length >= 2 && !!f.property.description.trim(), !!f.business.owner_name.trim() && !!f.business.legal_name.trim() && !!f.documents.business_registration_url && !!f.documents.identity_proof_url && (!f.business.gst_number || !!f.documents.gst_certificate_url), !!f.property.city.trim() && !!f.property.address.trim() && !!f.property.contact_email && !!f.property.contact_phone && Number.isFinite(f.property.latitude) && Number.isFinite(f.property.longitude), f.property.images.length >= 3, overview.rooms.some(r => r.is_active && Number(r.total_units) > 0 && (Number(r.base_price) > 0 || Number(r.monthly_price) > 0 || Number(r.weekly_price) > 0)), f.property.amenities.length > 0 || overview.services.length > 0, !!f.property.check_in_time && !!f.property.check_out_time && !!f.property.policies.guest_rules?.trim(), !!f.bank.account_holder_name && !!f.bank.bank_name && !!f.bank.account_number && !!f.bank.ifsc_code && !!f.documents.cancelled_cheque_url, true];
+  const readiness = [f.property.business_types.length > 0, f.property.name.trim().length >= 2 && !!f.property.description.trim(), !!f.business.owner_name.trim() && !!f.business.legal_name.trim() && !!f.documents.business_registration_url && !!f.documents.identity_proof_url && (!f.business.gst_number || !!f.documents.gst_certificate_url), !!f.property.city.trim() && !!f.property.address.trim() && !!f.property.contact_email && !!f.property.contact_phone && Number.isFinite(f.property.latitude) && Number.isFinite(f.property.longitude), f.property.images.length >= 3, overview.rooms.some(r => r.is_active && Number(r.total_units) > 0 && (Number(r.base_price) > 0 || Number(r.monthly_price) > 0 || Number(r.weekly_price) > 0)), f.property.amenities.length > 0 || overview.services.length > 0, !!f.property.check_in_time && !!f.property.check_out_time && !!f.property.policies.guest_rules?.trim(), !!f.bank.account_holder_name && !!f.bank.bank_name && !!f.bank.account_number && !!f.bank.ifsc_code && !!f.documents.cancelled_cheque_url, true];
+  for (const issue of wizardValidationIssues(f)) readiness[issue.step === 10 ? 1 : issue.step] = false;
+  return readiness;
 }
 export async function savePropertyWizard(hotelId: string, input: WizardData, submit = false) {
   const data = wizardSchema.parse(input);
