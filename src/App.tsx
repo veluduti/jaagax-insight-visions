@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import PropertyQrRedirect from "./pages/PropertyQrRedirect";
 import { lazyWithRetry as lazy } from "@/lib/lazyWithRetry";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -586,6 +587,7 @@ const App = () => (
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
                   <Route path="/hotels/hyperguest" element={<HyperGuestHotels />} />
                   <Route path="/hotels/hyperguest/:propertyId" element={<HyperGuestProperty />} />
+                  <Route path="/p/:reference" element={<PropertyQrRedirect />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
                   <Route path="/hotels/:id/long-stay" element={<LongStayBooking />} />

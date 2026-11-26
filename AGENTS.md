@@ -44,3 +44,4 @@
 - Rate-plan adjustment controls use the shared `ratePlanAdjustment` options and guard (`percent`/`flat`) so fixed-rupee saves match the existing database constraint.
 - Property setup readiness uses the save schema and field-specific errors; normalize bank/tax codes before validation so completion cannot conceal rejected values.
 - Property references are assigned and protected by database triggers using a shared non-cycling sequence; keep UUID keys and external supplier IDs unchanged so bookings and integrations retain their links. Draft creation must save the selected category before assignment, and references remain unchanged after category edits.
+- Property QR codes encode https://jaagax.com/p/<Property ID>; the /p route resolves the permanent reference to the live details page so QR codes stay valid if URLs change.
