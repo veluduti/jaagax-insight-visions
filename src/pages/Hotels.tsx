@@ -1355,7 +1355,10 @@ const Hotels = () => {
                 <p className="mt-1 text-sm md:text-base">Discover the best hotels, resorts and stays for your perfect trip</p>
                 </>}
               </div>
+              <div className="flex shrink-0 flex-col items-end gap-3">
+                <Button onClick={() => navigate("/partners")} className="whitespace-nowrap">List Your Property</Button>
               {catMode ? <div className="hidden rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:block"><p className="text-sm font-bold">{loading ? "Loading…" : `${resortCandidates.length} ${uniqueMode ? (resortCandidates.length === 1 ? "Unique Stay" : "Unique Stays") : corporateMode ? (resortCandidates.length === 1 ? "Corporate Stay" : "Corporate Stays") : luxuryMode ? (resortCandidates.length === 1 ? "Luxury Stay" : "Luxury Stays") : colivingMode ? "Co-living Spaces" : pgMode ? (resortCandidates.length === 1 ? "PG / Hostel" : "PGs & Hostels") : aptMode ? (resortCandidates.length === 1 ? "Apartment" : "Apartments") : resortCandidates.length === 1 ? "Resort" : "Resorts"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Live prices from partners</p></div> : <div className="hidden items-center gap-3 rounded-lg border border-primary-foreground/30 bg-foreground/40 px-4 py-3 backdrop-blur sm:flex"><ShieldCheck className="h-6 w-6" /><div><p className="text-sm font-bold">{loading ? "Loading…" : `${filteredAndSortedHotels.length.toLocaleString("en-IN")} ${filteredAndSortedHotels.length === 1 ? "hotel" : "hotels"}${selectedCity !== "all" ? ` in ${selectedCity}` : ""}`}</p><p className="text-xs">Best price guaranteed</p></div></div>}
+              </div>
             </div>
           </div>
         </section>
