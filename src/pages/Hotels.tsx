@@ -1363,8 +1363,8 @@ const Hotels = () => {
           </div>
         </section>
 
-        {/* Sticky search bar — stays fixed while results below scroll */}
-        <div className="sticky top-[65px] z-30 -mt-6 bg-card pb-2 pt-2 xl:top-[81px]">
+        {/* Search card scrolls normally with the page */}
+        <div className="relative z-30 -mt-6 bg-card pb-2 pt-2">
           <div className="mx-auto w-full max-w-[1600px] px-4 lg:px-8">
             {/* Advanced Search Bar */}
             <div className="relative z-20 rounded-lg border-2 border-primary/70 bg-card p-3 text-card-foreground shadow-lg md:p-4">
