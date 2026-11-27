@@ -1,0 +1,5 @@
+import * as React from 'npm:react@18.3.1';
+import {Body,Button,Container,Head,Heading,Html,Preview,Text} from 'npm:@react-email/components@0.0.22';
+import type {TemplateEntry} from './registry.ts';
+const Email=({property,name,kind,reference}:{property:string;name:string;kind:string;reference:string})=><Html><Head/><Preview>New {kind} for {property}</Preview><Body style={{backgroundColor:'#ffffff',fontFamily:'Arial, sans-serif'}}><Container style={{padding:'24px',maxWidth:'600px'}}><Heading style={{color:'#148a32'}}>JAAGA X — New PG Request</Heading><Text>{name} submitted a {kind} for {property}.</Text><Text>Reference: {reference}</Text><Text>Review the customer’s details, visit preferences and application in your property dashboard.</Text><Button href="https://jaagax.com/partners/applications" style={{backgroundColor:'#148a32',color:'#ffffff',padding:'12px 20px',borderRadius:'6px'}}>Review Request</Button></Container></Body></Html>;
+export const template={component:Email,subject:'New PG request — JAAGA X',displayName:'PG owner request',previewData:{property:'Your PG',name:'Customer',kind:'enquiry',reference:'ENQ-reference'}} satisfies TemplateEntry;

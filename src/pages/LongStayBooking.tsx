@@ -14,6 +14,7 @@ import LongStayDetails, { type LongStayDetailRoom } from "@/components/hotels/Lo
 import { customerView } from "@/config/accommodationTypes";
 import { loadPublicMarkupRates, markRoom } from "@/services/hospitality/markupService";
 import { useHotelMarkupRevision } from "@/hooks/useHotelMarkupRevision";
+import PgJourney from "./PgJourney";
 
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
@@ -138,6 +139,8 @@ export default function LongStayBooking() {
 
   const per = plan === "monthly" ? "month" : "week";
   const unitBed = room ? customerView(room, bizTypes).kind.unit === "bed" : false;
+
+  if (bizTypes.some(t => ["pg", "hostel"].includes(t))) return <PgJourney mode="application" />;
 
   if (loading) {
     return <div className="mx-auto flex max-w-3xl items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;

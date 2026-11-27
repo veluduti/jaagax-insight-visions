@@ -610,6 +610,48 @@
       "when": 1795696884558,
       "tag": "0086_tighten_partner_signup_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1795748198819,
+      "tag": "0087_pg_customer_journey",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1795748520622,
+      "tag": "0088_pg_journey_approval_and_checkin",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1795748869325,
+      "tag": "0089_pg_resident_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1795749022015,
+      "tag": "0090_pg_visit_access_validation",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1795749215828,
+      "tag": "0091_pg_full_or_deposit_payment",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1795749273787,
+      "tag": "0092_pg_move_in_balance_receipts",
+      "breakpoints": true
     }
   ]
 }

@@ -59,3 +59,6 @@ verify_jwt = false
 
 [functions.events-api]
 verify_jwt = false
+
+[functions.pg-request]
+verify_jwt = false

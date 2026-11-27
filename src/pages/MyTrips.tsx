@@ -1,4 +1,5 @@
 import MyLongStays from "@/components/hotels/MyLongStays";
+import MyPgRequests from "@/components/hotels/MyPgRequests";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -57,6 +58,7 @@ export default function MyTrips() {
         <h1 className="text-2xl font-bold">My trips</h1>
         <p className="mb-4 text-sm text-muted-foreground">Every stay you've booked, what's next and how to get help.</p>
         {signedIn && <MyLongStays />}
+        {signedIn && <MyPgRequests />}
         {signedIn === false ? (
           <Card><CardContent className="p-6 text-center">
             <p className="mb-3 text-sm text-muted-foreground">Please sign in to see your trips.</p>

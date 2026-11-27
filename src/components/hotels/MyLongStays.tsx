@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,8 +37,10 @@ export default function MyLongStays() {
                 <Badge variant={s.status === "active" ? "default" : "outline"}>{LABEL[s.status] ?? s.status}</Badge>
               </div>
               <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground">
-                <span>Paid at booking: <b className="text-foreground">{inr(s.amount_due)}</b></span>
+                <span>{s.payment_status === "paid" ? "Paid at booking:" : "Due at booking:"} <b className="text-foreground">{inr(s.amount_due)}</b></span>
                 {Number(s.advance) > 0 && <span>Advance: {inr(s.advance)}</span>}
+                {Number(s.move_in_balance)>0 && <span>Balance due at move-in: <b>{inr(Math.max(0,Number(s.move_in_balance)-Number(s.move_in_balance_paid||0)))}</b></span>}
+                {s.move_in_balance_receipt && <span>Collection receipt: {s.move_in_balance_receipt}</span>}
                 {Number(s.deposit) > 0 && <span>Deposit (refundable): {inr(s.deposit)}</span>}
                 {s.quote?.recurring && <span>Rent: {inr(s.quote.recurring)}/{s.rent_plan === "weekly" ? "week" : "month"}</span>}
               </div>
@@ -56,7 +59,9 @@ export default function MyLongStays() {
                   Complete payment
                 </Button>
               )}
-              {s.status === "active" && <p className="text-xs text-muted-foreground">To extend or give notice, message the property from this page or call them.</p>}
+              {s.resident_access_id && <div className="rounded-md border border-border p-3"><p className="text-xs font-semibold">Resident Access ID</p><p className="break-all text-sm font-bold text-primary">{s.resident_access_id}</p><p className="mt-1 text-xs text-muted-foreground">{s.resident_access_active ? "Active · property check-in verified" : "Inactive · awaiting property-manager verified check-in"}. This reference is not a sign-in credential.</p></div>}
+              {s.resident_access_active && <Button asChild size="sm"><Link to={`/resident/${s.id}`}>Open Resident Access</Link></Button>}
+              {s.status === "active" && <p className="text-xs text-muted-foreground">Contact the property to extend your stay or give notice.</p>}
             </CardContent>
           </Card>
         );

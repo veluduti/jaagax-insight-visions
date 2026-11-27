@@ -6,6 +6,8 @@ export type LongStay = {
   id: string; hotel_id: string; room_id: string | null; unit_label: string | null; resident_name: string;
   resident_phone: string | null; resident_email: string | null; move_in: string; move_out: string | null;
   monthly_rent: number; deposit: number; rent_due_day: number; status: "active" | "notice" | "moved_out"; notes: string | null;
+  payment_status?: string; resident_access_id?: string; resident_access_active?: boolean; application_id?: string;
+  move_in_balance?: number; move_in_balance_paid?: number;
 };
 export type RentDue = { id: string; stay_id: string; period_month: string; amount: number; due_date: string; status: "due" | "paid"; paid_at: string | null };
 export type WaitlistEntry = { id: string; hotel_id: string; room_id: string | null; check_in: string; check_out: string; guests: number; status: string; created_at: string };

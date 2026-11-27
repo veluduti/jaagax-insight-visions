@@ -149,6 +149,8 @@ const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
 const LongStayBooking = lazy(() => import("./pages/LongStayBooking"));
+const PgJourney = lazy(() => import("./pages/PgJourney"));
+const ResidentWorkspace = lazy(() => import("./pages/ResidentWorkspace"));
 const HyperGuestProperty = lazy(() => import("./pages/HyperGuestProperty"));
 const HyperGuestHotels = lazy(() => import("./pages/HyperGuestHotels"));
 const HyperGuestCertification = lazy(() => import("./pages/admin/HyperGuestCertification"));
@@ -595,6 +597,9 @@ const App = () => (
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
                   <Route path="/hotels/:id/long-stay" element={<LongStayBooking />} />
+                  <Route path="/hotels/:id/enquiry" element={<PgJourney mode="enquiry" />} />
+                  <Route path="/hotels/:id/visit" element={<PgJourney mode="visit" />} />
+                  <Route path="/resident/:stayId" element={<ResidentWorkspace />} />
                   <Route path="/hotels/booking/:bookingId/confirmed" element={<HotelBookingConfirmed />} />
                   <Route path="/partners" element={<PartnerLanding />} />
                   <Route path="/partners/partner-with-jaaga" element={<PartnerWithJaaga />} />

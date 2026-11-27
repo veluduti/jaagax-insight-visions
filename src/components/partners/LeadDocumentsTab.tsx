@@ -12,8 +12,8 @@ import type { LeadDocumentStatus } from "@/lib/leadDocuments";
 
 const date = (value: string) => new Date(value).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
-export default function LeadDocumentsTab({ hotelId, leadId, categories, onChanged }: {
-  hotelId: string; leadId: string; categories: [string, string][]; onChanged: () => Promise<void>;
+export default function LeadDocumentsTab({ hotelId, leadId, categories, onChanged, customer = false }: {
+  hotelId: string; leadId: string; categories: [string, string][]; onChanged: () => Promise<void>; customer?: boolean;
 }) {
   const [files, setFiles] = useState<LeadDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +81,7 @@ export default function LeadDocumentsTab({ hotelId, leadId, categories, onChange
           <div className="flex items-start gap-2"><FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div className="min-w-0 flex-1"><p className="break-all text-sm font-medium">{file.file_name}</p><p className="text-xs text-muted-foreground">{(file.file_size / 1024).toFixed(0)} KB · {date(file.created_at)}</p></div></div>
           <div className="flex flex-wrap items-center gap-1"><Badge variant="outline" className="capitalize">{file.status}</Badge>{i > 0 && <span className="text-xs text-muted-foreground">Earlier upload</span>}</div>
           {file.review_note && <p className="break-words text-xs">{file.review_note}</p>}
-          <div className="flex flex-wrap gap-1"><Button size="sm" variant="ghost" aria-label={`Preview ${file.file_name}`} onClick={() => setPreview(file)}><Eye className="mr-1 h-4 w-4" />Preview</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => { setReview(file); setStatus(file.status); setNote(file.review_note); }}><ShieldCheck className="mr-1 h-4 w-4" />Review</Button><Button size="icon" variant="ghost" aria-label={`Status history for ${file.file_name}`} title="Status history" onClick={() => setHistory(file)}><History className="h-4 w-4" /></Button></div>
+          <div className="flex flex-wrap gap-1"><Button size="sm" variant="ghost" aria-label={`Preview ${file.file_name}`} onClick={() => setPreview(file)}><Eye className="mr-1 h-4 w-4" />Preview</Button>{!customer && <Button size="sm" variant="ghost" disabled={busy} onClick={() => { setReview(file); setStatus(file.status); setNote(file.review_note); }}><ShieldCheck className="mr-1 h-4 w-4" />Review</Button>}<Button size="icon" variant="ghost" aria-label={`Status history for ${file.file_name}`} title="Status history" onClick={() => setHistory(file)}><History className="h-4 w-4" /></Button></div>
         </div>)}
       </section>;
     })}

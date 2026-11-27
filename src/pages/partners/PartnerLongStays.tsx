@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Plus, Phone, CalendarClock, LogOut, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
+import { activatePgResident, collectPgBalance } from "@/services/hospitality/pgJourneyService";
 import {
   loadLongStays, addResident, giveNotice, moveOut, generateMonthDues, markRentPaid,
   type LongStay, type RentDue, type WaitlistEntry,
@@ -26,6 +27,8 @@ export default function PartnerLongStays() {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState(blank);
   const [notice, setNotice] = useState<{ stay: LongStay; date: string } | null>(null);
+  const [checkin, setCheckin] = useState<{stay: LongStay; unit: string} | null>(null);
+  const [collection, setCollection] = useState<{stay:LongStay;receipt:string}|null>(null);
 
   const load = useCallback(() => { if (hotelId) loadLongStays(hotelId).then(setData).catch((e) => toast.error(e.message)); }, [hotelId]);
   useEffect(() => { load(); }, [load]);
@@ -91,6 +94,9 @@ export default function PartnerLongStays() {
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      {s.payment_status==='paid' && Number(s.move_in_balance)>Number(s.move_in_balance_paid||0) && <Button size="sm" variant="outline" onClick={()=>setCollection({stay:s,receipt:''})}>Record Move-in Balance · {inr(Number(s.move_in_balance)-Number(s.move_in_balance_paid||0))}</Button>}
+                      {s.application_id && s.payment_status === "paid" && !s.resident_access_active && s.status === "active" && s.move_in <= today() && <Button size="sm" onClick={()=>setCheckin({stay:s,unit:s.unit_label||""})}>Verify Check-in & Activate Access</Button>}
+                      {s.resident_access_active && <Badge variant="secondary">Resident access active</Badge>}
                       {s.resident_phone && <Button asChild size="sm" variant="outline"><a href={`tel:${s.resident_phone}`}><Phone className="mr-1 h-4 w-4" />Call</a></Button>}
                       {s.status === "active" && <Button size="sm" variant="outline" onClick={() => setNotice({ stay: s, date: today() })}><CalendarClock className="mr-1 h-4 w-4" />Notice to leave</Button>}
                       <Button size="sm" variant="ghost" onClick={() => run(() => moveOut(s), "Marked as moved out")}><LogOut className="mr-1 h-4 w-4" />Move out</Button>
@@ -146,6 +152,9 @@ export default function PartnerLongStays() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!checkin} onOpenChange={o=>!o&&setCheckin(null)}><DialogContent><DialogHeader><DialogTitle>Verify Resident Check-in</DialogTitle></DialogHeader><p className="text-sm">Confirm the resident's original identity proof and assigned room / bed before activating account access.</p><Label htmlFor="resident-unit">Assigned Room / Bed</Label><Input id="resident-unit" value={checkin?.unit||''} maxLength={100} onChange={e=>checkin&&setCheckin({...checkin,unit:e.target.value})}/><Button onClick={async()=>{if(!checkin)return;try{await activatePgResident(checkin.stay.id,checkin.unit);toast.success('Resident check-in verified');setCheckin(null);load();}catch(e){toast.error(e instanceof Error?e.message:'Check-in failed')}}}>Confirm Verified Check-in</Button></DialogContent></Dialog>
+      <Dialog open={!!collection} onOpenChange={o=>!o&&setCollection(null)}><DialogContent><DialogHeader><DialogTitle>Record Move-in Balance Collection</DialogTitle></DialogHeader><p className="text-sm">Record only a payment you have received: {inr(Number(collection?.stay.move_in_balance||0)-Number(collection?.stay.move_in_balance_paid||0))}.</p><Label htmlFor="balance-receipt">Receipt / payment reference</Label><Input id="balance-receipt" value={collection?.receipt||''} maxLength={200} onChange={e=>collection&&setCollection({...collection,receipt:e.target.value})}/><Button onClick={async()=>{if(!collection)return;try{await collectPgBalance(collection.stay.id,collection.receipt);toast.success('Balance collection recorded');setCollection(null);load()}catch(e){toast.error(e instanceof Error?e.message:'Could not record collection')}}}>Confirm Received Payment</Button></DialogContent></Dialog>
 
       <Dialog open={!!notice} onOpenChange={(o) => !o && setNotice(null)}>
         <DialogContent>

@@ -44,6 +44,7 @@ import { HotelAddonsShowcase } from "@/components/hotels/HotelAddons";
 import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 import GoogleStaticMarkerMap from "@/components/location/GoogleStaticMarkerMap";
 import { loadGoogleMaps } from "@/lib/googleMaps";
+import PgPropertyDetails from "@/components/hotels/PgPropertyDetails";
 
 interface HotelData {
   business_types?: string[] | null;
@@ -142,6 +143,7 @@ const HotelDetail = () => {
   // Geocode hotel location if coordinates are missing so the map always renders
   useEffect(() => {
     if (!hotel) return;
+    if (hotel.business_types?.some(t => ["pg", "hostel"].includes(normalizeCategory(t)))) return;
     const lat = Number((hotel as any).latitude);
     const lng = Number((hotel as any).longitude);
     if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0) {
@@ -189,6 +191,10 @@ const HotelDetail = () => {
 
   const reviewStats = useHotelReviewStats(id);
   const images = useMemo(() => (hotel?.images && hotel.images.length ? hotel.images : [FALLBACK_IMG]), [hotel]);
+
+  if (hotel && id && hotel.business_types?.some(t => ["pg", "hostel"].includes(normalizeCategory(t)))) {
+    return <PgPropertyDetails hotelId={id} />;
+  }
 
   if (loading) {
     return (

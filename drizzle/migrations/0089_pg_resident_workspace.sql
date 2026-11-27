@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION public.pg_resident_workspace(_stay_id uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$ DECLARE s hotel_long_stays; h partner_hotels; BEGIN
+ SELECT * INTO s FROM hotel_long_stays WHERE id=_stay_id AND user_id=auth.uid() AND resident_access_active AND status IN('active','notice') AND payment_status='paid';
+ IF s.id IS NULL THEN RAISE EXCEPTION 'Resident access requires your signed-in account and verified property check-in'; END IF;
+ SELECT * INTO h FROM partner_hotels WHERE id=s.hotel_id;
+ RETURN jsonb_build_object('stay',jsonb_build_object('id',s.id,'hotel_id',s.hotel_id,'name',s.resident_name,'unit',s.unit_label,'reference',s.resident_access_id,'move_in',s.move_in,'move_out',s.move_out),'hotel',jsonb_build_object('name',h.name,'phone',h.contact_phone,'email',h.contact_email,'rules',h.policies),'menus',(SELECT coalesce(jsonb_agg(to_jsonb(m)),'[]') FROM hotel_meal_menus m WHERE hotel_id=s.hotel_id AND (menu_date>=current_date OR menu_date IS NULL)),'invoices',(SELECT coalesce(jsonb_agg(to_jsonb(i) ORDER BY i.created_at DESC),'[]') FROM hotel_invoices i WHERE long_stay_id=s.id),'dues',(SELECT coalesce(jsonb_agg(to_jsonb(d) ORDER BY due_date DESC),'[]') FROM hotel_rent_dues d WHERE stay_id=s.id),'requests',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'title',title,'status',status,'kind',kind,'created_at',created_at) ORDER BY created_at DESC),'[]') FROM hotel_ops_tasks WHERE hotel_id=s.hotel_id AND created_by=s.user_id),'tickets',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'subject',subject,'status',status,'resolution',resolution) ORDER BY created_at DESC),'[]') FROM hospitality_tickets WHERE hotel_id=s.hotel_id AND opened_by=s.user_id),'visitors',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'name',name,'expected_at',expected_at,'status',status,'visitor_code',visitor_code) ORDER BY created_at DESC),'[]') FROM hotel_visitors WHERE long_stay_id=s.id)); END $$;
+REVOKE ALL ON FUNCTION public.pg_resident_workspace(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.pg_resident_workspace(uuid) TO authenticated;
+CREATE OR REPLACE FUNCTION public.pg_resident_request(_stay_id uuid,_kind text,_title text,_notes text) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE s hotel_long_stays; rid uuid; manager uuid; BEGIN
+ SELECT * INTO s FROM hotel_long_stays WHERE id=_stay_id AND user_id=auth.uid() AND resident_access_active AND status IN('active','notice') AND payment_status='paid';
+ IF s.id IS NULL THEN RAISE EXCEPTION 'Resident check-in required'; END IF;
+ IF _kind NOT IN('maintenance','housekeeping','support','dispute','safety','refund') OR length(trim(coalesce(_title,''))) NOT BETWEEN 3 AND 150 OR length(coalesce(_notes,''))>1000 THEN RAISE EXCEPTION 'Check the request details'; END IF;
+ IF _kind IN('maintenance','housekeeping') THEN
+ INSERT INTO hotel_ops_tasks(hotel_id,kind,title,notes,room_label,created_by,requester_type,requester_name,priority,status,timeline) VALUES(s.hotel_id,_kind,trim(_title),_notes,s.unit_label,s.user_id,'resident',s.resident_name,'normal','open',jsonb_build_array(jsonb_build_object('at',now(),'label','Resident request raised'))) RETURNING id INTO rid;
+ ELSE INSERT INTO hospitality_tickets(hotel_id,kind,subject,body,opened_by,priority,status) VALUES(s.hotel_id,_kind,trim(_title),_notes,s.user_id,CASE WHEN _kind='safety' THEN 'urgent' WHEN _kind IN('refund','dispute') THEN 'high' ELSE 'normal' END,'open') RETURNING id INTO rid; END IF;
+ SELECT manager_id INTO manager FROM partner_hotels WHERE id=s.hotel_id;
+ IF manager IS NOT NULL THEN INSERT INTO notifications(user_id,title,message,type,link) VALUES(manager,'Resident request',s.resident_name||': '||left(_title,150),'booking',CASE WHEN _kind='maintenance' THEN '/partners/maintenance' WHEN _kind='housekeeping' THEN '/partners/operations' ELSE '/partners/inbox' END); END IF;
+ RETURN rid; END $$;
+REVOKE ALL ON FUNCTION public.pg_resident_request(uuid,text,text,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.pg_resident_request(uuid,text,text,text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.pg_resident_visitor(_stay_id uuid,_name text,_phone text,_expected_at timestamptz,_purpose text) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE s hotel_long_stays; vid uuid; BEGIN
+ SELECT * INTO s FROM hotel_long_stays WHERE id=_stay_id AND user_id=auth.uid() AND resident_access_active AND status IN('active','notice') AND payment_status='paid';
+ IF s.id IS NULL THEN RAISE EXCEPTION 'Resident check-in required'; END IF;
+ IF length(trim(coalesce(_name,''))) NOT BETWEEN 2 AND 100 OR coalesce(_phone,'') !~ '^\+?[0-9 -]{7,20}$' OR _expected_at IS NULL OR _expected_at<=now() OR length(coalesce(_purpose,''))>500 THEN RAISE EXCEPTION 'Check visitor contact and arrival details'; END IF;
+ IF EXISTS(SELECT 1 FROM hotel_rooms WHERE id=s.room_id AND lower(coalesce(attributes->>'visitor_policy','')) IN('not allowed','no visitors')) THEN RAISE EXCEPTION 'The property does not allow visitors'; END IF;
+ INSERT INTO hotel_visitors(hotel_id,long_stay_id,name,phone,host_name,area,purpose,entry_type,status,expected_at,created_by,timeline) VALUES(s.hotel_id,s.id,trim(_name),trim(_phone),s.resident_name,s.unit_label,_purpose,'pre_registered','pending',_expected_at,s.user_id,jsonb_build_array(jsonb_build_object('at',now(),'label','Resident visitor request'))) RETURNING id INTO vid;
+ RETURN vid; END $$;
+REVOKE ALL ON FUNCTION public.pg_resident_visitor(uuid,text,text,timestamptz,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.pg_resident_visitor(uuid,text,text,timestamptz,text) TO authenticated;

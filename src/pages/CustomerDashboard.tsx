@@ -9,6 +9,8 @@ import { LogOut, Search, Sparkles, Building2, Banknote, Hotel } from "lucide-rea
 import { CardGridSkeleton } from "@/components/shared";
 import CustomerOverview from "@/features/customer/CustomerOverview";
 import { useHotelManagerAccess } from "@/hooks/useHotelManagerAccess";
+import MyPgRequests from "@/components/hotels/MyPgRequests";
+import MyLongStays from "@/components/hotels/MyLongStays";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
@@ -21,6 +23,7 @@ const SECTIONS = [
   { id: "selling", label: "Sell & Track", icon: Sparkles },
   { id: "builder", label: "Projects", icon: Building2 },
   { id: "loans", label: "Loans", icon: Banknote },
+  { id: "stays", label: "PG & Stays", icon: Hotel },
 ] as const;
 
 function scrollToSection(id: string) {
@@ -128,6 +131,8 @@ export default function CustomerDashboard() {
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
         <CustomerOverview onNavigateTab={scrollToSection} />
+
+        {user && <section className="space-y-6"><SectionHeader id="stays" title="PG & Hostel Journey" description="Enquiries, visits, applications, bookings, rent and resident access" icon={Hotel}/><MyPgRequests/><MyLongStays/><Button variant="outline" onClick={()=>navigate('/my-trips')}>All My Trips</Button></section>}
 
         <section className="space-y-6">
           <SectionHeader

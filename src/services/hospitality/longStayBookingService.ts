@@ -55,7 +55,7 @@ export async function loadMyLongStays() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
   const { data } = await sb.from("hotel_long_stays")
-    .select("id,booking_ref,hotel_id,unit_label,move_in,move_out,rent_plan,duration,occupants,amount_due,deposit,advance,status,payment_status,quote,hold_expires_at,partner_hotels(name,city)")
+    .select("id,booking_ref,hotel_id,unit_label,move_in,move_out,rent_plan,duration,occupants,amount_due,deposit,advance,status,payment_status,quote,hold_expires_at,resident_access_id,resident_access_active,payment_choice,booking_total,move_in_balance,move_in_balance_paid,move_in_balance_receipt,partner_hotels(name,city)")
     .eq("user_id", user.id).not("status", "eq", "expired").order("created_at", { ascending: false }).limit(50);
   const ids = (data ?? []).map((s: any) => s.id);
   const { data: dues } = ids.length

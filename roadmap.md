@@ -112,3 +112,14 @@
 - [x] Add connector-backed property listing and a link from Hotels, keeping test inventory separate.
 - [x] Verify loaded property, search, detail navigation and mobile layout (live connector response, no page errors or mobile overflow; build OK).
 - Property Groups: group details, settings, team roles (via hotel teams), activity; reuses partner_businesses.group_settings.
+
+## PG / Hostel customer-to-resident journey
+- [x] Add green/white property details, gallery, tabs, separate enquiry/visit/application screens using published owner data.
+- [x] Connect requests to existing leads/private documents and unified owner dashboard; add collision-safe configured visit slots and customer tracking.
+- [x] Gate new PG checkout on manager approval and verified documents; retain authoritative long-stay quotes, inventory holds and captured payments.
+- [x] Add account-bound resident references, manager-verified check-in and resident workspace using existing invoices, menus, operations, support and visitors.
+- [x] Verify signed-in enquiry/application submission/read-back, payment approval rejection, inactive resident denial, mobile overflow, 30 tests and build; QA rows removed; owner email send events confirmed.
+- [x] Add both payment choices: full quote online or owner-configured booking deposit with the remaining balance due at move-in; validate amounts server-side and preserve verified payment. Owner receipt-backed collection is required before resident access. Owner deposit save/read/reset and slot collision checks passed on an inactive QA property (removed).
+- [ ] Real paid booking, document review, owner check-in and active resident actions: not exercised to avoid real payments/identity uploads; require controlled approved booking and owner session.
+- [ ] Scheduled visit reminders, automatic refunds, online recurring rent, announcements and QR resident gate: existing services do not provide these end-to-end; not implemented or simulated.
+- [ ] Owner alternative-slot suggestions and video link delivery need follow-up; visit slots/types and customer rescheduling are present.

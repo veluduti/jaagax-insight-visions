@@ -5659,12 +5659,14 @@ export type Database = {
           converted_stay_id: string | null
           created_at: string
           created_by: string | null
+          customer_id: string | null
           email: string | null
           follow_up_at: string | null
           guests: number | null
           hotel_id: string
           id: string
           interest: string | null
+          journey: Json
           last_activity_at: string
           lead_type: string
           lost_reason: string | null
@@ -5692,12 +5694,14 @@ export type Database = {
           converted_stay_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           email?: string | null
           follow_up_at?: string | null
           guests?: number | null
           hotel_id: string
           id?: string
           interest?: string | null
+          journey?: Json
           last_activity_at?: string
           lead_type?: string
           lost_reason?: string | null
@@ -5725,12 +5729,14 @@ export type Database = {
           converted_stay_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           email?: string | null
           follow_up_at?: string | null
           guests?: number | null
           hotel_id?: string
           id?: string
           interest?: string | null
+          journey?: Json
           last_activity_at?: string
           lead_type?: string
           lost_reason?: string | null
@@ -5776,7 +5782,10 @@ export type Database = {
         Row: {
           advance: number
           amount_due: number | null
+          application_id: string | null
           booking_ref: string | null
+          booking_total: number | null
+          checked_in_at: string | null
           checkout_notes: string | null
           company: string | null
           created_at: string
@@ -5792,17 +5801,23 @@ export type Database = {
           kyc_status: string
           monthly_rent: number
           move_in: string
+          move_in_balance: number
+          move_in_balance_paid: number
+          move_in_balance_receipt: string | null
           move_out: string | null
           notes: string | null
           occupants: number
           occupation: string | null
           paid_at: string | null
+          payment_choice: string | null
           payment_status: string
           quote: Json | null
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           rent_due_day: number
           rent_plan: string | null
+          resident_access_active: boolean
+          resident_access_id: string | null
           resident_email: string | null
           resident_name: string
           resident_phone: string | null
@@ -5817,7 +5832,10 @@ export type Database = {
         Insert: {
           advance?: number
           amount_due?: number | null
+          application_id?: string | null
           booking_ref?: string | null
+          booking_total?: number | null
+          checked_in_at?: string | null
           checkout_notes?: string | null
           company?: string | null
           created_at?: string
@@ -5833,17 +5851,23 @@ export type Database = {
           kyc_status?: string
           monthly_rent?: number
           move_in: string
+          move_in_balance?: number
+          move_in_balance_paid?: number
+          move_in_balance_receipt?: string | null
           move_out?: string | null
           notes?: string | null
           occupants?: number
           occupation?: string | null
           paid_at?: string | null
+          payment_choice?: string | null
           payment_status?: string
           quote?: Json | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           rent_due_day?: number
           rent_plan?: string | null
+          resident_access_active?: boolean
+          resident_access_id?: string | null
           resident_email?: string | null
           resident_name: string
           resident_phone?: string | null
@@ -5858,7 +5882,10 @@ export type Database = {
         Update: {
           advance?: number
           amount_due?: number | null
+          application_id?: string | null
           booking_ref?: string | null
+          booking_total?: number | null
+          checked_in_at?: string | null
           checkout_notes?: string | null
           company?: string | null
           created_at?: string
@@ -5874,17 +5901,23 @@ export type Database = {
           kyc_status?: string
           monthly_rent?: number
           move_in?: string
+          move_in_balance?: number
+          move_in_balance_paid?: number
+          move_in_balance_receipt?: string | null
           move_out?: string | null
           notes?: string | null
           occupants?: number
           occupation?: string | null
           paid_at?: string | null
+          payment_choice?: string | null
           payment_status?: string
           quote?: Json | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           rent_due_day?: number
           rent_plan?: string | null
+          resident_access_active?: boolean
+          resident_access_id?: string | null
           resident_email?: string | null
           resident_name?: string
           resident_phone?: string | null
@@ -5897,6 +5930,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hotel_long_stays_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_leads"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "hotel_long_stays_hotel_id_fkey"
             columns: ["hotel_id"]
@@ -8094,6 +8134,57 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_visit_slots: {
+        Row: {
+          created_at: string
+          ends_at: string
+          hotel_id: string
+          id: string
+          is_active: boolean
+          lead_id: string | null
+          starts_at: string
+          video_url: string | null
+          visit_type: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          lead_id?: string | null
+          starts_at: string
+          video_url?: string | null
+          visit_type?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          lead_id?: string | null
+          starts_at?: string
+          video_url?: string | null
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_visit_slots_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_visit_slots_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_leads"
             referencedColumns: ["id"]
           },
         ]
@@ -11836,6 +11927,7 @@ export type Database = {
           name: string
           onboarding_status: string
           partner_since: string | null
+          pg_booking_deposit: number | null
           policies: Json | null
           price_per_night: number
           property_reference: string | null
@@ -11888,6 +11980,7 @@ export type Database = {
           name: string
           onboarding_status?: string
           partner_since?: string | null
+          pg_booking_deposit?: number | null
           policies?: Json | null
           price_per_night?: number
           property_reference?: string | null
@@ -11940,6 +12033,7 @@ export type Database = {
           name?: string
           onboarding_status?: string
           partner_since?: string | null
+          pg_booking_deposit?: number | null
           policies?: Json | null
           price_per_night?: number
           property_reference?: string | null
@@ -17992,6 +18086,60 @@ export type Database = {
       }
       partner_save_property_setup: {
         Args: { _data: Json; _hotel_id: string; _submit?: boolean }
+        Returns: string
+      }
+      pg_activate_resident: {
+        Args: { _stay_id: string; _unit_label: string }
+        Returns: undefined
+      }
+      pg_change_visit: {
+        Args: { _action: string; _lead_id: string; _slot_id?: string }
+        Returns: undefined
+      }
+      pg_collect_move_in_balance: {
+        Args: { _receipt: string; _stay_id: string }
+        Returns: undefined
+      }
+      pg_customer_document_access: {
+        Args: { _lead_id: string }
+        Returns: boolean
+      }
+      pg_public_details: { Args: { _hotel_id: string }; Returns: Json }
+      pg_reserve_payment: {
+        Args: { _application_id: string; _choice: string }
+        Returns: Json
+      }
+      pg_resident_request: {
+        Args: {
+          _kind: string
+          _notes: string
+          _stay_id: string
+          _title: string
+        }
+        Returns: string
+      }
+      pg_resident_visitor: {
+        Args: {
+          _expected_at: string
+          _name: string
+          _phone: string
+          _purpose: string
+          _stay_id: string
+        }
+        Returns: string
+      }
+      pg_resident_workspace: { Args: { _stay_id: string }; Returns: Json }
+      pg_save_payment_policy: {
+        Args: { _deposit: number; _hotel_id: string }
+        Returns: undefined
+      }
+      pg_submit_request: {
+        Args: {
+          _details: Json
+          _hotel_id: string
+          _kind: string
+          _slot_id?: string
+        }
         Returns: string
       }
       property_admin_review_verification: {

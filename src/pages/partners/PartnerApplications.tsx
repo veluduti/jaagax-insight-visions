@@ -17,6 +17,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import LeadDocumentsTab from "@/components/partners/LeadDocumentsTab";
+import PgPaymentPolicy from "@/components/partners/PgPaymentPolicy";
+import PgVisitSlotManager from "@/components/partners/PgVisitSlotManager";
+import { changePgVisit } from "@/services/hospitality/pgJourneyService";
 
 const db = supabase as any;
 type Lead = any;
@@ -49,6 +52,8 @@ export default function PartnerApplications() {
   useEffect(() => { setLeads(null); setSel(null); setPicked([]); void load(); if (hotelId) db.from("partner_hotels").select("name,business_types").eq("id", hotelId).maybeSingle().then((r: any) => setHotel(r.data)); }, [hotelId, load]);
   useEffect(() => { if (!hotelId) return; const ch = supabase.channel(`apps-${hotelId}`).on("postgres_changes" as any, { event: "*", schema: "public", table: "hotel_leads", filter: `hotel_id=eq.${hotelId}` }, () => void load()).subscribe(); return () => { void supabase.removeChannel(ch); }; }, [hotelId, load]);
 
+  useEffect(()=>{const requestId=params.get('request');if(requestId&&leads?.some(l=>l.id===requestId))setSel(requestId)},[params.get('request'),leads]);
+
   const stageOf = (l: Lead) => l.stage === "lost" ? "dropped" : cfg.stages.some(s => s.key === l.stage) ? l.stage : "new";
   const stageLabel = (k: string) => cfg.stages.find(s => s.key === k)?.label ?? k;
   const inRange = useMemo(() => { const days = RANGES.find(r => r[0] === range)![2]; const from = days ? Date.now() - days * 86400000 : 0; return (leads ?? []).filter(l => new Date(l.created_at).getTime() >= from); }, [leads, range]);
@@ -62,7 +67,7 @@ export default function PartnerApplications() {
 
   const act = async (fn: () => Promise<any>, msg: string) => { setBusy(true); try { await fn(); toast.success(msg); await load(); } catch (e: any) { toast.error(e.message || "Action failed"); } finally { setBusy(false); } };
   const upd = (l: Lead, patch: any, label: string, note?: string) => db.from("hotel_leads").update({ ...patch, timeline: [...(l.timeline ?? []), entry(label, note)] }).eq("id", l.id).then((r: any) => { if (r.error) throw r.error; });
-  const move = (l: Lead, stage: string) => { if (stageOf(l) === stage) return; if (stage === "converted") return setDlg({ kind: "convert", l, text: String(l.budget ?? ""), extra: l.preferred_move_in ?? "" }); if (stage === "dropped") return setDlg({ kind: "drop", l, text: "" }); void act(() => upd(l, { stage, ...(stage === "application" ? { lead_type: "application" } : {}) }, `Moved to ${stageLabel(stage)}`), `Moved to ${stageLabel(stage)}`); };
+  const move = (l: Lead, stage: string) => { if (stageOf(l) === stage) return; if (stage === "converted" && l.customer_id) return toast.info("Customer applications convert automatically after verified online payment. Check in the resident from Long Stays."); if (stage === "converted") return setDlg({ kind: "convert", l, text: String(l.budget ?? ""), extra: l.preferred_move_in ?? "" }); if (stage === "dropped") return setDlg({ kind: "drop", l, text: "" }); void act(() => upd(l, { stage, ...(stage === "application" ? { lead_type: "application" } : {}) }, `Moved to ${stageLabel(stage)}`), `Moved to ${stageLabel(stage)}`); };
 
   const save = async () => {
     const f = form; if (!f.name?.trim()) return toast.error("Enter the name"); if (!f.phone?.trim() && !f.email?.trim()) return toast.error("Add a phone number or email");
@@ -118,6 +123,7 @@ export default function PartnerApplications() {
           </div>
         </div>
         {error && <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">{error} <Button size="sm" variant="link" onClick={() => void load()}>Retry</Button></div>}
+        {cfg.long && <><PgPaymentPolicy hotelId={hotelId} /><PgVisitSlotManager hotelId={hotelId} /></>}
         {!leads && !error ? <Loader2 className="mx-auto mt-10 h-6 w-6 animate-spin text-primary" /> : leads && <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 2xl:grid-cols-8">{shownKpis.map(([I, v, l]) => <div key={l} className="flex items-center gap-2 rounded-xl border bg-card p-3"><I className="h-6 w-6 shrink-0 text-primary" /><div className="min-w-0"><div className="text-lg font-bold leading-tight">{v}</div><div className="text-[11px] leading-tight text-muted-foreground">{l}</div></div></div>)}</div>
           <div className="flex gap-2 overflow-x-auto pb-1">{[["all", `All (${inRange.length})`], ...cfg.stages.map(s => [s.key, `${s.label} (${inRange.filter(l => stageOf(l) === s.key).length})`])].map(([key, l]) => <Button key={key} size="sm" className="shrink-0" variant={stageF === key ? "default" : "outline"} onClick={() => { setParams(key === "all" ? {} : { stage: key }, { replace: true }); setPage(1); }}>{l}</Button>)}</div>
@@ -169,7 +175,7 @@ export default function PartnerApplications() {
         <div className="flex gap-1 overflow-x-auto">{["overview", "documents", "visits", "notes", "activity"].map(t => <Button key={t} size="sm" variant={panelTab === t ? "default" : "ghost"} className="capitalize" onClick={() => setPanelTab(t)}>{t}</Button>)}</div>
         {panelTab === "overview" && <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">{[["Property", hotel?.name], ["Stay Type", current.stay_type], [cfg.unit, current.preferred_unit], ["Budget", inr(current.budget)], [cfg.date, d(current.preferred_move_in)], ...(!cfg.long ? [["Check-out", d(current.check_out_date)], ["Guests", current.guests]] : []), ["Mobile", current.phone], ["Email", current.email], ["Occupation", current.occupation], ["Company", current.company], ["Source", srcLabel(current.source)], ["Assigned To", current.assignee_name], ["Interest", current.interest], ["Created", dt(current.created_at)]].map(([kk, v]) => <Fragment key={kk as string}><dt className="text-muted-foreground">{kk}</dt><dd>{v || "—"}</dd></Fragment>)}</dl>}
         {panelTab === "documents" && <LeadDocumentsTab key={current.id} hotelId={hotelId} leadId={current.id} categories={cfg.docs} onChanged={load} />}
-        {panelTab === "visits" && <div className="space-y-2 text-sm"><p>Visit scheduled: <b>{dt(current.visit_at)}</b></p><p>Follow-up: <b>{dt(current.follow_up_at)}</b></p>
+        {panelTab === "visits" && current.customer_id ? <div className="space-y-3 text-sm"><p>Visit: <b>{dt(current.visit_at)}</b></p><Badge variant="secondary">{current.journey?.visit_status || "Not requested"}</Badge><div className="flex flex-wrap gap-2">{[['approve','Confirm Visit'],['reject','Reject Visit'],['complete','Mark Visited']].map(([action,label])=><Button size="sm" variant="outline" key={action} disabled={busy} onClick={()=>void act(()=>changePgVisit(current.id,action),"Visit updated")}>{label}</Button>)}</div></div> : panelTab === "visits" && <div className="space-y-2 text-sm"><p>Visit scheduled: <b>{dt(current.visit_at)}</b></p><p>Follow-up: <b>{dt(current.follow_up_at)}</b></p>
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setDlg({ kind: "visit", l: current, text: "" })}>{current.visit_at ? "Reschedule" : "Schedule Visit"}</Button>{current.visit_at && <Button size="sm" disabled={busy} onClick={() => act(() => upd(current, { stage: cfg.long ? "application" : current.stage }, "Visited"), "Marked as visited")}>Mark as Visited</Button>}</div></div>}
         {panelTab === "notes" && <div className="space-y-2"><p className="whitespace-pre-wrap rounded bg-muted p-2 text-sm">{current.notes || "No notes yet."}</p><Button size="sm" variant="outline" onClick={() => setDlg({ kind: "note", l: current, text: "" })}>Add Note</Button></div>}
         {panelTab === "activity" && <ol className="space-y-2 border-l pl-3 text-sm">{[...(current.timeline ?? [])].reverse().map((e: any, i: number) => <li key={i}><b>{e.label}</b><div className="text-xs text-muted-foreground">{dt(e.at)}{e.note ? ` · ${e.note}` : ""}</div></li>)}</ol>}
