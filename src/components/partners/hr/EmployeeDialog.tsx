@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { ACTIONS, DEPARTMENTS, PREDEFINED_ROLES, STAFF_MODULES, permissionsForRoles, type Permissions } from "@/config/staffRoles";
 import { DEDUCTION_LABELS, EARNING_LABELS } from "@/lib/hr/payroll";
-import { saveCompensation, saveEmployee, type Compensation, type Employee } from "@/services/hospitality/hrService";
+import { inviteEmployee, saveCompensation, saveEmployee, type Compensation, type Employee } from "@/services/hospitality/hrService";
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Enter the full name").max(120),
@@ -46,7 +46,8 @@ export default function EmployeeDialog({ open, onClose, hotelId, employee, comp,
       const { id, hotel_id, user_id, invited_at, created_at, updated_at, ...rest } = f;
       const saved = await saveEmployee({ ...(id ? { id } : {}), ...rest, hotel_id: hotelId, email: f.email.trim().toLowerCase(), phone: f.phone || null, shift_id: f.shift_id || null, probation_end: f.probation_end || null, permissions: perm });
       if (canPayroll) await saveCompensation({ employee_id: saved.id, hotel_id: hotelId, salary: c.salary, statutory: c.statutory, bank: { ...c.bank, ifsc: c.bank?.ifsc?.toUpperCase() }, bank_verified: !!c.bank_verified, revisions: comp?.revisions ?? [] }, comp);
-      toast.success(employee ? "Employee updated" : "Employee added — send the invite to give them access");
+      if (employee) toast.success("Employee updated");
+      else { try { const r = await inviteEmployee(saved.id); toast.success(r.sent ? (r.new_account ? "Employee added — login email with username and password sent" : "Employee added — login email sent (they use their existing password)") : "Employee added, but the email could not be sent. Use Resend."); } catch (err: any) { toast.error(`Employee added, but the login email failed: ${err.message}`); } }
       onSaved(); onClose();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
