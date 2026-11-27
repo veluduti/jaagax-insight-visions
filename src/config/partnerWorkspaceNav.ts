@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, BedDouble, CalendarRange, Sparkles, Utensils, PartyPopper, Compass, ConciergeBell, Contact, Users, ClipboardList, Wallet, BarChart3, Star, Settings, Image, MapPin, ShieldCheck, Tag, CalendarDays, Info, Cable, Globe2, RefreshCw, Package, Wrench } from "lucide-react";
+import { LayoutDashboard, Building2, BedDouble, CalendarRange, Sparkles, Utensils, PartyPopper, Compass, ConciergeBell, Contact, Users, ClipboardList, Wallet, BarChart3, Star, Settings, Image, MapPin, ShieldCheck, Tag, CalendarDays, Info, Cable, Globe2, RefreshCw, Package, Wrench, UserCog } from "lucide-react";
 
 export const partnerWorkspaceNav = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/partners/dashboard" },
@@ -41,6 +41,15 @@ export const partnerWorkspaceNav = [
   { label: "Maintenance", icon: Wrench, to: "/partners/maintenance" },
   { label: "Visitor Management", icon: ShieldCheck, to: "/partners/visitors" },
   { label: "Inventory & Supplies", icon: Package, to: "/partners/supplies" },
+  { label: "HR & Workforce", icon: UserCog, to: "/partners/hr", children: [
+    { label: "Overview", icon: UserCog, to: "/partners/hr" },
+    { label: "Employees & Access", icon: UserCog, to: "/partners/hr?tab=employees" },
+    { label: "Roles & Permissions", icon: ShieldCheck, to: "/partners/hr?tab=roles" },
+    { label: "Attendance & Shifts", icon: CalendarDays, to: "/partners/hr?tab=attendance" },
+    { label: "Leave", icon: CalendarDays, to: "/partners/hr?tab=leave" },
+    { label: "Payroll", icon: Wallet, to: "/partners/hr?tab=payroll" },
+    { label: "Staff Login Portal", icon: Globe2, to: "/partners/hr?tab=portal" },
+  ] },
   { label: "Contacts & Departments", icon: Contact, to: "/partners/workspace/contacts" },
   { label: "Guests & Enquiries", icon: Contact, to: "/partners/residents" },
   { label: "Bookings & Guests", icon: Users, to: "/partners/reservations" },

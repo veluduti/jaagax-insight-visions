@@ -35,7 +35,7 @@ export function resolveMode(types: string[] | null | undefined, saved: string | 
 }
 
 const base = (label: string) => partnerWorkspaceNav.find(i => i.label === label) as NavItem;
-const common = ["Maintenance", "Visitor Management", "Inventory & Supplies", "Integrations", "Contacts & Departments"].map(base);
+const common = ["Maintenance", "Visitor Management", "Inventory & Supplies", "HR & Workforce", "Integrations", "Contacts & Departments"].map(base);
 
 const longStayNav = (unit: string): NavItem[] => [
   base("Dashboard"), base("Multi-Property"), base("Property Setup"),

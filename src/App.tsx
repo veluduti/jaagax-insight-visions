@@ -223,6 +223,10 @@ const FinancialNotifications = lazy(() => import("./pages/financial/Notification
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerHR = lazy(() => import("./pages/partners/PartnerHR"));
+const PropertyStaffLogin = lazy(() => import("./pages/property/PropertyStaffLogin"));
+const PropertySetPassword = lazy(() => import("./pages/property/PropertySetPassword"));
+const PropertyStaffPortal = lazy(() => import("./pages/property/PropertyStaffPortal"));
 const PartnerOperations = lazy(() => import("./pages/partners/PartnerOperations"));
 const PartnerLongStays = lazy(() => import("./pages/partners/PartnerLongStays"));
 const PartnerSolutions = lazy(() => import("./pages/partners/PartnerSolutions"));
@@ -594,6 +598,9 @@ const App = () => (
                   <Route path="/hotels/hyperguest" element={<HyperGuestHotels />} />
                   <Route path="/hotels/hyperguest/:propertyId" element={<HyperGuestProperty />} />
                   <Route path="/p/:reference" element={<PropertyQrRedirect />} />
+                  <Route path="/property/:slug/login" element={<PropertyStaffLogin />} />
+                  <Route path="/property/:slug/set-password" element={<PropertySetPassword />} />
+                  <Route path="/property/:slug/staff" element={<PropertyStaffPortal />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
                   <Route path="/hotels/:id/long-stay" element={<LongStayBooking />} />
@@ -641,6 +648,7 @@ const App = () => (
                   <Route path="/partners/residents" element={<PartnerResidents />} />
                   <Route path="/partners/mess" element={<PartnerMess />} />
                   <Route path="/partners/visitors" element={<PartnerVisitors />} />
+                  <Route path="/partners/hr" element={<PartnerHR />} />
                   <Route path="/partners/applications" element={<PartnerApplications />} />
                   <Route path="/partners/rent-payments" element={<PartnerRentPayments />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />

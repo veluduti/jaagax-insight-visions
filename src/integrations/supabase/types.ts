@@ -4123,6 +4123,69 @@ export type Database = {
           },
         ]
       }
+      hotel_attendance: {
+        Row: {
+          approved: boolean
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          hotel_id: string
+          id: string
+          late_minutes: number
+          note: string | null
+          overtime_minutes: number
+          source: string
+          status: string
+          work_date: string
+        }
+        Insert: {
+          approved?: boolean
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id: string
+          hotel_id: string
+          id?: string
+          late_minutes?: number
+          note?: string | null
+          overtime_minutes?: number
+          source?: string
+          status?: string
+          work_date: string
+        }
+        Update: {
+          approved?: boolean
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id?: string
+          hotel_id?: string
+          id?: string
+          late_minutes?: number
+          note?: string | null
+          overtime_minutes?: number
+          source?: string
+          status?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_attendance_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_availability_blocks: {
         Row: {
           booking_id: string | null
@@ -4986,6 +5049,147 @@ export type Database = {
           },
         ]
       }
+      hotel_employee_compensation: {
+        Row: {
+          bank: Json
+          bank_verified: boolean
+          employee_id: string
+          hotel_id: string
+          revisions: Json
+          salary: Json
+          statutory: Json
+          updated_at: string
+        }
+        Insert: {
+          bank?: Json
+          bank_verified?: boolean
+          employee_id: string
+          hotel_id: string
+          revisions?: Json
+          salary?: Json
+          statutory?: Json
+          updated_at?: string
+        }
+        Update: {
+          bank?: Json
+          bank_verified?: boolean
+          employee_id?: string
+          hotel_id?: string
+          revisions?: Json
+          salary?: Json
+          statutory?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_employee_compensation_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "hotel_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_employee_compensation_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_employees: {
+        Row: {
+          created_at: string
+          department: string
+          designation: string
+          email: string
+          emergency_contact: Json
+          employee_code: string
+          employment_type: string
+          exit_date: string | null
+          full_name: string
+          hotel_id: string
+          id: string
+          invited_at: string | null
+          joining_date: string
+          must_change_password: boolean
+          pay_type: string
+          permissions: Json
+          phone: string | null
+          probation_end: string | null
+          roles: string[]
+          shift_id: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string
+          designation?: string
+          email: string
+          emergency_contact?: Json
+          employee_code: string
+          employment_type?: string
+          exit_date?: string | null
+          full_name: string
+          hotel_id: string
+          id?: string
+          invited_at?: string | null
+          joining_date?: string
+          must_change_password?: boolean
+          pay_type?: string
+          permissions?: Json
+          phone?: string | null
+          probation_end?: string | null
+          roles?: string[]
+          shift_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          designation?: string
+          email?: string
+          emergency_contact?: Json
+          employee_code?: string
+          employment_type?: string
+          exit_date?: string | null
+          full_name?: string
+          hotel_id?: string
+          id?: string
+          invited_at?: string | null
+          joining_date?: string
+          must_change_password?: boolean
+          pay_type?: string
+          permissions?: Json
+          phone?: string | null
+          probation_end?: string | null
+          roles?: string[]
+          shift_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_employees_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_employees_shift_fk"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_extra_service_enquiries: {
         Row: {
           created_at: string
@@ -5283,6 +5487,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_guests_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_hr_announcements: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_hr_announcements_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -5771,6 +6010,63 @@ export type Database = {
           },
           {
             foreignKeyName: "hotel_leads_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_leave_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          employee_id: string
+          from_date: string
+          hotel_id: string
+          id: string
+          leave_type: string
+          reason: string | null
+          status: string
+          to_date: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          employee_id: string
+          from_date: string
+          hotel_id: string
+          id?: string
+          leave_type: string
+          reason?: string | null
+          status?: string
+          to_date: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          employee_id?: string
+          from_date?: string
+          hotel_id?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          status?: string
+          to_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_leave_requests_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -6849,6 +7145,135 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: true
             referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_payroll_runs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          period_end: string
+          period_start: string
+          status: string
+          totals: Json
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          period_end: string
+          period_start: string
+          status?: string
+          totals?: Json
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          totals?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_payroll_runs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_payslips: {
+        Row: {
+          attendance: Json
+          breakdown: Json
+          created_at: string
+          deductions: number
+          employee_id: string
+          gross: number
+          hotel_id: string
+          id: string
+          net: number
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          payment_status: string
+          period_end: string
+          period_start: string
+          run_id: string
+        }
+        Insert: {
+          attendance?: Json
+          breakdown?: Json
+          created_at?: string
+          deductions: number
+          employee_id: string
+          gross: number
+          hotel_id: string
+          id?: string
+          net: number
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          period_end: string
+          period_start: string
+          run_id: string
+        }
+        Update: {
+          attendance?: Json
+          breakdown?: Json
+          created_at?: string
+          deductions?: number
+          employee_id?: string
+          gross?: number
+          hotel_id?: string
+          id?: string
+          net?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          period_end?: string
+          period_start?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_payslips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_payslips_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_payslips_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_payroll_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -7933,6 +8358,44 @@ export type Database = {
           },
         ]
       }
+      hotel_shifts: {
+        Row: {
+          created_at: string
+          end_time: string
+          grace_minutes: number
+          hotel_id: string
+          id: string
+          name: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          grace_minutes?: number
+          hotel_id: string
+          id?: string
+          name: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          grace_minutes?: number
+          hotel_id?: string
+          id?: string
+          name?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_shifts_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_staff: {
         Row: {
           created_at: string
@@ -7967,6 +8430,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_staff_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_staff_roles: {
+        Row: {
+          created_at: string
+          hotel_id: string
+          id: string
+          key: string
+          name: string
+          permissions: Json
+        }
+        Insert: {
+          created_at?: string
+          hotel_id: string
+          id?: string
+          key: string
+          name: string
+          permissions?: Json
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          key?: string
+          name?: string
+          permissions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_staff_roles_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -17890,6 +18388,10 @@ export type Database = {
       }
       get_visit_entitlement: { Args: { _user_id: string }; Returns: Json }
       get_wallet_balance: { Args: { _user_id: string }; Returns: number }
+      has_hotel_permission: {
+        Args: { _action: string; _hotel: string; _module: string }
+        Returns: boolean
+      }
       has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
@@ -18062,6 +18564,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      my_employee_ids: { Args: never; Returns: string[] }
       nl_can_manage_farm: {
         Args: { _farm_id: string; _user_id: string }
         Returns: boolean
@@ -18087,6 +18590,60 @@ export type Database = {
       partner_save_property_setup: {
         Args: { _data: Json; _hotel_id: string; _submit?: boolean }
         Returns: string
+      }
+      payroll_advance: {
+        Args: { _run: string; _status: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          period_end: string
+          period_start: string
+          status: string
+          totals: Json
+        }
+        SetofOptions: {
+          from: "*"
+          to: "hotel_payroll_runs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      payroll_record_payment: {
+        Args: {
+          _method: string
+          _reference: string
+          _slip: string
+          _status: string
+        }
+        Returns: {
+          attendance: Json
+          breakdown: Json
+          created_at: string
+          deductions: number
+          employee_id: string
+          gross: number
+          hotel_id: string
+          id: string
+          net: number
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          payment_status: string
+          period_end: string
+          period_start: string
+          run_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "hotel_payslips"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       pg_activate_resident: {
         Args: { _stay_id: string; _unit_label: string }
@@ -18205,6 +18762,18 @@ export type Database = {
       property_owner_decision: {
         Args: { _approve: boolean; _property_id: string; _reason?: string }
         Returns: Json
+      }
+      property_portal: {
+        Args: { _slug: string }
+        Returns: {
+          business_types: string[]
+          city: string
+          id: string
+          image: string
+          locality: string
+          name: string
+          property_reference: string
+        }[]
       }
       property_pricing_creator: { Args: { _property: string }; Returns: string }
       property_pricing_public: { Args: { _property: string }; Returns: boolean }
@@ -18479,6 +19048,34 @@ export type Database = {
       smart_visit_state_admin_ids: {
         Args: { _state: string; _state_id: string }
         Returns: string[]
+      }
+      staff_attendance_punch: {
+        Args: { _hotel: string }
+        Returns: {
+          approved: boolean
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          hotel_id: string
+          id: string
+          late_minutes: number
+          note: string | null
+          overtime_minutes: number
+          source: string
+          status: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "hotel_attendance"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      staff_complete_first_login: {
+        Args: { _hotel: string }
+        Returns: undefined
       }
       submit_kyc: {
         Args: { _aadhaar: string; _pan: string; _selfie: string }

@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.pg-request]
 verify_jwt = false
+
+[functions.staff-invite]
+verify_jwt = false

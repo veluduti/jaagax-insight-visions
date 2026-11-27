@@ -652,6 +652,20 @@
       "when": 1795749273787,
       "tag": "0092_pg_move_in_balance_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1795772807770,
+      "tag": "0093_property_staff_hr_payroll",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1795773200925,
+      "tag": "0094_employees_read_their_property",
+      "breakpoints": true
     }
   ]
 }

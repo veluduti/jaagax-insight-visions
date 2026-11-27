@@ -21,7 +21,12 @@ export type OverviewData = { hotel: ManagedHotel; rooms: any[]; rates: any[]; se
 export async function listManagedHotels(userId: string): Promise<ManagedHotel[]> {
   const { data, error } = await sb.from("partner_hotels").select("*").eq("manager_id", userId).order("created_at");
   if (error) throw error;
-  return data ?? [];
+  // Properties where this user is an active employee (access is narrowed by their role permissions).
+  const { data: jobs } = await sb.from("hotel_employees").select("hotel_id").eq("user_id", userId).in("status", ["active", "on_notice"]);
+  const extra = (jobs ?? []).map((j: any) => j.hotel_id).filter((id: string) => !(data ?? []).some((h: any) => h.id === id));
+  if (!extra.length) return data ?? [];
+  const { data: staffHotels } = await sb.from("partner_hotels").select("*").in("id", extra);
+  return [...(data ?? []), ...(staffHotels ?? [])];
 }
 export async function loadPartnerOverview(hotelId: string): Promise<OverviewData> {
   const results = await Promise.all([

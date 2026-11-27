@@ -1,0 +1,2 @@
+CREATE POLICY "Employees view their property" ON public.partner_hotels FOR SELECT TO authenticated
+USING (id IN (SELECT e.hotel_id FROM public.hotel_employees e WHERE e.id IN (SELECT public.my_employee_ids())));

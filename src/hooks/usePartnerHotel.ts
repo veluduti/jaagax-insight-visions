@@ -47,6 +47,9 @@ export function usePartnerHotel(opts: { requirePmsSetup?: boolean } = { requireP
         // Newly registered partners (account + business profile) land on the onboarding dashboard.
         const { data: acct } = await (supabase as any).from("partner_accounts").select("id").eq("owner_user_id", user.id).maybeSingle();
         if (acct) { setCtx({ loading: false, userId: user.id, hotelId: null, hotelName: "Your property", applicationId: null }); return; }
+        // Invited employees use the same workspace, limited to the property and modules their roles allow.
+        const { data: job } = await (supabase as any).from("hotel_employees").select("hotel_id").eq("user_id", user.id).in("status", ["active", "on_notice"]).limit(1).maybeSingle();
+        if (job) { setCtx({ loading: false, userId: user.id, hotelId: job.hotel_id, hotelName: "Your property", applicationId: null }); return; }
         nav("/partners/kyc", { replace: true }); return;
       }
       if (app.status !== "approved") { nav("/partners/status", { replace: true }); return; }

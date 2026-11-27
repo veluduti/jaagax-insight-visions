@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import "./partner-workspace.css";
 import PropertyPhoto from "./PropertyPhoto";
+import { useStaffAccess } from "@/hooks/useStaffAccess";
+import { staffCanOpen } from "@/config/staffRoles";
 
 export default function PartnerWorkspaceLayout() {
   const ctx = usePartnerHotel();
@@ -49,7 +51,14 @@ export default function PartnerWorkspaceLayout() {
   const choose = (id:string) => { if (!hotels.some(h=>h.id===id)) return; localStorage.setItem("partner_active_property",id); setSelected(id); if (/^\/partners\/properties\/[^/]+$/.test(location.pathname)) navigate(`/partners/properties/${id}`); if(location.pathname==="/partners/property-setup")navigate(`/partners/property-setup?hotel=${id}`); };
   const signupType = (user?.user_metadata as any)?.partner_business_profile?.property_type as string | undefined;
   const mode = useDashboardMode(hotel?.id, hotel?.business_types ?? (signupType ? [signupType] : undefined));
-  const nav = navForMode(mode);
+  const access = useStaffAccess(hotel?.id, ctx.userId, hotel ? hotel.manager_id : undefined);
+  const staffView = !!hotel && !access.isOwner;
+  const fullNav = navForMode(mode);
+  // Employees only see the modules their roles allow; owners see everything.
+  const nav = !staffView ? fullNav : fullNav.map(i => i.children ? { ...i, children: i.children.filter(c => staffCanOpen(access.permissions, c.to)) } : i)
+    .filter(i => i.children ? i.children.length > 0 : staffCanOpen(access.permissions, i.to))
+    .map(i => i.children && !staffCanOpen(access.permissions, i.to) ? { ...i, to: i.children[0].to } : i);
+  const pathAllowed = !staffView || staffCanOpen(access.permissions, location.pathname + location.search);
   const allModes = Array.from(new Set(hotels.flatMap(h => modesForTypes(h.business_types)))) as DashboardMode[];
   const chooseMode = (m: DashboardMode) => {
     if (!hotel) return;
@@ -87,7 +96,7 @@ export default function PartnerWorkspaceLayout() {
         <div className="mt-auto border-t border-border/30 pt-3"><HelpCircle className="h-5 w-5 ml-2"/><strong className="block text-sm px-2 mt-1">Need Help?</strong><Link to="/contact">Contact Jaaga</Link></div>
       </aside>
       <main className="pw-content">
-        {ctx.loading || loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div> : error ? <div role="alert" className="py-16 text-center"><p>{error}</p><Button onClick={load} className="mt-4">Retry</Button></div> : !hotel && !["/partners/portfolio","/partners/dashboard","/partners/property-setup"].includes(location.pathname) ? <div className="py-20 text-center"><h1 className="text-xl font-semibold">No managed properties</h1><Link to="/partners/portfolio" className="text-primary underline">Manage your properties</Link></div> : <PartnerWorkspaceContext.Provider value={value}><Outlet key={hotel?.id??"portfolio"}/></PartnerWorkspaceContext.Provider>}
+        {ctx.loading || loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div> : error ? <div role="alert" className="py-16 text-center"><p>{error}</p><Button onClick={load} className="mt-4">Retry</Button></div> : !hotel && !["/partners/portfolio","/partners/dashboard","/partners/property-setup"].includes(location.pathname) ? <div className="py-20 text-center"><h1 className="text-xl font-semibold">No managed properties</h1><Link to="/partners/portfolio" className="text-primary underline">Manage your properties</Link></div> : staffView && access.loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-primary"/></div> : staffView && !pathAllowed ? <div className="py-20 text-center"><h1 className="text-xl font-semibold">You do not have access to this section</h1><p className="text-sm text-muted-foreground mt-2">Ask your property owner or HR manager if you need it.</p>{nav[0] && <Link to={nav[0].to} className="text-primary underline mt-3 inline-block">Go to {nav[0].label}</Link>}</div> : <PartnerWorkspaceContext.Provider value={value}><Outlet key={hotel?.id??"portfolio"}/></PartnerWorkspaceContext.Provider>}
       </main>
     </div>
   </div>;
