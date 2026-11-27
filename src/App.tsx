@@ -223,6 +223,7 @@ const FinancialNotifications = lazy(() => import("./pages/financial/Notification
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
 const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerPropertyAccess = lazy(() => import("./pages/partners/PartnerPropertyAccess"));
 const PartnerHR = lazy(() => import("./pages/partners/PartnerHR"));
 const PropertyStaffLogin = lazy(() => import("./pages/property/PropertyStaffLogin"));
 const PropertySetPassword = lazy(() => import("./pages/property/PropertySetPassword"));
@@ -649,6 +650,7 @@ const App = () => (
                   <Route path="/partners/mess" element={<PartnerMess />} />
                   <Route path="/partners/visitors" element={<PartnerVisitors />} />
                   <Route path="/partners/hr" element={<PartnerHR />} />
+                  <Route path="/partners/property-access" element={<PartnerPropertyAccess />} />
                   <Route path="/partners/applications" element={<PartnerApplications />} />
                   <Route path="/partners/rent-payments" element={<PartnerRentPayments />} />
                   <Route path="/partners/demand" element={<PartnerDemand />} />
