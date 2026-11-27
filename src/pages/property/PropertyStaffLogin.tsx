@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, BarChart3, BedDouble, Copy, Crown, Eye, EyeOff, Loader2, Lock, MapPin, Settings, ShieldCheck, Sparkles, User, Users, UtensilsCrossed, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import bgAsset from "@/assets/twilight-property.png.asset.json";
 import { usePortal, typeLabel } from "./usePortal";
 
 const LONG_STAY = ["pg", "hostel", "coliving", "co_living"];
@@ -47,19 +46,13 @@ export default function PropertyStaffLogin() {
   const copyId = () => { if (p.property_reference) { navigator.clipboard?.writeText(p.property_reference); toast.success("Property ID copied"); } };
   const Logo = ({ dark }: { dark?: boolean }) => <div className="leading-none"><div className={`text-3xl font-black tracking-tight ${dark ? "text-slate-900" : "text-white"}`}>JAAGA <span className="text-emerald-500">X</span></div><div className={`text-sm font-semibold ml-24 ${dark ? "text-slate-900" : "text-white"}`}>Stays</div></div>;
 
-  return <div className="relative min-h-screen lg:flex">
-    {/* Static backdrop: the twilight property photo stays put while the page scrolls */}
-    <div aria-hidden className="fixed inset-0 -z-10 bg-violet-950 bg-cover bg-center" style={{ backgroundImage: `url(${bgAsset.url})` }} />
-    <div aria-hidden className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50/72 via-white/60 to-violet-100/72" />
-
-    <aside className="relative hidden lg:flex lg:w-[37%] lg:h-screen lg:sticky lg:top-0 lg:self-start overflow-hidden text-white">
-      {/* Desktop: the twilight property photo pinned inside the side panel */}
-      <div aria-hidden className="absolute inset-0 bg-violet-950 bg-cover bg-center" style={{ backgroundImage: `url(${bgAsset.url})` }} />
+  return <div className="min-h-screen bg-gradient-to-br from-violet-100 via-violet-50 to-white lg:flex">
+    <aside className="relative lg:w-[37%] min-h-[320px] lg:min-h-screen overflow-hidden bg-gradient-to-b from-violet-800 via-violet-600 to-fuchsia-500 text-white">
       {p.image && <img src={p.image} alt="" className="absolute inset-0 h-full w-full object-cover" onError={e => (e.currentTarget.style.display = "none")} />}
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-950/85 via-violet-800/35 to-violet-950/90" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-900/80 via-violet-800/30 to-violet-950/80" />
       <div className="relative h-full flex flex-col p-8">
         <Logo />
-        <h1 className="mt-10 text-3xl lg:text-4xl font-bold drop-shadow-sm">{p.name}</h1>
+        <h1 className="mt-10 text-3xl lg:text-4xl font-bold">{p.name}</h1>
         <p className="mt-2 text-xl lg:text-2xl text-white/90">Property Operations Portal</p>
         <span className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg bg-white/20 px-3 py-1.5 text-sm backdrop-blur"><BedDouble className="h-4 w-4" />{typeLabel(p.business_types)}</span>
         {place && <p className="mt-4 flex items-center gap-2 text-lg"><MapPin className="h-5 w-5" />{place}</p>}
@@ -70,10 +63,9 @@ export default function PropertyStaffLogin() {
     </aside>
 
     <main className="flex-1 p-4 lg:p-8 lg:-ml-6 relative">
-      <div className="rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl ring-1 ring-violet-100 p-6 lg:p-8 min-h-full">
+      <div className="rounded-3xl bg-white shadow-xl p-6 lg:p-8 min-h-full">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div><Logo dark /><h2 className="mt-4 text-3xl font-bold text-slate-900">Employee Login</h2><p className="mt-1 text-slate-600">Access your assigned services for {p.name}</p>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600 lg:hidden"><span className="inline-flex items-center gap-1.5"><BedDouble className="h-4 w-4 text-violet-700" />{typeLabel(p.business_types)}</span>{place && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-violet-700" />{place}</span>}</p></div>
+          <div><Logo dark /><h2 className="mt-4 text-3xl font-bold text-slate-900">Employee Login</h2><p className="mt-1 text-slate-600">Access your assigned services for {p.name}</p></div>
           {p.property_reference && <button onClick={copyId} className="flex items-center gap-2 rounded-xl bg-violet-50 px-4 py-2 text-slate-700">Property ID: <b className="text-slate-900">{p.property_reference}</b><Copy className="h-4 w-4" /></button>}
         </div>
 
@@ -95,7 +87,7 @@ export default function PropertyStaffLogin() {
 
           <div className="rounded-2xl border border-violet-100 p-4">
             <div className="flex items-start gap-3 mb-4"><Settings className="h-7 w-7 text-violet-700" /><div><p className="font-bold text-slate-900">Your Property Services</p><p className="text-sm text-slate-600">Access based on your assigned role</p></div></div>
-            <div className="space-y-2">{services.map(s => <div key={s.name} className="flex items-start gap-3 rounded-xl border border-slate-200 px-3 py-2.5"><s.icon className="h-6 w-6 text-violet-700 shrink-0 mt-0.5" /><div className="min-w-0"><p className="font-semibold text-slate-900 text-sm">{s.name}</p><p className="text-[11px] leading-snug text-slate-600">{s.desc}</p></div></div>)}</div>
+            <div className="space-y-2">{services.map(s => <div key={s.name} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3"><s.icon className="h-6 w-6 text-violet-700 shrink-0" /><span className="font-semibold text-slate-900 w-36 shrink-0">{s.name}</span><span className="text-xs text-slate-600">{s.desc}</span></div>)}</div>
           </div>
         </div>
       </div>
