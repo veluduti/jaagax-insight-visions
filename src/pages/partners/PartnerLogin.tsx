@@ -156,7 +156,7 @@ export default function PartnerLogin() {
               </div>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-2 rounded-2xl bg-white/90 p-3 shadow-xl backdrop-blur sm:grid-cols-5 xl:grid-cols-10">
+            <div className="mt-10 grid grid-cols-2 gap-2 rounded-2xl bg-white/90 p-3 shadow-xl backdrop-blur sm:grid-cols-5">
               {modules.map((m) => (
                 <div key={m.t} className="relative rounded-xl border border-violet-100 bg-white p-2 text-center">
                   {m.isNew && <span className="absolute -top-2 right-1 rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold text-white">New</span>}
@@ -169,7 +169,7 @@ export default function PartnerLogin() {
 
             <div className="rounded-2xl border border-violet-100 bg-white p-4 shadow">
               <div className="mb-3 flex items-center gap-2"><Users className="h-6 w-6 text-violet-600" /><div><h2 className="font-bold text-violet-800">Role-Based Workspaces</h2><p className="text-xs text-slate-500">Right Access for Every Team</p></div></div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {roles.map((r) => (
                   <div key={r.t} className="rounded-xl border border-violet-100 bg-violet-50/50 p-2 text-center">
                     <r.icon className="mx-auto h-6 w-6 text-violet-600" />
