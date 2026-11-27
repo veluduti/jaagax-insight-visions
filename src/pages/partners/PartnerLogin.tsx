@@ -88,7 +88,7 @@ export default function PartnerLogin() {
     }
   };
 
-  const [tab, setTab] = useState<"admin" | "employee" | "other">("admin");
+  const [tab, setTab] = useState<"admin" | "employee">("admin");
   const [showPw, setShowPw] = useState(false);
   const [propertyRef, setPropertyRef] = useState("");
 
@@ -128,7 +128,6 @@ export default function PartnerLogin() {
   const tabs = [
     { k: "admin" as const, l: "Property / Admin" },
     { k: "employee" as const, l: "Employee / Team" },
-    { k: "other" as const, l: "Other" },
   ];
 
   return (
@@ -194,7 +193,7 @@ export default function PartnerLogin() {
                 <p className="text-3xl font-extrabold tracking-tight text-[hsl(255_60%_20%)]">JAAGA <span className="text-emerald-500">X</span></p>
                 <h1 className="text-lg font-bold text-slate-900">Hotel Partner Login</h1>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-violet-50 p-1" role="tablist">
+              <div className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-violet-50 p-1" role="tablist">
                 {tabs.map((t) => (
                   <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} onClick={() => setTab(t.k)}
                     className={`rounded-lg px-1 py-2 text-xs font-medium ${tab === t.k ? "bg-violet-600 text-white shadow" : "text-slate-700 hover:bg-violet-100"}`}>{t.l}</button>
