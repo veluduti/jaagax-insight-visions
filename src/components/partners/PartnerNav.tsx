@@ -18,14 +18,6 @@ const nav = [
 ];
 
 const MEGA: Record<string, { t: string; d: string; to: string }[]> = {
-  Solutions: [
-    { t: "Solutions Overview", d: "Explore the complete Jaaga solutions", to: "/partners/solutions" },
-    { t: "By Property Type", d: "Hotels, Resorts, PGs, Co-living & more", to: "/partners/solutions#types" },
-    { t: "By Business Need", d: "Bookings, Operations, Payments, Growth", to: "/partners/solutions#needs" },
-    { t: "By User / Role", d: "Owners, Operators, Agents, Corporates", to: "/partners/solutions#roles" },
-    { t: "Platform & Integrations", d: "PMS, Channel Manager, OTAs, APIs", to: "/partners/solutions#integrations" },
-    { t: "All Solutions", d: "View everything we offer", to: "/partners/solutions#cover" },
-  ],
   Resources: [
     { t: "Resource Center", d: "All resources in one place", to: "/partners/resources" },
     { t: "Guides & How-to", d: "Step-by-step setup and operations", to: "/partners/resources#guides" },

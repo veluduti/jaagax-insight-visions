@@ -3,10 +3,10 @@ import heroImg from "@/assets/resort-luxury.jpg";
 
 export const P = "hsl(268,84%,52%)";
 
-export default function HubHero({ badge, title, accent, text, children, side }: { badge?: ReactNode; title: string; accent: string; text: string; children?: ReactNode; side?: ReactNode }) {
+export default function HubHero({ badge, title, accent, text, children, side, image }: { image?: string; badge?: ReactNode; title: string; accent: string; text: string; children?: ReactNode; side?: ReactNode }) {
   return (
     <section className="relative overflow-hidden">
-      <img src={heroImg} alt="Resort with pool at dusk" className="absolute inset-0 h-full w-full object-cover" />
+      <img src={image ?? heroImg} alt="Resort with pool at dusk" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,hsl(265 75% 18% / .95) 0%,hsl(268 70% 28% / .8) 40%,transparent 75%)" }} />
       <div className="container relative mx-auto flex flex-col gap-6 px-4 pb-20 pt-10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-xl text-white">
