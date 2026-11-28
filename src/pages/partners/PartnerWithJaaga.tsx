@@ -132,10 +132,10 @@ export default function PartnerWithJaaga() {
     setTrackResult(data[0]);
   };
 
-  const inp = "h-10 w-full rounded-lg border border-[hsl(268,40%,88%)] bg-white pl-9 pr-3 text-sm outline-none focus:border-[hsl(268,84%,52%)]";
+  const inp = "h-9 w-full rounded-lg border border-[hsl(268,40%,88%)] bg-white pl-9 pr-3 text-sm outline-none focus:border-[hsl(268,84%,52%)]";
   const field = (k: keyof typeof form, ph: string, Icon: any, type = "text") => (
     <div>
-      <div className="relative"><Icon className="absolute left-3 top-3 h-4 w-4 text-[hsl(260,15%,45%)]" />
+      <div className="relative"><Icon className="absolute left-3 top-2.5 h-4 w-4 text-[hsl(260,15%,45%)]" />
         <input aria-label={ph} type={type} value={form[k]} placeholder={ph} maxLength={k === "message" ? 1000 : 255}
           onChange={(e) => setForm({ ...form, [k]: e.target.value })} className={inp} /></div>
       {errors[k] && <p className="mt-1 text-xs text-destructive">{errors[k]}</p>}
@@ -189,20 +189,20 @@ export default function PartnerWithJaaga() {
       </section>
 
       {/* GRID */}
-      <section className="container mx-auto grid gap-4 px-4 py-5 md:grid-cols-2 xl:grid-cols-[1.2fr_1.05fr_1.25fr_0.95fr]">
+      <section className="container mx-auto grid gap-4 px-4 py-5 md:grid-cols-2 xl:grid-cols-[1.3fr_1.1fr_1.35fr_1fr]">
         <div id="models" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4">
-          <h2 className="text-xl font-extrabold">Partnership Models</h2>
-          <p className="text-sm text-[hsl(260,15%,40%)]">Choose the right model based on your business needs.</p>
-          <div className="mt-3 space-y-2">
+          <h2 className="text-lg font-extrabold leading-tight tracking-tight">Partnership Models</h2>
+          <p className="text-xs text-[hsl(260,15%,40%)]">Choose the right model based on your business needs.</p>
+          <div className="mt-3 space-y-2.5">
             {models.map((m) => {
               const open = openModel === m.key;
               const hi = open || (!openModel && m.key === "marketplace");
               return (
-                <div key={m.key} className={`rounded-xl border px-3 py-2.5 ${hi ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,98%)]" : "border-[hsl(268,30%,92%)]"}`}>
+                <div key={m.key} className={`rounded-xl border px-3 py-3 ${hi ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,98%)]" : "border-[hsl(268,30%,92%)]"}`}>
                   <button onClick={() => setOpenModel(open ? null : m.key)} className="flex w-full items-center gap-3 text-left" aria-expanded={open}>
                     <m.icon className="h-7 w-7 shrink-0" style={{ color: P }} />
-                    <span className="flex-1"><span className="block text-sm font-bold">{m.t}</span><span className="block text-xs text-[hsl(260,15%,40%)]">{m.d}</span></span>
-                    <span className="shrink-0 rounded-full bg-[hsl(268,80%,94%)] px-2 py-1 text-[10px] font-bold" style={{ color: P }}>{m.tag}</span>
+                    <span className="min-w-0 flex-1"><span className="block whitespace-nowrap text-sm font-bold">{m.t}</span><span className="block text-[11px] leading-snug text-[hsl(260,15%,40%)]">{m.d}</span></span>
+                    <span className="shrink-0 whitespace-nowrap rounded-md bg-[hsl(268,80%,94%)] px-2 py-1 text-[10px] font-bold" style={{ color: P }}>{m.tag}</span>
                   </button>
                   {open && (
                     <div className="mt-3 border-t border-[hsl(268,30%,92%)] pt-3 text-sm">
@@ -218,12 +218,12 @@ export default function PartnerWithJaaga() {
         </div>
 
         <div id="who" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4">
-          <h2 className="text-xl font-extrabold">Who Can Partner</h2>
-          <p className="text-sm text-[hsl(260,15%,40%)]">We work with a wide range of hospitality and real estate businesses.</p>
+          <h2 className="text-lg font-extrabold leading-tight tracking-tight">Who Can Partner</h2>
+          <p className="text-xs text-[hsl(260,15%,40%)]">We work with a wide range of hospitality and real estate businesses.</p>
           <div className="mt-3 grid grid-cols-4 gap-2">
             {categories.map((c) => (
               <button key={c.key} onClick={() => pickCategory(c.key)} aria-pressed={category === c.key}
-                className={`flex min-h-[84px] flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center text-[11px] font-bold leading-tight ${category === c.key ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,96%)]" : "border-[hsl(268,30%,92%)] hover:border-[hsl(268,60%,75%)]"}`}>
+                className={`flex min-h-[96px] flex-col items-center justify-center gap-1 rounded-xl border p-1.5 text-center text-[11px] font-bold leading-tight ${category === c.key ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,96%)]" : "border-[hsl(268,30%,92%)] hover:border-[hsl(268,60%,75%)]"}`}>
                 <c.icon className="h-7 w-7" style={{ color: P }} />{c.label}
               </button>
             ))}
@@ -232,8 +232,8 @@ export default function PartnerWithJaaga() {
         </div>
 
         <aside id="enquiry" className="rounded-2xl border border-[hsl(268,60%,88%)] bg-[hsl(268,80%,97%)] p-4 xl:col-start-4 xl:row-span-2 xl:row-start-1">
-          <h2 className="text-xl font-extrabold">Become a Jaaga Partner</h2>
-          <p className="text-sm text-[hsl(260,15%,40%)]">Tell us about your business. Our partnership team will get in touch with the next steps.</p>
+          <h2 className="text-lg font-extrabold leading-tight tracking-tight">Become a Jaaga Partner</h2>
+          <p className="text-xs text-[hsl(260,15%,40%)]">Tell us about your business. Our partnership team will get in touch with the next steps.</p>
           {doneRef ? (
             <div className="mt-4 rounded-xl bg-white p-4 text-sm">
               <CheckCircle2 className="h-8 w-8 text-[hsl(150,60%,40%)]" />
@@ -246,7 +246,7 @@ export default function PartnerWithJaaga() {
               {field("full_name", "Full Name *", User)}
               {field("company", "Business / Company Name *", Building2)}
               <div>
-                <div className="relative"><Layers className="absolute left-3 top-3 h-4 w-4 text-[hsl(260,15%,45%)]" />
+                <div className="relative"><Layers className="absolute left-3 top-2.5 h-4 w-4 text-[hsl(260,15%,45%)]" />
                   <select aria-label="Partnership Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inp}>
                     <option value="">Partnership Type *</option>
                     {Object.entries(TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -257,8 +257,8 @@ export default function PartnerWithJaaga() {
               {field("cities", "City / Operating Cities *", MapPin)}
               {field("mobile", "Mobile Number *", Phone, "tel")}
               {field("email", "Email Address *", Mail, "email")}
-              <textarea aria-label="Message" placeholder="Anything else? (optional)" maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="w-full rounded-lg border border-[hsl(268,40%,88%)] bg-white p-3 text-sm outline-none" rows={2} />
-              <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-bold text-white disabled:opacity-60" style={{ background: P }}>{busy ? "Submitting…" : "Submit Partnership Enquiry"} <ArrowRight className="h-4 w-4" /></button>
+              <textarea aria-label="Message" placeholder="Anything else? (optional)" maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="w-full rounded-lg border border-[hsl(268,40%,88%)] bg-white p-3 text-sm outline-none" rows={1} />
+              <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold text-white disabled:opacity-60" style={{ background: P }}>{busy ? "Submitting…" : "Submit Partnership Enquiry"} <ArrowRight className="h-4 w-4" /></button>
             </form>
           )}
           <div className="mt-5 rounded-xl bg-white p-4">
@@ -280,15 +280,15 @@ export default function PartnerWithJaaga() {
         </aside>
 
         <div id="process" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4 xl:col-start-3 xl:row-start-1">
-          <h2 className="text-xl font-extrabold">How the Partnership Works</h2>
-          <p className="text-sm text-[hsl(260,15%,40%)]">A simple and guided process from enquiry to go-live.</p>
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          <h2 className="text-lg font-extrabold leading-tight tracking-tight">How the Partnership Works</h2>
+          <p className="text-xs text-[hsl(260,15%,40%)]">A simple and guided process from enquiry to go-live.</p>
+          <div className="mt-5 grid grid-cols-4 gap-3">
             {steps.map((s, i) => (
               <div key={s.t} className="relative text-center">
-                {i < steps.length - 1 && <ArrowRight className="absolute -right-2.5 top-12 h-4 w-4" style={{ color: P }} />}
+                {i < steps.length - 1 && <ArrowRight className="absolute -right-3 top-9 h-5 w-5" style={{ color: P }} />}
                 <span className="mx-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: P }}>{i + 1}</span>
-                <div className="mx-auto -mt-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(268,80%,95%)]"><s.icon className="h-7 w-7" style={{ color: P }} /></div>
-                <p className="mt-2 text-xs font-bold">{s.t}</p><p className="text-[11px] text-[hsl(260,15%,40%)]">{s.d}</p>
+                <div className="mx-auto -mt-1 flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(268,80%,95%)]"><s.icon className="h-8 w-8" style={{ color: P }} /></div>
+                <p className="mt-3 text-sm font-bold leading-tight">{s.t}</p><p className="mt-1 text-[11px] leading-snug text-[hsl(260,15%,40%)]">{s.d}</p>
               </div>
             ))}
           </div>
