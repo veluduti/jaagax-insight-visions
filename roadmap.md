@@ -136,3 +136,8 @@
 ## Visit date selection and published slots
 - [x] Verified customer date selection and published-time guard; nine tests pass.
 - [x] Published 10 Durga in-person slots on 29 November 2026, 10 AM–3 PM IST through owner UI; save/reload and signed-in customer time selection/review verified without submitting a visit.
+
+## Visit submitted confirmation reference
+- [x] Match green success, saved request details, next steps, actions and property/support sidebar using the existing request workflow.
+- [x] Nine existing journey/date regression tests and preview compilation pass; appointments unchanged.
+- [ ] Saved-confirmation desktop/mobile verification is blocked: the current signed-in account has no accessible saved visit request.
