@@ -8,11 +8,15 @@
     --login-highlight-blue: 229 85% 54%;
     --login-highlight-navy: 215 74% 29%;
     --login-highlight-orange: 30 97% 48%;
+    --login-highlight-gold: 37 66% 51%;
+    --login-highlight-leaf: 76 48% 47%;
+    --login-highlight-border: 263 76% 88%;
+    --login-highlight-surface: 259 100% 97%;
     color: hsl(var(--partner-foreground));
   }
   .partner-login-metric, .partner-login-hotel-strip {
-    border-color: hsl(var(--partner-border));
-    background: linear-gradient(125deg, hsl(var(--partner-light)), hsl(var(--partner-muted)));
+    border-color: hsl(var(--login-highlight-border));
+    background: linear-gradient(125deg, hsl(var(--partner-light)), hsl(var(--login-highlight-surface)));
     box-shadow: var(--partner-shadow);
   }
   .partner-login-highlights .partner-login-metric-property > svg { color: hsl(var(--login-highlight-purple)); }
@@ -22,6 +26,11 @@
   .partner-login-metric-value { color: hsl(var(--partner-foreground)); }
   .partner-login-metric-label { color: hsl(var(--partner-foreground) / .75); }
   .partner-login-hotel-name { border-color: hsl(var(--partner-border)); }
+  .partner-login-hotel-strip h2 > svg { color: hsl(var(--login-highlight-purple)); }
+  .partner-login-hotel-name:nth-child(1) > svg { color: hsl(var(--login-highlight-gold)); }
+  .partner-login-hotel-name:nth-child(2) > svg { color: hsl(var(--login-highlight-navy)); }
+  .partner-login-hotel-name:nth-child(3) > svg, .partner-login-hotel-name:nth-child(4) > svg { color: hsl(var(--login-highlight-leaf)); }
+  .partner-login-hotel-name:nth-child(5) > svg { color: hsl(var(--login-highlight-orange)); }
   .partner-login-hotel-name:hover { color: hsl(var(--partner-primary)); }
   .hotel-review-score { background: hsl(var(--why-blue) / 0.12); color: hsl(var(--why-blue)); }
   .hotel-specialty-business { background: hsl(var(--why-blue) / 0.08); color: hsl(var(--why-blue)); }

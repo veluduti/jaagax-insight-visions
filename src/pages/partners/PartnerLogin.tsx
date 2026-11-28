@@ -203,7 +203,6 @@ export default function PartnerLogin() {
                 {hr.map((x) => <p key={x} className="flex items-center gap-2 text-sm text-slate-700"><CheckCircle2 className="h-4 w-4 text-violet-500" /> {x}</p>)}
               </div>
             </div>
-            <PartnerLoginHighlights />
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
@@ -273,6 +272,7 @@ export default function PartnerLogin() {
                 <Button asChild variant="outline" size="sm" className="mt-2 border-violet-500 bg-white text-violet-700"><Link to="/partners/register">Create Hotel Account <ArrowRight className="ml-1 h-3 w-3" /></Link></Button>
               </div>
             </div>
+            <PartnerLoginHighlights />
           </aside>
         </div>
       </div>
