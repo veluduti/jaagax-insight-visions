@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowRight, BarChart3, Building2, CalendarDays, CheckCircle2, ConciergeBell, Crown, Eye, EyeOff, HeartHandshake, Hotel, LayoutDashboard, LineChart, Loader2, Lock, Network, PartyPopper, Receipt, ShoppingCart, Sparkles, User as UserIcon, UserCog, Users, UtensilsCrossed, Wallet, Wrench } from "lucide-react";
 import heroAsset from "@/assets/partner_login_resort_dashboards.png.asset.json";
+import roleOwner from "@/assets/role_owner.png.asset.json";
+import roleFrontDesk from "@/assets/role_front_desk.png.asset.json";
+import roleHousekeeping from "@/assets/role_housekeeping.png.asset.json";
+import roleMaintenance from "@/assets/role_maintenance.png.asset.json";
+import roleFinance from "@/assets/role_finance.png.asset.json";
+import roleHr from "@/assets/role_hr.png.asset.json";
+import roleEvents from "@/assets/role_events.png.asset.json";
 import PartnerNav from "@/components/partners/PartnerNav";
 import { signInWithPassword } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,14 +122,14 @@ export default function PartnerLogin() {
     { icon: BarChart3, t: "Reports & Analytics", s: "Insights & Growth", c: "from-violet-500 to-purple-700" },
   ];
   const roles = [
-    { icon: Crown, t: "Hotel Owner / Admin", s: "Full Access" },
-    { icon: ConciergeBell, t: "Front Desk", s: "Reservations, Check-in/out" },
-    { icon: Sparkles, t: "Housekeeping", s: "Room Status, Cleaning" },
-    { icon: Wrench, t: "Maintenance", s: "Work Orders, Repairs" },
-    { icon: UtensilsCrossed, t: "F&B / Restaurant", s: "Orders, KOT, Billing" },
-    { icon: Receipt, t: "Finance / Cashier", s: "Billing, Reconciliation" },
-    { icon: UserCog, t: "HR & Payroll", s: "Attendance, Salaries, Leaves" },
-    { icon: CalendarDays, t: "Events & Banquets", s: "Venues, Bookings" },
+    { icon: Crown, t: "Hotel Owner / Admin", s: "Full Access", img: roleOwner },
+    { icon: ConciergeBell, t: "Front Desk", s: "Reservations, Check-in/out", img: roleFrontDesk },
+    { icon: Sparkles, t: "Housekeeping", s: "Room Status, Cleaning", img: roleHousekeeping },
+    { icon: Wrench, t: "Maintenance", s: "Work Orders, Repairs", img: roleMaintenance },
+    { icon: UtensilsCrossed, t: "F&B / Restaurant", s: "Orders, KOT, Billing", img: roleEvents },
+    { icon: Receipt, t: "Finance / Cashier", s: "Billing, Reconciliation", img: roleFinance },
+    { icon: UserCog, t: "HR & Payroll", s: "Attendance, Salaries, Leaves", img: roleHr },
+    { icon: CalendarDays, t: "Events & Banquets", s: "Venues, Bookings", img: roleEvents },
   ];
   const hr = ["Employee Records & Profiles", "Salaries & Payroll", "Attendance (Biometric / App)", "Allowances & Deductions", "Shifts & Rosters", "Loan & Advances", "Leave Management", "Payslips & Tax (TDS/EPF/ESI)"];
   const tabs = [
@@ -176,9 +183,12 @@ export default function PartnerLogin() {
               <div className="flex items-start gap-2"><Users className="h-7 w-7 shrink-0 text-violet-600" /><div><h2 className="text-lg font-bold leading-tight text-violet-800">Role-Based Workspaces</h2><p className="text-xs text-slate-600">Right Access for Every Team</p></div></div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 2xl:grid-cols-8">
                 {roles.map((r) => (
-                  <div key={r.t} className="rounded-xl border border-violet-100 bg-gradient-to-b from-violet-50 to-white p-2 text-center">
-                    <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-violet-700"><r.icon className="h-5 w-5" /></span>
-                    <p className="mt-1 text-xs font-semibold text-slate-900">{r.t}</p>
+                  <div key={r.t} className="overflow-hidden rounded-xl border border-violet-100 bg-gradient-to-b from-violet-50 to-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className="relative">
+                      <img src={r.img.url} alt={`${r.t} workspace`} loading="lazy" className="h-24 w-full rounded-lg object-cover object-top" />
+                      <span className="absolute -bottom-3 left-1/2 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white bg-violet-600 text-white shadow-md"><r.icon className="h-4 w-4" /></span>
+                    </div>
+                    <p className="mt-4 text-xs font-semibold text-slate-900">{r.t}</p>
                     <p className={`text-[10px] leading-tight ${r.s === "Full Access" ? "font-semibold text-violet-600" : "text-slate-500"}`}>{r.s}</p>
                   </div>
                 ))}
