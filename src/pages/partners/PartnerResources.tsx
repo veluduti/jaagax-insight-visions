@@ -5,11 +5,15 @@ import { toast } from "sonner";
 import { ArrowRight, Search, BookOpen, Rocket, Layers, Settings, Network, BarChart3, ShieldCheck, LayoutGrid, Headphones, FileText, FileSpreadsheet, Download, PlayCircle, Calculator, LineChart, Tag, Coins, Mail, MessageCircle, X, Loader2 } from "lucide-react";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerFooter from "@/components/partners/PartnerFooter";
-import HubHero, { P, card, btnPrimary, btnGhost, btnOutline } from "@/components/partners/hub/HubHero";
+import { P, btnPrimary } from "@/components/partners/hub/HubHero";
 import { supabase } from "@/integrations/supabase/client";
 import { commissionAmount } from "@/lib/partnerPlans";
 import { downloadBlob } from "@/lib/downloadBlob";
 import guideImg1 from "@/assets/hero-hotel.jpg";
+import bedroomImg from "@/assets/gal-bedroom.jpg";
+import resourceHero from "@/assets/resources-purple-resort.png.asset.json";
+import resourceHotel from "@/assets/resources-hotel-guide.png.asset.json";
+import { Button } from "@/components/ui/button";
 import "./partner-register.css";
 
 const cats = [
@@ -49,6 +53,7 @@ const downloads = [
 type Calc = "commission" | "revenue" | "pricing" | "roi";
 
 export default function PartnerResources() {
+  const [showAll, setShowAll] = useState(false); const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState(""); const [cat, setCat] = useState<string | null>(null);
   const [guide, setGuide] = useState<Guide | null>(null); const [calc, setCalc] = useState<Calc | null>(null);
   const [web, setWeb] = useState<(typeof webinars)[number] | null>(null);
@@ -68,79 +73,57 @@ export default function PartnerResources() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(260,40%,98%)] text-[hsl(255,40%,14%)]">
+    <div className="partner-resources min-h-screen">
       <PartnerNav />
-      <HubHero badge={<><BookOpen className="h-4 w-4" style={{ color: P }} /> Resources</>} title="Jaaga" accent="Resources" text="Guides, tools, tutorials, best practices and everything you need to succeed on Jaaga.">
-        <button onClick={() => go("guides")} className={btnPrimary}>Explore All Resources <ArrowRight className="h-4 w-4" /></button>
-        <button onClick={() => { go("guides"); setTimeout(() => document.getElementById("res-search")?.focus(), 400); }} className={btnGhost}><Search className="h-4 w-4" /> Search Resources</button>
-      </HubHero>
-      <main className="relative z-10 container mx-auto -mt-10 space-y-6 px-4 pb-12">
-        <section className={`${card} grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8`}>
-          {cats.map((c) => (
-            <button key={c.k} onClick={() => { if (c.k === "tools") return go("tools"); if (c.k === "help") return go("help"); setCat(cat === c.k ? null : c.k); go("guides"); }} className={`flex flex-col items-center gap-1 rounded-xl p-2 text-center ${cat === c.k ? "bg-[hsl(268,80%,94%)]" : "hover:bg-[hsl(268,80%,97%)]"}`}>
-              <c.i className="h-7 w-7" style={{ color: P }} /><span className="text-sm font-bold">{c.t}</span><span className="text-xs text-[hsl(260,15%,45%)]">{c.d}</span>
-            </button>
-          ))}
+      <section className="resource-hero">
+        <img src={resourceHero.url} alt="Jaaga resort and pool under purple twilight" />
+        <div className="resource-hero-shade" />
+        <div className="resource-shell resource-hero-content">
+          <span className="resource-badge"><BookOpen /> Resources</span>
+          <h1>Jaaga <span>Resources</span></h1>
+          <p>Guides, tools, tutorials, best practices and everything you need<br className="hidden sm:block" /> to succeed on Jaaga.</p>
+          <div className="flex flex-wrap gap-3 mt-5">
+            <Button className="resource-primary" onClick={() => { setShowAll(true); go("guides"); }}>Explore All Resources <ArrowRight /></Button>
+            <Button variant="outline" className="resource-hero-search" onClick={() => { setSearchOpen(true); go("guides"); setTimeout(() => document.getElementById("res-search")?.focus(), 100); }}><Search /> Search Resources</Button>
+          </div>
+        </div>
+      </section>
+      <main className="resource-shell resource-main">
+        <section className="resource-categories" aria-label="Resource categories">
+          {cats.map((c) => <Button variant="ghost" key={c.k} aria-pressed={cat === c.k} onClick={() => { if (c.k === "tools") return go("tools"); if (c.k === "help") return go("help"); setCat(cat === c.k ? null : c.k); go("guides"); }} className={`resource-category ${cat === c.k ? "is-active" : ""}`}><c.i /><strong>{c.t}</strong><span>{c.d}</span></Button>)}
         </section>
-        <div className="grid gap-6 lg:grid-cols-4">
-          <section id="guides" className={card}>
-            <div className="flex items-center justify-between"><h2 className="text-lg font-extrabold">{cat ? cats.find((c) => c.k === cat)?.t : "Featured Guides"}</h2>{(cat || q) && <button onClick={() => { setCat(null); setQ(""); }} className="text-xs font-bold" style={{ color: P }}>View All</button>}</div>
-            <label className="mt-3 flex items-center gap-2 rounded-lg border px-3 py-2"><Search className="h-4 w-4" /><input id="res-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search guides" className="w-full bg-transparent text-sm outline-none" /></label>
-            <div className="mt-3 space-y-3">
-              {shown.length === 0 && <p className="text-sm text-[hsl(260,15%,45%)]">No guides match your search.</p>}
-              {shown.map((g) => (
-                <button key={g.id} onClick={() => setGuide(g)} className="flex w-full gap-3 text-left">
-                  <img src={guideImg1} alt="" className="h-14 w-20 shrink-0 rounded-lg object-cover" />
-                  <span className="flex-1"><span className="block text-sm font-bold">{g.t}</span><span className="block text-xs text-[hsl(260,15%,45%)]">{g.d}</span></span><ArrowRight className="h-4 w-4 shrink-0" style={{ color: P }} />
-                </button>
-              ))}
+        <div className="resource-columns">
+          <section id="guides" className="resource-panel">
+            <div className="resource-heading"><h2>{cat ? cats.find((c) => c.k === cat)?.t : "Featured Guides"}</h2><Button variant="ghost" className="resource-text-action" onClick={() => { setShowAll(!showAll); setCat(null); setQ(""); }}>{showAll ? "Show Less" : "View All"}<ArrowRight /></Button></div>
+            {searchOpen && <label className="resource-search"><Search /><input id="res-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search guides" /><Button variant="ghost" size="icon" aria-label="Close search" onClick={() => { setSearchOpen(false); setQ(""); }}><X /></Button></label>}
+            <div className="resource-guide-list">
+              {shown.length === 0 && <p>No guides match your search.</p>}
+              {(showAll || cat || q ? shown : shown.slice(0, 3)).map((g, index) => <Button variant="ghost" key={g.id} onClick={() => setGuide(g)} className="resource-guide"><img src={index === 1 ? bedroomImg : index === 2 ? guideImg1 : resourceHotel.url} alt="" /><span><strong>{g.t}</strong><small>{g.d}</small></span><ArrowRight /></Button>)}
             </div>
           </section>
-          <section id="videos" className={card}>
-            <h2 className="text-lg font-extrabold">Video Tutorials</h2>
-            <p className="mt-1 text-xs text-[hsl(260,15%,45%)]">Videos are being recorded. Each opens its step-by-step guide meanwhile.</p>
-            <div className="mt-3 space-y-2">{videos.map((v) => <button key={v.t} onClick={() => setGuide(guides.find((g) => g.id === v.g)!)} className="flex w-full items-center gap-2 text-left text-sm font-semibold"><PlayCircle className="h-4 w-4" style={{ color: P }} />{v.t}</button>)}</div>
+          <section id="videos" className="resource-panel">
+            <div className="resource-heading"><h2>Video Tutorials</h2><Button variant="ghost" className="resource-text-action" onClick={() => setGuide(guides[0])}>View All <ArrowRight /></Button></div>
+            <div className="resource-video-preview"><img src={resourceHotel.url} alt="Jaaga hotel" /><span>Videos coming soon</span></div>
+            <h3 className="resource-video-title">Jaaga Platform Overview</h3><p className="resource-caption">Property setup & operations guides</p>
+            <div className="resource-video-list">{videos.map((v) => <Button variant="ghost" key={v.t} onClick={() => { const match = guides.find((g) => g.id === v.g); if (match) setGuide(match); }} className="resource-video-link"><BookOpen /><span>{v.t}</span><ArrowRight /></Button>)}</div>
           </section>
-          <section id="webinars" className={card}>
-            <h2 className="text-lg font-extrabold">Upcoming Webinars & Events</h2>
-            <div className="mt-3 space-y-3">{webinars.map((w) => (
-              <div key={w.k} className="flex items-center gap-3">
-                <div className="w-12 shrink-0 rounded-lg bg-[hsl(268,80%,96%)] py-1 text-center"><div className="text-[10px] font-bold">{w.m}</div><div className="text-lg font-extrabold" style={{ color: P }}>{w.d}</div></div>
-                <div className="flex-1"><div className="text-sm font-bold">{w.t}</div><div className="text-xs text-[hsl(260,15%,45%)]">{w.s}</div></div>
-                <button onClick={() => setWeb(w)} className="rounded-lg border px-2 py-1 text-xs font-bold" style={{ color: P, borderColor: P }}>Register</button>
-              </div>))}</div>
+          <section id="webinars" className="resource-panel">
+            <div className="resource-heading"><h2>Upcoming Webinars & Events</h2><Button variant="ghost" className="resource-text-action" onClick={() => setWeb(webinars[0])}>View Events <ArrowRight /></Button></div>
+            <div className="resource-webinars">{webinars.map((w) => <div key={w.k} className="resource-webinar"><div className="resource-date"><span>{w.m}</span><strong>{w.d}</strong></div><div><strong>{w.t}</strong><small>{w.s}</small></div><Button variant="outline" className="resource-register" onClick={() => setWeb(w)}>Register</Button></div>)}</div>
           </section>
-          <section id="downloads" className={card}>
-            <h2 className="text-lg font-extrabold">Popular Downloads</h2>
-            <div className="mt-3 space-y-2">{downloads.map((d) => (
-              <button key={d.f} onClick={() => downloadBlob(d.b(), d.f)} className="flex w-full items-center gap-2 text-left text-sm font-semibold"><d.icon className="h-5 w-5 shrink-0" style={{ color: P }} /><span className="flex-1">{d.t}</span><Download className="h-4 w-4" style={{ color: P }} /></button>))}</div>
+          <section id="downloads" className="resource-panel">
+            <div className="resource-heading"><h2>Popular Downloads</h2><Button variant="ghost" className="resource-text-action" onClick={() => go("downloads")}>View All <ArrowRight /></Button></div>
+            <div className="resource-downloads">{downloads.map((d, index) => <Button variant="ghost" key={d.f} onClick={() => downloadBlob(d.b(), d.f)} className={`resource-download resource-file-${index}`}><d.icon /><span>{d.t}</span><Download /></Button>)}</div>
           </section>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr_1.4fr]">
-          <section id="tools" className={card}>
-            <h2 className="text-lg font-extrabold">Tools & Calculators</h2>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {([["commission", "Commission Calculator", Calculator], ["revenue", "Revenue Estimator", LineChart], ["pricing", "Pricing Optimizer", Tag], ["roi", "ROI Calculator", Coins]] as const).map(([k, t, I]) => (
-                <button key={k} onClick={() => setCalc(k)} className="flex flex-col items-center gap-1 rounded-xl bg-[hsl(268,80%,96%)] p-3 text-center text-sm font-bold hover:bg-[hsl(268,80%,92%)]"><I className="h-6 w-6" style={{ color: P }} />{t}</button>))}
-            </div>
-          </section>
-          <section id="help" className={card}>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold"><Headphones className="h-5 w-5" style={{ color: P }} />Need Help?</h2>
-            <p className="mt-1 text-sm text-[hsl(260,15%,45%)]">Find answers quickly or get in touch with our support team.</p>
-            <div className="mt-4 flex flex-wrap gap-2"><Link to="/partners#faq" className={btnOutline}>Browse FAQs</Link><Link to="/partners/partner-with-jaaga#enquiry" className={btnPrimary}><MessageCircle className="h-4 w-4" />Contact Support</Link></div>
-          </section>
-          <section className="rounded-2xl bg-gradient-to-r from-[hsl(265,75%,22%)] to-[hsl(268,84%,45%)] p-5 text-white">
-            <h2 className="flex items-center gap-2 text-xl font-extrabold"><Mail className="h-6 w-6" />Stay Updated with Jaaga</h2>
-            <p className="mt-1 text-sm text-white/85">Get product updates, industry insights, new features and exclusive partner resources in your inbox.</p>
-            <form onSubmit={subscribe} className="mt-4 flex overflow-hidden rounded-lg bg-white">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email address" aria-label="Email address" className="min-w-0 flex-1 px-3 text-sm text-[hsl(255,40%,14%)] outline-none" />
-              <button disabled={busy} className="inline-flex items-center gap-1 bg-[hsl(268,84%,52%)] px-4 py-2.5 text-sm font-bold">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Subscribe <ArrowRight className="h-4 w-4" /></>}</button>
-            </form>
-          </section>
+        <div className="resource-bottom">
+          <section id="tools" className="resource-panel"><h2>Tools & Calculators</h2><div className="resource-tools">{([["commission", "Commission Calculator", Calculator], ["revenue", "Revenue Estimator", LineChart], ["pricing", "Pricing Optimizer", Tag], ["roi", "ROI Calculator", Coins]] as const).map(([k, t, I]) => <Button variant="ghost" key={k} onClick={() => setCalc(k)} className="resource-tool"><I /><span>{t}</span></Button>)}</div></section>
+          <section id="help" className="resource-panel"><h2 className="flex items-center gap-2"><Headphones className="resource-icon" />Need Help?</h2><p className="resource-help-copy">Find answers quickly or get in touch with our support team.</p><div className="resource-help-actions"><Button asChild variant="outline" className="resource-outline"><Link to="/partners#faq">Browse FAQs</Link></Button><Button asChild className="resource-primary"><Link to="/partners/partner-with-jaaga#enquiry"><MessageCircle />Contact Support</Link></Button></div></section>
+          <section className="resource-newsletter"><div><h2><Mail /> Stay Updated with Jaaga</h2><p>Get product updates, industry insights, new features and exclusive partner resources in your inbox.</p></div><form onSubmit={subscribe}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email address" aria-label="Email address" /><Button disabled={busy} className="resource-primary">{busy ? <Loader2 className="animate-spin" /> : <>Subscribe <ArrowRight /></>}</Button></form></section>
         </div>
       </main>
       <PartnerFooter />
-      {guide && <Modal title={guide.t} onClose={() => setGuide(null)}><p className="text-sm text-[hsl(260,15%,45%)]">{guide.d}</p><ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">{guide.steps.map((s) => <li key={s}>{s}</li>)}</ol><Link to={guide.to} className={`${btnPrimary} mt-5`}>Open in Jaaga <ArrowRight className="h-4 w-4" /></Link></Modal>}
+      {guide && <Modal title={guide.t} onClose={() => setGuide(null)}><p className="text-sm">{guide.d}</p><ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">{guide.steps.map((s) => <li key={s}>{s}</li>)}</ol><Button asChild className="resource-primary mt-5"><Link to={guide.to}>Open in Jaaga <ArrowRight /></Link></Button></Modal>}
       {web && <WebinarModal w={web} onClose={() => setWeb(null)} />}
       {calc && <Modal title={{ commission: "Commission Calculator", revenue: "Revenue Estimator", pricing: "Pricing Optimizer", roi: "ROI Calculator" }[calc]} onClose={() => setCalc(null)}><Calcs k={calc} /></Modal>}
     </div>
@@ -148,7 +131,7 @@ export default function PartnerResources() {
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(255,40%,8%)]/60 p-4" onClick={onClose}><div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}><div className="mb-3 flex items-start justify-between"><h3 className="text-xl font-extrabold">{title}</h3><button aria-label="Close" onClick={onClose}><X className="h-5 w-5" /></button></div>{children}</div></div>;
+  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(255,40%,8%)]/60 p-4" onClick={onClose}><div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}><div className="mb-3 flex items-start justify-between"><h3 className="text-xl font-extrabold">{title}</h3><Button variant="ghost" aria-label="Close" onClick={onClose}><X className="h-5 w-5" /></Button></div>{children}</div></div>;
 }
 
 function WebinarModal({ w, onClose }: { w: (typeof webinars)[number]; onClose: () => void }) {
@@ -166,7 +149,7 @@ function WebinarModal({ w, onClose }: { w: (typeof webinars)[number]; onClose: (
   return <Modal title={`Register: ${w.t}`} onClose={onClose}><form onSubmit={submit} className="space-y-3"><p className="text-sm text-[hsl(260,15%,45%)]">{w.d} {w.m} 2026 · {w.s}</p>
     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-lg border px-3 py-2 text-sm" />
     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full rounded-lg border px-3 py-2 text-sm" />
-    <button disabled={busy} className={btnPrimary}>{busy ? "Registering…" : "Register"}</button></form></Modal>;
+    <Button variant="ghost" disabled={busy} className={btnPrimary}>{busy ? "Registering…" : "Register"}</Button></form></Modal>;
 }
 
 const inr = (n: number) => `₹${Math.round(n || 0).toLocaleString("en-IN")}`;

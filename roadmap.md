@@ -123,3 +123,8 @@
 - [ ] Real paid booking, document review, owner check-in and active resident actions: not exercised to avoid real payments/identity uploads; require controlled approved booking and owner session.
 - [ ] Scheduled visit reminders, automatic refunds, online recurring rent, announcements and QR resident gate: existing services do not provide these end-to-end; not implemented or simulated.
 - [ ] Owner alternative-slot suggestions and video link delivery need follow-up; visit slots/types and customer rescheduling are present.
+
+## Resources page reference
+- [x] Match compact purple resource cards, category icons and supplied resort photos; preserve guide, download, calculator and registration actions.
+- [x] Remove Resources header dropdown without changing navigation destinations.
+- [x] Verify desktop/695px/390px layout, loaded photos via preview asset service, no dropdown, guide popup, calculator, search and CSV download; four existing pricing tests passed. No registrations or newsletter records created.

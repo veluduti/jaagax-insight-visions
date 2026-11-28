@@ -17,16 +17,6 @@ const nav = [
   { label: "Resources", href: "/partners/resources" },
 ];
 
-const MEGA: Record<string, { t: string; d: string; to: string }[]> = {
-  Resources: [
-    { t: "Resource Center", d: "All resources in one place", to: "/partners/resources" },
-    { t: "Guides & How-to", d: "Step-by-step setup and operations", to: "/partners/resources#guides" },
-    { t: "Videos & Tutorials", d: "Product demos and practical guides", to: "/partners/resources#videos" },
-    { t: "Webinars & Events", d: "Training sessions and live events", to: "/partners/resources#webinars" },
-    { t: "Downloads & Templates", d: "Checklists, SOPs and useful templates", to: "/partners/resources#downloads" },
-  ],
-};
-
 export default function PartnerNav() {
   const workspace = useContext(PartnerWorkspaceContext);
   const [open, setOpen] = useState(false);
@@ -142,18 +132,7 @@ export default function PartnerNav() {
                 <Link to={n.href} className={cn("js-navlink text-sm transition", loc.pathname === n.href && "font-bold text-[hsl(268,84%,52%)] underline underline-offset-8")}>
                   {n.label}
                 </Link>
-                {MEGA[n.label] && (
-                  <div className="invisible absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100">
-                    <div className="rounded-xl border bg-white p-2 shadow-2xl">
-                      {MEGA[n.label].map((m) => (
-                        <Link key={m.t} to={m.to} className="block rounded-lg px-3 py-2 hover:bg-[hsl(268,80%,96%)]">
-                          <span className="block text-sm font-bold text-[hsl(255,40%,14%)]">{m.t}</span>
-                          <span className="block text-xs text-[hsl(260,15%,45%)]">{m.d}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
               </div>
             ))}
           </nav>
