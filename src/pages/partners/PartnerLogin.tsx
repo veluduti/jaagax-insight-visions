@@ -14,6 +14,7 @@ import roleFinance from "@/assets/role_finance.png.asset.json";
 import roleHr from "@/assets/role_hr.png.asset.json";
 import roleEvents from "@/assets/role_events.png.asset.json";
 import PartnerNav from "@/components/partners/PartnerNav";
+import PartnerLoginHighlights from "@/components/partners/PartnerLoginHighlights";
 import { signInWithPassword } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -202,6 +203,7 @@ export default function PartnerLogin() {
                 {hr.map((x) => <p key={x} className="flex items-center gap-2 text-sm text-slate-700"><CheckCircle2 className="h-4 w-4 text-violet-500" /> {x}</p>)}
               </div>
             </div>
+            <PartnerLoginHighlights />
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">

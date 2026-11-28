@@ -48,3 +48,4 @@
 - PG journeys use existing leads/documents, owner visit slots and guarded long-stay reservations; visits never hold beds, payment needs approved applications, and resident references activate only after manager check-in. Resident services read only account-linked stays and reuse invoices, operations, support and visitor records.
 - Staff/HR/payroll: `hotel_employees` + HR tables; `{module:[actions]}` permissions (`src/config/staffRoles.ts`) enforced by `has_hotel_permission`; staff share the partner workspace filtered by `staffCanOpen` (one dashboard).
 - Staff portal `/property/<lowercase Property ID>/login`; invites via `staff-invite`; payroll maths `src/lib/hr/payroll.ts`, status/payment only via `payroll_advance`/`payroll_record_payment`; one payslip per employee per period.
+- Partner login highlights use a public read-only hospitality service; show actual counts and active hotels, never sample statistics or endorsements.

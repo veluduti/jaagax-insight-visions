@@ -3,6 +3,26 @@
 @tailwind utilities;
 
 @layer components {
+  .partner-login-highlights {
+    --login-highlight-purple: 265 85% 52%;
+    --login-highlight-blue: 229 85% 54%;
+    --login-highlight-navy: 215 74% 29%;
+    --login-highlight-orange: 30 97% 48%;
+    color: hsl(var(--partner-foreground));
+  }
+  .partner-login-metric, .partner-login-hotel-strip {
+    border-color: hsl(var(--partner-border));
+    background: linear-gradient(125deg, hsl(var(--partner-light)), hsl(var(--partner-muted)));
+    box-shadow: var(--partner-shadow);
+  }
+  .partner-login-highlights .partner-login-metric-property > svg { color: hsl(var(--login-highlight-purple)); }
+  .partner-login-highlights .partner-login-metric-cities > svg { color: hsl(var(--login-highlight-blue)); }
+  .partner-login-highlights .partner-login-metric-reviews > svg { color: hsl(var(--login-highlight-navy)); }
+  .partner-login-highlights .partner-login-metric-rating > svg { color: hsl(var(--login-highlight-orange)); }
+  .partner-login-metric-value { color: hsl(var(--partner-foreground)); }
+  .partner-login-metric-label { color: hsl(var(--partner-foreground) / .75); }
+  .partner-login-hotel-name { border-color: hsl(var(--partner-border)); }
+  .partner-login-hotel-name:hover { color: hsl(var(--partner-primary)); }
   .hotel-review-score { background: hsl(var(--why-blue) / 0.12); color: hsl(var(--why-blue)); }
   .hotel-specialty-business { background: hsl(var(--why-blue) / 0.08); color: hsl(var(--why-blue)); }
   .hotel-star-filled { fill: hsl(var(--hotel-star)); color: hsl(var(--hotel-star)); }
