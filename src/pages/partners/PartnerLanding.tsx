@@ -26,8 +26,10 @@ import {
 import { useState } from "react";
 import { UserRound, Handshake, Check, Play, BedDouble, Palmtree, Hotel, Building, Home, Castle, CalendarDays } from "lucide-react";
 import { TYPE_PHOTO, DEFAULT_PHOTO } from "@/config/propertyTypeOnboarding";
-import ownerImg from "@/assets/hero-hotel.jpg";
-import partnerImg from "@/assets/resort-luxury.jpg";
+import ownerAsset from "@/assets/partner-owner-hotel.png.asset.json";
+const ownerImg = ownerAsset.url;
+import partnerAsset from "@/assets/partner-twilight-resort.png.asset.json";
+const partnerImg = partnerAsset.url;
 import "./partner-register.css";
 
 const propertyTypes = [
