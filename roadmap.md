@@ -141,3 +141,8 @@
 - [x] Match green success, saved request details, next steps, actions and property/support sidebar using the existing request workflow.
 - [x] Nine existing journey/date regression tests and preview compilation pass; appointments unchanged.
 - [ ] Saved-confirmation desktop/mobile verification is blocked: the current signed-in account has no accessible saved visit request.
+
+## Bed reservation reference screens
+- [x] Match application, review, approval/payment and booking confirmation to the green reference using existing saved data and payment guards.
+- [x] Signed-in real-property application/review and saved approval/payment screen verified on desktop/mobile; payment remains disabled pending approval/documents. Fourteen existing journey/payment/date tests and preview compilation pass; no application submitted or payment made.
+- [ ] Paid confirmation visual verification requires an accessible paid PG booking; no paid booking exists in the current account.
