@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Play, CheckCircle2, Minus, Leaf, Crown, Building2, Handshake, Loader2, Rocket, Layers, Tag, ShieldCheck, Headphones, Info, X, Hotel, Palmtree, BedDouble, Users, Home, CalendarDays, Briefcase, LayoutList, CalendarCheck, BarChart3, CreditCard, Share2, Settings2, LineChart, UserRound, Network, Headset } from "lucide-react";
+import { Check, ArrowRight, Play, CheckCircle2, Minus, Leaf, Crown, Building2, Handshake, Loader2, Rocket, Layers, Tag, ShieldCheck, Headphones, Info, X, Hotel, Palmtree, BedDouble, Users, Home, CalendarDays, Briefcase, LayoutList, CalendarCheck, BarChart3, CreditCard, Share2, Settings2, LineChart, UserRound, Network, Headset } from "lucide-react";
 import heroAsset from "@/assets/pricing-purple-twilight-resort.png.asset.json";
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerFooter from "@/components/partners/PartnerFooter";
@@ -55,10 +55,10 @@ export default function PartnerPlans() {
         {!plans && !err && <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin" style={{ color: P }} /></div>}
         {plans && (
           <div id="plans" className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,0.85fr)_repeat(4,minmax(0,1fr))]">
-            <div className={card}>
-              <h2 className="text-2xl font-extrabold leading-tight" style={{ color: "hsl(265,70%,25%)" }}>Choose Your Pricing Model</h2>
+            <div className={`${card} !p-4`}>
+              <h2 className="text-xl font-extrabold leading-tight" style={{ color: "hsl(265,70%,25%)" }}>Choose Your Pricing Model</h2>
               {([["subscription", "Subscription Plan", "Pay a fixed fee and use Jaaga's full operations platform."], ["commission", "Commission Plan", "Pay only on successful bookings."], ["enterprise", "Enterprise Plan", "Custom pricing for large portfolios, chains and multi-brand operators."]] as const).map(([k, t, d]) => (
-                <button key={k} onClick={() => pick(k)} className={`mt-3 flex w-full gap-2 rounded-xl p-3 text-left ${model === k ? "bg-[hsl(268,80%,94%)]" : "hover:bg-[hsl(268,80%,97%)]"}`}>
+                <button key={k} onClick={() => pick(k)} className={`mt-2 flex w-full gap-2 rounded-xl p-2.5 text-left ${model === k ? "bg-[hsl(268,80%,94%)]" : "hover:bg-[hsl(268,80%,97%)]"}`}>
                   <span className={`mt-1 h-4 w-4 shrink-0 rounded-full border-2 ${model === k ? "border-[hsl(268,84%,52%)] bg-[hsl(268,84%,52%)] ring-2 ring-white ring-inset" : "border-[hsl(260,15%,70%)]"}`} />
                   <span><span className="block font-bold">{t}</span><span className="block text-xs text-[hsl(260,15%,45%)]">{d}</span></span>
                 </button>
@@ -70,7 +70,7 @@ export default function PartnerPlans() {
               const save = yearlySavingsPercent(p.monthly_price, p.yearly_price);
               const gst = price ? gstBreakup(price) : null;
               return (
-                <div key={p.plan_key} id={`plan-${p.plan_key}`} className={`flex flex-col rounded-2xl p-5 shadow-sm ${pop ? "bg-gradient-to-b from-[hsl(265,75%,30%)] to-[hsl(268,84%,42%)] text-white" : "border border-[hsl(265,40%,90%)] bg-white"} ${model === "enterprise" && p.plan_key === "enterprise" ? "ring-2 ring-[hsl(268,84%,52%)]" : ""}`}>
+                <div key={p.plan_key} id={`plan-${p.plan_key}`} className={`flex flex-col rounded-2xl p-4 shadow-sm ${pop ? "bg-gradient-to-b from-[hsl(265,75%,30%)] to-[hsl(268,84%,42%)] text-white" : "border border-[hsl(265,40%,90%)] bg-white"} ${model === "enterprise" && p.plan_key === "enterprise" ? "ring-2 ring-[hsl(268,84%,52%)]" : ""}`}>
                   <div className="flex items-center gap-2"><Icon className="h-6 w-6" style={{ color: pop ? "hsl(45,95%,60%)" : P }} /><h3 className="whitespace-nowrap text-xl font-extrabold">{p.name}</h3>{pop && <span className="ml-auto whitespace-nowrap rounded-full bg-[hsl(268,90%,88%)] text-[hsl(265,75%,30%)] px-2 py-0.5 text-xs font-bold">Most Popular</span>}</div>
                   <p className={`mt-1 text-xs ${pop ? "text-white/85" : "text-[hsl(260,15%,45%)]"}`}>{p.tagline}</p>
                   {price != null ? (<>
@@ -78,20 +78,20 @@ export default function PartnerPlans() {
                     <div className="mt-1 flex items-center gap-2 text-sm">{yearly ? `${inr(p.monthly_price!)} / month billed monthly` : `or ${inr(p.yearly_price!)} / year`}{save > 0 && <span className="whitespace-nowrap rounded bg-[hsl(85,75%,65%)] px-1.5 text-xs font-bold text-[hsl(145,63%,20%)]">Save {save}%</span>}</div>
                     {gst && <p className={`mt-1 text-xs ${pop ? "text-white/75" : "text-[hsl(260,15%,45%)]"}`}>+ 18% GST {inr(gst.gst)} = {inr(gst.total)} total</p>}
                   </>) : (<><div className="mt-3 whitespace-nowrap text-[28px] font-extrabold" style={{ color: P }}>Custom Pricing</div><p className="text-xs text-[hsl(260,15%,45%)]">Based on inventory, locations and business needs.</p></>)}
-                  <ul className="mt-4 flex-1 space-y-1.5 border-t border-current/10 pt-3 text-sm">{p.features.map((f) => <li key={f} className="flex gap-2"><CheckCircle2 className={`h-4 w-4 shrink-0 ${pop ? "text-[hsl(145,70%,60%)]" : "text-[hsl(145,63%,40%)]"}`} />{f}</li>)}</ul>
+                  <ul className="mt-3 flex-1 space-y-1 border-t border-current/10 pt-2.5 text-[13px] leading-snug">{p.features.map((f) => <li key={f} className="flex gap-2"><Check strokeWidth={3.5} className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${pop ? "text-[hsl(145,70%,60%)]" : "text-[hsl(145,63%,40%)]"}`} />{f}</li>)}</ul>
                   {p.plan_key === "enterprise"
-                    ? <Link to="/partners/partner-with-jaaga#enquiry" className={`${btnOutline} mt-5`}>Talk to Sales</Link>
-                    : <Link to={reg(p.plan_key)} className={pop ? "mt-5 rounded-lg bg-white py-2.5 text-center text-sm font-bold" : `${btnOutline} mt-5`} style={pop ? { color: P } : undefined}>{pop ? `Choose ${p.name}` : "Get Started"}</Link>}
+                    ? <Link to="/partners/partner-with-jaaga#enquiry" className={`${btnOutline} mt-4 !py-2`}>Talk to Sales</Link>
+                    : <Link to={reg(p.plan_key)} className={pop ? "mt-4 rounded-lg bg-white py-2 text-center text-sm font-bold" : `${btnOutline} mt-4 !py-2`} style={pop ? { color: P } : undefined}>{pop ? `Choose ${p.name}` : "Get Started"}</Link>}
                 </div>
               );
             })}
             {commission && (
-              <div id="plan-commission" className={`${card} flex flex-col ${model === "commission" ? "ring-2 ring-[hsl(268,84%,52%)]" : ""}`}>
-                <div className="flex items-center gap-2"><Handshake className="h-6 w-6" style={{ color: P }} /><h3 className="text-lg font-extrabold leading-tight">{commission.name}</h3></div>
-                <p className="mt-1 text-sm">{commission.tagline}</p>
-                <div className="mt-3 rounded-xl bg-[hsl(268,80%,96%)] p-3 text-center"><div className="text-sm font-semibold">Commission from</div><div className="whitespace-nowrap text-3xl font-extrabold" style={{ color: P }}>{commission.commission_min}% – {commission.commission_max}%</div><div className="text-xs text-[hsl(260,15%,45%)]">Final rate agreed during onboarding</div></div>
-                <ul className="mt-4 flex-1 space-y-1.5 text-sm">{commission.features.map((f) => <li key={f} className="flex gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-[hsl(145,63%,40%)]" />{f}</li>)}</ul>
-                <Link to={reg("commission")} className={`${btnOutline} mt-5`}>List on Commission Plan <ArrowRight className="h-4 w-4" /></Link>
+              <div id="plan-commission" className={`${card} !p-4 flex flex-col ${model === "commission" ? "ring-2 ring-[hsl(268,84%,52%)]" : ""}`}>
+                <div className="flex items-center gap-2"><Handshake className="h-6 w-6" style={{ color: P }} /><h3 className="text-base font-extrabold leading-tight">{commission.name}</h3></div>
+                <p className="mt-1 text-[13px] leading-snug">{commission.tagline}</p>
+                <div className="mt-2.5 rounded-xl bg-[hsl(268,80%,96%)] p-2 text-center"><div className="text-sm font-semibold">Commission from</div><div className="whitespace-nowrap text-3xl font-extrabold" style={{ color: P }}>{commission.commission_min}% – {commission.commission_max}%</div><div className="text-xs text-[hsl(260,15%,45%)]">Final rate agreed during onboarding</div></div>
+                <ul className="mt-3 flex-1 space-y-1 text-[13px] leading-snug">{commission.features.map((f) => <li key={f} className="flex gap-2"><Check strokeWidth={3.5} className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[hsl(145,63%,40%)]" />{f}</li>)}</ul>
+                <Link to={reg("commission")} className={`${btnOutline} mt-4 !py-2`}>List on Commission Plan <ArrowRight className="h-4 w-4" /></Link>
               </div>
             )}
           </div>
