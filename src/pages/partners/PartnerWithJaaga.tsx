@@ -10,8 +10,10 @@ import {
 import PartnerNav from "@/components/partners/PartnerNav";
 import PartnerFooter from "@/components/partners/PartnerFooter";
 import { supabase } from "@/integrations/supabase/client";
-import heroImg from "@/assets/resort-luxury.jpg";
-import ctaImg from "@/assets/hero-hotel.jpg";
+import heroAsset from "@/assets/partner-hub-twilight.png.asset.json";
+import ctaAsset from "@/assets/partner-owner-hotel.png.asset.json";
+const heroImg = heroAsset.url;
+const ctaImg = ctaAsset.url;
 import "./partner-register.css";
 
 const P = "hsl(268,84%,52%)";
@@ -83,7 +85,7 @@ const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavio
 
 export default function PartnerWithJaaga() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openModel, setOpenModel] = useState<ModelKey | null>("marketplace");
+  const [openModel, setOpenModel] = useState<ModelKey | null>(null);
   const [category, setCategory] = useState<string>("");
   const [form, setForm] = useState({ full_name: "", company: "", type: "", cities: "", mobile: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -146,8 +148,8 @@ export default function PartnerWithJaaga() {
       {/* HERO */}
       <section id="overview" className="relative overflow-hidden">
         <img src={heroImg} alt="Luxury resort with pool at dusk" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,hsl(265 75% 18% / .95) 0%,hsl(268 70% 28% / .8) 40%,transparent 75%)" }} />
-        <div className="container relative mx-auto px-4 pb-24 pt-10 md:pb-28">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,hsl(265 75% 20% / .96) 0%,hsl(268 70% 32% / .75) 32%,transparent 58%)" }} />
+        <div className="container relative mx-auto px-4 pb-20 pt-8 md:pb-24">
           <div className="max-w-xl text-white">
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold text-[hsl(255,40%,14%)]"><Handshake className="h-4 w-4" style={{ color: P }} /> Partner with Jaaga</span>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight md:text-5xl">Partner with <span className="text-[hsl(270,90%,80%)]">Jaaga</span><br />for Greater Growth</h1>
@@ -187,18 +189,19 @@ export default function PartnerWithJaaga() {
       </section>
 
       {/* GRID */}
-      <section className="container mx-auto grid gap-5 px-4 py-6 lg:grid-cols-12">
-        <div id="models" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-5 lg:col-span-4">
+      <section className="container mx-auto grid gap-4 px-4 py-5 md:grid-cols-2 xl:grid-cols-[1.2fr_1.05fr_1.25fr_0.95fr]">
+        <div id="models" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4">
           <h2 className="text-xl font-extrabold">Partnership Models</h2>
           <p className="text-sm text-[hsl(260,15%,40%)]">Choose the right model based on your business needs.</p>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {models.map((m) => {
               const open = openModel === m.key;
+              const hi = open || (!openModel && m.key === "marketplace");
               return (
-                <div key={m.key} className={`rounded-xl border p-3 ${open ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,98%)]" : "border-[hsl(268,30%,92%)]"}`}>
-                  <button onClick={() => setOpenModel(open ? null : m.key)} className="flex w-full items-start gap-3 text-left" aria-expanded={open}>
-                    <m.icon className="mt-1 h-7 w-7 shrink-0" style={{ color: P }} />
-                    <span className="flex-1"><span className="block font-bold">{m.t}</span><span className="block text-xs text-[hsl(260,15%,40%)]">{m.d}</span></span>
+                <div key={m.key} className={`rounded-xl border px-3 py-2.5 ${hi ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,98%)]" : "border-[hsl(268,30%,92%)]"}`}>
+                  <button onClick={() => setOpenModel(open ? null : m.key)} className="flex w-full items-center gap-3 text-left" aria-expanded={open}>
+                    <m.icon className="h-7 w-7 shrink-0" style={{ color: P }} />
+                    <span className="flex-1"><span className="block text-sm font-bold">{m.t}</span><span className="block text-xs text-[hsl(260,15%,40%)]">{m.d}</span></span>
                     <span className="shrink-0 rounded-full bg-[hsl(268,80%,94%)] px-2 py-1 text-[10px] font-bold" style={{ color: P }}>{m.tag}</span>
                   </button>
                   {open && (
@@ -214,21 +217,21 @@ export default function PartnerWithJaaga() {
           </div>
         </div>
 
-        <div id="who" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-5 lg:col-span-4">
+        <div id="who" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4">
           <h2 className="text-xl font-extrabold">Who Can Partner</h2>
           <p className="text-sm text-[hsl(260,15%,40%)]">We work with a wide range of hospitality and real estate businesses.</p>
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-3 grid grid-cols-4 gap-2">
             {categories.map((c) => (
               <button key={c.key} onClick={() => pickCategory(c.key)} aria-pressed={category === c.key}
-                className={`flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center text-[11px] font-bold leading-tight ${category === c.key ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,96%)]" : "border-[hsl(268,30%,92%)] hover:border-[hsl(268,60%,75%)]"}`}>
-                <c.icon className="h-6 w-6" style={{ color: P }} />{c.label}
+                className={`flex min-h-[84px] flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center text-[11px] font-bold leading-tight ${category === c.key ? "border-[hsl(268,84%,52%)] bg-[hsl(268,80%,96%)]" : "border-[hsl(268,30%,92%)] hover:border-[hsl(268,60%,75%)]"}`}>
+                <c.icon className="h-7 w-7" style={{ color: P }} />{c.label}
               </button>
             ))}
           </div>
           {cat && <div className="mt-3 rounded-lg bg-[hsl(268,80%,97%)] p-3 text-sm"><b>{cat.label}:</b> {cat.info} <span className="block text-xs text-[hsl(260,15%,40%)]">Suggested model: {TYPE_LABEL[cat.model]}</span></div>}
         </div>
 
-        <aside id="enquiry" className="row-span-2 rounded-2xl border border-[hsl(268,60%,88%)] bg-[hsl(268,80%,97%)] p-5 lg:col-span-4">
+        <aside id="enquiry" className="rounded-2xl border border-[hsl(268,60%,88%)] bg-[hsl(268,80%,97%)] p-4 xl:col-start-4 xl:row-span-2 xl:row-start-1">
           <h2 className="text-xl font-extrabold">Become a Jaaga Partner</h2>
           <p className="text-sm text-[hsl(260,15%,40%)]">Tell us about your business. Our partnership team will get in touch with the next steps.</p>
           {doneRef ? (
@@ -239,7 +242,7 @@ export default function PartnerWithJaaga() {
               <button onClick={() => { setDoneRef(null); setForm({ full_name: "", company: "", type: "", cities: "", mobile: "", email: "", message: "" }); }} className="mt-3 text-sm font-bold" style={{ color: P }}>Send another enquiry</button>
             </div>
           ) : (
-            <form onSubmit={submit} className="mt-4 space-y-3" noValidate>
+            <form onSubmit={submit} className="mt-3 space-y-2" noValidate>
               {field("full_name", "Full Name *", User)}
               {field("company", "Business / Company Name *", Building2)}
               <div>
@@ -276,38 +279,37 @@ export default function PartnerWithJaaga() {
           </div>
         </aside>
 
-        <div id="process" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-5 lg:col-span-8">
+        <div id="process" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4 xl:col-start-3 xl:row-start-1">
           <h2 className="text-xl font-extrabold">How the Partnership Works</h2>
           <p className="text-sm text-[hsl(260,15%,40%)]">A simple and guided process from enquiry to go-live.</p>
-          <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="mt-3 grid grid-cols-4 gap-2">
             {steps.map((s, i) => (
-              <div key={s.t} className="text-center">
+              <div key={s.t} className="relative text-center">
+                {i < steps.length - 1 && <ArrowRight className="absolute -right-2.5 top-12 h-4 w-4" style={{ color: P }} />}
                 <span className="mx-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: P }}>{i + 1}</span>
-                <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(268,80%,95%)]"><s.icon className="h-8 w-8" style={{ color: P }} /></div>
-                <p className="mt-2 text-sm font-bold">{s.t}</p><p className="text-xs text-[hsl(260,15%,40%)]">{s.d}</p>
+                <div className="mx-auto -mt-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(268,80%,95%)]"><s.icon className="h-7 w-7" style={{ color: P }} /></div>
+                <p className="mt-2 text-xs font-bold">{s.t}</p><p className="text-[11px] text-[hsl(260,15%,40%)]">{s.d}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div id="integrations" className="rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-5 lg:col-span-12">
-          <div className="flex flex-wrap items-center gap-4">
+        <div id="integrations" className="flex flex-col gap-3 rounded-2xl border border-[hsl(268,40%,90%)] bg-white p-4 md:col-span-2 xl:col-span-3 xl:flex-row xl:items-center">
+          <div className="flex items-center gap-3 xl:w-[30%] xl:shrink-0">
             <Link2 className="h-9 w-9" style={{ color: P }} />
-            <div className="min-w-[220px] flex-1"><h2 className="text-lg font-extrabold">Integrations & Distribution</h2>
+            <div className="flex-1"><h2 className="text-base font-extrabold">Integrations & Distribution</h2>
               <p className="text-sm text-[hsl(260,15%,40%)]">Connect your existing systems and reach more customers through our growing distribution network.</p></div>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-5">
             {integrations.map((g) => (
-              <div key={g.name} className="rounded-xl border border-[hsl(268,30%,92%)] p-3">
-                <div className="flex items-center justify-between"><p className="text-lg font-extrabold">{g.name}</p>
+              <div key={g.name} title={g.d} className="flex flex-col items-center justify-center rounded-xl border border-[hsl(268,30%,92%)] p-2 text-center">
+                <div className="flex flex-col items-center gap-1"><p className="text-base font-extrabold">{g.name}</p>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${g.status === "Live" ? "bg-[hsl(150,60%,92%)] text-[hsl(150,60%,28%)]" : "bg-[hsl(268,30%,94%)] text-[hsl(260,15%,40%)]"}`}>{g.status}</span></div>
-                <p className="mt-1 text-xs text-[hsl(260,15%,40%)]">{g.d}</p>
-              </div>
+                              </div>
             ))}
-            <div className="rounded-xl bg-[hsl(268,80%,96%)] p-3 text-center">
+            <div className="rounded-xl bg-[hsl(268,80%,96%)] p-2 text-center">
               <p className="font-extrabold">+ More</p><p className="text-xs">(PMS, Channel Managers, OTAs)</p>
-              <p className="mt-1 text-[11px] text-[hsl(260,15%,40%)]">Methods: REST API, webhooks, channel manager.</p>
-              <div className="mt-2 flex flex-wrap justify-center gap-2 text-xs font-bold">
+                            <div className="mt-1 flex flex-wrap justify-center gap-2 text-[11px] font-bold">
                 <button onClick={() => pickModel("integration")} style={{ color: P }}>Integration enquiry</button>
                 <Link to="/partners/integrations" style={{ color: P }}>API docs (partners)</Link>
               </div>
@@ -319,7 +321,7 @@ export default function PartnerWithJaaga() {
       {/* CTA */}
       <section className="container mx-auto px-4 pb-10">
         <div className="relative overflow-hidden rounded-2xl text-white" style={{ background: "linear-gradient(90deg,hsl(265,75%,22%),hsl(268,84%,45%))" }}>
-          <img src={ctaImg} alt="" className="absolute inset-y-0 left-0 hidden h-full w-1/4 object-cover opacity-90 md:block" />
+          <img src={ctaImg} alt="" className="absolute inset-y-0 left-0 hidden h-full w-1/4 object-cover md:block" />
           <div className="relative flex flex-col gap-4 p-6 md:ml-[25%] md:flex-row md:items-center">
             <div className="flex-1">
               <h2 className="text-2xl font-extrabold">Ready to Grow Your Business with Jaaga?</h2>
