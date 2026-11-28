@@ -132,3 +132,7 @@
 ## Partner footer reference
 - [x] Update the shared public partner footer with purple resort scenery, brand block, four link columns, registration CTA and legal links; mobile layout remains visible and overflow-free.
 - [x] Verify desktop/mobile and registration navigation; resort image verified using actual preview asset response because local Vite does not serve CDN assets. Social destinations were not invented.
+
+## Visit date selection and published slots
+- [x] Verified customer date selection and published-time guard; nine tests pass.
+- [x] Published 10 Durga in-person slots on 29 November 2026, 10 AM–3 PM IST through owner UI; save/reload and signed-in customer time selection/review verified without submitting a visit.
