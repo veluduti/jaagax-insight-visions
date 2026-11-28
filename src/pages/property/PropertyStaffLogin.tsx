@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, BarChart3, BedDouble, Copy, Crown, Eye, EyeOff, Loader2, Lock, MapPin, Settings, ShieldCheck, Sparkles, User, Users, UtensilsCrossed, Wallet, Zap } from "lucide-react";
+import { ArrowLeft, BedDouble, Building2, Copy, Crown, Eye, EyeOff, Headphones, Loader2, Lock, LogIn, Mail, MapPin, Monitor, Settings, ShieldCheck, Sparkles, User, Users, UtensilsCrossed, Wallet, Zap } from "lucide-react";
+import bgAsset from "@/assets/twilight-resort-pool.png.asset.json";
 import { toast } from "sonner";
 import { z } from "zod";
 import { usePortal, typeLabel } from "./usePortal";
@@ -44,51 +45,55 @@ export default function PropertyStaffLogin() {
     } catch (err: any) { toast.error(err.message || "Could not sign in"); } finally { setBusy(false); }
   };
   const copyId = () => { if (p.property_reference) { navigator.clipboard?.writeText(p.property_reference); toast.success("Property ID copied"); } };
-  const Logo = ({ dark }: { dark?: boolean }) => <div className="leading-none"><div className={`text-3xl font-black tracking-tight ${dark ? "text-slate-900" : "text-white"}`}>JAAGA <span className="text-emerald-500">X</span></div><div className={`text-sm font-semibold ml-24 ${dark ? "text-slate-900" : "text-white"}`}>Stays</div></div>;
 
-  return <div className="min-h-screen bg-gradient-to-br from-violet-100 via-violet-50 to-white lg:flex">
-    <aside className="relative lg:w-[37%] min-h-[320px] lg:min-h-screen overflow-hidden bg-gradient-to-b from-violet-800 via-violet-600 to-fuchsia-500 text-white">
-      {p.image && <img src={p.image} alt="" className="absolute inset-0 h-full w-full object-cover" onError={e => (e.currentTarget.style.display = "none")} />}
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-900/80 via-violet-800/30 to-violet-950/80" />
-      <div className="relative h-full flex flex-col p-8">
-        <Logo />
-        <h1 className="mt-10 text-3xl lg:text-4xl font-bold">{p.name}</h1>
-        <p className="mt-2 text-xl lg:text-2xl text-white/90">Property Operations Portal</p>
-        <span className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg bg-white/20 px-3 py-1.5 text-sm backdrop-blur"><BedDouble className="h-4 w-4" />{typeLabel(p.business_types)}</span>
-        {place && <p className="mt-4 flex items-center gap-2 text-lg"><MapPin className="h-5 w-5" />{place}</p>}
-        <div className="mt-auto pt-10 grid grid-cols-3 gap-2 text-center text-xs">
-          {[{ i: ShieldCheck, t: "Secure Access", s: "Role-based operations" }, { i: Zap, t: "Real-time Operations", s: longStay ? "Residents • Rooms • Mess" : "Guests • Rooms • Bookings" }, { i: BarChart3, t: "Property Team Portal", s: "Manage daily operations" }].map(f => <div key={f.t}><f.i className="mx-auto h-7 w-7 mb-1" /><div className="font-semibold">{f.t}</div><div className="text-white/80">{f.s}</div></div>)}
+  const tiles = services.slice(0, 6);
+  const inputCls = "w-full h-12 rounded-xl border border-slate-300 bg-white pl-12 pr-3 outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-200";
+
+  return <div className="relative min-h-screen bg-white lg:flex">
+    {/* Static background photo (does not scroll) */}
+    <div aria-hidden className="fixed inset-0 lg:right-auto lg:w-[56%] bg-cover bg-center" style={{ backgroundImage: `url(${bgAsset.url})` }} />
+    <div aria-hidden className="fixed inset-0 lg:right-auto lg:w-[56%] bg-gradient-to-t from-violet-950/90 via-violet-900/30 to-violet-900/40" />
+
+    <aside className="relative z-10 hidden lg:flex lg:w-[56%] min-h-screen flex-col justify-between p-10 text-white">
+      <div className="leading-none"><div className="flex items-center gap-1 text-3xl font-black tracking-tight">JAAGA X<span className="text-emerald-400">▲</span></div><div className="text-sm font-medium mt-1">Unified Hospitality OS</div></div>
+      <div className="max-w-xl">
+        <h1 className="border-l-4 border-violet-400 pl-4 text-5xl font-bold leading-tight drop-shadow">{longStay ? "Property Operations" : "Hotel Operations"}<br />Made Simple</h1>
+        <p className="mt-4 text-lg text-white/90 drop-shadow">A unified platform for the {p.name} team to manage {longStay ? "residents, rooms, services" : "guests, rooms, services"} and daily operations — all in one place.</p>
+        {place && <p className="mt-3 flex items-center gap-2 text-white/90"><MapPin className="h-4 w-4" />{typeLabel(p.business_types)} · {place}</p>}
+        <div className="mt-6 grid grid-cols-6 gap-2">
+          {tiles.map(s => <div key={s.name} className="flex flex-col items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-2 py-3 text-center text-xs font-semibold backdrop-blur-md"><s.icon className="h-7 w-7" />{s.name}</div>)}
         </div>
       </div>
     </aside>
 
-    <main className="flex-1 p-4 lg:p-8 lg:-ml-6 relative">
-      <div className="rounded-3xl bg-white shadow-xl p-6 lg:p-8 min-h-full">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div><Logo dark /><h2 className="mt-4 text-3xl font-bold text-slate-900">Employee Login</h2><p className="mt-1 text-slate-600">Access your assigned services for {p.name}</p></div>
-          {p.property_reference && <button onClick={copyId} className="flex items-center gap-2 rounded-xl bg-violet-50 px-4 py-2 text-slate-700">Property ID: <b className="text-slate-900">{p.property_reference}</b><Copy className="h-4 w-4" /></button>}
+    <main className="relative z-10 flex-1 flex flex-col p-4 lg:p-0">
+      <svg aria-hidden className="hidden lg:block absolute -left-24 top-0 h-full w-28 text-white" viewBox="0 0 100 1000" preserveAspectRatio="none"><path d="M100 0 L60 0 C10 300 90 650 0 1000 L100 1000 Z" fill="currentColor" /><path d="M60 0 C10 300 90 650 0 1000" stroke="#8b5cf6" strokeWidth="8" fill="none" /></svg>
+      <div className="flex-1 rounded-3xl lg:rounded-none bg-white/95 lg:bg-white shadow-xl lg:shadow-none px-6 py-8 lg:px-14">
+        <div className="text-right"><Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-700 hover:underline"><ArrowLeft className="h-4 w-4" />Back to Jaaga X</Link></div>
+        <div className="mx-auto max-w-md text-center mt-4">
+          <div className="leading-none"><div className="text-3xl font-black tracking-tight text-slate-900">JAAGA X<span className="text-emerald-500">▲</span></div><div className="text-sm font-medium text-slate-800 mt-1">Unified Hospitality OS</div></div>
+          <h2 className="mt-6 flex items-center justify-center gap-3 text-3xl font-bold text-slate-900"><Users className="h-9 w-9 text-violet-600" />{mode === "owner" ? "Owner Login" : "Employee Login"}</h2>
+          <p className="mt-2 text-slate-600">Access your {longStay ? "property" : "hotel"} workspace to manage daily operations, guests, services and tasks.</p>
         </div>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_1fr]">
-          <div>
-            <div className="grid grid-cols-2 gap-1 rounded-xl border border-violet-200 bg-violet-50/50 p-1">
-              {(["staff", "owner"] as const).map(m => <button key={m} type="button" onClick={() => setMode(m)} className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition ${mode === m ? "bg-violet-700 text-white shadow" : "text-slate-800 hover:bg-violet-100"}`}>{m === "staff" ? <User className="h-4 w-4" /> : <Crown className="h-4 w-4" />}{m === "staff" ? "Employee / Staff Login" : "Owner / Admin Login"}</button>)}
-            </div>
-            <form onSubmit={submit} className="mt-5 space-y-4">
-              <label className="block"><span className="text-sm font-semibold text-slate-800">{mode === "owner" ? "Owner Email" : "Registered Email"} <span className="text-red-500">*</span></span>
-                <div className="relative mt-1.5"><User className="h-5 w-5 absolute left-3.5 top-3 text-slate-500" /><input className="w-full h-11 rounded-xl border border-slate-300 pl-11 pr-3 outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-200" type="email" autoComplete="email" placeholder="Enter your registered email" value={email} onChange={e => setEmail(e.target.value)} /></div></label>
-              {!forgot && <label className="block"><span className="text-sm font-semibold text-slate-800">Password <span className="text-red-500">*</span></span>
-                <div className="relative mt-1.5"><Lock className="h-5 w-5 absolute left-3.5 top-3 text-slate-500" /><input className="w-full h-11 rounded-xl border border-slate-300 pl-11 pr-11 outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-200" type={show ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={pw} onChange={e => setPw(e.target.value)} /><button type="button" aria-label={show ? "Hide password" : "Show password"} className="absolute right-3.5 top-3 text-slate-600" onClick={() => setShow(!show)}>{show ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}</button></div></label>}
-              <div className="text-right"><button type="button" className="text-sm font-semibold text-violet-700" onClick={() => setForgot(!forgot)}>{forgot ? "Back to login" : "Forgot Password?"}</button></div>
-              <button type="submit" disabled={busy} className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-700 to-violet-600 text-white font-semibold flex items-center justify-center gap-2 hover:from-violet-800 disabled:opacity-70">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{forgot ? "Send reset link" : "Login"}{!busy && <ArrowRight className="h-5 w-5" />}</button>
-            </form>
-            <div className="mt-5 flex items-start gap-3 rounded-xl bg-emerald-50 p-4"><ShieldCheck className="h-7 w-7 text-emerald-600 shrink-0" /><div><p className="text-sm text-slate-800">You are logging in to <b>{p.name}{p.property_reference ? ` (${p.property_reference})` : ""}</b></p><p className="text-xs text-slate-600">Access is available only for authorized team members.</p></div></div>
+        <form onSubmit={submit} className="mx-auto mt-6 max-w-md space-y-4">
+          <div><span className="text-sm font-semibold text-slate-800">Property / Hotel <span className="text-red-500">*</span></span>
+            <button type="button" onClick={copyId} className="relative mt-1.5 flex w-full h-12 items-center rounded-xl border border-slate-300 bg-white pl-12 pr-3 text-left font-medium text-slate-900" title="Copy Property ID"><Building2 className="h-5 w-5 absolute left-4 text-violet-600" /><span className="truncate">{p.name}</span>{p.property_reference && <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">{p.property_reference}<Copy className="h-3.5 w-3.5" /></span>}</button></div>
+          <label className="block"><span className="text-sm font-semibold text-slate-800">{mode === "owner" ? "Owner Email" : "Employee Email"} <span className="text-red-500">*</span></span>
+            <div className="relative mt-1.5"><Mail className="h-5 w-5 absolute left-4 top-3.5 text-violet-600" /><input className={inputCls} type="email" autoComplete="email" placeholder="Enter your registered email" value={email} onChange={e => setEmail(e.target.value)} /></div></label>
+          {!forgot && <label className="block"><span className="text-sm font-semibold text-slate-800">Password <span className="text-red-500">*</span></span>
+            <div className="relative mt-1.5"><Lock className="h-5 w-5 absolute left-4 top-3.5 text-violet-600" /><input className={inputCls + " pr-11"} type={show ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={pw} onChange={e => setPw(e.target.value)} /><button type="button" aria-label={show ? "Hide password" : "Show password"} className="absolute right-3.5 top-3.5 text-slate-600" onClick={() => setShow(!show)}>{show ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}</button></div></label>}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-slate-800"><input type="checkbox" defaultChecked className="h-4 w-4 accent-violet-600" />Remember me</label>
+            <button type="button" className="text-sm font-semibold text-violet-700 underline" onClick={() => setForgot(!forgot)}>{forgot ? "Back to login" : "Forgot Password?"}</button>
           </div>
+          <button type="submit" disabled={busy} className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-700 to-violet-500 text-white font-semibold flex items-center justify-center gap-2 hover:from-violet-800 disabled:opacity-70">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-5 w-5" />}{forgot ? "Send reset link" : "Login to Jaaga X"}</button>
+          <div className="flex items-center gap-3 text-sm text-slate-500"><span className="h-px flex-1 bg-slate-200" />or<span className="h-px flex-1 bg-slate-200" /></div>
+          <button type="button" onClick={() => setMode(mode === "staff" ? "owner" : "staff")} className="w-full h-12 rounded-xl border-2 border-violet-600 text-violet-700 font-semibold flex items-center justify-center gap-2 hover:bg-violet-50">{mode === "staff" ? <><Crown className="h-5 w-5" />Owner / Admin Login</> : <><User className="h-5 w-5" />Employee / Staff Login</>}</button>
+        </form>
 
-          <div className="rounded-2xl border border-violet-100 p-4">
-            <div className="flex items-start gap-3 mb-4"><Settings className="h-7 w-7 text-violet-700" /><div><p className="font-bold text-slate-900">Your Property Services</p><p className="text-sm text-slate-600">Access based on your assigned role</p></div></div>
-            <div className="space-y-2">{services.map(s => <div key={s.name} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3"><s.icon className="h-6 w-6 text-violet-700 shrink-0" /><span className="font-semibold text-slate-900 w-36 shrink-0">{s.name}</span><span className="text-xs text-slate-600">{s.desc}</span></div>)}</div>
-          </div>
+        <div className="mx-auto mt-8 grid max-w-2xl grid-cols-2 sm:grid-cols-4 gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-semibold text-slate-800">
+          {[{ i: ShieldCheck, t: "Secure & Role-based Access" }, { i: Zap, t: "Access to Assigned Modules Only" }, { i: Monitor, t: "Works on Web, Tablet & Mobile" }, { i: Headphones, t: "Need Help? Contact Property Admin" }].map(f => <div key={f.t} className="flex items-center gap-2"><f.i className="h-6 w-6 shrink-0 text-violet-600" />{f.t}</div>)}
         </div>
       </div>
     </main>
