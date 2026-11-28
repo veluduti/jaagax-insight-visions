@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowRight, BarChart3, Building2, CalendarDays, CheckCircle2, ConciergeBell, Crown, Eye, EyeOff, HeartHandshake, Hotel, LayoutDashboard, LineChart, Loader2, Lock, Network, PartyPopper, Receipt, ShoppingCart, Sparkles, User as UserIcon, UserCog, Users, UtensilsCrossed, Wallet, Wrench } from "lucide-react";
-import heroImg from "@/assets/hero-hotel.jpg";
+import heroAsset from "@/assets/partner_login_resort_dashboards.png.asset.json";
 import PartnerNav from "@/components/partners/PartnerNav";
 import { signInWithPassword } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,32 +134,37 @@ export default function PartnerLogin() {
     <div className="min-h-screen bg-[hsl(250_60%_97%)]">
       <PartnerNav />
       <div className="relative overflow-hidden">
-        <img src={heroImg} alt="" className="absolute inset-0 h-[560px] w-full object-cover" />
-        <div className="absolute inset-0 h-[560px] bg-gradient-to-r from-[hsl(255_70%_14%)] via-[hsl(260_65%_22%/0.85)] to-[hsl(265_60%_30%/0.35)]" />
-        <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[1fr_380px]">
+        <img src={heroAsset.url} alt="" aria-hidden="true" className="absolute inset-x-0 top-0 h-[600px] w-full object-cover object-right" />
+        <div className="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-r from-[hsl(255_70%_14%/0.92)] via-[hsl(260_65%_22%/0.55)] to-transparent" />
+        <div className="absolute inset-x-0 top-[520px] h-20 bg-gradient-to-b from-transparent to-[hsl(250_60%_97%)]" />
+        <div className="relative mx-auto grid max-w-[1400px] gap-5 px-4 py-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-5">
-            <div className="pt-4 text-white">
+            <div className="relative min-h-[420px] pt-2 text-white">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-sm"><Crown className="h-4 w-4 text-amber-300" /> All-in-One Hospitality Platform</span>
-              <h1 className="mt-4 max-w-2xl text-3xl font-extrabold leading-tight md:text-5xl">
+              <h1 className="mt-4 max-w-2xl text-3xl font-extrabold leading-tight md:text-4xl xl:text-5xl">
                 Run Your Hotel, Stays, Dining, Events and Team — <span className="text-[hsl(265_90%_78%)]">All in One</span>
               </h1>
-              <p className="mt-3 max-w-xl text-white/85">PMS + CRM + Channel Manager + POS + HR & Payroll + Finance + Events + Guest Experience on a single platform.</p>
+              <p className="mt-3 max-w-xl text-white/90">PMS + CRM + Channel Manager + POS + HR & Payroll + Finance + Events + Guest Experience on a single, AI-powered platform.</p>
               <ul className="mt-4 space-y-2">
                 {["Increase Occupancy & Revenue", "Automate Daily Operations", "Manage Staff, Attendance & Salaries", "Delight Your Guests"].map((x) => (
-                  <li key={x} className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-400" /> {x}</li>
+                  <li key={x} className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 fill-emerald-500 text-white" /> {x}</li>
                 ))}
               </ul>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild className="h-11 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-6 text-white"><Link to="/partners/register">Get Started Free <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
                 <Button asChild variant="outline" className="h-11 rounded-xl border-white/60 bg-transparent px-6 text-white hover:bg-white/10 hover:text-white"><Link to="/partners/partner-with-jaaga"><CalendarDays className="mr-1 h-4 w-4" /> Book a Demo</Link></Button>
               </div>
+              <Link to="/partners/resources" className="absolute bottom-2 right-[30%] hidden max-w-[230px] items-center gap-3 rounded-2xl border border-white/30 bg-gradient-to-br from-violet-600/90 to-purple-800/90 p-3 shadow-xl backdrop-blur xl:flex">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-violet-700"><Sparkles className="h-5 w-5" /></span>
+                <span><span className="block text-sm font-bold">Ask Jaaga AI</span><span className="block text-[11px] leading-tight text-white/85">"Show today's arrivals, rooms to clean and staff on duty."</span></span>
+              </Link>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-2 rounded-2xl bg-white/90 p-3 shadow-xl backdrop-blur sm:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur sm:grid-cols-5 2xl:grid-cols-10">
               {modules.map((m) => (
-                <div key={m.t} className="relative rounded-xl border border-violet-100 bg-white p-2 text-center">
+                <div key={m.t} className={`relative rounded-xl border p-2 text-center transition hover:-translate-y-0.5 hover:shadow-md ${m.isNew ? "border-rose-200 bg-rose-50/60" : "border-violet-100 bg-white"}`}>
                   {m.isNew && <span className="absolute -top-2 right-1 rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold text-white">New</span>}
-                  <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${m.c} text-white`}><m.icon className="h-5 w-5" /></div>
+                  <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${m.c} text-white shadow-md`}><m.icon className="h-5 w-5" /></div>
                   <p className="mt-1 text-xs font-semibold text-slate-900">{m.t}</p>
                   <p className="text-[10px] leading-tight text-slate-500">{m.s}</p>
                 </div>
@@ -167,36 +172,38 @@ export default function PartnerLogin() {
             </div>
 
             <div className="rounded-2xl border border-violet-100 bg-white p-4 shadow">
-              <div className="mb-3 flex items-center gap-2"><Users className="h-6 w-6 text-violet-600" /><div><h2 className="font-bold text-violet-800">Role-Based Workspaces</h2><p className="text-xs text-slate-500">Right Access for Every Team</p></div></div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid gap-3 2xl:grid-cols-[180px_1fr] lg:items-center">
+              <div className="flex items-start gap-2"><Users className="h-7 w-7 shrink-0 text-violet-600" /><div><h2 className="text-lg font-bold leading-tight text-violet-800">Role-Based Workspaces</h2><p className="text-xs text-slate-600">Right Access for Every Team</p></div></div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 2xl:grid-cols-8">
                 {roles.map((r) => (
-                  <div key={r.t} className="rounded-xl border border-violet-100 bg-violet-50/50 p-2 text-center">
-                    <r.icon className="mx-auto h-6 w-6 text-violet-600" />
+                  <div key={r.t} className="rounded-xl border border-violet-100 bg-gradient-to-b from-violet-50 to-white p-2 text-center">
+                    <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-violet-700"><r.icon className="h-5 w-5" /></span>
                     <p className="mt-1 text-xs font-semibold text-slate-900">{r.t}</p>
-                    <p className="text-[10px] text-slate-500">{r.s}</p>
+                    <p className={`text-[10px] leading-tight ${r.s === "Full Access" ? "font-semibold text-violet-600" : "text-slate-500"}`}>{r.s}</p>
                   </div>
                 ))}
+              </div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-violet-100 bg-white p-4 shadow">
-              <div className="mb-3 flex items-center gap-2"><UserCog className="h-6 w-6 text-violet-600" /><h2 className="font-bold text-violet-800">HR & Payroll (Employees)</h2><span className="rounded-full bg-violet-600 px-2 text-xs text-white">New</span></div>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="mb-3 flex items-center gap-2"><UserCog className="h-6 w-6 text-violet-600" /><h2 className="font-bold text-violet-800">HR & Payroll (Employees)</h2><span className="rounded-full bg-rose-500 px-2 text-xs font-semibold text-white">New</span></div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {hr.map((x) => <p key={x} className="flex items-center gap-2 text-sm text-slate-700"><CheckCircle2 className="h-4 w-4 text-violet-500" /> {x}</p>)}
               </div>
             </div>
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-            <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-2xl">
+            <div className="rounded-2xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur">
               <div className="text-center">
-                <p className="text-3xl font-extrabold tracking-tight text-[hsl(255_60%_20%)]">JAAGA <span className="text-emerald-500">X</span></p>
-                <h1 className="text-lg font-bold text-slate-900">Hotel Partner Login</h1>
+                <p className="text-4xl font-extrabold tracking-tight text-[hsl(255_60%_20%)]">JAAGA <span className="text-emerald-500">X</span></p>
+                <h2 className="text-xl font-bold text-[hsl(255_60%_20%)]">Hotel Partner Login</h2>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-violet-50 p-1" role="tablist">
                 {tabs.map((t) => (
                   <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} onClick={() => setTab(t.k)}
-                    className={`rounded-lg px-1 py-2 text-xs font-medium ${tab === t.k ? "bg-violet-600 text-white shadow" : "text-slate-700 hover:bg-violet-100"}`}>{t.l}</button>
+                    className={`rounded-lg px-1 py-2 text-sm font-medium transition ${tab === t.k ? "bg-violet-600 text-white shadow" : "text-slate-700 hover:bg-violet-100"}`}>{t.l}</button>
                 ))}
               </div>
 
@@ -208,7 +215,7 @@ export default function PartnerLogin() {
                       <Input required value={propertyRef} onChange={(e) => setPropertyRef(e.target.value)} placeholder="JGX-HOT-00001" className="h-11 border-violet-200 bg-white pl-9 text-slate-900" /></div>
                     <p className="mt-1 text-xs text-slate-500">Find it in your welcome email. You will sign in on your property's staff page.</p>
                   </div>
-                  <Button type="submit" className="h-11 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-white">Continue <ArrowRight className="ml-1 h-4 w-4" /></Button>
+                  <Button type="submit" className="h-11 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-base font-semibold text-white">Continue to Staff Login <ArrowRight className="ml-1 h-4 w-4" /></Button>
                 </form>
               ) : (
                 <form onSubmit={submit} className="mt-5 space-y-4">
@@ -226,7 +233,7 @@ export default function PartnerLogin() {
                   <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-white">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign In <ArrowRight className="ml-1 h-4 w-4" /></>}
                   </Button>
-                  <div className="flex justify-end"><Link to="/partners/forgot-password" className="text-sm font-medium text-violet-600 hover:underline">Forgot Password?</Link></div>
+                  <div className="flex items-center justify-between"><label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" defaultChecked className="h-4 w-4 accent-violet-600" /> Remember me</label><Link to="/partners/forgot-password" className="text-sm font-medium text-violet-600 hover:underline">Forgot Password?</Link></div>
                 </form>
               )}
 
