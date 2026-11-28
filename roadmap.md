@@ -128,3 +128,7 @@
 - [x] Match compact purple resource cards, category icons and supplied resort photos; preserve guide, download, calculator and registration actions.
 - [x] Remove Resources header dropdown without changing navigation destinations.
 - [x] Verify desktop/695px/390px layout, loaded photos via preview asset service, no dropdown, guide popup, calculator, search and CSV download; four existing pricing tests passed. No registrations or newsletter records created.
+
+## Partner footer reference
+- [x] Update the shared public partner footer with purple resort scenery, brand block, four link columns, registration CTA and legal links; mobile layout remains visible and overflow-free.
+- [x] Verify desktop/mobile and registration navigation; resort image verified using actual preview asset response because local Vite does not serve CDN assets. Social destinations were not invented.

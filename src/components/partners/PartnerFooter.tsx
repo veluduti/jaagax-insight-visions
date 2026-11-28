@@ -1,27 +1,32 @@
 import { Link } from "react-router-dom";
-import { Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import resortAsset from "@/assets/resources-purple-resort.png.asset.json";
 
 export default function PartnerFooter() {
   return (
-    <footer className="hidden md:block js-nav border-t">
-      <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-4">
-        <div>
-          <Link to="/partners" className="flex items-center gap-2 font-bold">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-[hsl(268,84%,52%)] to-[hsl(252,85%,48%)]">
-              <Building2 className="h-4 w-4 text-white" />
-            </div>
-            JAAGA X Partners
+    <footer className="partner-platform-footer">
+      <img src={resortAsset.url} alt="" className="partner-footer-scenery" loading="lazy" />
+      <div className="partner-footer-shade" />
+      <div className="partner-footer-inner">
+        <div className="partner-footer-columns">
+          <div className="partner-footer-brand">
+          <Link to="/partners" aria-label="JAAGA X Partners" className="partner-footer-logo">
+            JAAGA <span>X</span>
           </Link>
-          <p className="mt-3 js-muted-text text-sm">
-            The complete hotel commerce platform. Grow direct bookings, sync inventory, and manage everything from one place.
-          </p>
+          <p className="partner-footer-tagline">Unified Hospitality Platform</p>
+          <p className="partner-footer-description">Manage properties, bookings and hospitality operations in one platform.</p>
+          </div>
+          <FooterCol title="Platform" items={[["Property Management", "/partners/solutions#cover"], ["Channel Manager", "/partners/solutions#integrations"], ["CRM", "/partners/solutions#needs"], ["HR & Payroll", "/partners/solutions#roles"]]} />
+          <FooterCol title="For Businesses" items={[["Hotels & Resorts", "/partners/register?type=hotel"], ["PG & Hostels", "/partners/register?type=pg"], ["Co-living", "/partners/register?type=coliving"], ["Service Apartments", "/partners/register?type=serviced_apartment"]]} />
+          <FooterCol title="Company" items={[["About Jaaga", "/about"], ["Partner with Jaaga", "/partners/partner-with-jaaga"], ["Pricing", "/partners/plans"], ["Contact", "/contact"]]} />
+          <FooterCol title="Support" items={[["Help Center", "/partners/resources#help"], ["Book a Demo", "/partners/partner-with-jaaga#enquiry"], ["Contact Support", "/contact"]]} />
+          <Button asChild variant="outline" className="partner-footer-cta"><Link to="/partners/register">List Your Property</Link></Button>
         </div>
-        <FooterCol title="Product" items={[["Why Partner", "#why"], ["Benefits", "#benefits"], ["Pricing", "#pricing"]]} />
-        <FooterCol title="Support" items={[["FAQ", "#faq"], ["Contact Sales", "#contact"], ["Help Center", "#contact"]]} />
-        <FooterCol title="Get started" items={[["Log in", "/partners/login"], ["List your hotel", "/partners/register"]]} />
-      </div>
-      <div className="js-muted-text border-t js-line-b py-4 text-center text-xs">
-        © {new Date().getFullYear()} JAAGA X. All rights reserved.
+        <div className="partner-footer-bottom">
+          <p>© {new Date().getFullYear()} JAAGA X. All rights reserved.</p>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms of Service</Link>
+        </div>
       </div>
     </footer>
   );
@@ -29,19 +34,19 @@ export default function PartnerFooter() {
 
 function FooterCol({ title, items }: { title: string; items: [string, string][] }) {
   return (
-    <div>
-      <p className="mb-3 text-sm font-semibold">{title}</p>
-      <ul className="space-y-2 js-muted-text text-sm">
+    <nav aria-label={title} className="partner-footer-links">
+      <h2>{title}</h2>
+      <ul>
         {items.map(([label, href]) => (
           <li key={label}>
             {href.startsWith("#") ? (
-              <a href={href} className="hover:text-foreground">{label}</a>
+              <a href={href}>{label}</a>
             ) : (
-              <Link to={href} className="hover:text-foreground">{label}</Link>
+              <Link to={href}>{label}</Link>
             )}
           </li>
         ))}
       </ul>
-    </div>
+    </nav>
   );
 }
